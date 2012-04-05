@@ -1,8 +1,43 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <title>Easy Post Through Browser</title>
+        <title>ohmage Easy Post</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- styles -->
+        <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+        <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+	    <link href="debug.css" rel="stylesheet">
+        <style>
+            body {
+                padding-top: 20px;
+                padding-bottom: 60px;
+                padding-right: 20px;
+                padding-left: 20px;
+            }
+            .pad-inner {
+            	padding-left: 20px;
+            }
+        </style>
+        
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+           <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
         <script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+        <script src="bootstrap/js/bootstrap.js"></script>
+        
+        <!-- 
+        	Enable to use Jeroen's Resttesttest style of debugging
+        	
+        	<script src="debug.js"></script>
+         --> 
+       
+        
         <script type="text/javascript">
             function getReCaptchaKey()
             {
@@ -52,615 +87,1674 @@
         </script>
     </head>
     <body>
-        <h2>Configuration APIs</h2>
-        <h3>Server Configuration:</h3>
-        <form id="serverConfiguration" action="/app/config/read" method="post">
-            <input type="submit" value="Submit" />
-        </form>
         
-        <h3>Registration Configuration:</h3>
-        <form id="registrationConfiguration" action="/app/registration/read" method="post">
-            <input type="submit" value="Submit" />
-        </form>
+        <div class="container-fluid">
         
-        <h2>Authentication APIs</h2>
-        <h3>Token:</h3>
-        <form action="/app/user/auth_token" method="post">
-            Username: <input type="text" name="user" /><br />
-            Password: <input type="text" name="password" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Logout:</h3>
-        <form action="/app/user/logout" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Change Password:</h3>
-        <form action="/app/user/change_password" method="post">
-            Username: <input type="text" name="user" /><br />
-            Password: <input type="text" name="password" /><br />
-            New Password: <input type="text" name="new_password" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Username of user whose password to change: <input type="text" name="username" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Audit APIs</h2>
-        <h3>Audit Read:</h3>
-        <form action="/app/audit/read" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Token: <input type="text" name="auth_token" /><br />
-            * Request Type: <input type="text" name="request_type" /><br />
-            * URI: <input type="text" name="uri" /><br />
-            * Client: <input type="text" name="client_value" /><br />
-            * Device ID: <input type="text" name="device_id_value" /><br />
-            * Response Type: <input type="text" name="response_type" /><br />
-            * ErrorCode: <input type="text" name="error_code" /><br />
-            * Start Date: <input type="text" name="start_date" /><br />
-            * End Date: <input type="text" name="end_date" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>User APIs</h2>
-        <h3>Self Registration:</h3>
-        <form id="frmRegistration" action="/app/user/register" method="post">
-            Username: <input type="text" name="username" /><br />
-            Password: <input type="text" name="password" /><br />
-            Email Address: <input type="text" name="email_address" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <div id="divReCaptcha">
-                <button id="btnGetReCaptcha" onclick="getReCaptchaKey(); return false;">Get ReCaptcha Image</button><br />
+            <div class="row-fluid">
+            	
+            	<img src="/app/ohmage-logo.png">
+            	
             </div>
-            <input type="submit" value="Submit" />
-        </form>
-    
-        <h3>Create User:</h3>
-        <form action="/app/user/create" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Username: <input type="text" name="username" /><br />
-            Password: <input type="text" name="password" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Admin: <input type="text" name="admin" /><br />
-            Enabled: <input type="text" name="enabled" /><br />
-            * New Account: <input type="text" name="new_account" /><br />
-            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
-            <input type="submit" value="Submit" />
-        </form>
         
-        <h3>User Read:</h3>
-        <form action="/app/user/read" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * User List: <input type="text" name="user_list" /><br />
-            * Username Search: <input type="text" name="username_search" /><br />
-            * Email Address Search: <input type="text" name="email_address_search" /><br />
-            * Admin: <input type="text" name="admin" /><br />
-            * Enabled: <input type="text" name="enabled" /><br />
-            * New Account: <input type="text" name="new_account" /><br />
-            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
-            * First Name Search: <input type="text" name="first_name_search" /><br />
-            * Last Name Search: <input type="text" name="last_name_search" /><br />
-            * Organization Search: <input type="text" name="organization_search" /><br />
-            * Personal ID Search: <input type="text" name="personal_id_search" /><br />
-            * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
-            * Class ID List: <input type="text" name="class_urn_list" /><br />
-            * Number to Skip: <input type="text" name="num_to_skip" /><br />
-            * Number to Return: <input type="text" name="num_to_return" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>User Search:</h3>
-        <form action="/app/user/search" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Username: <input type="text" name="username" /><br />
-            * Admin: <input type="text" name="admin" /><br />
-            * Enabled: <input type="text" name="enabled" /><br />
-            * New Account: <input type="text" name="new_account" /><br />
-            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
-            * First Name: <input type="text" name="first_name" /><br />
-            * Last Name: <input type="text" name="last_name" /><br />
-            * Organization: <input type="text" name="organization" /><br />
-            * Personal ID: <input type="text" name="personal_id" /><br />
-            * Email Address: <input type="text" name="email_address" /><br />
-            * JSON Data: <input type="text" name="json_data" /><br />
-            * Number to Skip: <input type="text" name="num_to_skip" /><br />
-            * Number to Return: <input type="text" name="num_to_return" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>User Info Read:</h3>
-        <form action="/app/user_info/read" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>User Stats:</h3>
-        <form action="/app/user_stats/read" method="post">
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Username: <input type="text" name="username" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>User Update:</h3>
-        <form action="/app/user/update" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Username: <input type="text" name="username" /><br />
-            * Email Address: <input type="text" name="email_address" /><br />
-            * Admin: <input type="text" name="admin" /><br />
-            * Enabled: <input type="text" name="enabled" /><br />
-            * New Account: <input type="text" name="new_account" /><br />
-            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
-            * First Name: <input type="text" name="first_name" /><br />
-            * Last Name: <input type="text" name="last_name" /><br />
-            * Organization: <input type="text" name="organization" /><br />
-            * Personal ID: <input type="text" name="personal_id" /><br />
-            * Delete Personal Info: <input type="text" name="delete_personal_info" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Delete User:</h3>
-        <form action="/app/user/delete" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            User List: <input type="text" name="user_list" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Campaign APIs</h2>
-        <h3>Campaign Create:</h3>
-        <form action="/app/campaign/create" enctype="multipart/form-data" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Running State: <input type="text" name="running_state" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Class ID List: <input type="text" name="class_urn_list" /><br />
-            XML: <input type="file" name="xml" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Description: <input type="text" name="description" /><br />
-            <input type="submit" value="Submit" />
-        </form>
+            <div class="row-fluid">
+                <div class="span5 columns">
+                
+	                <div class="accordion" id="accordion_top">
+	    				
+    					<div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseConfiguration">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Configuration APIs</button>
+					    	    </a>
+					    	</div>
+					    	<div id="collapseConfiguration" class="accordion-body collapse" style="height: 0px; ">
+					    
+					    	    <div class="accordion" id="accordion_configuration">
+									<div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_configuration" href="#collapseOne">
+								    	        Server Configuration
+								    	    </a>
+								    	</div>
+								    	<div id="collapseOne" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								    	        <form id="serverConfiguration" action="/app/config/read" method="post" class="well" target="outputframe">
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+				                    </div>
+				                    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_configuration" href="#collapseTwo">
+								    	        Registration Configuration
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner">
+								                <form id="registrationConfiguration" action="/app/registration/read" method="post" class="well" target="outputframe">
+								                     <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							    	</div>
+						    	</div>
+						    	
+    					    </div>
+    					</div>
+	    					
+	    		
+	    				<div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseAuthentication">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Authentication APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseAuthentication" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-authentication">
+	    					    
+								    <div class="accordion-group">
+								       	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseThree">
+								    	        Token-Based Authentication
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThree" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"   >
+								                <form action="/app/user/auth_token" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Username</label>
+								                    <input type="text" name="user">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input class="btn" type="submit" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+							        <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseFour">
+								    	        Logout
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFour" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/logout" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input class="btn" type="submit" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseFive">
+								    	        Change Password
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFive" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/change_password" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Username</label>
+								                    <input type="text" name="user">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> New Password</label>
+								                    <input type="text" name="new_password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Username of user whose password to change</label>
+								                    <input type="text" name="username">
+								                    <br>
+								                    <input class="btn" type="submit" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+	    					    </div>
+	    					</div>
+	    				</div>
+	    				
+	    				
+	    				<div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseAudit">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Audit APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseAudit" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-audit">
+	    					    
+								 	<div class="accordion-group">
+					    				<div class="accordion-heading pad-inner">
+					    	    			<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-audit" href="#collapseSix">
+					    	        			Audit Read
+						    	    		</a>
+						    			</div>
+						    			<div id="collapseSix" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/audit/read" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Request Type</label>
+								                    <input type="text" name="request_type">
+								                    <label>URI</label>
+								                    <input type="text" name="uri">
+								                    <label>Client</label>
+								                    <input type="text" name="client_value">
+								                    <label>Device ID</label>
+								                    <input type="text" name="device_id_value">
+								                    <label>Response Type</label>
+								                    <input type="text" name="response_type">
+								                    <label>ErrorCode</label>
+								                    <input type="text" name="error_code">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+	    					    </div>
+    					    </div>
+	    				</div>
+					    
+					    
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseRegistration">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Registration APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseRegistration" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-registration">
+	    					    
+		    					    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-registation" href="#collapseSeven">
+								    	        Self-Registration
+								    	    </a>
+								    	</div>
+								    	<div id="collapseSeven" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form id="frmRegistration" action="/app/user/register" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Username</label>
+								                    <input type="text" name="username">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                     <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Email Address</label>
+								                    <input type="text" name="email_address">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost" />
+								                    <div id="divReCaptcha">
+								                        <button id="btnGetReCaptcha" class="btn" onclick="getReCaptchaKey(); return false;">Get ReCaptcha Image</button>
+								                    </div>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+							    </div>
+    					    </div>
+   					    </div>
+					    
+					    
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseUser">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> User APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseUser" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-user">
+	    					    
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseEight">
+								    	        Create User
+								    	    </a>
+								    	</div>
+								    	<div id="collapseEight" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/create" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Username</label>
+								                    <input type="text" name="username">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Admin</label>
+								                    <input type="text" name="admin">
+								                    <label><span class="label label-info">required</span> Enabled</label>
+								                    <input type="text" name="enabled">
+								                    <label>New Account</label>
+								                    <input type="text" name="new_account">
+								                    <label>Campaign Creation Privilege</label>
+								                    <input type="text" name="campaign_creation_privilege">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseNine">
+								    	        User Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseNine" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/read" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>User List</label>
+								                    <input type="text" name="user_list">
+								                    <label>Username Search</label>
+								                    <input type="text" name="username_search">
+								                    <label>Email Address Search</label>
+										            <input type="text" name="email_address_search">
+										            <label>Admin</label>
+										            <input type="text" name="admin">
+										            <label>Enabled</label>
+										            <input type="text" name="enabled">
+										            <label>New Account</label>
+										            <input type="text" name="new_account">
+										            <label>Campaign Creation Privilege</label>
+										            <input type="text" name="campaign_creation_privilege">
+										            <label>First Name Search</label>
+										            <input type="text" name="first_name_search">
+										            <label>Last Name Search</label>
+										            <input type="text" name="last_name_search">
+										            <label>Organization Search</label>
+										            <input type="text" name="organization_search">
+										            <label>Personal ID Search</label>
+										            <input type="text" name="personal_id_search">
+										            <label>Campaign ID List</label>
+								                    <input type="text" name="campaign_urn_list">
+								                    <label>Class ID List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label>Number to Skip</label>
+								                    <input type="text" name="num_to_skip">
+								                    <label>Number to Return</label>
+								                    <input type="text" name="num_to_return">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseTen">
+								    	        User Search
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/search" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Username</label>
+								                    <input type="text" name="username">
+								                    <label>Admin</label>
+								                    <input type="text" name="admin">
+								                    <label>Enabled</label> <input type="text" name="enabled">
+								                    <label>New Account</label>
+								                    <input type="text" name="new_account">
+								                    <label>Campaign Creation Privilege</label>
+								                    <input type="text" name="campaign_creation_privilege">
+								                    <label>First Name</label>
+								                    <input type="text" name="first_name">
+								                    <label>Last Name</label>
+								                    <input type="text" name="last_name">
+								                    <label>Organization</label>
+								                    <input type="text" name="organization">
+								                    <label>Personal ID</label>
+								                    <input type="text" name="personal_id">
+								                    <label>Email Address</label>
+								                    <input type="text" name="email_address">
+								                    <label>JSON Data</label>
+								                    <input type="text" name="json_data">
+								                    <label>Number to Skip</label>
+								                    <input type="text" name="num_to_skip">
+								                    <label>Number to Return</label>
+								                    <input type="text" name="num_to_return">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">    
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseEleven">
+								    	        User Info Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseEleven" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user_info/read" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+								    <div class="accordion-group">    
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseTwelve">
+								    	        User Stats
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwelve" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user_stats/read" method="post" class="well" target="outputframe">
+								                     <label><span class="label label-info">required</span> Campaign ID</label>
+								                     <input type="text" name="campaign_urn">
+								                     <label><span class="label label-info">required</span> Username</label>
+								                     <input type="text" name="username">
+								                     <label><span class="label label-info">required</span> Client</label>
+								                     <input type="text" name="client" value="ohmageEasyPost">
+								                     <br>
+								                     <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+									<div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseThirteen">
+								    	        User Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirteen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/update" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Username</label>
+								                    <input type="text" name="username">
+								                    <label>Email Address</label>
+								                    <input type="text" name="email_address">
+								                    <label>Admin</label>
+								                    <input type="text" name="admin">
+								                    <label>Enabled</label>
+								                    <input type="text" name="enabled">
+								                    <label>New Account</label>
+								                    <input type="text" name="new_account">
+								                    <label>Campaign Creation Privilege</label>
+								                    <input type="text" name="campaign_creation_privilege">
+								                    <label>First Name</label>
+								                    <input type="text" name="first_name">
+								                    <label>Last Name</label>
+								                    <input type="text" name="last_name">
+								                    <label>Organization</label>
+								                    <input type="text" name="organization">
+								                    <label>Personal ID</label>
+								                    <input type="text" name="personal_id">
+								                    <label>Delete Personal Info</label>
+								                    <input type="text" name="delete_personal_info">
+								                    <label>Client:</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseFourteen">
+								    	        User Delete
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFourteen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/user/delete" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> User List</label>
+								                    <input type="text" name="user_list">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+	    					    </div>
+    					    </div>
+   					    </div>
+					    
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseCampaign">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Campaign APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseCampaign" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-campaign">
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner"> 
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseFifteen">
+								    	        Campaign Create
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFifteen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/campaign/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Running State</label>
+								                    <input type="text" name="running_state">
+								                    <label><span class="label label-info">required</span> Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label><span class="label label-info">required</span> Class ID List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label><span class="label label-info">required</span> XML</label>
+								                    <input type="file" name="xml">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Description</label>
+								                    <input type="text" name="description">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseSixteen">
+								    	        Campaign Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseSixteen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/campaign/read" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Output Format</label>
+								                    <input type="text" name="output_format">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Campaign URN List</label>
+								                    <input type="text" name="campaign_urn_list">
+								                    <label>Class URN List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label>Name Search</label>
+								                    <input type="text" name="campaign_name_search">
+								                    <label>Description Search</label>
+            										<input type="text" name="campaign_description_search">
+            										<label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Running State</label>
+								                    <input type="text" name="running_state">
+								                    <label>Campaign Role</label>
+								                    <input type="text" name="user_role">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseSeventeen">
+								    	        Campaign Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseSeventeen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/campaign/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>New Running State</label>
+								                    <input type="text" name="running_state">
+								                    <label>New Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Class ID List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label>XML</label>
+								                    <input type="file" name="xml">
+								                    <label>Description</label>
+								                    <input type="text" name="description">
+								                    <label>User-Role List Add:</label>
+								                    <input type="text" name="user_role_list_add">
+								                    <label>User-Role List Remove</label>
+								                    <input type="text" name="user_role_list_remove">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseEighteen">
+								    	        Campaign Delete
+								    	    </a>
+								    	</div>
+								    	<div id="collapseEighteen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/campaign/delete" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+								</div>
+							</div>
+						</div>
+				        
+				        
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseClass">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Class APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseClass" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-class">
+	    					    
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseNineteen">
+								    	        Class Create
+								    	    </a>
+								    	</div>
+								    	<div id="collapseNineteen" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                 <form action="/app/class/create" method="post" class="well" target="outputframe">
+								                     <label><span class="label label-info">required</span> Token</label>
+								                     <input type="text" name="auth_token">
+								                     <label><span class="label label-info">required</span> Class ID</label>
+								                     <input type="text" name="class_urn">
+								                     <label><span class="label label-info">required</span> Class Name</label>
+								                     <input type="text" name="class_name">
+								                     <label><span class="label label-info">required</span> Client</label>
+								                     <input type="text" name="client" value="ohmageEasyPost">
+								                     <label>Description</label>
+								                     <input type="text" name="description">
+								                     <br>
+								                     <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwenty">
+								    	        Class Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwenty" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/class/read" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Class List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label><span class="label label-info">optional</span> Name Search</label>
+								                    <input type="text" name="class_name_search">
+								                    <label><span class="label label-info">optional</span> Description Search</label>
+										            <input type="text" name="class_description_search">
+										            <label><span class="label label-info">optional</span> Role</label>
+										            <input type="text" name="class_role">
+										            <label>With User List</label>
+								                    <input type="text" name="with_user_list">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyOne">
+								    	        Class Search
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/class/search" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Class ID</label>
+								                    <input type="text" name="class_urn">
+								                    <label>Class Name</label>
+								                    <input type="text" name="class_name">
+								                    <label>Description</label>
+								                    <input type="text" name="description">
+								                    <label>Num to Skip</label>
+								                    <input type="text" name="num_to_skip">
+								                    <label>Num to Return</label>
+								                    <input type="text" name="num_to_return">
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyTwo">
+								    	        Class Roster Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/class/roster/read" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Class List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyThree">
+								    	        Class Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyThree" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/class/update" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Class ID</label>
+								                    <input type="text" name="class_urn">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>New Name</label>
+								                    <input type="text" name="class_name">
+								                    <label>New Description</label>
+								                    <input type="text" name="description">
+								                    <label>User List Add</label>
+								                    <input type="text" name="user_role_list_add">
+								                    <label>Privileged User List Add</label>
+								                    <input type="text" name="privileged_user_list_add">
+								                    <label>User List Remove</label>
+								                    <input type="text" name="user_list_remove">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+									<div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyFour">
+								    	        Class Roster Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyFour" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/class/roster/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Roster</label>
+								                    <input type="file" name="roster">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyFive">
+								    	        Class Delete
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyFive" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/class/delete" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Class ID</label>
+								                    <input type="text" name="class_urn">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+						        </div>
+    					    </div>
+   					    </div>
+				        
+				        
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseDocument">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Document APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseDocument" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-document">
+								    <div class="accordion-group">    
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentySix">
+								    	        Document Create
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentySix" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/document/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label><span class="label label-info">required</span> Name</label>
+								                    <input type="text" name="document_name">
+								                    <label><span class="label label-info">required</span> Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label><span class="label label-info">required</span> Document</label>
+								                    <input type="file" name="document">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label">either this ...</span> Campaign-Role List</label>
+								                    <input type="text" name="document_campaign_role_list">
+								                    <label><span class="label">or this ...</span> Class-Role List</label>
+								                    <input type="text" name="document_class_role_list">
+								                    <label>Description</label> <input type="text" name="description" />
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+									<div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentySeven">
+								    	        Document Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentySeven" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/document/read" method="post" class="well" target="outputframe">
+								                	<label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Personal Documents</label>
+								                    <input type="text" name="personal_documents">
+								                    <label>Campaign ID List</label>
+								                    <input type="text" name="campaign_urn_list">
+								                    <label>Class ID List</label>
+								                    <input type="text" name="class_urn_list">
+								                    <label>Name Search</label>
+								                    <input type="text" name="document_name_search">
+								                    <label>Description Search</label>
+            										<input type="text" name="document_description_search">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								      </div>
+								      <div class="accordion-group">  
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentyEight">
+								    	        Document Read Contents
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyEight" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/document/read/contents" method="post" class="well" target="outputframe">
+								                    <label>Document ID</label>
+								                    <input type="text" name="document_id">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentyNine">
+								    	        Document Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseTwentyNine" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/document/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                    <label>Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Document ID</label>
+								                    <input type="text" name="document_id">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>New Name</label>
+								                    <input type="text" name="document_name">
+								                    <label>New Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>New Contents</label>
+								                    <input type="file" name="document">
+								                    <label>New Description</label>
+								                    <input type="text" name="description">
+								                    <label>Campaign-Role List Add</label>
+								                    <input type="text" name="campaign_role_list_add">
+								                    <label>Campaign List Remove</label>
+								                    <input type="text" name="campaign_list_remove">
+								                    <label>Class-Role List Add</label>
+								                    <input type="text" name="class_role_list_add">
+								                    <label>Class List Remove</label>
+								                    <input type="text" name="class_list_remove">
+								                    <label>User-Role List Add</label>
+								                    <input type="text" name="user_role_list_add">
+								                    <label>User List Remove</label>
+								                    <input type="text" name="user_list_remove">
+								                    <br>
+								                   <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseThirty">
+								    	        Document Delete
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirty" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/document/delete" method="post" class="well" target="outputframe">
+								                    <label>Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Document ID</label>
+								                    <input type="text" name="document_id">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+							    </div>
+    					    </div>
+   					    </div>
+				        
+				        
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseSurvey">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Survey APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseSurvey" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-survey">
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyOne">
+								    	        Survey Response Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/survey_response/read" method="post" class="well" target="outputframe">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Column List</label>
+								                    <input type="text" name="column_list">
+								                    <label>Output Format</label>
+								                    <input type="text" name="output_format">
+								                    <label>User List</label>
+								                    <input type="text" name="user_list">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>+ Survey ID List</label>
+								                    <input type="text" name="survey_id_list">
+								                    <label>+ Prompt ID List</label>
+								                    <input type="text" name="prompt_id_list">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Suppress Metadata</label>
+								                    <input type="text" name="suppress_metadata">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Sort Order</label>
+								                    <input type="text" name="sort_order">
+								                    <label>Pretty Print</label>
+								                    <input type="text" name="pretty_print">
+								                    <label>Return ID</label>
+								                    <input type="text" name="return_id">
+								                    <label>Collapse</label>
+								                    <input type="text" name="collapse">
+								                    <label>Survey Response ID List</label>
+								                    <input type="text" name="survey_response_id_list">
+								                    <label>Num Responses to Skip</label>
+								                    <input type="text" name="num_to_skip">
+								                    <label>Num Responses to Process</label>
+								                    <input type="text" name="num_to_return">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyTwo">
+								    	        Survey Response Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/survey_response/update" method="post" class="well" target="outputframe">
+								                    <label>Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Survey ID List</label>
+								                    <input type="text" name="survey_response_id_list">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							         </div>
+							         <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyThree">
+								    	        Image Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyThree" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/image/read" method="post" class="well" target="outputframe">
+								                    <label>Image ID</label>
+								                    <input type="text" name="id">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Size</label>
+								                    <input type="text" name="size">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyFour">
+								    	        Survey Response Function Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyFour" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/survey_response/function/read" method="post" class="well" target="outputframe">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Function ID</label>
+								                    <input type="text" name="id">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Privacy State Items</label>
+								                    <input type="text" name="privacy_state_item_list">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyFive">
+								    	        Survey Response Delete
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyFive" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/survey_response/delete" method="post" class="well" target="outputframe">
+								                    <label>Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Survey Response ID</label>
+								                    <input type="text" name="survey_id">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+								</div>
+    					    </div>
+   					    </div>
+				        
 
-        <h3>Campaign Read:</h3>
-        <form action="/app/campaign/read" method="post">
-            Output Format: <input type="text" name="output_format" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Campaign URN List: <input type="text" name="campaign_urn_list" /><br />
-            * Class URN List: <input type="text" name="class_urn_list" /><br />
-            * Name Search: <input type="text" name="campaign_name_search" /><br />
-            * Description Search: <input type="text" name="campaign_description_search" /><br />
-            * Start Date: <input type="text" name="start_date" /><br />
-            * End Date: <input type="text" name="end_date" /><br />
-            * Privacy State: <input type="text" name="privacy_state" /><br />
-            * Running State: <input type="text" name="running_state" /><br />
-            * Campaign Role: <input type="text" name="user_role" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Campaign Update:</h3>
-        <form action="/app/campaign/update" enctype="multipart/form-data" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * New Running State: <input type="text" name="running_state" /><br />
-            * New Privacy State: <input type="text" name="privacy_state" /><br />
-            * Class ID List: <input type="text" name="class_urn_list" /><br />
-            * XML: <input type="file" name="xml" /><br />
-            * Description: <input type="text" name="description" /><br />
-            * User-Role List Add: <input type="text" name="user_role_list_add" /><br />
-            * User-Role List Remove: <input type="text" name="user_role_list_remove" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Campaign Delete:</h3>
-        <form action="/app/campaign/delete" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Class APIs</h2>
-        <h3>Create Class:</h3>
-        <form action="/app/class/create" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Class ID: <input type="text" name="class_urn" /><br />
-            Class Name: <input type="text" name="class_name" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Description: <input type="text" name="description" /><br />
-            <input type="submit" value="Submit" />
-        </form>
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseMobility">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Mobility APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseMobility" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-mobility">
+									<div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtySix">
+								    	        Mobility Dates Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtySix" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/mobility/dates/read" method="post" class="well" target="outputframe">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Username</label>
+								                    <input type="text" name="username">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+									<div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtySeven">
+								    	        Mobility Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtySeven" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/mobility/read" method="post" class="well" target="outputframe">
+								                    <label>Date</label>
+								                    <input type="text" name="date">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Username</label>
+								                    <input type="text" name="username">
+								                    <label>+ With Sensor Data</label>
+								                    <input type="text" name="with_sensor_data">
+								                    <label>+ Columns</label>
+								                    <input type="text" name="column_list">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtyEight">
+								    	        Mobility Read CSV
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyEight" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/mobility/read/csv" method="post" class="well" target="outputframe">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Username</label>
+								                    <input type="text" name="username">
+								                    <label>Columns</label>
+								                    <input type="text" name="column_list">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtyNine">
+								    	        Mobility Chunked Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseThirtyNine" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/mobility/read/chunked" method="post" class="well" target="outputframe">
+								                    <label>User</label>
+								                    <input type="text" name="user">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+   								</div>
+							</div>
+						</div>
 
-        <h3>Class Read:</h3>
-        <form action="/app/class/read" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Class List: <input type="text" name="class_urn_list" /><br />
-            * Name Search: <input type="text" name="class_name_search" /><br />
-            * Description Search: <input type="text" name="class_description_search" /><br />
-            * Role <input type="text" name="class_role" /><br />
-            * With User List <input type="text" name="with_user_list" /><br />
-            <input type="submit" value="Submit" />
-        </form>
 
-        <h3>Class Search:</h3>
-        <form action="/app/class/search" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Class ID: <input type="text" name="class_urn" /><br />
-            * Class Name: <input type="text" name="class_name" /><br />
-            * Description: <input type="text" name="description" /><br />
-            * Num to Skip: <input type="text" name="num_to_skip" /><br />
-            * Num to Return: <input type="text" name="num_to_return" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Class Roster Read:</h3>
-        <form action="/app/class/roster/read" method="post">
-            Class List: <input type="text" name="class_urn_list" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Class Update:</h3>
-        <form action="/app/class/update" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Class ID: <input type="text" name="class_urn" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * New Name: <input type="text" name="class_name" /><br />
-            * New Description: <input type="text" name="description" /><br />
-            * User List Add: <input type="text" name="user_role_list_add" /><br />
-            * Privileged User List Add: <input type="text" name="privileged_user_list_add" /><br />
-            * User List Remove: <input type="text" name="user_list_remove" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Class Roster Update:</h3>
-        <form action="/app/class/roster/update" enctype="multipart/form-data" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Roster: <input type="file" name="roster" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Delete Class:</h3>
-        <form action="/app/class/delete" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Class ID: <input type="text" name="class_urn" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Document APIs</h2>
-        <h3>Document Creation:</h3>
-        <form action="/app/document/create" enctype="multipart/form-data" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Name: <input type="text" name="document_name" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Document: <input type="file" name="document" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            + Campaign-Role List: <input type="text" name="document_campaign_role_list" /><br />
-            + Class-Role List: <input type="text" name="document_class_role_list" /><br />
-            * Description: <input type="text" name="description" /><br />
-            <input type="submit" value="Submit" />
-        </form>
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseVisualization">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Visualization APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseVisualization" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-visualization">
+	    					    
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty">
+								    	        Survey Response Count Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/survey_response_count/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Aggregate</label>
+								                    <input type="text" name="aggregate">
+								                    <label>Client:</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseFortyOne">
+								    	        Survey Responses Privacy State Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFortyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/survey_responses_privacy_state/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost" />
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+							            <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseFortyTwo">
+								    	        Survey Responses Privacy State Over Time Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFortyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/survey_responses_privacy_state_time/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Aggregate</label>
+								                    <input type="text" name="aggregate">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty43">
+								    	        User Timeseries Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty43" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/user_timeseries/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <label>User</label>
+								                    <input type="text" name="user">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty44">
+								    	        Prompt Timeseries Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty44" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/prompt_timeseries/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label> 
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Aggregate</label>
+								                    <input type="text" name="aggregate">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty45">
+								    	        Prompt Distribution Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty45" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/prompt_distribution/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty46">
+								    	        Scatter Plot Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty46" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/scatter_plot/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <label>Prompt2 ID</label>
+								                    <input type="text" name="prompt2_id">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty47">
+								    	        2D Density Visualization
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty47" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/viz/2d_density/read" method="post" class="well" target="outputframe">
+								                    <label>Width</label>
+								                    <input type="text" name="width">
+								                    <label>Height</label>
+								                    <input type="text" name="height">
+								                    <label>Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <label>Prompt2 ID</label>
+								                    <input type="text" name="prompt2_id">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+	    					    </div>
+    					    </div>
+   					    </div>
 
-        <h3>Document Read:</h3>
-        <form action="/app/document/read" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Personal Documents: <input type="text" name="personal_documents" /><br />
-            * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
-            * Class ID List: <input type="text" name="class_urn_list" /><br />
-            * Name Search: <input type="text" name="document_name_search" /><br />
-            * Description Search: <input type="text" name="document_description_search" /><br />
-            <input type="submit" value="Submit" />
-        </form>
+				        
+					    <div class="accordion-group">
+    						<div class="accordion-heading">
+					    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseAnnotation">
+					    	        <button class="btn btn-primary"><i class="icon-plus"></i> Annotation APIs</button>
+					    	    </a>
+					    	</div>
+	    					<div id="collapseAnnotation" class="accordion-body collapse" style="height: 0px; ">
+	    					    
+	    					    <div class="accordion" id="accordion-annotation">
+	    					    
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseForty48">
+								    	        Create Survey Response Annotation
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty48" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/annotation/survey_response/create" method="post" class="well" target="outputframe">
+								                    <label>Auth Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Survey ID</label>
+								                    <input type="text" name="survey_id">
+								                    <label>Time</label>
+								                    <input type="text" name="time" value="0">
+								                    <label>Timezone</label>
+								                    <input type="text" name="timezone" value="America/Los_Angeles">
+								                    <label>Annotation Text</label>
+								                    <input type="text" name="annotation">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseForty49">
+								    	        Read Survey Response Annotation
+								    	    </a>
+								    	</div>
+								    	<div id="collapseForty49" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/annotation/survey_response/read" method="post" class="well" target="outputframe">
+								                    <label>Auth Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Survey ID</label>
+								                    <input type="text" name="survey_id">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFifty">
+								    	        Create Prompt Response Annotation
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFifty" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/annotation/prompt_response/create" method="post" class="well" target="outputframe">
+								                    <label>Auth Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Survey ID</label>
+								                    <input type="text" name="survey_id">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <label>Repeatable Set ID</label>
+								                    <input type="text" name="repeatable_set_id">
+								                    <label>Repeatable Set Iteration</label>
+								                    <input type="text" name="repeatable_set_iteration">
+								                    <label>Time</label>
+								                    <input type="text" name="time" value="0">
+								                    <label>Timezone</label>
+								                    <input type="text" name="timezone" value="America/Los_Angeles">
+								                    <label>Annotation Text</label>
+								                    <input type="text" name="annotation">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+									<div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFiftyOne">
+								    	        Read Prompt Response Annotation
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFiftyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/annotation/prompt_response/read" method="post" class="well" target="outputframe">
+								                    <label>Auth Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Survey ID</label>
+								                    <input type="text" name="survey_id">
+								                    <label>Prompt ID</label>
+								                    <input type="text" name="prompt_id">
+								                    <label>Repeatable Set ID</label>
+								                    <input type="text" name="repeatable_set_id">
+								                    <label>Repeatable Set Iteration</label>
+								                    <input type="text" name="repeatable_set_iteration">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+							        </div>
+							        <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFiftyTwo">
+								    	        Annotation Update
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFiftyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/annotation/update" method="post" class="well" target="outputframe">
+								                    <label>Auth Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Annotation ID</label>
+								                    <input type="text" name="annotation_id">
+								                    <label>Time</label>
+								                    <input type="text" name="time" value="0">
+								                    <label>Timezone</label>
+								                    <input type="text" name="timezone" value="America/Los_Angeles">
+								                    <label>Annotation Text</label>
+								                    <input type="text" name="annotation" />
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFiftyThree">
+								    	        Annotation Delete
+								    	    </a>
+								    	</div>
+								    	<div id="collapseFiftyThree" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/annotation/delete" method="post" class="well" target="outputframe">
+								                    <label>Auth Token</label>
+								                    <input type="text" name="auth_token">
+								                    <label>Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Annotation ID</label>
+								                    <input type="text" name="annotation_id">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+    						    </div>
+    					    </div>
+   					    </div>
+   					    
+			    	</div> <!--  end top-level accordion -->
 
-        <h3>Document Read Contents:</h3>
-        <form action="/app/document/read/contents" method="post">
-            Document ID: <input type="text" name="document_id" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Document Update:</h3>
-        <form action="/app/document/update" enctype="multipart/form-data" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Document ID: <input type="text" name="document_id" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * New Name: <input type="text" name="document_name" /><br />
-            * New Privacy State: <input type="text" name="privacy_state" /><br />
-            * New Contents: <input type="file" name="document" /><br />
-            * New Description: <input type="text" name="description" /><br />
-            * Campaign-Role List Add: <input type="text" name="campaign_role_list_add" /><br />
-            * Campaign List Remove: <input type="text" name="campaign_list_remove" /><br />
-            * Class-Role List Add: <input type="text" name="class_role_list_add" /><br />
-            * Class List Remove: <input type="text" name="class_list_remove" /><br />
-            * User-Role List Add: <input type="text" name="user_role_list_add" /><br />
-            * User List Remove: <input type="text" name="user_list_remove" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Document Delete:</h3>
-        <form action="/app/document/delete" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Document ID: <input type="text" name="document_id" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Survey Response APIs</h2>
-        <h3>Survey Response Read:</h3>
-        <form action="/app/survey_response/read" method="post">
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Column List: <input type="text" name="column_list" /><br />
-            Output Format: <input type="text" name="output_format" /><br />
-            User List: <input type="text" name="user_list" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            + Survey ID List: <input type="text" name="survey_id_list" /><br />
-            + Prompt ID List: <input type="text" name="prompt_id_list" /><br />
-            * Privacy State: <input type="text" name="privacy_state" /><br />
-            * Suppress Metadata: <input type="text" name="suppress_metadata" /><br />
-            * Start Date: <input type="text" name="start_date" /><br />
-            * End Date: <input type="text" name="end_date" /><br />
-            * Sort Order: <input type="text" name="sort_order" /><br />
-            * Pretty Print: <input type="text" name="pretty_print" /><br />
-            * Return ID: <input type="text" name="return_id" /><br />
-            * Collapse: <input type="text" name="collapse" /><br />
-            * Survey Response ID List: <input type="text" name="survey_response_id_list" /><br />
-            * Num Responses to Skip: <input type="text" name="num_to_skip" /><br />
-            * Num Responses to Process: <input type="text" name="num_to_return" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Survey Response Update:</h3>
-        <form action="/app/survey_response/update" method="post">
-            Token: <input type="text" name="auth_token" /><br />
-            Survey ID List: <input type="text" name="survey_response_id_list" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Image Read:</h3>
-        <form action="/app/image/read" method="post">
-            Image ID: <input type="text" name="id" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Size: <input type="text" name="size" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-        <h3>Survey Function Read:</h3>
-        <form action="/app/survey_response/function/read" method="post">
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Function ID: <input type="text" name="id" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Privacy State Items: <input type="text" name="privacy_state_item_list" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Survey Response Delete</h3>
-        <form action="/app/survey_response/delete" method="post">
-            gToken: <input type="text" name="auth_token" /><br />
-            Survey Response ID: <input type="text" name="survey_id" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-        <h2>Mobility APIs</h2>
-        <h3>Mobility Dates Read:</h3>
-        <form action="/app/mobility/dates/read" method="post">
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Username: <input type="text" name="username" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Mobility Read:</h3>
-        <form action="/app/mobility/read" method="post">
-            Date: <input type="text" name="date" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Username: <input type="text" name="username" /><br />
-            + With Sensor Data: <input type="text" name="with_sensor_data" /><br />
-            + Columns: <input type="text" name="column_list" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Mobility Read CSV:</h3>
-        <form action="/app/mobility/read/csv" method="post">
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            * Start Date: <input type="text" name="start_date" /><br />
-            * End Date: <input type="text" name="end_date" /><br />
-            * Username: <input type="text" name="username" /><br />
-            * Columns: <input type="text" name="column_list" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-        <h3>Mobility Chunked Read:</h3>
-        <form action="/app/mobility/read/chunked" method="post">
-            User: <input type="text" name="user" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Visualization APIs</h2>
-        <h3>Survey Response Count Visualization:</h3>
-        <form action="/app/viz/survey_response_count/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Aggregate: <input type="text" name="aggregate" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Survey Responses Privacy State Visualization:</h3>
-        <form action="/app/viz/survey_responses_privacy_state/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Survey Responses Privacy State Over Time Visualization:</h3>
-        <form action="/app/viz/survey_responses_privacy_state_time/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Aggregate: <input type="text" name="aggregate" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>User Timeseries Visualization:</h3>
-        <form action="/app/viz/user_timeseries/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            User: <input type="text" name="user" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Prompt Timeseries Visualization:</h3>
-        <form action="/app/viz/prompt_timeseries/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Aggregate: <input type="text" name="aggregate" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Prompt Distribution Visualization:</h3>
-        <form action="/app/viz/prompt_distribution/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>Scatter Plot Visualization:</h3>
-        <form action="/app/viz/scatter_plot/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            Prompt2 ID: <input type="text" name="prompt2_id" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h3>2D Density Visualization:</h3>
-        <form action="/app/viz/2d_density/read" method="post">
-            Width: <input type="text" name="width" /><br />
-            Height: <input type="text" name="height" /><br />
-            Campaign ID: <input type="text" name="campaign_urn" /><br />
-            Start Date: <input type="text" name="start_date" /><br />
-            End Date: <input type="text" name="end_date" /><br />
-            Privacy State: <input type="text" name="privacy_state" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            Prompt2 ID: <input type="text" name="prompt2_id" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-        
-        <h2>Survey Response Annotation APIs</h2>
-        
-        <h3>Create Survey Response Annotation:</h3>
-        <form action="/app/annotation/survey_response/create" method="post">
-            Auth Token: <input type="text" name="auth_token" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Survey ID: <input type="text" name="survey_id" /><br />
-            Time: <input type="text" name="time" value="0"/><br />
-            Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
-            Annotation Text: <input type="text" name="annotation" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-        <h3>Read Survey Response Annotations:</h3>
-        <form action="/app/annotation/survey_response/read" method="post">
-            Auth Token: <input type="text" name="auth_token" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Survey ID: <input type="text" name="survey_id" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-	
-	    <h2>Prompt Response Annotation APIs</h2>
-
-        <h3>Create Prompt Response Annotation:</h3>
-        <form action="/app/annotation/prompt_response/create" method="post">
-            Auth Token: <input type="text" name="auth_token" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Survey ID: <input type="text" name="survey_id" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            * Repeatable Set ID: <input type="text" name="repeatable_set_id" /><br />
-            * Repeatable Set Iteration: <input type="text" name="repeatable_set_iteration" /><br />
-            Time: <input type="text" name="time" value="0"/><br />
-            Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
-            Annotation Text: <input type="text" name="annotation" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-        <h3>Read Prompt Response Annotations:</h3>
-        <form action="/app/annotation/prompt_response/read" method="post">
-            Auth Token: <input type="text" name="auth_token" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Survey ID: <input type="text" name="survey_id" /><br />
-            Prompt ID: <input type="text" name="prompt_id" /><br />
-            * Repeatable Set ID: <input type="text" name="repeatable_set_id" /><br />
-            * Repeatable Set Iteration: <input type="text" name="repeatable_set_iteration" /><br />
-            <input type="submit" value="Submit" />
-        </form>
+		    	</div> <!--  end colspan -->
+		     
+	        	<div class="span5 columns">		
+			    	
+			    	<!-- 
+			    		Enable to use Jeroen's Resttesttest style of debugging
+			    	
+			    	<div id="errordiv" > </div>
+		            
+		            <div id="cookiediv" class="well">
+		     
+		     	        <legend> Local Cookies </legend>
+		     	 
+		     	        <table class="table table-bordered">
+			     	        <tbody id="cookietablebody">  </tbody>
+		     	        </table>
 		
-		<h2>Update Annotation:</h2>
-        <form action="/app/annotation/update" method="post">
-            Auth Token: <input type="text" name="auth_token" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Annotation ID: <input type="text" name="annotation_id" /><br />
-            Time: <input type="text" name="time" value="0"/><br />
-            Timezone: <input type="text" name="timezone" value="America/Los_Angeles" /><br />
-            Annotation Text: <input type="text" name="annotation" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-
-		<h2>Delete Annotation:</h2>
-        <form action="/app/annotation/delete" method="post">
-            Auth Token: <input type="text" name="auth_token" /><br />
-            Client: <input type="text" name="client" value="testWeb" /><br />
-            Annotation ID: <input type="text" name="annotation_id" /><br />
-            <input type="submit" value="Submit" />
-        </form>
-		
+				        <div id="cookiewarningdiv">	</div>
+				     </div>
+				     
+		             <div id="ajaxoutput">
+		                    <pre id="statuspre">0</pre> 
+		                    <pre class="pre-scrollable prettyprint linenums" id="outputpre"></pre>
+		                    <pre class="pre-scrollable prettyprint linenums" id="headerpre"></pre>
+		             </div>
+		      		 -->
+		      		
+		      		
+		            <iframe id="outputframe" style="width: 100%; height: 100%; "></iframe>
+	                
+	                
+	       	 	</div> <!--  end colspan -->
+	    	</div> <!-- end row -->
+        </div> <!-- end container -->
     </body>
 </html>

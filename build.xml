@@ -255,7 +255,7 @@ it up and remove the warnings.</echo>
     </war>
   </target>
 
-  <target name="dist-no_ssl" depends="test, javac" description="Compiles Java files and creates WAR.">
+  <target name="dist-no_ssl" depends="javac" description="Compiles Java files and creates WAR.">
     <mkdir dir="${dist}"/>
     <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">
       <arg value="log"/>
