@@ -246,7 +246,10 @@ public class ClassSearchRequest extends UserRequest {
 			classes.putAll(
 				ClassServices.instance().getClassesInformation(
 						getUser().getUsername(), 
-						classIds, 
+						classIds,
+						null,
+						null,
+						null,
 						true));
 			
 			LOGGER.info("Gathering the IDs for the campaigns associated with each class.");

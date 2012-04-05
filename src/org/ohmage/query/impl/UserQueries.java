@@ -18,11 +18,9 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -1107,24 +1105,24 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.util.Collection, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String, boolean, long, long)
+	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
 	 */
+	@Override
 	public QueryResultsList<UserInformation> getUserInformation(
 			final String requesterUsername,
 			final Collection<String> usernames,
-			final String likeUsername,
-			final String emailAddress,
+			final Collection<String> usernameTokens,
+			final Collection<String> emailAddressTokens,
 			final Boolean admin,
 			final Boolean enabled,
 			final Boolean newAccount,
 			final Boolean canCreateCampaigns,
-			final String firstName,
-			final String lastName,
-			final String organization,
-			final String personalId,
+			final Collection<String> firstNameTokens,
+			final Collection<String> lastNameTokens,
+			final Collection<String> organizationTokens,
+			final Collection<String> personalIdTokens,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
-			final boolean like,
 			final long numToSkip,
 			final long numToReturn)
 			throws DataAccessException {
@@ -1208,33 +1206,66 @@ public class UserQueries extends Query implements IUserQueries {
 		// that limits the results to only those users whose exact username is
 		// in the list.
 		if(usernames != null) {
+			if(usernames.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
+			
 			sql.append(" AND u.username IN ")
 				.append(StringUtils.generateStatementPList(usernames.size()));
 			
 			parameters.addAll(usernames);
 		}
 		
-		// If the "like username" value is present, add a WHERE clause 
-		// component that limits the results to only those users whose username
-		// is LIKE this string.
-		if(likeUsername != null) {
-			sql.append(" AND u.username LIKE ?");
+		// If the list of username tokens is present, add a WHERE clause that 
+		// contains all of the tokens in their own OR.
+		if(usernameTokens != null) {
+			if(usernameTokens.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
 			
-			parameters.add("%" + likeUsername + "%");
+			sql.append(" AND (");
+			
+			boolean firstPass = true;
+			for(String usernameToken : usernameTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("LOWER(u.username) LIKE ?");
+				
+				parameters.add('%' + usernameToken + '%');
+			}
+			
+			sql.append(")");
 		}
 		
-		// If "emailAddress" is present, add a WHERE clause component that  
-		// limits the results to only those whose email address either contains  
-		// or exactly matches this value based on the 'like' parameter.
-		if(emailAddress != null) {
-			sql.append(" AND up.email_address LIKE ?");
+		// If the list of email address tokens is present, add a WHERE clause
+		// that contains all of the tokens in their own OR.
+		if(emailAddressTokens != null) {
+			if(emailAddressTokens.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
 			
-			if(like) {
-				parameters.add("%" + emailAddress + "%");
+			sql.append(" AND (");
+			
+			boolean firstPass = true;
+			for(String emailAddressToken : emailAddressTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("LOWER(u.email_address) LIKE ?");
+				
+				parameters.add('%' + emailAddressToken + '%');
 			}
-			else {
-				parameters.add(emailAddress);
-			}
+			
+			sql.append(")");
 		}
 		
 		// If "admin" is present, add a WHERE clause component that limits the
@@ -1273,60 +1304,108 @@ public class UserQueries extends Query implements IUserQueries {
 			parameters.add(canCreateCampaigns);
 		}
 		
-		// If "firstName" is present, add a WHERE clause component that limits
-		// the results to only those whose first name either contains or 
-		// exactly matches this value based on the 'like' parameter.
-		if(firstName != null) {
-			sql .append(" AND up.first_name LIKE ?");
+		// If the list of first name tokens is present, add a WHERE clause that
+		// contains all of the tokens in their own OR.
+		if(firstNameTokens != null) {
+			if(firstNameTokens.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
 			
-			if(like) {
-				parameters.add("%" + firstName + "%");
+			sql.append(" AND (");
+			
+			boolean firstPass = true;
+			for(String firstNameToken : firstNameTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("LOWER(up.first_name) LIKE ?");
+				
+				parameters.add('%' + firstNameToken + '%');
 			}
-			else {
-				parameters.add(firstName);
-			}
+			
+			sql.append(")");
 		}
 		
-		// If "lastName" is present, add a WHERE clause component that limits
-		// the results to only those whose last name either contains or exactly
-		// matches this value based on the 'like' parameter.
-		if(lastName != null) {
-			sql.append(" AND up.last_name LIKE ?");
+		// If the list of last name tokens is present, add a WHERE clause that
+		// contains all of the tokens in their own OR.
+		if(lastNameTokens != null) {
+			if(lastNameTokens.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
 			
-			if(like) {
-				parameters.add("%" + lastName + "%");
+			sql.append(" AND (");
+			
+			boolean firstPass = true;
+			for(String lastNameToken : lastNameTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("LOWER(up.last_name) LIKE ?");
+				
+				parameters.add('%' + lastNameToken + '%');
 			}
-			else {
-				parameters.add(lastName);
-			}
+			
+			sql.append(")");
 		}
 		
-		// If "organization" is present, add a WHERE clause component that 
-		// limits the results to only those whose organization either contains 
-		// or exactly matches this value based on the 'like' parameter.
-		if(organization != null) {
-			sql.append(" AND up.organization LIKE ?");
+		// If the list of organization tokens is present, add a WHERE clause
+		// that contains all of the tokens in their own OR.
+		if(organizationTokens != null) {
+			if(organizationTokens.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
 			
-			if(like) {
-				parameters.add("%" + organization + "%");
+			sql.append(" AND (");
+			
+			boolean firstPass = true;
+			for(String organizationToken : organizationTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("LOWER(up.organization) LIKE ?");
+				
+				parameters.add('%' + organizationToken + '%');
 			}
-			else {
-				parameters.add(organization);
-			}
+			
+			sql.append(")");
 		}
 		
-		// If "personalId" is present, add a WHERE clause component that limits 
-		// the results to only those whose personal ID either contains or 
-		// exactly matches this value based on the 'like' parameter.
-		if(personalId != null) {
-			sql.append(" AND up.personal_id LIKE ?");
+		// If the list of personal ID tokens is present, add a WHERE clause 
+		// that contains all of the tokens in their own OR.
+		if(personalIdTokens != null) {
+			if(personalIdTokens.size() == 0) {
+				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+			}
 			
-			if(like) {
-				parameters.add("%" + personalId + "%");
+			sql.append(" AND (");
+			
+			boolean firstPass = true;
+			for(String personalIdToken : personalIdTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("LOWER(up.personal_id) LIKE ?");
+				
+				parameters.add('%' + personalIdToken + '%');
 			}
-			else {
-				parameters.add(personalId);
-			}
+			
+			sql.append(")");
 		}
 		
 		// If a collection of campaign IDs is present, add a WHERE clause 
@@ -1364,7 +1443,7 @@ public class UserQueries extends Query implements IUserQueries {
 						"SELECT uc.id " +
 						"FROM class c, user_class uc " +
 						"WHERE c.urn IN " +
-							StringUtils.generateStatementPList(classIds.size()) +
+							StringUtils.generateStatementPList(classIds.size()) + " " +
 						"AND c.id = uc.class_id" +
 					")");
 			
@@ -1472,12 +1551,8 @@ public class UserQueries extends Query implements IUserQueries {
 										enabled,
 										newAccount,
 										canCreateCampaigns,
-										Collections.
-											<String, Set<Campaign.Role>>
-												emptyMap(),
-										Collections.
-											<String, Clazz.Role>
-												emptyMap(),
+										null,
+										null,
 										personalInfo);
 							}
 							catch(DomainException e) {

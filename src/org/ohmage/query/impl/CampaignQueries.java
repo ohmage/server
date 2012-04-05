@@ -903,10 +903,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
 	 */
+	@Override
 	public QueryResultsList<Campaign> getCampaignInformation(
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens,
 			final Date startDate,
 			final Date endDate,
 			final Campaign.PrivacyState privacyState,
@@ -985,6 +988,50 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 					);
 				
 				parameters.addAll(classIds);
+			}
+			
+			if(nameTokens != null) {
+				if(nameTokens.size() == 0) {
+					return (new QueryResultListBuilder<Campaign>())
+							.getQueryResult();
+				}
+				
+				boolean firstPass = true;
+				builder.append(" AND (");
+				for(String nameToken : nameTokens) {
+					if(firstPass) {
+						firstPass = false;
+					}
+					else {
+						builder.append(" OR ");
+					}
+					
+					builder.append("ca.name LIKE ?");
+					parameters.add('%' + nameToken + '%');
+				}
+				builder.append(")");
+			}
+			
+			if(descriptionTokens != null) {
+				if(descriptionTokens.size() == 0) {
+					return (new QueryResultListBuilder<Campaign>())
+							.getQueryResult();
+				}
+				
+				boolean firstPass = true;
+				builder.append(" AND (");
+				for(String descriptionToken : descriptionTokens) {
+					if(firstPass) {
+						firstPass = false;
+					}
+					else {
+						builder.append(" OR ");
+					}
+					
+					builder.append("ca.description LIKE ?");
+					parameters.add('%' + descriptionToken + '%');
+				}
+				builder.append(")");
 			}
 			
 			if(startDate != null) {

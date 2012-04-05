@@ -510,11 +510,14 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentInformation(java.lang.String)
 	 */
+	@Override
 	public List<Document> getDocumentInformation(
 			final String username,
 			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
-			final Collection<String> classIds) 
+			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens) 
 			throws DataAccessException {
 		
 		StringBuilder sql = 
@@ -532,6 +535,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		
+		boolean needOr = false;
 		if(personalDocuments == null) {
 			// If campaignIds and classIds are null, get all of the documents
 			// visible to the user.
@@ -572,6 +576,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					"FROM document_user_role dur " +
 					"WHERE u.id = dur.user_id" +
 				")");
+			needOr = true;
 		}
 		else {
 			// If campaignIds and classIds are null and they are specifically 
@@ -586,8 +591,12 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				return Collections.emptyList();
 			}
 			
+			if(needOr) {
+				sql.append(" OR ");
+			}
+			
 			sql.append(
-				" OR d.id IN (" +
+				"d.id IN (" +
 					"SELECT dcr.document_id " +
 					"FROM campaign c, user_role_campaign urc, " +
 						"document_campaign_role dcr " +
@@ -600,6 +609,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					"AND u.id = urc.user_id " +
 					"AND c.id = dcr.campaign_id" +
 				")");
+			needOr = true;
 			
 			parameters.addAll(campaignIds);
 		}
@@ -609,8 +619,12 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				return Collections.emptyList();
 			}
 			
+			if(needOr) {
+				sql.append(" OR ");
+			}
+			
 			sql.append(
-				" OR d.id IN (" +
+				"d.id IN (" +
 					"SELECT dcr.document_id " +
 					"FROM class c, user_class uc, " +
 						"document_class_role dcr " +
@@ -627,6 +641,48 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		}
 		
 		sql.append(")");
+		
+		if(nameTokens != null) {
+			if(nameTokens.size() == 0) {
+				return Collections.emptyList();
+			}
+			
+			sql.append(" AND (");
+			boolean firstPass = true;
+			for(String nameToken : nameTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("d.name LIKE ?");
+				parameters.add('%' + nameToken + '%');
+			}
+			sql.append(")");
+		}
+		
+		if(descriptionTokens != null) {
+			if(descriptionTokens.size() == 0) {
+				return Collections.emptyList();
+			}
+			
+			sql.append(" AND (");
+			boolean firstPass = true;
+			for(String descriptionToken : descriptionTokens) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					sql.append(" OR ");
+				}
+				
+				sql.append("d.description LIKE ?");
+				parameters.add('%' + descriptionToken + '%');
+			}
+			sql.append(")");
+		}
 		
 		try {
 			return getJdbcTemplate().query(

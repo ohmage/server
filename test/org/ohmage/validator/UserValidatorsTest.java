@@ -640,34 +640,4 @@ public class UserValidatorsTest extends TestCase {
 			fail("A validation exception was thrown: " + e.getMessage());
 		}
 	}
-
-	/**
-	 * Tests the JSON data validator.
-	 */
-	@Test
-	public void testValidateJsonData() {
-		try {
-			for(String emptyValue : ParameterSets.getEmptyValues()) {
-				Assert.assertNull(UserValidators.validateJsonData(emptyValue));
-			}
-			
-			try {
-				UserValidators.validateJsonData("Invalid value.");
-				fail("The JSON data is invalid.");
-			}
-			catch(ValidationException e) {
-				// Passed.
-			}
-			
-			try {
-				UserValidators.validateJsonData((new JSONObject()).toString());
-			}
-			catch(ValidationException e) {
-				fail("Valid JSON data failed validation.");
-			} 
-		}
-		catch(ValidationException e) {
-			fail("A validation exception was thrown: " + e.getMessage());
-		}
-	}
 }

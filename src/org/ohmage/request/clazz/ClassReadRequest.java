@@ -54,13 +54,32 @@ import org.ohmage.validator.ClassValidators;
  *     <td>{@value org.ohmage.request.InputKeys#CLASS_URN_LIST}</td>
  *     <td>A list of classes identifiers (URNs) separated by
  *       {@value org.ohmage.request.InputKeys#LIST_ITEM_SEPARATOR}</td>
- *     <td>true</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_NAME_SEARCH}</td>
+ *     <td>A space-separated, double-quote-respecting, search term to limit the
+ *       results to only those classes whose name matches this term.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_DESCRIPTION_SEARCH}</td>
+ *     <td>A space-separated, double-quote-respecting, search term to limit the
+ *       results to only those classes whose description matches this term.
+ *       </td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLASS_ROLE}</td>
+ *     <td>Limits the results to only those classes to which the user belongs
+ *       with this role.</td>
+ *     <td>false</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#CLASS_WITH_USER_LIST}</td>
  *     <td>A boolean value indicating if the class user list should be returned 
  *       or not. The default is true.</td>
- *     <td>true</td>
+ *     <td>false</td>
  *   </tr>
  * </table>
  * 
@@ -71,6 +90,9 @@ public class ClassReadRequest extends UserRequest {
 	private static final String JSON_KEY_USERS = "users";
 	
 	private final Collection<String> classIds;
+	private final Collection<String> classNameTokens;
+	private final Collection<String> classDescriptionTokens;
+	private final Clazz.Role role;
 	private final boolean withUserList;
 	
 	private final Map<Clazz, Map<String, Clazz.Role>> result;
@@ -85,6 +107,9 @@ public class ClassReadRequest extends UserRequest {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		Set<String> tClassIds = null;
+		Set<String> tClassNameTokens = null;
+		Set<String> tClassDescriptionTokens = null;
+		Clazz.Role tRole = null;
 		boolean tWithUserList = true;
 		
 		if(! isFailed()) {
@@ -100,21 +125,43 @@ public class ClassReadRequest extends UserRequest {
 							"Multiple class ID lists were found: " +
 								InputKeys.CLASS_URN_LIST);
 				}
-				else if(t.length == 0) {
-					throw new ValidationException(
-							ErrorCode.CLASS_INVALID_ID, 
-							"Missing required class ID list: " + 
-								InputKeys.CLASS_URN_LIST);
-				}
-				else {
+				else if(t.length == 1) {
 					tClassIds = ClassValidators.validateClassIdList(t[0]);
-					
-					if(tClassIds == null) {
-						throw new ValidationException(
-								ErrorCode.CLASS_INVALID_ID, 
-								"Missing required class ID list: " + 
-									InputKeys.CLASS_URN_LIST);
-					}
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_NAME_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_NAME,
+							"Multiple class name search terms were given: " +
+								InputKeys.CLASS_NAME_SEARCH);
+				}
+				else if(t.length == 1) {
+					tClassNameTokens = 
+							ClassValidators.validateNameSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_DESCRIPTION_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_DESCRIPTION,
+							"Multiple class description search terms were given: " +
+								InputKeys.DESCRIPTION);
+				}
+				else if(t.length == 1) {
+					tClassDescriptionTokens =
+							ClassValidators.validateDescriptionSearch(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.CLASS_ROLE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ROLE,
+							"Multiple class roles were given: " +
+								InputKeys.CLASS_ROLE);
+				}
+				else if(t.length == 1) {
+					tRole = ClassValidators.validateClassRole(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.CLASS_WITH_USER_LIST);
@@ -136,6 +183,9 @@ public class ClassReadRequest extends UserRequest {
 		}
 		
 		classIds = tClassIds;
+		classNameTokens = tClassNameTokens;
+		classDescriptionTokens = tClassDescriptionTokens;
+		role = tRole;
 		withUserList = tWithUserList;
 		
 		result = new HashMap<Clazz, Map<String, Clazz.Role>>();
@@ -159,6 +209,9 @@ public class ClassReadRequest extends UserRequest {
 					ClassServices.instance().getClassesInformation(
 							getUser().getUsername(),
 							classIds,
+							classNameTokens,
+							classDescriptionTokens,
+							role,
 							withUserList));
 			
 			LOGGER.info("Classes found: " + result.size());
@@ -184,10 +237,10 @@ public class ClassReadRequest extends UserRequest {
 				// Create the JSON for the class.
 				JSONObject jsonClass = clazz.toJson(false);
 				
-				if(withUserList) {
-					// Retrieve the username to class role map.
-					Map<String, Clazz.Role> userRole = result.get(clazz);
-					
+				// Retrieve the username to class role map.
+				Map<String, Clazz.Role> userRole = result.get(clazz);
+				
+				if(userRole != null) {
 					// Generate the user to class role JSON and add it to the 
 					// class JSON.
 					JSONObject users = new JSONObject();

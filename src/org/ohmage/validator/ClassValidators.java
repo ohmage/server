@@ -177,6 +177,28 @@ public final class ClassValidators {
 	}
 	
 	/**
+	 * Tokenizes the name search string into search tokens. No real validation
+	 * is performed as the search tokens are allowed to be anything.
+	 * 
+	 * @param value The value to validate.
+	 * 
+	 * @return The set of search tokens or null if the string was null or only
+	 * 		   whitespace.
+	 * 
+	 * @throws ValidationException Never thrown.
+	 */
+	public static Set<String> validateNameSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
+	}
+	
+	/**
 	 * Validates that a class description is a valid class description by 
 	 * ensuring that it doesn't contain profanity.
 	 * 
@@ -206,6 +228,28 @@ public final class ClassValidators {
 		else {
 			return description.trim();
 		}
+	}
+	
+	/**
+	 * Tokenizes the description search string into search tokens. No real 
+	 * validation is performed as the search tokens are allowed to be anything.
+	 * 
+	 * @param value The value to validate.
+	 * 
+	 * @return The set of search tokens or null if the string was null or only
+	 * 		   whitespace.
+	 * 
+	 * @throws ValidationException Never thrown.
+	 */
+	public static Set<String> validateDescriptionSearch(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(value);
 	}
 	
 	/**

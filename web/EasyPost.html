@@ -134,6 +134,16 @@
         <form action="/app/user/read" method="post">
             Client: <input type="text" name="client" value="testWeb" /><br />
             * User List: <input type="text" name="user_list" /><br />
+            * Username Search: <input type="text" name="username_search" /><br />
+            * Email Address Search: <input type="text" name="email_address_search" /><br />
+            * Admin: <input type="text" name="admin" /><br />
+            * Enabled: <input type="text" name="enabled" /><br />
+            * New Account: <input type="text" name="new_account" /><br />
+            * Campaign Creation Privilege: <input type="text" name="campaign_creation_privilege" /><br />
+            * First Name Search: <input type="text" name="first_name_search" /><br />
+            * Last Name Search: <input type="text" name="last_name_search" /><br />
+            * Organization Search: <input type="text" name="organization_search" /><br />
+            * Personal ID Search: <input type="text" name="personal_id_search" /><br />
             * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
             * Class ID List: <input type="text" name="class_urn_list" /><br />
             * Number to Skip: <input type="text" name="num_to_skip" /><br />
@@ -219,6 +229,8 @@
             Client: <input type="text" name="client" value="testWeb" /><br />
             * Campaign URN List: <input type="text" name="campaign_urn_list" /><br />
             * Class URN List: <input type="text" name="class_urn_list" /><br />
+            * Name Search: <input type="text" name="campaign_name_search" /><br />
+            * Description Search: <input type="text" name="campaign_description_search" /><br />
             * Start Date: <input type="text" name="start_date" /><br />
             * End Date: <input type="text" name="end_date" /><br />
             * Privacy State: <input type="text" name="privacy_state" /><br />
@@ -263,8 +275,11 @@
 
         <h3>Class Read:</h3>
         <form action="/app/class/read" method="post">
-            Class List: <input type="text" name="class_urn_list" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
+            * Class List: <input type="text" name="class_urn_list" /><br />
+            * Name Search: <input type="text" name="class_name_search" /><br />
+            * Description Search: <input type="text" name="class_description_search" /><br />
+            * Role <input type="text" name="class_role" /><br />
             * With User List <input type="text" name="with_user_list" /><br />
             <input type="submit" value="Submit" />
         </form>
@@ -332,10 +347,12 @@
 
         <h3>Document Read:</h3>
         <form action="/app/document/read" method="post">
-            Personal Documents: <input type="text" name="personal_documents" /><br />
             Client: <input type="text" name="client" value="testWeb" /><br />
+            * Personal Documents: <input type="text" name="personal_documents" /><br />
             * Campaign ID List: <input type="text" name="campaign_urn_list" /><br />
             * Class ID List: <input type="text" name="class_urn_list" /><br />
+            * Name Search: <input type="text" name="document_name_search" /><br />
+            * Description Search: <input type="text" name="document_description_search" /><br />
             <input type="submit" value="Submit" />
         </form>
 

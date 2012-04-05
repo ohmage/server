@@ -57,6 +57,8 @@ public final class InputKeys {
 	public static final String CAMPAIGN_URN = "campaign_urn";
 	public static final String CAMPAIGN_URN_LIST = "campaign_urn_list";
 	public static final String CAMPAIGN_NAME = "campaign_name";
+	public static final String CAMPAIGN_NAME_SEARCH = "campaign_name_search";
+	public static final String CAMPAIGN_DESCRIPTION_SEARCH = "campaign_description_search";
 	public static final String CAMPAIGN_AUTHORED_BY = "authored_by";
 	public static final String CAMPAIGN_ROLE_LIST_ADD = "campaign_role_list_add";
 	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";
@@ -66,13 +68,16 @@ public final class InputKeys {
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
 	public static final String CLASS_URN_LIST = "class_urn_list";
-	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
-	public static final String CLASS_ROLE_LIST_REMOVE = "class_role_list_remove";
 	public static final String CLASS_LIST_ADD = "class_list_add";
 	public static final String CLASS_LIST_REMOVE = "class_list_remove";
+	public static final String CLASS_ROLE_LIST_ADD = "class_role_list_add";
+	public static final String CLASS_ROLE_LIST_REMOVE = "class_role_list_remove";
 	public static final String CLASS_NAME = "class_name";
+	public static final String CLASS_NAME_SEARCH = "class_name_search";
+	public static final String CLASS_DESCRIPTION_SEARCH = "class_description_search";
 	public static final String ROSTER = "roster";
 	public static final String CLASS_WITH_USER_LIST = "with_user_list";
+	public static final String CLASS_ROLE = "class_role";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";
@@ -108,22 +113,27 @@ public final class InputKeys {
 	public static final String NEW_USERNAME = "new_username";
 	public static final String NEW_PASSWORD = "new_password";
 	public static final String USER_LIST = "user_list";
+	public static final String USERNAME_SEARCH = "username_search";
 	public static final String USER_LIST_ADD = "user_list_add";
 	public static final String USER_LIST_REMOVE = "user_list_remove";
 	public static final String PRIVILEGED_USER_LIST_ADD = "privileged_user_list_add";
 	public static final String USER_ROLE = "user_role";
 	public static final String USER_ROLE_LIST_ADD = "user_role_list_add";
 	public static final String USER_ROLE_LIST_REMOVE = "user_role_list_remove";
+	public static final String EMAIL_ADDRESS = "email_address";
+	public static final String EMAIL_ADDRESS_SEARCH = "email_address_search";
 	public static final String USER_ENABLED = "enabled";
 	public static final String USER_ADMIN = "admin";
 	public static final String NEW_ACCOUNT = "new_account";
 	public static final String CAMPAIGN_CREATION_PRIVILEGE = "campaign_creation_privilege";
 	public static final String FIRST_NAME = "first_name";
+	public static final String FIRST_NAME_SEARCH = "first_name_search";
 	public static final String LAST_NAME = "last_name";
+	public static final String LAST_NAME_SEARCH = "last_name_search";
 	public static final String ORGANIZATION = "organization";
+	public static final String ORGANIZATION_SEARCH = "organization_search";
 	public static final String PERSONAL_ID = "personal_id";
-	public static final String EMAIL_ADDRESS = "email_address";
-	public static final String USER_JSON_DATA = "json_data";
+	public static final String PERSONAL_ID_SEARCH = "personal_id_search";
 	public static final String USER_REGISTRATION_ID = "registration_id";
 	public static final String USER_DELETE_PERSONAL_INFO = "delete_personal_info";
 	
@@ -155,6 +165,8 @@ public final class InputKeys {
 	public static final String DOCUMENT_ID = "document_id";
 	public static final String DOCUMENT_ID_LIST = "document_id_list";
 	public static final String DOCUMENT_NAME = "document_name";
+	public static final String DOCUMENT_NAME_SEARCH = "document_name_search";
+	public static final String DOCUMENT_DESCRIPTION_SEARCH = "document_description_search";
 	public static final String DOCUMENT_CAMPAIGN_ROLE_LIST = "document_campaign_role_list";
 	public static final String DOCUMENT_CLASS_ROLE_LIST = "document_class_role_list";
 	public static final String DOCUMENT_USER_ROLE_LIST = "document_user_role_list";

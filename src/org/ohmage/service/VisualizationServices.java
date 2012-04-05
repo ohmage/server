@@ -232,16 +232,16 @@ public class VisualizationServices {
 			
 			// Add all of the non-required, request-specific parameters.
 			for(String key : parameters.keySet()) {
-				urlBuilder.append('&');
+				parameterBuilder.append('&');
 				
 				if(PARAMETER_KEY_AGGREGATE.equals(key)) {
-					urlBuilder
+					parameterBuilder
 						.append(URLEncoder.encode(key, ENCODING))
 						.append('=')
 						.append(parameters.get(key));
 				}
 				else {
-					urlBuilder
+					parameterBuilder
 						.append(URLEncoder.encode(key, ENCODING))
 						.append("='")
 						.append(URLEncoder.encode(parameters.get(key), ENCODING))

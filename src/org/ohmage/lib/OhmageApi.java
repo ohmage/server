@@ -2438,7 +2438,7 @@ public class OhmageApi {
 			final Boolean newAccount, final Boolean campaignCreationPrivilege,
 			final String firstName, final String lastName,
 			final String organization, final String personalId,
-			final String emailAddress, final JSONObject jsonData)
+			final String emailAddress)
 			throws ApiException, RequestErrorException {
 		
 		Map<String, Object> parameters = new HashMap<String, Object>();
@@ -2454,7 +2454,6 @@ public class OhmageApi {
 		parameters.put(InputKeys.ORGANIZATION, organization);
 		parameters.put(InputKeys.PERSONAL_ID, personalId);
 		parameters.put(InputKeys.EMAIL_ADDRESS, emailAddress);
-		parameters.put(InputKeys.USER_JSON_DATA, jsonData);
 		
 		try {
 			makeRequest(

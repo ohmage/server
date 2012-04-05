@@ -203,7 +203,7 @@ public final class AuditReporter {
 			
 			try {
 				// Retrieve the output file to write the results.
-				FileWriter fileWriter = new FileWriter(saveLocation + "/" + TimeUtils.getIso8601DateTimeString(new Date(startDate.getTimeInMillis())));
+				FileWriter fileWriter = new FileWriter(saveLocation + "/" + TimeUtils.getIso8601DateString(new Date(startDate.getTimeInMillis())));
 				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 				
 				bufferedWriter.write("invalid_requests=");

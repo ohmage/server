@@ -314,8 +314,8 @@ public class UserInformation {
 	private final boolean isNewAccount;
 	private final boolean campaignCreationPrivilege;
 	
-	private final Map<String, Set<Campaign.Role>> campaigns;
-	private final Map<String, Clazz.Role> classes;
+	private Map<String, Set<Campaign.Role>> campaigns;
+	private Map<String, Clazz.Role> classes;
 	
 	/**
 	 * Creates a new information object for this user.
@@ -360,15 +360,6 @@ public class UserInformation {
 					"The username is null");
 		}
 		
-		if(campaigns == null) {
-			throw new DomainException(
-					"The campaign ID-role map is null.");
-		}
-		else if(classes == null) {
-			throw new DomainException(
-					"The class ID-role map is null.");
-		}
-		
 		this.username = username;
 		this.emailAddress = emailAddress;
 		this.isAdmin = isAdmin;
@@ -376,8 +367,19 @@ public class UserInformation {
 		this.isNewAccount = isNewAccount;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		
-		this.campaigns = new HashMap<String, Set<Campaign.Role>>(campaigns);
-		this.classes = new HashMap<String, Clazz.Role>(classes);
+		if(campaigns == null) {
+			this.campaigns = null;
+		}
+		else {
+			this.campaigns = 
+					new HashMap<String, Set<Campaign.Role>>(campaigns);
+		}
+		if(classes == null) {
+			this.classes = null;
+		}
+		else {
+			this.classes = new HashMap<String, Clazz.Role>(classes);
+		}
 		
 		this.personalInfo = personalInfo;
 	}
@@ -409,6 +411,10 @@ public class UserInformation {
 			throw new DomainException("The list of roles is empty.");
 		}
 		
+		if(campaigns == null) {
+			campaigns = new HashMap<String, Set<Campaign.Role>>();
+		}
+		
 		Set<Campaign.Role> oldRoles = campaigns.get(campaignId);
 		
 		if(oldRoles == null) {
@@ -437,8 +443,12 @@ public class UserInformation {
 			throw new DomainException("The campaigns map is null.");
 		}
 		
-		for(String campaignId : campaigns.keySet()) {
-			addCampaign(campaignId, campaigns.get(campaignId));
+		if(this.campaigns == null) {
+			this.campaigns = 
+					new HashMap<String, Set<Campaign.Role>>(campaigns);
+		}
+		else {
+			campaigns.putAll(campaigns);
 		}
 	}
 	
@@ -465,6 +475,10 @@ public class UserInformation {
 			throw new DomainException("The role is null.");
 		}
 		
+		if(classes == null) {
+			classes = new HashMap<String, Clazz.Role>();
+		}
+		
 		classes.put(classId, role);
 	}
 	
@@ -485,8 +499,11 @@ public class UserInformation {
 			throw new DomainException("The classes map is null.");
 		}
 		
-		for(String classId : classes.keySet()) {
-			addClass(classId, classes.get(classId));
+		if(this.classes == null) {
+			this.classes = new HashMap<String, Clazz.Role>(classes);
+		}
+		else {
+			this.classes.putAll(classes);
 		}
 	}
 	
@@ -524,10 +541,16 @@ public class UserInformation {
 	 * 
 	 * @throws JSONException Thrown if there is a problem building the JSON.
 	 */
-	public JSONObject toJson() throws JSONException {
+	public JSONObject toJson(
+			final boolean withUsername,
+			final boolean withPersonal) 
+			throws JSONException {
+		
 		JSONObject result = new JSONObject();
 		
-		result.put(UserColumnKey.USERNAME.toString(), username);
+		if(withUsername) {
+			result.put(UserColumnKey.USERNAME.toString(), username);
+		}
 		
 		result.put(UserColumnKey.EMAIL_ADDRESS.toString(), emailAddress);
 		
@@ -546,10 +569,14 @@ public class UserInformation {
 				campaignCreationPrivilege);
 		result.put(UserColumnKey.PERMISSIONS.toString(), permissionsJson);
 		
-		result.put(UserColumnKey.CAMPAIGNS.toString(), campaigns);
-		result.put(UserColumnKey.CLASSES.toString(), classes);
+		if(campaigns != null) {
+			result.put(UserColumnKey.CAMPAIGNS.toString(), campaigns);
+		}
+		if(classes != null) {
+			result.put(UserColumnKey.CLASSES.toString(), classes);
+		}
 		
-		if(personalInfo != null) {
+		if((personalInfo != null) && withPersonal) {
 			result.put(
 					UserColumnKey.PERSONAL.toString(), 
 					personalInfo.toJsonObject());

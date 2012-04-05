@@ -851,6 +851,15 @@ public class UserCampaignServices {
 	 * 				   campaigns that are associated with any class in this
 	 * 				   list.
 	 * 
+	 * @param nameTokens A collection of token strings which limit the results
+	 * 					 to only those campaigns whose name contains at least 
+	 * 					 one of the tokens.
+	 * 
+	 * @param descriptionTokens A collection of token strings which limit the
+	 * 							results to only those campaigns that have a 
+	 * 							description and whose description contains at
+	 * 							least one of the tokens.
+	 * 
 	 * @param startDate A date that limits the results to only those campaigns
 	 * 					that were created on or after this date.
 	 * 
@@ -882,6 +891,8 @@ public class UserCampaignServices {
 			final String username, 
 			final Collection<String> campaignIds, 
 			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens,
 			final Date startDate, final Date endDate, 
 			final Campaign.PrivacyState privacyState, 
 			final Campaign.RunningState runningState, 
@@ -896,6 +907,8 @@ public class UserCampaignServices {
 							username, 
 							campaignIds, 
 							classIds, 
+							nameTokens,
+							descriptionTokens,
 							startDate, 
 							endDate, 
 							privacyState, 
