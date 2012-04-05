@@ -63,6 +63,16 @@
     <url-pattern>*.html</url-pattern>
   </servlet-mapping>
   
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.js</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.css</url-pattern>
+  </servlet-mapping>
+  
   <!-- Servlets.  Note that url-patterns are matched against initial (or re-dispatched) requests, not a request possibly modified
        by filters.  -->
   <servlet>
