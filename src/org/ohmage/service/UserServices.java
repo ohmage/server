@@ -61,7 +61,6 @@ import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
 import org.ohmage.query.impl.QueryResultsList;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.RequestBuilder;
 import org.ohmage.util.StringUtils;
 
 import com.sun.mail.smtp.SMTPTransport;
@@ -83,6 +82,8 @@ public final class UserServices {
 	private static final String MAIL_REGISTRATION_TEXT_TOS = "<_TOS_>";
 	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_LINK =
 			"<_REGISTRATION_LINK_>";
+	
+	private static final String ACTIVATION_FUNCTION = "#activate";
 	
 	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 4;
 	
@@ -237,46 +238,133 @@ public final class UserServices {
 					emailAddress, 
 					registrationId.toString());
 			
-			// Send an email to the user to confirm their email.
+			// Get the email properties.
+			Properties sessionProperties = new Properties();
 			try {
-				Properties sessionProperties = new Properties();
+				String host = 
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_HOST);
 				
-				String host = null;
-				try {
-					host = PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_MAIL_HOST);
-					
-					sessionProperties.put(MAIL_PROPERTY_HOST, host);
-				}
-				catch(CacheMissException e) {
-					// This is acceptable. It simply tells JavaMail to use the
-					// default.
-				}
-				
-				try {
-					sessionProperties.put(
-							MAIL_PROPERTY_PORT, 
-							PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_MAIL_PORT));
-				}
-				catch(CacheMissException e) {
-					// This is acceptable. It simply tells JavaMail to use the
-					// default.
-				}
-				
-				try {
-					sessionProperties.put(
-							MAIL_PROPERTY_SSL_ENABLED, 
-							PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_MAIL_SSL));
-				}
-				catch(CacheMissException e) {
-					// This is acceptable. It simply tells JavaMail to use the
-					// default.
-				}
-				
+				sessionProperties.put(MAIL_PROPERTY_HOST, host);
+			}
+			catch(CacheMissException e) {
+				// This is acceptable. It simply tells JavaMail to use the
+				// default.
+			}
+			
+			try {
+				sessionProperties.put(
+						MAIL_PROPERTY_PORT, 
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_PORT));
+			}
+			catch(CacheMissException e) {
+				// This is acceptable. It simply tells JavaMail to use the
+				// default.
+			}
+			
+			try {
+				sessionProperties.put(
+						MAIL_PROPERTY_SSL_ENABLED, 
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_SSL));
+			}
+			catch(CacheMissException e) {
+				// This is acceptable. It simply tells JavaMail to use the
+				// default.
+			}
+
+			// Build the registration text.
+			String registrationText;
+			try {
+				registrationText = PreferenceCache.instance().lookup(
+					PreferenceCache.KEY_MAIL_TEXT);
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_TEXT,
+					e);
+			}
+			
+			try {
+				registrationText =
+						registrationText.replace(
+								MAIL_REGISTRATION_TEXT_TOS, 
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_TERMS_OF_SERVICE));
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_TERMS_OF_SERVICE,
+					e);
+			}
+			
+			StringBuilder registrationLink = 
+					new StringBuilder("<a href=\"http://");
+			// Get this machine's hostname.
+			try {
+				registrationLink.append(
+						InetAddress.getLocalHost().getHostName());
+			}
+			catch(UnknownHostException e) {
+				throw new ServiceException(
+						"The sky is falling! Oh, and our own hostname is unknown.",
+						e);
+			}
+			registrationLink.append(ACTIVATION_FUNCTION);
+			registrationLink.append('?');
+			registrationLink.append(InputKeys.USER_REGISTRATION_ID);
+			registrationLink.append('=');
+			registrationLink.append(registrationId);
+			registrationLink.append("\">I Agree</a>");
+			registrationText =
+					registrationText.replace(
+							MAIL_REGISTRATION_TEXT_REGISTRATION_LINK, 
+							registrationLink);
+			
+			// Build the message and send it.
+			try {
 				Session smtpSession = 
 						Session.getDefaultInstance(sessionProperties);
+				
+				MimeMessage message = new MimeMessage(smtpSession);
+				
+				// Add the recipient.
+				message.setRecipient(
+						Message.RecipientType.TO, 
+						new InternetAddress(emailAddress));
+				
+				// Add the sender.
+				try {
+					message.setFrom(
+							new InternetAddress(
+									PreferenceCache.instance().lookup(
+										PreferenceCache.KEY_MAIL_SENDER)));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_SENDER,
+						e);
+				}
+				
+				// Set the subject.
+				try {
+					message.setSubject(
+							PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_SUBJECT));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_SUBJECT,
+						e);
+				}
+				
+				message.setContent(registrationText, "text/html");
+				message.saveChanges();
 				
 				SMTPTransport transport = 
 						(SMTPTransport) smtpSession.getTransport(
@@ -329,90 +417,8 @@ public final class UserServices {
 					transport.connect();
 				}
 				
-				MimeMessage message = new MimeMessage(smtpSession);
-				
-				// Add the recipient.
-				message.setRecipient(
-						Message.RecipientType.TO, 
-						new InternetAddress(emailAddress));
-				
-				// Add the sender.
-				try {
-					message.setFrom(
-							new InternetAddress(
-									PreferenceCache.instance().lookup(
-										PreferenceCache.KEY_MAIL_SENDER)));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(
-						"The mail property is not in the preference table: " +
-							PreferenceCache.KEY_MAIL_SENDER,
-						e);
-				}
-				
-				// Set the subject.
-				try {
-					message.setSubject(
-							PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_MAIL_SUBJECT));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(
-						"The mail property is not in the preference table: " +
-							PreferenceCache.KEY_MAIL_SUBJECT,
-						e);
-				}
-				
-				String registrationText;
-				try {
-					registrationText = PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_TEXT);
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(
-						"The mail property is not in the preference table: " +
-							PreferenceCache.KEY_MAIL_TEXT,
-						e);
-				}
-				
-				try {
-					registrationText =
-							registrationText.replace(
-									MAIL_REGISTRATION_TEXT_TOS, 
-									PreferenceCache.instance().lookup(
-										PreferenceCache.KEY_TERMS_OF_SERVICE));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(
-						"The mail property is not in the preference table: " +
-							PreferenceCache.KEY_TERMS_OF_SERVICE,
-						e);
-				}
-				
-				StringBuilder registrationLink = new StringBuilder("http://");
-				// Get this machine's hostname.
-				try {
-					registrationLink.append(
-							InetAddress.getLocalHost().getHostName());
-				}
-				catch(UnknownHostException e) {
-					throw new ServiceException(
-							"The sky is falling! Oh, and our own hostname is unknown.",
-							e);
-				}
-				registrationLink.append(RequestBuilder.API_USER_ACTIVATE);
-				registrationLink.append('?');
-				registrationLink.append(InputKeys.USER_REGISTRATION_ID);
-				registrationLink.append('=');
-				registrationLink.append(registrationId);
-				registrationText =
-						registrationText.replace(
-								MAIL_REGISTRATION_TEXT_REGISTRATION_LINK, 
-								registrationLink);
-				
-				message.setText(registrationText);
-				
 				transport.sendMessage(message, message.getAllRecipients());
+				transport.close();
 			}
 			catch(NoSuchProviderException e) {
 				throw new ServiceException(
