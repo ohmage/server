@@ -140,22 +140,19 @@ public class SurveyUploadRequest extends UserRequest {
 				// Validate the campaign URN
 				String[] t = parameters.get(InputKeys.CAMPAIGN_URN);
 				if(t == null || t.length != 1) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "campaign_urn is missing or there is more than one.");
-					throw new ValidationException("campaign_urn is missing or there is more than one.");
+					throw new ValidationException(ErrorCode.CAMPAIGN_INVALID_ID, "campaign_urn is missing or there is more than one.");
 				} else {
 					tCampaignUrn = CampaignValidators.validateCampaignId(t[0]);
 					
 					if(tCampaignUrn == null) {
-						setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
-						throw new ValidationException("The campaign ID is invalid.");
+						throw new ValidationException(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is invalid.");
 					}
 				}
 				
 				// Validate the campaign creation timestamp
 				t = parameters.get(InputKeys.CAMPAIGN_CREATION_TIMESTAMP);
 				if(t == null || t.length != 1) {
-					setFailed(ErrorCode.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is missing or there is more than one");
-					throw new ValidationException("campaign_creation_timestamp is missing or there is more than one");
+					throw new ValidationException(ErrorCode.SERVER_INVALID_TIMESTAMP, "campaign_creation_timestamp is missing or there is more than one");
 				} 
 				else {
 					
@@ -171,16 +168,14 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				t = parameters.get(InputKeys.SURVEYS);
 				if(t == null || t.length != 1) {
-					setFailed(ErrorCode.SURVEY_INVALID_RESPONSES, "No value found for 'surveys' parameter or multiple surveys parameters were found.");
-					throw new ValidationException("No value found for 'surveys' parameter or multiple surveys parameters were found.");
+					throw new ValidationException(ErrorCode.SURVEY_INVALID_RESPONSES, "No value found for 'surveys' parameter or multiple surveys parameters were found.");
 				}
 				else {
 					try {
 						tJsonData = CampaignValidators.validateUploadedJson(t[0]);
 					}
 					catch(IllegalArgumentException e) {
-						setFailed(ErrorCode.SURVEY_INVALID_RESPONSES, "The survey responses could not be URL decoded.");
-						throw new ValidationException("The survey responses could not be URL decoded.", e);
+						throw new ValidationException(ErrorCode.SURVEY_INVALID_RESPONSES, "The survey responses could not be URL decoded.", e);
 					}
 				}
 				
@@ -229,8 +224,7 @@ public class SurveyUploadRequest extends UserRequest {
 				Set<String> stringSet = new HashSet<String>(imageIds);
 				
 				if(stringSet.size() != imageIds.size()) {
-					setFailed(ErrorCode.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
-					throw new ValidationException("a duplicate image key was detected in the multi-part upload");
+					throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
 				}
 
 				for(String imageId : imageIds) {
@@ -247,7 +241,7 @@ public class SurveyUploadRequest extends UserRequest {
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				LOGGER.info(e.toString());
+				e.logException(LOGGER);
 			}
 		}
 
