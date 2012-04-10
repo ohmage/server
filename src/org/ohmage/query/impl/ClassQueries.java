@@ -624,13 +624,18 @@ public class ClassQueries extends Query implements IClassQueries {
 							"SELECT ru.id " +
 							"FROM user ru, " +
 								"user_class ruc, user_class_role rucr " +
-							"WHERE c.id = ruc.class_id " +
-							"AND ru.username = ? " +
-							"AND ru.id = ruc.user_id " +
-							"AND rucr.id = ruc.user_class_role_id " +
-							"AND rucr.role = '" + 
-								Clazz.Role.PRIVILEGED.toString().toLowerCase() + 
-								"'" +
+							"WHERE ru.username = ? " +
+							"AND (" +
+								"(ru.admin = true)" +
+								" OR " +
+								"(c.id = ruc.class_id " +
+									"AND ru.id = ruc.user_id " +
+									"AND rucr.id = ruc.user_class_role_id " +
+									"AND rucr.role = '" + 
+									Clazz.Role.PRIVILEGED.toString().toLowerCase() + 
+									"'" +
+								")" +
+							")" +
 						")" +
 					") " +
 					"THEN ucr.role " +
