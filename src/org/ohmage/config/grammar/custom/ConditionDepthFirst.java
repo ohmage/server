@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.ohmage.config.grammar.syntaxtree.NodeToken;
 import org.ohmage.config.grammar.syntaxtree.Condition;
 import org.ohmage.config.grammar.syntaxtree.Id;
+import org.ohmage.config.grammar.syntaxtree.NodeToken;
 import org.ohmage.config.grammar.syntaxtree.Value;
 import org.ohmage.config.grammar.visitor.GJVoidDepthFirst;
 

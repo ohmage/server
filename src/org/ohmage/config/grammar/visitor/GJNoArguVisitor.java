@@ -3,15 +3,15 @@
 //
 
 package org.ohmage.config.grammar.visitor;
+import org.ohmage.config.grammar.syntaxtree.Condition;
+import org.ohmage.config.grammar.syntaxtree.Conjunction;
+import org.ohmage.config.grammar.syntaxtree.Expression;
+import org.ohmage.config.grammar.syntaxtree.Id;
 import org.ohmage.config.grammar.syntaxtree.NodeList;
 import org.ohmage.config.grammar.syntaxtree.NodeListOptional;
 import org.ohmage.config.grammar.syntaxtree.NodeOptional;
 import org.ohmage.config.grammar.syntaxtree.NodeSequence;
 import org.ohmage.config.grammar.syntaxtree.NodeToken;
-import org.ohmage.config.grammar.syntaxtree.Condition;
-import org.ohmage.config.grammar.syntaxtree.Conjunction;
-import org.ohmage.config.grammar.syntaxtree.Expression;
-import org.ohmage.config.grammar.syntaxtree.Id;
 import org.ohmage.config.grammar.syntaxtree.Sentence;
 import org.ohmage.config.grammar.syntaxtree.SentencePrime;
 import org.ohmage.config.grammar.syntaxtree.Start;
