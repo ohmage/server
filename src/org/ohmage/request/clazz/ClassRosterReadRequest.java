@@ -186,12 +186,14 @@ public class ClassRosterReadRequest extends UserRequest {
 						roster.get(classId);
 				
 				for(String username : userAndClassRoles.keySet()) {
+					Clazz.Role role = userAndClassRoles.get(username);
+					
 					resultBuilder
 						.append(classId)
 						.append(",")
 						.append(username)
 						.append(",")
-						.append(userAndClassRoles.get(username).toString())
+						.append((role == null) ? "" : role.toString())
 						.append("\n");
 				}
 			}
