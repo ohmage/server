@@ -97,9 +97,22 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_MAIL_AUTH = "mail_use_authentication";
 	public static final String KEY_MAIL_USERNAME = "mail_username";
 	public static final String KEY_MAIL_PASSWORD = "mail_password";
-	public static final String KEY_MAIL_SENDER = "mail_sender_address";
-	public static final String KEY_MAIL_SUBJECT = "mail_subject";
-	public static final String KEY_MAIL_TEXT = "mail_text";
+	
+	// Mail Registration
+	public static final String KEY_MAIL_REGISTRATION_SENDER = 
+			"mail_registration_sender_address";
+	public static final String KEY_MAIL_REGISTRATION_SUBJECT = 
+			"mail_registration_subject";
+	public static final String KEY_MAIL_REGISTRATION_TEXT = 
+			"mail_registration_text";
+	
+	// Mail Password Recovery
+	public static final String KEY_MAIL_PASSWORD_RECOVERY_SENDER = 
+			"mail_password_reset_sender_address";
+	public static final String KEY_MAIL_PASSWORD_RECOVERY_SUBJECT = 
+			"mail_password_reset_subject";
+	public static final String KEY_MAIL_PASSWORD_RECOVERY_TEXT = 
+			"mail_password_reset_text";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;

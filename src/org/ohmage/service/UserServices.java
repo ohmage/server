@@ -27,16 +27,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.mail.AuthenticationFailedException;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
+import javax.mail.SendFailedException;
 import javax.mail.Session;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
@@ -237,53 +241,17 @@ public final class UserServices {
 					hashedPassword, 
 					emailAddress, 
 					registrationId.toString());
-			
-			// Get the email properties.
-			Properties sessionProperties = new Properties();
-			try {
-				String host = 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_HOST);
-				
-				sessionProperties.put(MAIL_PROPERTY_HOST, host);
-			}
-			catch(CacheMissException e) {
-				// This is acceptable. It simply tells JavaMail to use the
-				// default.
-			}
-			
-			try {
-				sessionProperties.put(
-						MAIL_PROPERTY_PORT, 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_PORT));
-			}
-			catch(CacheMissException e) {
-				// This is acceptable. It simply tells JavaMail to use the
-				// default.
-			}
-			
-			try {
-				sessionProperties.put(
-						MAIL_PROPERTY_SSL_ENABLED, 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_SSL));
-			}
-			catch(CacheMissException e) {
-				// This is acceptable. It simply tells JavaMail to use the
-				// default.
-			}
 
 			// Build the registration text.
 			String registrationText;
 			try {
 				registrationText = PreferenceCache.instance().lookup(
-					PreferenceCache.KEY_MAIL_TEXT);
+					PreferenceCache.KEY_MAIL_REGISTRATION_TEXT);
 			}
 			catch(CacheMissException e) {
 				throw new ServiceException(
 					"The mail property is not in the preference table: " +
-						PreferenceCache.KEY_MAIL_TEXT,
+						PreferenceCache.KEY_MAIL_REGISTRATION_TEXT,
 					e);
 			}
 			
@@ -324,123 +292,89 @@ public final class UserServices {
 							MAIL_REGISTRATION_TEXT_REGISTRATION_LINK, 
 							registrationLink);
 			
-			// Build the message and send it.
+			// Get the session.
+			Session smtpSession = getMailSession();
+			// Create the message.
+			MimeMessage message = new MimeMessage(smtpSession);
+			
+			// Add the recipient.
 			try {
-				Session smtpSession = 
-						Session.getDefaultInstance(sessionProperties);
-				
-				MimeMessage message = new MimeMessage(smtpSession);
-				
-				// Add the recipient.
 				message.setRecipient(
 						Message.RecipientType.TO, 
 						new InternetAddress(emailAddress));
-				
-				// Add the sender.
-				try {
-					message.setFrom(
-							new InternetAddress(
-									PreferenceCache.instance().lookup(
-										PreferenceCache.KEY_MAIL_SENDER)));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(
-						"The mail property is not in the preference table: " +
-							PreferenceCache.KEY_MAIL_SENDER,
-						e);
-				}
-				
-				// Set the subject.
-				try {
-					message.setSubject(
-							PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_MAIL_SUBJECT));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(
-						"The mail property is not in the preference table: " +
-							PreferenceCache.KEY_MAIL_SUBJECT,
-						e);
-				}
-				
-				message.setContent(registrationText, "text/html");
-				message.saveChanges();
-				
-				SMTPTransport transport = 
-						(SMTPTransport) smtpSession.getTransport(
-								MAIL_PROTOCOL);
-
-				Boolean auth = null;
-				try {
-					auth = StringUtils.decodeBoolean(
-							PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_MAIL_AUTH));
-				}
-				catch(CacheMissException e) {
-					// This is acceptable. It simply tells JavaMail to use the
-					// default.
-				}
-				
-				if((auth != null) && auth) {
-					String mailUsername;
-					try {
-						mailUsername = 
-								PreferenceCache.instance().lookup(
-									PreferenceCache.KEY_MAIL_USERNAME);
-					}
-					catch(CacheMissException e) {
-						throw new ServiceException(
-							"The mail property is not in the preference table: " +
-								PreferenceCache.KEY_MAIL_USERNAME,
-							e);
-					}
-					
-					String mailPassword;
-					try {
-						mailPassword = 
-								PreferenceCache.instance().lookup(
-									PreferenceCache.KEY_MAIL_PASSWORD);
-					}
-					catch(CacheMissException e) {
-						throw new ServiceException(
-							"The mail property is not in the preference table: " +
-								PreferenceCache.KEY_MAIL_PASSWORD,
-							e);
-					}
-					
-					transport.connect(
-							smtpSession.getProperty(MAIL_PROPERTY_HOST), 
-							mailUsername, 
-							mailPassword);
-				}
-				else {
-					transport.connect();
-				}
-				
-				transport.sendMessage(message, message.getAllRecipients());
-				transport.close();
 			}
-			catch(NoSuchProviderException e) {
+			catch(AddressException e) {
 				throw new ServiceException(
-						"There is no provider for SMTP. " +
-							"This means the library has changed as it has built-in support for SMTP.",
-						e);
-			}
-			catch(AuthenticationFailedException e) {
-				throw new ServiceException(
-						"The mail credentials were incorrect.",
+						"The destination address is not a valid email address.",
 						e);
 			}
 			catch(MessagingException e) {
 				throw new ServiceException(
-						"There was an error while connecting to the mail server or sending the message.",
+						"Could not add the recipient to the message.",
 						e);
 			}
-			catch(IllegalStateException e) {
+			
+			// Add the sender.
+			try {
+				message.setFrom(
+						new InternetAddress(
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_MAIL_REGISTRATION_SENDER)));
+			}
+			catch(CacheMissException e) {
 				throw new ServiceException(
-						"The transport is already connected, which should never be the case.",
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_REGISTRATION_SENDER,
+					e);
+			}
+			catch(AddressException e) {
+				throw new ServiceException(
+						"The origin address is not a valid email address.",
 						e);
 			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not update the sender's email address.",
+						e);
+			}
+			
+			// Set the subject.
+			try {
+				message.setSubject(
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_REGISTRATION_SUBJECT));
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_REGISTRATION_SUBJECT,
+					e);
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not set the subject on the message.",
+						e);
+			}
+			
+			try {
+				message.setContent(registrationText, "text/html");
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not add the content to the message.",
+						e);
+			}
+			
+			try {
+				message.saveChanges();
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not save the changes to the message.",
+						e);
+			}
+			
+			sendMailMessage(smtpSession, message);
 		}
 		catch(NoSuchAlgorithmException e) {
 			throw new ServiceException("The hashing algorithm is unknown.", e);
@@ -543,6 +477,44 @@ public final class UserServices {
 		
 		for(String username : usernames) {
 			checkUserExistance(username, shouldExist);
+		}
+	}
+	
+	/**
+	 * Assumes the user exists. Checks that a parameterized email address 
+	 * matches the user's actual email address. To check if a user doesn't have
+	 * an email address, pass NULL in for the 'emailAddress'. Otherwise, a 
+	 * string comparison is done between the two email addresses to ensure that
+	 * they are identical.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param emailAddress The user's expected email address.
+	 * 
+	 * @throws ServiceException The email addresses didn't match or there was
+	 * 							an error.
+	 */
+	public void isUserEmailCorrect(
+			final String username, 
+			final String emailAddress)
+			throws ServiceException {
+		
+		try {
+			String actualEmailAddress = userQueries.getEmailAddress(username);
+			
+			if((actualEmailAddress == null) && (emailAddress == null)) {
+				// The email addresses match in that the user doesn't have one
+				// and none was passed in.
+			}
+			else if((emailAddress == null) || (actualEmailAddress == null) ||
+				(! actualEmailAddress.toLowerCase().equals(emailAddress.toLowerCase()))) {
+				throw new ServiceException(
+						ErrorCode.USER_INVALID_EMAIL_ADDRESS,
+						"The email addresses don't match.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
 		}
 	}
 	
@@ -1192,6 +1164,196 @@ public final class UserServices {
 			throw new ServiceException(e);
 		}
 	}
+
+	/**
+	 * Activates a user's account by updating the enabled status to true and
+	 * updates the registration table's entry.
+	 * 
+	 * @param registrationId The registration's unique identifier.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void activateUser(
+			final String registrationId)
+			throws ServiceException {
+		
+		try {
+			userQueries.activateUser(registrationId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Resets a user's password. This is done by first updating the user's 
+	 * information and then by sending an email to the user.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public void resetPassword(final String username)
+			throws ServiceException {
+			
+		String newPassword = generateRandomPassword();
+		
+		String emailAddress;
+		try {
+			emailAddress = userQueries.getEmailAddress(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		
+		if(emailAddress == null) {
+			throw new ServiceException(
+					"The user no longer exists or no longer has an email address.");
+		}
+		
+		try {
+			userQueries.updateUserPassword(
+					username, 
+					BCrypt.hashpw(newPassword, BCrypt.gensalt(13)), 
+					true);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		
+		// Get the session.
+		Session smtpSession = getMailSession();
+		// Create the message.
+		MimeMessage message = new MimeMessage(smtpSession);
+		
+		// Add the recipient.
+		try {
+			message.setRecipient(
+					Message.RecipientType.TO, 
+					new InternetAddress(emailAddress));
+		}
+		catch(AddressException e) {
+			throw new ServiceException(
+					"The destination address is not a valid email address.",
+					e);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not add the recipient to the message.",
+					e);
+		}
+		
+		// Add the sender.
+		try {
+			message.setFrom(
+					new InternetAddress(
+							PreferenceCache.instance().lookup(
+								PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SENDER)));
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+				"The mail property is not in the preference table: " +
+					PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SENDER,
+				e);
+		}
+		catch(AddressException e) {
+			throw new ServiceException(
+					"The origin address is not a valid email address.",
+					e);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not update the sender's email address.",
+					e);
+		}
+		
+		// Set the subject.
+		try {
+			message.setSubject(
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT));
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT,
+					e);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not set the subject on the message.",
+					e);
+		}
+		
+		// Create the multi-part message.
+		MimeMultipart content = new MimeMultipart();
+		
+		// Create the HTML portion of the message.
+		MimeBodyPart html = new MimeBodyPart();
+		try {
+			html.setContent(
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_TEXT), 
+						"text/html");
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT,
+					e);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not set the HTML portion of the message.", 
+					e);
+		}
+		try {
+			content.addBodyPart(html);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not add the HTML portion of the message.",
+					e);
+		}
+		
+		MimeBodyPart passwordPart = new MimeBodyPart();
+		try {
+			passwordPart.setContent(newPassword, "text/text");
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not add the password text.",
+					e);
+		}
+		try {
+			content.addBodyPart(passwordPart);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not add the password potion of the message.",
+					e);
+		}
+		
+		try {
+			message.setContent(content);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not add the content to the message.",
+					e);
+		}
+		
+		try {
+			message.saveChanges();
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"Could not save the changes to the message.",
+					e);
+		}
+		
+		sendMailMessage(smtpSession, message);
+	}
 	
 	/**
 	 * Updates the user's password.
@@ -1209,27 +1371,7 @@ public final class UserServices {
 		try {
 			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
 			
-			userQueries.updateUserPassword(username, hashedPassword);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
-
-	/**
-	 * Activates a user's account by updating the enabled status to true and
-	 * updates the registration table's entry.
-	 * 
-	 * @param registrationId The registration's unique identifier.
-	 * 
-	 * @throws DataAccessException There was an error.
-	 */
-	public void activateUser(
-			final String registrationId)
-			throws ServiceException {
-		
-		try {
-			userQueries.activateUser(registrationId);
+			userQueries.updateUserPassword(username, hashedPassword, false);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -1269,6 +1411,192 @@ public final class UserServices {
 		// disk.
 		for(URL imageUrl : imageUrls) {
 			imageQueries.deleteImageDiskOnly(imageUrl);
+		}
+	}
+	
+	/**
+	 * Generates a plaintext password based on our rule set.
+	 * 
+	 * @return The plaintext password.
+	 */
+	private String generateRandomPassword() {
+		char[] validChars = 
+				new char[] { 
+					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+					'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+					'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+					'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 
+					'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', 
+					'8', '9', ',', '.', '<', '>', '[', ']', '!', '@', '#', '$',
+					'%', '^', '&', '*', '+', '-', '/', '=', '?', '_', '{', '}',
+					'|', ':' };
+
+		Random random = new Random();
+		int length = random.nextInt(16 - 8) + 8; 
+		
+		StringBuilder passwordBuilder = new StringBuilder();
+		for(int i = 0; i < length; i++) {
+			passwordBuilder.append(
+					validChars[random.nextInt(validChars.length)]);
+		}
+		return passwordBuilder.toString();
+	}
+	
+	/**
+	 * Creates and returns a new mail Session.
+	 * 
+	 * @return The mail session based on the current state of the preferences
+	 * 		   in the database.
+	 * 
+	 * @throws ServiceException There was a problem creating the session.
+	 */
+	private Session getMailSession() throws ServiceException {	
+		// Get the email properties.
+		Properties sessionProperties = new Properties();
+		try {
+			String host = 
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_HOST);
+			
+			sessionProperties.put(MAIL_PROPERTY_HOST, host);
+		}
+		catch(CacheMissException e) {
+			// This is acceptable. It simply tells JavaMail to use the
+			// default.
+		}
+		
+		try {
+			sessionProperties.put(
+					MAIL_PROPERTY_PORT, 
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_PORT));
+		}
+		catch(CacheMissException e) {
+			// This is acceptable. It simply tells JavaMail to use the
+			// default.
+		}
+		
+		try {
+			sessionProperties.put(
+					MAIL_PROPERTY_SSL_ENABLED, 
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_SSL));
+		}
+		catch(CacheMissException e) {
+			// This is acceptable. It simply tells JavaMail to use the
+			// default.
+		}
+		
+		// Create the session and return it.
+		return Session.getInstance(sessionProperties);
+	}
+	
+	/**
+	 * Sends a mail message.
+	 * 
+	 * @param smtpSession The session used to create the message.
+	 * 
+	 * @param message The message to be sent.
+	 * 
+	 * @throws ServiceException There was a problem creating the connection to
+	 * 							the mail server or sending the message.
+	 */
+	private void sendMailMessage(Session smtpSession, Message message) throws ServiceException {
+		// Get the transport from the session.
+		SMTPTransport transport;
+		try {
+			transport = 
+					(SMTPTransport) smtpSession.getTransport(MAIL_PROTOCOL);
+		}
+		catch(NoSuchProviderException e) {
+			throw new ServiceException(
+					"There is no provider for SMTP. " +
+						"This means the library has changed as it has built-in support for SMTP.",
+					e);
+		}
+
+		Boolean auth = null;
+		try {
+			auth = StringUtils.decodeBoolean(
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAIL_AUTH));
+		}
+		catch(CacheMissException e) {
+			// This is acceptable. It simply tells JavaMail to use the
+			// default.
+		}
+		
+		if((auth != null) && auth) {
+			String mailUsername;
+			try {
+				mailUsername = 
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_USERNAME);
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_USERNAME,
+					e);
+			}
+			
+			String mailPassword;
+			try {
+				mailPassword = 
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_PASSWORD);
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_MAIL_PASSWORD,
+					e);
+			}
+			
+			try {
+				transport.connect(
+						smtpSession.getProperty(MAIL_PROPERTY_HOST), 
+						mailUsername, 
+						mailPassword);
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not authenticate with or connect to the mail server.",
+						e);
+			}
+		}
+		else {
+			try {
+				transport.connect();
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not connect to the mail server.",
+						e);
+			}
+		}
+		
+		try {
+			transport.sendMessage(message, message.getAllRecipients());
+		}
+		catch(SendFailedException e) {
+			throw new ServiceException(
+					"Failed to send the message.",
+					e);
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"There was a problem while sending the message.",
+					e);
+		}
+		
+		try {
+			transport.close();
+		}
+		catch(MessagingException e) {
+			throw new ServiceException(
+					"After sending the message there was an error closing the connection.",
+					e);
 		}
 	}
 }

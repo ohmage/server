@@ -17,7 +17,6 @@ package org.ohmage.validator;
 
 import junit.framework.TestCase;
 
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.exception.ValidationException;

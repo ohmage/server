@@ -84,6 +84,17 @@ public interface IUserQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	Boolean userExists(String username) throws DataAccessException;
+	
+	/**
+	 * Returns the user's email address or null if one doesn't exist.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return The user's email address or null if the user doesn't have one.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	String getEmailAddress(String username) throws DataAccessException;
 
 	/**
 	 * Gets whether or not the user is an admin.
@@ -492,8 +503,15 @@ public interface IUserQueries {
 	 * @param username The username of the user to be updated.
 	 * 
 	 * @param hashedPassword The new, hashed password for the user.
+	 * 
+	 * @param setNewAccount Whether or not to flag the account as a new account
+	 * 						which means that the user must change their 
+	 * 						password the next time they attempt to login.
 	 */
-	void updateUserPassword(String username, String hashedPassword)
+	void updateUserPassword(
+			final String username, 
+			final String hashedPassword, 
+			final boolean setNewAccount)
 			throws DataAccessException;
 	
 	/**

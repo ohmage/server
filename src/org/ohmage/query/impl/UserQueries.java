@@ -581,6 +581,44 @@ public class UserQueries extends Query implements IUserQueries {
 			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER + "' with parameter: " + username, e);
 		}
 	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getEmailAddress(java.lang.String)
+	 */
+	@Override
+	public String getEmailAddress(
+			final String username) 
+			throws DataAccessException {
+		
+		String sql = "SELECT email_address FROM user WHERE username = ?";
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+				sql,
+				new Object[] { username },
+				String.class
+				);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			// If the user doesn't exist, return null.
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			
+			throw new DataAccessException(
+					"Multiple users have the same username: " + username, 
+					e);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing '" + 
+						sql + 
+						"' with parameter: " + 
+						username,
+					e);
+		}
+	}
 	
 	/**
 	 * Gets whether or not the user is an admin.
@@ -1757,7 +1795,7 @@ public class UserQueries extends Query implements IUserQueries {
 	 * 
 	 * @param hashedPassword The new, hashed password for the user.
 	 */
-	public void updateUserPassword(String username, String hashedPassword) throws DataAccessException {
+	public void updateUserPassword(String username, String hashedPassword, boolean setNewAccount) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Updating a user's password.");
@@ -1779,12 +1817,12 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Ensure that this user is no longer a new user.
 			try {
-				getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, false, username);
+				getJdbcTemplate().update(SQL_UPDATE_NEW_ACCOUNT, setNewAccount, username);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_NEW_ACCOUNT + "' with parameters: " + 
-						false + ", " + username, e);
+						setNewAccount + ", " + username, e);
 			}
 			
 			// Commit the transaction.

@@ -46,9 +46,12 @@ INSERT INTO preference VALUES
     ('recaptcha_private_key', ''),
     ('self_registration_allowed', 'false'),
     ('terms_of_service', ''),
-    ('mail_sender_address', 'no-reply@ohmage.org'),
-    ('mail_subject', 'ohmage: New Account Request'),
-    ('mail_text', 'Registration Activation\n\nThank you for creating an account. To activate your account, follow the link at the end of this message. By following the link you agree to our terms of service.\n\n<_TOS_>\n\n<_REGISTRATION_LINK_>');
+    ('mail_registration_sender_address', 'no-reply@ohmage.org'),
+    ('mail_registration_subject', 'ohmage: New Account Request'),
+    ('mail_registration_text', '<h3>Registration Activation</h3><p>Thank you for creating an account. To activate your account, follow the link at the end of this message. By following the link you agree to our terms of service.</p><_TOS_><br /><_REGISTRATION_LINK_>'),
+    ('mail_password_reset_sender_address', 'no-reply@ohmage.org'),
+    ('mail_password_reset_subject', 'ohmage: Password Reset'),
+    ('mail_password_reset_text', '<h3>Password Reset</h3><p>Your password has been reset. Please attempt to login with your new password below at which time you will be prompted to change your password.</p>');
     
 -- The key in the classifier JSON for Mobility points for the N95 variance has
 -- been changed from "N95Variance" to "n95variance".

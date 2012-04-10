@@ -307,6 +307,27 @@
 								            </div>
 								        </div>
 								    </div>
+								    
+								    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-registation" href="#collapsePasswordReset">
+                                                Password Reset
+                                            </a>
+                                        </div>
+                                        <div id="collapsePasswordReset" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form id="frmRegistration" action="/app/user/reset_password" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Username</label>
+                                                    <input type="text" name="username">
+                                                    <label><span class="label label-info">required</span> Email Address</label>
+                                                    <input type="text" name="email_address">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost" />
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 							    </div>
     					    </div>
    					    </div>

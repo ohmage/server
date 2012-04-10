@@ -82,7 +82,7 @@ public final class UserValidators {
 	// must contain at least one lower case character, one upper case
 	// character, one digit, and one of a set of special characters. It must be
 	// between 8 and 16 characters, inclusive.
-	private static final String PLAINTEXT_PASSWORD_PATTERN_STRING = 
+	public static final String PLAINTEXT_PASSWORD_PATTERN_STRING = 
 		"^" + // Beginning of the line.
 		"(" + // Beginning of group 1.
 			"(" + // Beginning of subgroup 1-1.
