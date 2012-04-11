@@ -16,7 +16,6 @@
 package org.ohmage.domain;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -26,7 +25,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.DateTimeFormatterBuilder;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +40,6 @@ import org.ohmage.domain.MobilityPoint.SensorData.SensorDataColumnKey;
 import org.ohmage.domain.MobilityPoint.SensorData.WifiData.WifiDataColumnKey;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 
 import edu.ucla.cens.mobilityclassifier.AccessPoint;
 import edu.ucla.cens.mobilityclassifier.Sample;
@@ -51,6 +51,8 @@ import edu.ucla.cens.mobilityclassifier.WifiScan;
  * @author John Jenkins
  */
 public class MobilityPoint implements Comparable<MobilityPoint> {
+	private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+	
 	/**
 	 * Column names for Mobility information.
 	 * 
@@ -334,8 +336,8 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			 * Converts this key to a string with the {@link #NAMESPACE} before it.
 			 * 
 			 * @return The {@link #NAMESPACE} and 
-			 * 		   {@link ColumnKey#NAMESPACE_DIVIDOR} followed by this key's 
-			 * 		   value.
+			 * 		   {@link ColumnKey#NAMESPACE_DIVIDOR} followed by this 
+			 * 		   key's value.
 			 */
 			@Override
 			public String toString() {
@@ -1325,13 +1327,14 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 					
 				if(columns.contains(WifiDataColumnKey.TIMESTAMP)) {
-					Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
-					calendar.setTimeInMillis(time);
+					DateTime dateTime = new DateTime(time, timezone);
+					DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+					builder.appendPattern(DATE_TIME_FORMAT);
+					
 					result.put(
 							WifiDataColumnKey.TIMESTAMP.toString(
 									abbreviated), 
-							TimeUtils.getIso8601DateTimeString(
-									calendar.getTime()));
+							builder.toFormatter().print(dateTime));
 				}
 					
 				if(columns.contains(WifiDataColumnKey.TIMEZONE)) {
@@ -1454,12 +1457,11 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 					
 				if((index = columns.indexOf(WifiDataColumnKey.TIMESTAMP)) != -1) {
-					Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
-					calendar.setTimeInMillis(time);
-					result.set(
-							index, 
-							TimeUtils.getIso8601DateTimeString(
-									calendar.getTime()));
+					DateTime dateTime = new DateTime(time, timezone);
+					DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+					builder.appendPattern(DATE_TIME_FORMAT);
+					
+					result.set(index, builder.toFormatter().print(dateTime));
 				}
 					
 				if((index = columns.indexOf(WifiDataColumnKey.TIMEZONE)) != -1) {
@@ -2945,6 +2947,15 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 	public final DateTimeZone getTimezone() {
 		return timezone;
 	}
+	
+	/**
+	 * Constructs a new DateTime with the time and time zone of this point.
+	 * 
+	 * @return The DateTime of this point.
+	 */
+	public final DateTime getDate() {
+		return new DateTime(time, timezone);
+	}
 
 	/**
 	 * Returns the Mobility point's privacy state.
@@ -3247,12 +3258,13 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 	
 		if(columns.contains(MobilityColumnKey.TIMESTAMP)) {
-			Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
-			calendar.setTimeInMillis(time);
-			
+			DateTime dateTime = new DateTime(time, timezone);
+			DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+			builder.appendPattern(DATE_TIME_FORMAT);
+
 			result.put(
-					MobilityColumnKey.TIMESTAMP.toString(abbreviated), 
-					TimeUtils.getIso8601DateTimeString(calendar.getTime()));
+					MobilityColumnKey.TIMESTAMP.toString(abbreviated),
+					builder.toFormatter().print(dateTime));
 		}
 
 		if(columns.contains(MobilityColumnKey.TIMEZONE)) {
@@ -3352,12 +3364,11 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 		
 		if((index = columns.indexOf(MobilityColumnKey.TIMESTAMP)) != -1) {
-			Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
-			calendar.setTimeInMillis(time);
+			DateTime dateTime = new DateTime(time, timezone);
+			DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
+			builder.appendPattern(DATE_TIME_FORMAT);
 			
-			result.set(
-					index, 
-					TimeUtils.getIso8601DateTimeString(calendar.getTime()));
+			result.set(index, builder.toFormatter().print(dateTime));
 		}
 		
 		if((index = columns.indexOf(MobilityColumnKey.TIMEZONE)) != -1) {

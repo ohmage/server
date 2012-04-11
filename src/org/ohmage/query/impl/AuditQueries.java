@@ -21,13 +21,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -419,9 +419,9 @@ public class AuditQueries extends Query implements IAuditQueries {
 	 * @see org.ohmage.query.IAuditQueries#getAllAuditsOnOrAfterDate(java.util.Date)
 	 */
 	@Override
-	public List<Long> getAllAuditsOnOrAfterDate(Date date) throws DataAccessException {
+	public List<Long> getAllAuditsOnOrAfterDate(DateTime date) throws DataAccessException {
 		try {
-			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE, new Object[] { date.getMillis() }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE + "' with parameter: " + date, e);
@@ -432,9 +432,9 @@ public class AuditQueries extends Query implements IAuditQueries {
 	 * @see org.ohmage.query.IAuditQueries#getAllAuditsOnOrBeforeDate(java.util.Date)
 	 */
 	@Override
-	public List<Long> getAllAuditsOnOrBeforeDate(Date date) throws DataAccessException {
+	public List<Long> getAllAuditsOnOrBeforeDate(DateTime date) throws DataAccessException {
 		try {
-			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE, new Object[] { date.getMillis() }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE + "' with parameter: " + date, e);
@@ -445,9 +445,9 @@ public class AuditQueries extends Query implements IAuditQueries {
 	 * @see org.ohmage.query.IAuditQueries#getAllAuditsOnOrBetweenDates(java.util.Date, java.util.Date)
 	 */
 	@Override
-	public List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) throws DataAccessException {
+	public List<Long> getAllAuditsOnOrBetweenDates(DateTime startDate, DateTime endDate) throws DataAccessException {
 		try {
-			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate, endDate }, new SingleColumnRowMapper<Long>());
+			return getJdbcTemplate().query(SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES, new Object[] { startDate.getMillis(), endDate.getMillis() }, new SingleColumnRowMapper<Long>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES + "' with parameters: " + 

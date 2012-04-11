@@ -15,11 +15,11 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
-import java.util.Date;
 import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.exception.ValidationException;
@@ -49,8 +49,8 @@ public class DateValidatorsTest extends TestCase {
 				// Passed.
 			}
 			
-			Map<Date, String> dateToStringMap = ParameterSets.getDateToString();
-			for(Date date : dateToStringMap.keySet()) {
+			Map<DateTime, String> dateToStringMap = ParameterSets.getDateToString();
+			for(DateTime date : dateToStringMap.keySet()) {
 				Assert.assertEquals(date, DateValidators.validateISO8601Date(dateToStringMap.get(date)));
 			}
 		}
@@ -77,8 +77,8 @@ public class DateValidatorsTest extends TestCase {
 				// Passed.
 			}
 			
-			Map<Date, String> dateTimeToStringMap = ParameterSets.getDateTimeToString();
-			for(Date date : dateTimeToStringMap.keySet()) {
+			Map<DateTime, String> dateTimeToStringMap = ParameterSets.getDateTimeToString();
+			for(DateTime date : dateTimeToStringMap.keySet()) {
 				Assert.assertEquals(date, DateValidators.validateISO8601DateTime(dateTimeToStringMap.get(date)));
 			}
 		}

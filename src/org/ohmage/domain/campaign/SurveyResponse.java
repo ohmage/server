@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -1193,6 +1194,15 @@ public class SurveyResponse {
 	 */
 	public final DateTimeZone getTimezone() {
 		return timezone;
+	}
+	
+	/**
+	 * Returns a DateTime object that represents this object's date and time.
+	 * 
+	 * @return This object's date and time.
+	 */
+	public final DateTime getDate() {
+		return new DateTime(time, timezone);
 	}
 
 	/**

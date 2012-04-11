@@ -18,12 +18,14 @@ package org.ohmage.domain.campaign.prompt;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TimestampPromptResponse;
 import org.ohmage.exception.DomainException;
-import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * This class represents a timestamp prompt.
@@ -135,39 +137,39 @@ public class TimestampPrompt extends Prompt {
 			
 			return value;
 		}
-		// If it's already a date, return it.
-		else if(value instanceof Date) {
+		// If it's already a DateTime, return it.
+		else if(value instanceof DateTime) {
 			return value;
 		}
-		// If it's a Calendar, convert it to a Date and return it.
-		else if(value instanceof Calendar) {
-			return new Date(((Calendar) value).getTimeInMillis());
+		// If it's a Date, convert it to a DateTime and return it.
+		else if(value instanceof Date) {
+			return new DateTime(((Date) value).getTime());
 		}
-		// If it's a String, attempt to convert it to a Date and return it.
+		// If it's a Calendar, convert it to a DateTime and return it.
+		else if(value instanceof Calendar) {
+			Calendar calValue = (Calendar) value;
+			return new DateTime(
+					calValue.getTimeInMillis(), 
+					DateTimeZone.forTimeZone(calValue.getTimeZone()));
+		}
+		// If it's a String, attempt to convert it to a DateTime and return it.
 		else if(value instanceof String) {
-			Date result = null;
-			
 			try {
 				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException iae) {
-				result = StringUtils.decodeDateTime((String) value);
-				if(result != null) {
-					return result;
+				try {
+					return TimeUtils.getDateTimeFromString((String) value);
 				}
-				
-				result = StringUtils.decodeDate((String) value);
-				if(result != null) {
-					return result;
-				}
-			
-				throw new DomainException(
+				catch(IllegalArgumentException e) {
+					throw new DomainException(
 						"The string value could not be converted to a date.");
+				}
 			}
 		}
 		
 		throw new DomainException(
-				"The value could not be converted to a valid Date.");
+				"The value could not be converted to a valid DateTime.");
 	}
 	
 	/**

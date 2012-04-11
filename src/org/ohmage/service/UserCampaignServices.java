@@ -17,13 +17,13 @@ package org.ohmage.service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
@@ -609,7 +609,7 @@ public class UserCampaignServices {
 	public Set<String> getCampaignsForUser(final String username, 
 			final Collection<String> campaignIds, 
 			final Collection<String> classIds,
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final Campaign.PrivacyState privacyState, 
 			final Campaign.RunningState runningState, 
 			final Campaign.Role role) throws ServiceException {
@@ -893,7 +893,7 @@ public class UserCampaignServices {
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
 			final Collection<String> descriptionTokens,
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final Campaign.PrivacyState privacyState, 
 			final Campaign.RunningState runningState, 
 			final Campaign.Role role,

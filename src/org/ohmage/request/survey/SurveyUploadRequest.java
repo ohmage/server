@@ -19,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
@@ -44,8 +44,8 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
+import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
-import org.ohmage.validator.DateValidators;
 import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -111,7 +111,7 @@ public class SurveyUploadRequest extends UserRequest {
 	// The campaign creation timestamp is stored as a String because it is 
 	// never used in any kind of calculation.
 	private final String campaignUrn;
-	private final Date campaignCreationTimestamp;
+	private final DateTime campaignCreationTimestamp;
 	private List<JSONObject> jsonData;
 	private final Map<String, BufferedImage> imageContentsMap;
 	
@@ -129,7 +129,7 @@ public class SurveyUploadRequest extends UserRequest {
 		LOGGER.info("Creating a survey upload request.");
 
 		String tCampaignUrn = null;
-		Date tCampaignCreationTimestamp = null;
+		DateTime tCampaignCreationTimestamp = null;
 		List<JSONObject> tJsonData = null;
 		Map<String, BufferedImage> tImageContentsMap = null;
 		
@@ -158,9 +158,9 @@ public class SurveyUploadRequest extends UserRequest {
 					
 					// Make sure it's a valid timestamp
 					try {
-						tCampaignCreationTimestamp = DateValidators.validateISO8601DateTime(t[0]);
+						tCampaignCreationTimestamp = TimeUtils.getDateTimeFromString(t[0]);
 					}
-					catch(ValidationException e) {
+					catch(IllegalArgumentException e) {
 						setFailed(ErrorCode.SERVER_INVALID_DATE, e.getMessage());
 						throw e;
 					}

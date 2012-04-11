@@ -21,7 +21,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +29,7 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Survey;
@@ -603,30 +603,30 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrAfterDate(java.util.Calendar)
 	 */
-	public List<String> getCampaignsOnOrAfterDate(Date date) throws DataAccessException {
+	public List<String> getCampaignsOnOrAfterDate(DateTime date) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
-					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
+					new Object[] { TimeUtils.getIso8601DateString(date, true) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + TimeUtils.getIso8601DateString(date, true), e);
 		}
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignsOnOrBeforeDate(java.util.Calendar)
 	 */
-	public List<String> getCampaignsOnOrBeforeDate(Date date) throws DataAccessException {
+	public List<String> getCampaignsOnOrBeforeDate(DateTime date) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
-					new Object[] { TimeUtils.getIso8601DateTimeString(date) },
+					new Object[] { TimeUtils.getIso8601DateString(date, true) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + TimeUtils.getIso8601DateTimeString(date), e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + TimeUtils.getIso8601DateString(date, true), e);
 		}
 	}
 	
@@ -822,9 +822,14 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#getCreationTimestamp(java.lang.String)
 	 */
-	public Timestamp getCreationTimestamp(String campaignId) throws DataAccessException {
+	public DateTime getCreationTimestamp(String campaignId) throws DataAccessException {
 		try {
-			return getJdbcTemplate().queryForObject(SQL_GET_CREATION_TIMESTAMP, new Object[] { campaignId }, Timestamp.class);
+			return new DateTime(
+					((Timestamp) getJdbcTemplate().queryForObject(
+						SQL_GET_CREATION_TIMESTAMP, 
+						new Object[] { campaignId }, 
+						Timestamp.class))
+					.getTime());
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
@@ -871,7 +876,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 										rs.getString("authored_by"),
 										Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
 										Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
-										rs.getTimestamp("creation_timestamp"),
+										new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
 										new HashMap<String, Survey>(0),
 										rs.getString("xml"));
 							} 
@@ -910,8 +915,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
 			final Collection<String> descriptionTokens,
-			final Date startDate,
-			final Date endDate,
+			final DateTime startDate,
+			final DateTime endDate,
 			final Campaign.PrivacyState privacyState,
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)
@@ -1037,13 +1042,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			if(startDate != null) {
 				builder.append(" AND creation_timestamp >= ?");
 				
-				parameters.add(TimeUtils.getIso8601DateTimeString(startDate));
+				parameters.add(TimeUtils.getIso8601DateString(startDate, true));
 			}
 			
 			if(endDate != null) {
 				builder.append(" AND creation_timestamp <= ?");
 				
-				parameters.add(TimeUtils.getIso8601DateTimeString(endDate));
+				parameters.add(TimeUtils.getIso8601DateString(endDate, true));
 			}
 			
 			if(runningState != null) {
@@ -1115,7 +1120,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 													rs.getString("authored_by"),
 													Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
 													Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
-													rs.getTimestamp("creation_timestamp"),
+													new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
 													new HashMap<String, Survey>(0),
 													rs.getString("xml")));
 								}

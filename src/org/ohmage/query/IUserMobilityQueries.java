@@ -20,6 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
@@ -135,7 +136,7 @@ public interface IUserMobilityQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<String> getIdsUploadedAfterDate(String username, Date startDate)
+	List<String> getIdsUploadedAfterDate(String username, DateTime startDate)
 			throws DataAccessException;
 
 	/**
@@ -151,7 +152,7 @@ public interface IUserMobilityQueries {
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
-	List<String> getIdsUploadedBeforeDate(String username, Date endDate)
+	List<String> getIdsUploadedBeforeDate(String username, DateTime endDate)
 			throws DataAccessException;
 
 	/**
@@ -244,8 +245,8 @@ public interface IUserMobilityQueries {
 	 */
 	List<MobilityPoint> getMobilityInformation(
 			final String username,
-			final Date startDate,
-			final Date endDate,
+			final DateTime startDate,
+			final DateTime endDate,
 			final MobilityPoint.PrivacyState privacyState,
 			final LocationStatus locationStatus,
 			final Mode mode) 
@@ -267,9 +268,9 @@ public interface IUserMobilityQueries {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public Set<Date> getDates(
-			final Date startDate,
-			final Date endDate,
+	public Set<DateTime> getDates(
+			final DateTime startDate,
+			final DateTime endDate,
 			final String username)
 			throws DataAccessException;
 

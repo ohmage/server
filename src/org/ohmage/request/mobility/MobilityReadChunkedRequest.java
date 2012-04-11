@@ -15,9 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.mobility;
 
-import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -97,8 +96,8 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	// 10 days
 	private static final long MAX_MILLIS_BETWEEN_START_AND_END_DATES = 1000 * 60 * 60 * 24 * 10; 
 	
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	private final long millisPerChunk;
 	
 	private List<MobilityPoint> result;
@@ -113,8 +112,8 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		
 		LOGGER.info("Creating a Mobility read chunked request.");
 		
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		Long tMillisPerChunk = DEFAULT_MILLIS_PER_CHUNK;
 		
 		if(! isFailed()) {
@@ -173,11 +172,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 				
 				// Ensure that the duration between the start and end dates
 				// doesn't exceed our maximum.
-				Date latestDate = 
-						new Date(
-								tStartDate.getTime() + 
-								MAX_MILLIS_BETWEEN_START_AND_END_DATES);
-				if(tEndDate.after(latestDate)) {
+				if((tEndDate.getMillis() - tStartDate.getMillis()) > MAX_MILLIS_BETWEEN_START_AND_END_DATES) {
 					throw new ValidationException(
 							ErrorCode.SERVER_INVALID_DATE, 
 							"The maximum time range between the start and end dates is 10 days.");
@@ -227,13 +222,14 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Gathering the data.");
-			result = MobilityServices.instance().retrieveMobilityData(
-					getUser().getUsername(), 
-					startDate, 
-					endDate, 
-					null, 
-					null, 
-					null);
+			result =
+					MobilityServices.instance().retrieveMobilityData(
+						getUser().getUsername(), 
+						startDate, 
+						endDate, 
+						null, 
+						null, 
+						null);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -283,13 +279,11 @@ public class MobilityReadChunkedRequest extends UserRequest {
 				for(MobilityPoint mobilityPoint : millisToPointMap.get(time)) {
 					// The first point sets the information.
 					if(timestamp == null) {
-						timezone = mobilityPoint.getTimezone();
-						
-						Calendar calendar = Calendar.getInstance(timezone.toTimeZone());
-						calendar.setTimeInMillis(mobilityPoint.getTime());
 						timestamp = 
-								TimeUtils.getIso8601DateTimeString(
-										calendar.getTime()); 
+								TimeUtils.getIso8601DateString(
+									mobilityPoint.getDate(), 
+									false);
+						timezone = mobilityPoint.getTimezone();
 						
 						locationStatus = mobilityPoint.getLocationStatus();
 						location = mobilityPoint.getLocation();

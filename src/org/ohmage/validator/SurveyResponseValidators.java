@@ -18,7 +18,6 @@ package org.ohmage.validator;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,6 +28,7 @@ import java.util.UUID;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -42,6 +42,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * This class is responsible for validating survey response-based items.
@@ -474,26 +475,20 @@ public final class SurveyResponseValidators {
 	 * @throws ValidationException Thrown if the start date was not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateStartDate(final String startDate) 
+	public static DateTime validateStartDate(final String startDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
 		}
-		
-		Date result = StringUtils.decodeDateTime(startDate);
-		if(result == null) {
-			result = StringUtils.decodeDate(startDate);
+
+		try {
+			return TimeUtils.getDateTimeFromString(startDate);
 		}
-		
-		if(result == null) {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.SERVER_INVALID_DATE, 
-					"The start date was unknown: " + 
-						startDate);
-		}
-		else {
-			return result;
+					"The date is not valid: " + startDate);
 		}
 	}
 	
@@ -509,26 +504,20 @@ public final class SurveyResponseValidators {
 	 * @throws ValidationException Thrown if the end date was not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateEndDate(final String endDate) 
+	public static DateTime validateEndDate(final String endDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
-		
-		Date result = StringUtils.decodeDateTime(endDate);
-		if(result == null) {
-			result = StringUtils.decodeDate(endDate);
+
+		try {
+			return TimeUtils.getDateTimeFromString(endDate);
 		}
-		
-		if(result == null) {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.SERVER_INVALID_DATE, 
-					"The end date was unknown: " + 
-						endDate);
-		}
-		else {
-			return result;
+					"The date is not valid: " + endDate);
 		}
 	}
 	

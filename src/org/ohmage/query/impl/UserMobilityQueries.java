@@ -28,11 +28,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.TimeZone;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -581,11 +581,11 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserMobilityQueries#getIdsUploadedAfterDate(java.lang.String, java.util.Date)
 	 */
-	public List<String> getIdsUploadedAfterDate(String username, Date startDate) throws DataAccessException {
+	public List<String> getIdsUploadedAfterDate(String username, DateTime startDate) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_UPLOADED_AFTER_DATE,
-					new Object[] { username, TimeUtils.getIso8601DateString(startDate) },
+					new Object[] { username, TimeUtils.getIso8601DateString(startDate, false) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -594,7 +594,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							SQL_GET_IDS_UPLOADED_AFTER_DATE + 
 						"' with parameters: " + 
 							username + ", " +
-							TimeUtils.getIso8601DateString(startDate),
+							TimeUtils.getIso8601DateString(startDate, false),
 					e);
 		}
 	}
@@ -603,11 +603,11 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserMobilityQueries#getIdsUploadedBeforeDate(java.lang.String, java.util.Date)
 	 */
-	public List<String> getIdsUploadedBeforeDate(String username, Date endDate) throws DataAccessException {
+	public List<String> getIdsUploadedBeforeDate(String username, DateTime endDate) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_IDS_UPLOADED_BEFORE_DATE,
-					new Object[] { username, TimeUtils.getIso8601DateString(endDate) },
+					new Object[] { username, TimeUtils.getIso8601DateString(endDate, false) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -616,7 +616,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							SQL_GET_IDS_UPLOADED_BEFORE_DATE + 
 						"' with parameters: " + 
 							username + ", " +
-							TimeUtils.getIso8601DateString(endDate),
+							TimeUtils.getIso8601DateString(endDate, false),
 					e);
 		}
 	}
@@ -768,8 +768,8 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	@Override
 	public List<MobilityPoint> getMobilityInformation(
 			final String username,
-			final Date startDate, 
-			final Date endDate, 
+			final DateTime startDate, 
+			final DateTime endDate, 
 			final PrivacyState privacyState,
 			final LocationStatus locationStatus, 
 			final Mode mode)
@@ -781,11 +781,11 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		
 		if(startDate != null) {
 			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER_DATE);
-			parameters.add(startDate.getTime());
+			parameters.add(startDate.getMillis());
 		}
 		if(endDate != null) {
 			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE_DATE);
-			parameters.add(endDate.getTime());
+			parameters.add(endDate.getMillis());
 		}
 		if(privacyState != null) {
 			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);
@@ -867,68 +867,66 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserMobilityQueries#getDates(java.util.Date, java.util.Date, java.lang.String)
 	 */
-	public Set<Date> getDates(
-			final Date startDate,
-			final Date endDate,
+	public Set<DateTime> getDates(
+			final DateTime startDate,
+			final DateTime endDate,
 			final String username)
 			throws DataAccessException {
 		
 
 		List<Object> parameters = new ArrayList<Object>(3);
 		parameters.add(username);
-		parameters.add(startDate.getTime());
-		parameters.add(endDate.getTime());
+		parameters.add(startDate.getMillis());
+		parameters.add(endDate.getMillis());
 		
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_MIN_MAX_MILLIS_FOR_USER_WITHIN_RANGE_GROUPED_BY_TIME_AND_TIMEZONE, 
 					parameters.toArray(),
-					new ResultSetExtractor<Set<Date>>() {
+					new ResultSetExtractor<Set<DateTime>>() {
 						/**
 						 * Gathers the applicable dates based on their time 
 						 * zone.
 						 */
 						@Override
-						public Set<Date> extractData(ResultSet rs)
+						public Set<DateTime> extractData(ResultSet rs)
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
-							Set<Date> result = new HashSet<Date>();
+							Set<String> collisionCheck = new HashSet<String>();
+							Set<DateTime> result = new HashSet<DateTime>();
 							
 							while(rs.next()) {
-								Calendar userCalendar = 
-										Calendar.getInstance(
-												TimeZone.getTimeZone(
-														rs.getString(
-																"phone_timezone")));
-								Calendar serverCalendar = 
-										Calendar.getInstance();
+								DateTimeZone timeZone =
+										DateTimeZone.forID(
+											rs.getString("phone_timezone"));
 								
-								serverCalendar.setTimeInMillis(0);
-								userCalendar.setTimeInMillis(rs.getLong("min"));
-								serverCalendar.set(
-										Calendar.YEAR, 
-										userCalendar.get(Calendar.YEAR));
-								serverCalendar.set(
-										Calendar.MONTH, 
-										userCalendar.get(Calendar.MONTH));
-								serverCalendar.set(
-										Calendar.DAY_OF_MONTH, 
-										userCalendar.get(Calendar.DAY_OF_MONTH));
-								result.add(serverCalendar.getTime());
-
-								serverCalendar.setTimeInMillis(0);
-								userCalendar.setTimeInMillis(rs.getLong("max"));
-								serverCalendar.set(
-										Calendar.YEAR, 
-										userCalendar.get(Calendar.YEAR));
-								serverCalendar.set(
-										Calendar.MONTH, 
-										userCalendar.get(Calendar.MONTH));
-								serverCalendar.set(
-										Calendar.DAY_OF_MONTH, 
-										userCalendar.get(Calendar.DAY_OF_MONTH));
-								result.add(serverCalendar.getTime());
+								DateTime currDateTime;
+								String currDateTimeString;
+								
+								currDateTime = 
+										new DateTime(
+											rs.getLong("min"), 
+											timeZone);
+								currDateTimeString = 
+										TimeUtils.getIso8601DateString(
+											currDateTime, 
+											false);
+								if(collisionCheck.add(currDateTimeString)) {
+									result.add(currDateTime);
+								}
+								
+								currDateTime =
+										new DateTime(
+											rs.getLong("max"),
+											timeZone);
+								currDateTimeString = 
+										TimeUtils.getIso8601DateString(
+											currDateTime, 
+											false);
+								if(collisionCheck.add(currDateTimeString)) {
+									result.add(currDateTime);
+								}
 							}
 							
 							return result;

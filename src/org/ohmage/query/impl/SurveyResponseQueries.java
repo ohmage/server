@@ -20,7 +20,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -30,6 +29,7 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -466,8 +466,8 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final String username,
 			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames, 
-			final Date startDate,
-			final Date endDate, 
+			final DateTime startDate,
+			final DateTime endDate, 
 			final SurveyResponse.PrivacyState privacyState,
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
@@ -880,8 +880,8 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final String username,
 			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames, 
-			final Date startDate,
-			final Date endDate, 
+			final DateTime startDate,
+			final DateTime endDate, 
 			final SurveyResponse.PrivacyState privacyState,
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
@@ -918,11 +918,11 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		}
 		if(startDate != null) {
 			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER);
-			parameters.add(startDate.getTime());
+			parameters.add(startDate.getMillis());
 		}
 		if(endDate != null) {
 			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE);
-			parameters.add(endDate.getTime());
+			parameters.add(endDate.getMillis());
 		}
 		if(privacyState != null) {
 			sqlBuilder.append(SQL_WHERE_PRIVACY_STATE);

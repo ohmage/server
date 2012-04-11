@@ -16,10 +16,10 @@
 package org.ohmage.query;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
@@ -155,7 +155,7 @@ public interface IAuditQueries {
 	 * 
 	 * @return A list of unique audit IDs.
 	 */
-	 List<Long> getAllAuditsOnOrAfterDate(Date date) throws DataAccessException;
+	 List<Long> getAllAuditsOnOrAfterDate(DateTime date) throws DataAccessException;
 
 	/**
 	 * Retrieves the unique IDs for all audits that were recorded on or before
@@ -165,7 +165,7 @@ public interface IAuditQueries {
 	 * 
 	 * @return A list of unique audit IDs.
 	 */
-	List<Long> getAllAuditsOnOrBeforeDate(Date date) throws DataAccessException;
+	List<Long> getAllAuditsOnOrBeforeDate(DateTime date) throws DataAccessException;
 
 	/**
 	 * Retrieves the unique IDs for all audits that were recorded on or between
@@ -179,7 +179,7 @@ public interface IAuditQueries {
 	 * 
 	 * @return A list of unique audit IDs.
 	 */
-	List<Long> getAllAuditsOnOrBetweenDates(Date startDate, Date endDate) throws DataAccessException;
+	List<Long> getAllAuditsOnOrBetweenDates(DateTime startDate, DateTime endDate) throws DataAccessException;
 
 	/**
 	 * Retrieves all the information about a list of audit IDs.

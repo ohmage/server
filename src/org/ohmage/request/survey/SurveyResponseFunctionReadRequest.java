@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -112,8 +112,8 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	private final Function functionId;
 	private final Collection<FunctionPrivacyStateItem> privacyStateGroupItems;
 
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	
 	private List<SurveyResponse> surveyResponses;
 	
@@ -132,8 +132,8 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 		Function tFunctionId = null;
 		Collection<FunctionPrivacyStateItem> tPrivacyStateGroupItems = null;
 		
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		
 		if(! isFailed()) {
 			try {

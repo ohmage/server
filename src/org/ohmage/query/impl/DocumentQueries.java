@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.CacheMissException;
@@ -701,8 +702,8 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 									rs.getString("name"),
 									rs.getString("description"),
 									Document.PrivacyState.getValue(rs.getString("privacy_state")),
-									rs.getTimestamp("last_modified_timestamp"),
-									rs.getTimestamp("creation_timestamp"),
+									new DateTime(rs.getTimestamp("last_modified_timestamp").getTime()),
+									new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
 									rs.getInt("size"),
 									rs.getString("username"));
 						}

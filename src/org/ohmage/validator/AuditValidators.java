@@ -17,12 +17,13 @@ package org.ohmage.validator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Date;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 public class AuditValidators {
 	/**
@@ -278,26 +279,22 @@ public class AuditValidators {
 	 * @throws ValidationException Thrown if the start date is not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateStartDate(final String startDate) 
+	public static DateTime validateStartDate(final String startDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDateTime(startDate);
-		if(date == null) {
-			date = StringUtils.decodeDate(startDate);
-			
-			if(date == null) {
-				throw new ValidationException(
-						ErrorCode.SERVER_INVALID_DATE, 
-						"The start date is invalid: " + startDate
-					);
-			}
+		try {
+			return TimeUtils.getDateTimeFromString(startDate);
 		}
-		
-		return date;
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The date could not be parsed:" + startDate,
+					e);
+		}
 	}
 	
 	/**
@@ -311,24 +308,21 @@ public class AuditValidators {
 	 * @throws ValidationException Thrown if the end date is not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateEndDate(final String endDate) 
+	public static DateTime validateEndDate(final String endDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDateTime(endDate);
-		if(date == null) {
-			date = StringUtils.decodeDate(endDate);
-			
-			if(date == null) {
-				throw new ValidationException(
-						ErrorCode.SERVER_INVALID_DATE, 
-						"The end date is invalid: " + endDate);
-			}
+		try {
+			return TimeUtils.getDateTimeFromString(endDate);
 		}
-		
-		return date;
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The date could not be parsed:" + endDate,
+					e);
+		}
 	}
 }

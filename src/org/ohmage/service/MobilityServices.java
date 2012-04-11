@@ -16,9 +16,9 @@
 package org.ohmage.service;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
@@ -247,7 +247,7 @@ public final class MobilityServices {
 	 */
 	public List<MobilityPoint> retrieveMobilityData(
 			final String username,  
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final MobilityPoint.PrivacyState privacyState,
 			final LocationStatus locationStatus, final Mode mode) 
 			throws ServiceException {
@@ -282,9 +282,9 @@ public final class MobilityServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public Collection<Date> getDates(
-			final Date startDate,
-			final Date endDate,
+	public Collection<DateTime> getDates(
+			final DateTime startDate,
+			final DateTime endDate,
 			final String username) 
 			throws ServiceException {
 		

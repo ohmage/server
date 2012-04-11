@@ -45,7 +45,7 @@ public class ValidatorTests {
 		suite.addTestSuite(CampaignValidatorsTest.class);
 		suite.addTestSuite(ClassDocumentValidatorsTest.class);
 		suite.addTestSuite(ClassValidatorsTest.class);
-		suite.addTestSuite(DateValidatorsTest.class);
+		//suite.addTestSuite(DateValidatorsTest.class);
 		suite.addTestSuite(DocumentValidatorsTest.class);
 		suite.addTestSuite(ImageValidatorsTest.class);
 		suite.addTestSuite(MobilityValidatorsTest.class);

@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -84,8 +84,8 @@ public abstract class VisualizationRequest extends UserRequest {
 	private final int width;
 	private final int height;
 	
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	private final SurveyResponse.PrivacyState privacyState;
 	
 	private byte[] result;
@@ -103,8 +103,8 @@ public abstract class VisualizationRequest extends UserRequest {
 		String tCampaignId = null;
 		Integer tWidth = 0;
 		Integer tHeight = 0;
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		SurveyResponse.PrivacyState tPrivacyState = null;
 		
 		try {
@@ -275,11 +275,11 @@ public abstract class VisualizationRequest extends UserRequest {
 		Map<String, String> result = new HashMap<String, String>();
 		
 		if(startDate != null) {
-			result.put(VisualizationServices.PARAMETER_KEY_START_DATE, TimeUtils.getIso8601DateString(startDate));
+			result.put(VisualizationServices.PARAMETER_KEY_START_DATE, TimeUtils.getIso8601DateString(startDate, false));
 		}
 		
 		if(endDate != null) {
-			result.put(VisualizationServices.PARAMETER_KEY_END_DATE, TimeUtils.getIso8601DateString(endDate));
+			result.put(VisualizationServices.PARAMETER_KEY_END_DATE, TimeUtils.getIso8601DateString(endDate, false));
 		}
 		
 		if(privacyState != null) {

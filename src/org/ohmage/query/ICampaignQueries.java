@@ -15,13 +15,12 @@
  ******************************************************************************/
 package org.ohmage.query;
 
-import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.impl.QueryResultsList;
@@ -161,7 +160,7 @@ public interface ICampaignQueries {
 	 * @return If the campaign exists, its timestamp is returned; otherwise,
 	 *         null is returned.
 	 */
-	Timestamp getCreationTimestamp(String campaignId)
+	DateTime getCreationTimestamp(String campaignId)
 			throws DataAccessException;
 
 	/**
@@ -272,7 +271,7 @@ public interface ICampaignQueries {
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	List<String> getCampaignsOnOrAfterDate(Date date)
+	List<String> getCampaignsOnOrAfterDate(DateTime date)
 			throws DataAccessException;
 
 	/**
@@ -284,7 +283,7 @@ public interface ICampaignQueries {
 	 * 
 	 * @return A List of campaign IDs. This will never be null.
 	 */
-	List<String> getCampaignsOnOrBeforeDate(Date date)
+	List<String> getCampaignsOnOrBeforeDate(DateTime date)
 			throws DataAccessException;
 
 	/**
@@ -362,8 +361,8 @@ public interface ICampaignQueries {
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
 			final Collection<String> descriptionTokens,
-			final Date startDate,
-			final Date endDate,
+			final DateTime startDate,
+			final DateTime endDate,
 			final Campaign.PrivacyState privacyState,
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)

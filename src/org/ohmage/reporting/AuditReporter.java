@@ -21,7 +21,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Audit;
@@ -73,20 +73,17 @@ public final class AuditReporter {
 		 */
 		@Override
 		public void run() {
-			// Generate the start date.
-			Calendar startDate = Calendar.getInstance();
-			startDate.add(Calendar.DAY_OF_YEAR, -1);
-			startDate.set(Calendar.HOUR_OF_DAY, 0);
-			startDate.set(Calendar.MINUTE, 0);
-			startDate.set(Calendar.SECOND, 0);
-			startDate.set(Calendar.MILLISECOND, 0);
+			DateTime currentDate = new DateTime();
 			
-			// Generate the end date.
-			Calendar endDate = Calendar.getInstance();
-			endDate.set(Calendar.HOUR_OF_DAY, 0);
-			endDate.set(Calendar.MINUTE, 0);
-			endDate.set(Calendar.SECOND, 0);
-			endDate.set(Calendar.MILLISECOND, 0);
+			DateTime endDate = 
+					new DateTime(
+						currentDate.getYear(), 
+						currentDate.getMonthOfYear(), 
+						currentDate.getDayOfMonth(), 
+						0, 
+						0);
+			
+			DateTime startDate = endDate.minusDays(1);
 			
 			// Use the service to aggregate the results.
 			List<Audit> audits;
@@ -98,8 +95,8 @@ public final class AuditReporter {
 						null, 
 						null, 
 						null, 
-						startDate.getTime(), 
-						endDate.getTime());
+						startDate, 
+						endDate);
 			}
 			catch(ServiceException e) {
 				LOGGER.error("There was an error generating the audit inforamtion.", e);
@@ -203,7 +200,7 @@ public final class AuditReporter {
 			
 			try {
 				// Retrieve the output file to write the results.
-				FileWriter fileWriter = new FileWriter(saveLocation + "/" + TimeUtils.getIso8601DateString(new Date(startDate.getTimeInMillis())));
+				FileWriter fileWriter = new FileWriter(saveLocation + "/" + TimeUtils.getIso8601DateString(startDate, false));
 				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 				
 				bufferedWriter.write("invalid_requests=");

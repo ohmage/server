@@ -16,11 +16,11 @@
 package org.ohmage.domain;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -49,8 +49,8 @@ public class Document {
 	private final String documentId;
 	private final String name;
 	private final String description;
-	private final Date lastModified;
-	private final Date creationDate;
+	private final DateTime lastModified;
+	private final DateTime creationDate;
 	private final int size;
 	private final String creator;
 	
@@ -188,8 +188,8 @@ public class Document {
 			final String name, 
 			final String description,
 			final PrivacyState privacyState, 
-			final Date lastModified, 
-			final Date creationDate, 
+			final DateTime lastModified, 
+			final DateTime creationDate, 
 			final int size, 
 			final String creator)
 			throws DomainException {
@@ -303,7 +303,9 @@ public class Document {
 		}
 		
 		try {
-			lastModified = StringUtils.decodeDateTime(documentInfo.getString(JSON_KEY_LAST_MODIFIED));
+			lastModified = 
+					TimeUtils.getDateTimeFromString(
+						documentInfo.getString(JSON_KEY_LAST_MODIFIED));
 		}
 		catch(JSONException e) {
 			throw new DomainException(
@@ -311,14 +313,28 @@ public class Document {
 					"The JSONObject is missing the last modified value.", 
 					e);
 		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The date-time could not be parsed.",
+					e);
+		}
 		
 		try {
-			creationDate = StringUtils.decodeDateTime(documentInfo.getString(JSON_KEY_CREATION_DATE));
+			creationDate = 
+					TimeUtils.getDateTimeFromString(
+						documentInfo.getString(JSON_KEY_CREATION_DATE));
 		}
 		catch(JSONException e) {
 			throw new DomainException(
 					ErrorCode.SERVER_INVALID_DATE,
 					"The JSONObject is missing the creation date value.", 
+					e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The date-time could not be parsed.",
 					e);
 		}
 		
@@ -449,7 +465,7 @@ public class Document {
 	 * 
 	 * @return A timestamp of the last time the document was modified.
 	 */
-	public Date getLastModified() {
+	public DateTime getLastModified() {
 		return lastModified;
 	}
 	
@@ -458,7 +474,7 @@ public class Document {
 	 * 
 	 * @return A timestamp of when this document was created.
 	 */
-	public Date getCreationDate() {
+	public DateTime getCreationDate() {
 		return creationDate;
 	}
 	
@@ -663,8 +679,8 @@ public class Document {
 		result.put(JSON_KEY_NAME, name);
 		result.put(JSON_KEY_DESCRIPTION, ((description ==  null) ? "" : description));
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState);
-		result.put(JSON_KEY_LAST_MODIFIED, TimeUtils.getIso8601DateTimeString(lastModified));
-		result.put(JSON_KEY_CREATION_DATE, TimeUtils.getIso8601DateTimeString(creationDate));
+		result.put(JSON_KEY_LAST_MODIFIED, TimeUtils.getIso8601DateString(lastModified, true));
+		result.put(JSON_KEY_CREATION_DATE, TimeUtils.getIso8601DateString(creationDate, true));
 		result.put(JSON_KEY_SIZE, size);
 		result.put(JSON_KEY_CREATOR, creator);
 		

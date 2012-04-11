@@ -16,17 +16,15 @@
 package org.ohmage.request.mobility;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -45,7 +43,6 @@ import org.ohmage.service.MobilityServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.MobilityValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -118,7 +115,7 @@ public class MobilityReadRequest extends UserRequest {
 		DEFAULT_COLUMNS = Collections.unmodifiableCollection(columnKeys);
 	}
 	
-	private final Date date;
+	private final DateTime date;
 	private final String username;
 	private final Collection<ColumnKey> columns;
 	
@@ -135,7 +132,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		LOGGER.info("Creating a Mobility read request.");
 		
-		Date tDate = null;
+		DateTime tDate = null;
 		String tUsername = null;
 		Collection<ColumnKey> tColumns = DEFAULT_COLUMNS;
 		
@@ -276,20 +273,20 @@ public class MobilityReadRequest extends UserRequest {
 				UserServices.instance().checkUserExistance(username, true);
 			}
 			
-			Calendar startDate = TimeUtils.convertDateToCalendar(date);
-			startDate.set(Calendar.MILLISECOND, 0);
-			startDate.set(Calendar.SECOND, 0);
-			startDate.set(Calendar.MINUTE, 0);
-			startDate.set(Calendar.HOUR_OF_DAY, 0);
+			DateTime startDate = 
+					new DateTime(
+						date.getYear(), 
+						date.getMonthOfYear(), 
+						date.getDayOfMonth(),
+						0, 
+						0);
 			
-			Calendar endDate = new GregorianCalendar();
-			endDate.setTimeInMillis(startDate.getTimeInMillis());
-			endDate.add(Calendar.DAY_OF_YEAR, 1);
+			DateTime endDate = startDate.plusDays(1);
 			
 			result = MobilityServices.instance().retrieveMobilityData(
 					(username == null) ? getUser().getUsername() : username,
-					new Date(startDate.getTimeInMillis()), 
-					new Date(endDate.getTimeInMillis()), 
+					startDate, 
+					endDate, 
 					null, 
 					null, 
 					null);

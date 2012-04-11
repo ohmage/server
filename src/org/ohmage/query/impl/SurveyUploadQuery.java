@@ -29,7 +29,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -38,6 +37,7 @@ import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
@@ -760,8 +760,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						ps.setString(5, promptResponse.getPrompt().getId());
 						
 						Object response = promptResponse.getResponse();
-						if(response instanceof Date) {
-							ps.setString(6, TimeUtils.getIso8601DateTimeString((Date) response));
+						if(response instanceof DateTime) {
+							ps.setString(6, TimeUtils.getIso8601DateString((DateTime) response, true));
 						}
 						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
 							JSONArray json = new JSONArray();

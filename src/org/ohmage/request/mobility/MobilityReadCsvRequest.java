@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
@@ -77,8 +77,8 @@ import org.ohmage.validator.UserValidators;
 public class MobilityReadCsvRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityReadCsvRequest.class);
 
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	private final String username;
 	private final List<ColumnKey> columns;
 	
@@ -93,8 +93,8 @@ public class MobilityReadCsvRequest extends UserRequest {
 	public MobilityReadCsvRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		String tUsername = null;
 		List<ColumnKey> tColumns = MobilityColumnKey.ALL_COLUMNS;
 		
@@ -114,7 +114,7 @@ public class MobilityReadCsvRequest extends UserRequest {
 					tStartDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tStartDate == null) {
-						tStartDate = new Date(0);
+						tStartDate = new DateTime(0);
 					}
 				}
 				
@@ -130,7 +130,7 @@ public class MobilityReadCsvRequest extends UserRequest {
 					tEndDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tEndDate == null) {
-						tEndDate = new Date();
+						tEndDate = new DateTime();
 					}
 				}
 				

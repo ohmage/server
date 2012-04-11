@@ -16,11 +16,11 @@
 package org.ohmage.validator;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
 import org.ohmage.annotator.Annotator;
@@ -217,13 +217,13 @@ public class AuditValidatorsTest extends TestCase {
 				// Passed.
 			}
 
-			Map<Date, String> dateToString = ParameterSets.getDateToString();
-			for(Date date : dateToString.keySet()) {
+			Map<DateTime, String> dateToString = ParameterSets.getDateToString();
+			for(DateTime date : dateToString.keySet()) {
 				Assert.assertEquals(date, AuditValidators.validateStartDate(dateToString.get(date)));
 			}
 			
-			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
-			for(Date date : dateTimeToString.keySet()) {
+			Map<DateTime, String> dateTimeToString = ParameterSets.getDateTimeToString();
+			for(DateTime date : dateTimeToString.keySet()) {
 				Assert.assertEquals(date, AuditValidators.validateStartDate(dateTimeToString.get(date)));
 			}
 
@@ -272,13 +272,13 @@ public class AuditValidatorsTest extends TestCase {
 				// Passed.
 			}
 
-			Map<Date, String> dateToString = ParameterSets.getDateToString();
-			for(Date date : dateToString.keySet()) {
+			Map<DateTime, String> dateToString = ParameterSets.getDateToString();
+			for(DateTime date : dateToString.keySet()) {
 				Assert.assertEquals(date, AuditValidators.validateEndDate(dateToString.get(date)));
 			}
 			
-			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
-			for(Date date : dateTimeToString.keySet()) {
+			Map<DateTime, String> dateTimeToString = ParameterSets.getDateTimeToString();
+			for(DateTime date : dateTimeToString.keySet()) {
 				Assert.assertEquals(date, AuditValidators.validateEndDate(dateTimeToString.get(date)));
 			}
 

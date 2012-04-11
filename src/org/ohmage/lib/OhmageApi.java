@@ -25,7 +25,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +45,7 @@ import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -418,7 +418,7 @@ public class OhmageApi {
 	public Map<String, Campaign> getCampaigns(final String authenticationToken,
 			final String client, final Campaign.OutputFormat outputFormat,
 			final Collection<String> campaignIds, final Campaign.Role userRole,
-			final Date startDate, final Date endDate,
+			final DateTime startDate, final DateTime endDate,
 			final Campaign.PrivacyState privacyState, 
 			final Campaign.RunningState runningState,
 			final Collection<String> classIds)
@@ -433,8 +433,8 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.OUTPUT_FORMAT, outputFormat);
 		parameters.put(InputKeys.USER_ROLE, userRole);
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
 		parameters.put(InputKeys.RUNNING_STATE, runningState);
 		if(campaignIds != null) {
@@ -1413,7 +1413,7 @@ public class OhmageApi {
 	 */
 	public List<MobilityPoint> readMobilityPoints(final String authenticationToken, 
 			final String username, final String password, final String client,
-			final Date date) throws ApiException, RequestErrorException {
+			final DateTime date) throws ApiException, RequestErrorException {
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
 		parameters.put(InputKeys.USER, username);
@@ -1422,7 +1422,7 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		
 		if(date != null) {
-			parameters.put(InputKeys.DATE, TimeUtils.getIso8601DateString(date));
+			parameters.put(InputKeys.DATE, TimeUtils.getIso8601DateString(date, false));
 		}
 		
 		JSONArray response;
@@ -1505,7 +1505,7 @@ public class OhmageApi {
 	 */
 	public void uploadSurveyResponses(final String username, 
 			final String hashedPassword, final String client,
-			final String campaignId, final Date campaignCreationTimestamp,
+			final String campaignId, final DateTime campaignCreationTimestamp,
 			final Collection<SurveyResponse> surveyResponses)
 			throws ApiException, RequestErrorException {
 		
@@ -1514,7 +1514,7 @@ public class OhmageApi {
 		parameters.put(InputKeys.PASSWORD, hashedPassword);
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
-		parameters.put(InputKeys.CAMPAIGN_CREATION_TIMESTAMP, TimeUtils.getIso8601DateTimeString(campaignCreationTimestamp));
+		parameters.put(InputKeys.CAMPAIGN_CREATION_TIMESTAMP, TimeUtils.getIso8601DateString(campaignCreationTimestamp, true));
 		
 		JSONArray dataArray = new JSONArray();
 		for(SurveyResponse response : surveyResponses) {
@@ -1625,7 +1625,7 @@ public class OhmageApi {
 			final Collection<SurveyResponse.ColumnKey> columnList,
 			final Collection<String> surveyIdList, 
 			final Collection<String> promptIdList,
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final SurveyResponse.PrivacyState privacyState,
 			final Boolean collapse, final Boolean suppressMetadata,
 			final Boolean returnId)
@@ -1676,8 +1676,8 @@ public class OhmageApi {
 		
 		parameters.put(InputKeys.COLLAPSE, collapse);
 		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.RETURN_ID, returnId);
 		
 		if(privacyState != null) {
@@ -1764,7 +1764,7 @@ public class OhmageApi {
 			final Collection<SurveyResponse.ColumnKey> columnList,
 			final Collection<String> surveyIdList, 
 			final Collection<String> promptIdList,
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final SurveyResponse.PrivacyState privacyState,
 			final Boolean collapse, final Boolean suppressMetadata,
 			final Boolean returnId)
@@ -1813,8 +1813,8 @@ public class OhmageApi {
 			}
 		}
 
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
 		parameters.put(InputKeys.COLLAPSE, collapse);
 		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
@@ -1910,7 +1910,7 @@ public class OhmageApi {
 			final Collection<SurveyResponse.ColumnKey> columnList,
 			final Collection<String> surveyIdList, 
 			final Collection<String> promptIdList,
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final SurveyResponse.PrivacyState privacyState,
 			final Boolean collapse, final Boolean suppressMetadata,
 			final Boolean returnId)
@@ -1959,8 +1959,8 @@ public class OhmageApi {
 			}
 		}
 
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
 		parameters.put(InputKeys.COLLAPSE, collapse);
 		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);

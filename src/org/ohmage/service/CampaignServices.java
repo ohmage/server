@@ -20,7 +20,6 @@ import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +34,7 @@ import nu.xom.ValidityException;
 import nu.xom.XMLException;
 import nu.xom.XPathException;
 
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
@@ -553,7 +553,7 @@ public class CampaignServices {
 	 * 							there is an error.
 	 */
 	public void verifyCampaignIsUpToDate(final String campaignId, 
-			final Date creationTimestamp) throws ServiceException {
+			final DateTime creationTimestamp) throws ServiceException {
 		
 		try {
 			if(! creationTimestamp.equals(campaignQueries.getCreationTimestamp(campaignId))) {
@@ -625,8 +625,8 @@ public class CampaignServices {
 			final String partialDescription,
 			final String partialXml,
 			final String partialAuthoredBy,
-			final Date startDate,
-			final Date endDate,
+			final DateTime startDate,
+			final DateTime endDate,
 			final Campaign.PrivacyState privacyState,
 			final Campaign.RunningState runningState) 
 			throws ServiceException {

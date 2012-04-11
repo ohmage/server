@@ -16,7 +16,6 @@
 package org.ohmage.request.campaign;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.Set;
 
@@ -24,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -123,8 +123,8 @@ public class CampaignSearchRequest extends UserRequest {
 	private final String description;
 	private final String xml;
 	private final String authoredBy;
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	private final Campaign.PrivacyState privacyState;
 	private final Campaign.RunningState runningState;
 	
@@ -144,8 +144,8 @@ public class CampaignSearchRequest extends UserRequest {
 		String tDescription = null;
 		String tXml = null;
 		String tAuthoredBy = null;
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		Campaign.PrivacyState tPrivacyState = null;
 		Campaign.RunningState tRunningState = null;
 		

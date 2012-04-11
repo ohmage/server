@@ -16,12 +16,12 @@
 package org.ohmage.validator;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,6 +32,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * Class to contain the validators for campaign parameters.
@@ -336,30 +337,26 @@ public final class CampaignValidators {
 	 * @param startDate The date to be validated.
 	 * 
 	 * @return Returns null if the start date is null or whitespace only;
-	 * 		   otherwise, it returns a Date representing the start date.
+	 * 		   otherwise, it returns a DateTime representing the start date.
 	 * 
 	 * @throws ValidationException Thrown if the start date isn't a decodable
 	 * 							   date.
 	 */
-	public static Date validateStartDate(final String startDate) 
+	public static DateTime validateStartDate(final String startDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDateTime(startDate);
-		if(date == null) {
-			date = StringUtils.decodeDate(startDate);
-			
-			if(date == null) {
-				throw new ValidationException(
-						ErrorCode.SERVER_INVALID_DATE, 
-						"The start date is invalid: " + startDate);
-			}
+		try {
+			return TimeUtils.getDateTimeFromString(startDate);
 		}
-		
-		return date;
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"Only a date is allowed, not time: " + startDate);
+		}
 	}
 	
 	/**
@@ -369,30 +366,26 @@ public final class CampaignValidators {
 	 * @param endDate The date to be validated.
 	 * 
 	 * @return Returns null if the end date is null or whitespace only;
-	 * 		   otherwise, it returns a Date representing the end date.
+	 * 		   otherwise, it returns a DateTime representing the end date.
 	 * 
 	 * @throws ValidationException Thrown if the end date isn't a decodable
 	 * 							   date.
 	 */
-	public static Date validateEndDate(final String endDate) 
+	public static DateTime validateEndDate(final String endDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
 		
-		Date date = StringUtils.decodeDateTime(endDate);
-		if(date == null) {
-			date = StringUtils.decodeDate(endDate);
-			
-			if(date == null) {
-				throw new ValidationException(
-						ErrorCode.SERVER_INVALID_DATE, 
-						"The end date is invalid: " + endDate);
-			}
+		try {
+			return TimeUtils.getDateTimeFromString(endDate);
 		}
-		
-		return date;
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_DATE, 
+					"Only a date is allowed, not time: " + endDate);
+		}
 	}
 	
 	/**

@@ -17,12 +17,12 @@ package org.ohmage.request.mobility;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
@@ -78,11 +78,11 @@ import org.ohmage.validator.UserValidators;
 public class MobilityDatesReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(MobilityDatesReadRequest.class);
 
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	private final String username;
 	
-	private Collection<Date> dates;
+	private Collection<DateTime> dates;
 	
 	/**
 	 * Creates a new Mobility dates read request.
@@ -94,8 +94,8 @@ public class MobilityDatesReadRequest extends UserRequest {
 	public MobilityDatesReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
-		Date tStartDate = new Date(0);
-		Date tEndDate = new Date();
+		DateTime tStartDate = new DateTime(0);
+		DateTime tEndDate = new DateTime();
 		String tUsername = null;
 		
 		if(! isFailed()) {
@@ -116,7 +116,7 @@ public class MobilityDatesReadRequest extends UserRequest {
 					tStartDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tStartDate == null) {
-						tStartDate = new Date(0);
+						tStartDate = new DateTime(0);
 					}
 				}
 				
@@ -132,7 +132,7 @@ public class MobilityDatesReadRequest extends UserRequest {
 					tEndDate = MobilityValidators.validateDate(t[0]);
 					
 					if(tEndDate == null) {
-						tEndDate = new Date();
+						tEndDate = new DateTime();
 					}
 				}
 				
@@ -230,8 +230,8 @@ public class MobilityDatesReadRequest extends UserRequest {
 
 		JSONArray resultJson = new JSONArray();
 		
-		for(Date date : dates) {
-			resultJson.put(TimeUtils.getIso8601DateString(date));
+		for(DateTime date : dates) {
+			resultJson.put(TimeUtils.getIso8601DateString(date, false));
 		}
 		
 		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);

@@ -16,13 +16,13 @@
 package org.ohmage.validator;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,6 +34,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * This class is responsible for validating information pertaining to Mobility
@@ -134,7 +135,7 @@ public final class MobilityValidators {
 	 * @throws ValidationException Thrown if the date string was not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateDate(final String date) 
+	public static DateTime validateDate(final String date) 
 			throws ValidationException {
 		
 		LOGGER.info("Validating a date value.");
@@ -143,18 +144,13 @@ public final class MobilityValidators {
 			return null;
 		}
 		
-		Date result = StringUtils.decodeDateTime(date);
-		if(result == null) {
-			result = StringUtils.decodeDate(date);
+		try {
+			return TimeUtils.getDateTimeFromString(date);
 		}
-		
-		if(result == null) {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.SERVER_INVALID_DATE, 
 					"The date value is unknown: " + date);
-		}
-		else {
-			return result;
 		}
 	}
 	

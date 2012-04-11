@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -73,7 +74,6 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseReadServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.DateUtils;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
@@ -273,8 +273,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	
 	private final Set<UUID> surveyResponseIds;
 
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 
 	private final List<SortParameter> sortOrder;
 
@@ -311,8 +311,8 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		Set<UUID> tSurveyResponseIds = null;
 		
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		
 		List<SortParameter> tSortOrder = null;
 		
@@ -855,28 +855,18 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							);
 						
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
-							Calendar tmpCalendar = 
-								Calendar.getInstance(
-										surveyResponse.getTimezone().toTimeZone());
-							tmpCalendar.setTimeInMillis(
-									surveyResponse.getTime());
-							
 							currResult.put(
 									"date", 
-									TimeUtils.getIso8601DateTimeString(
-											tmpCalendar.getTime()).subSequence(0, 10));
+									TimeUtils.getIso8601DateString(
+											surveyResponse.getDate(),
+											false));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
-							Calendar tmpCalendar = 
-									Calendar.getInstance(
-											surveyResponse.getTimezone().toTimeZone());
-							tmpCalendar.setTimeInMillis(
-									surveyResponse.getTime());
-							
 							currResult.put(
 									"timestamp", 
-									TimeUtils.getIso8601DateTimeString(
-											tmpCalendar.getTime()));
+									TimeUtils.getIso8601DateString(
+											surveyResponse.getDate(),
+											true));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 							Calendar tmpCalendar = 
@@ -887,10 +877,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							
 							currResult.put(
 									"utc_timestamp",
-									DateUtils.timestampStringToUtc(
-											TimeUtils.getIso8601DateTimeString(
-													tmpCalendar.getTime()), 
-												surveyResponse.getTimezone().getID()));
+									TimeUtils.getIso8601DateString(
+										new DateTime(
+											surveyResponse.getTime(), 
+											DateTimeZone.UTC),
+										true));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_LOCATION_ACCURACY)) {
 							Location location = surveyResponse.getLocation();
@@ -1646,39 +1637,22 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			privacyStates.put(surveyResponse.getPrivacyState().toString());
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
-			Calendar tmpCalendar = 
-				Calendar.getInstance(
-						surveyResponse.getTimezone().toTimeZone());
-			tmpCalendar.setTimeInMillis(
-					surveyResponse.getTime());
-			
 			dates.put(
-					TimeUtils.getIso8601DateTimeString(
-							tmpCalendar.getTime()).subSequence(0, 10));
+					TimeUtils.getIso8601DateString(
+						surveyResponse.getDate(), false));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
-			Calendar tmpCalendar = 
-				Calendar.getInstance(
-						surveyResponse.getTimezone().toTimeZone());
-			tmpCalendar.setTimeInMillis(
-					surveyResponse.getTime());
-			
 			timestamps.put(
-					TimeUtils.getIso8601DateTimeString(
-							tmpCalendar.getTime()));
+					TimeUtils.getIso8601DateString(
+						surveyResponse.getDate(), true));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
-			Calendar tmpCalendar = 
-				Calendar.getInstance(
-						surveyResponse.getTimezone().toTimeZone());
-			tmpCalendar.setTimeInMillis(
-					surveyResponse.getTime());
-			
 			utcTimestamps.put(
-					DateUtils.timestampStringToUtc(
-							TimeUtils.getIso8601DateTimeString(
-									tmpCalendar.getTime()), 
-								surveyResponse.getTimezone().getID()));
+					TimeUtils.getIso8601DateString(
+						new DateTime(
+							surveyResponse.getTime(), 
+							DateTimeZone.UTC), 
+						true));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_EPOCH_MILLIS)) {
 			epochMillisTimestamps.put(surveyResponse.getTime());

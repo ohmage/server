@@ -17,12 +17,12 @@ package org.ohmage.service;
 
 import java.awt.image.BufferedImage;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
@@ -266,7 +266,7 @@ public final class SurveyResponseServices {
 			final String username,
 			final Set<UUID> surveyResponseIds,
 			final Collection<String> usernames,
-			final Date startDate, final Date endDate, 
+			final DateTime startDate, final DateTime endDate, 
 			final SurveyResponse.PrivacyState privacyState, 
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 

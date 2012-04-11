@@ -16,7 +16,6 @@
 package org.ohmage.request.audit;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -24,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
@@ -119,8 +119,8 @@ public class AuditReadRequest extends UserRequest {
 	private final ResponseType responseType;
 	private final ErrorCode errorCode;
 	
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	
 	private List<Audit> results;
 	
@@ -140,8 +140,8 @@ public class AuditReadRequest extends UserRequest {
 		String tDeviceId = null;
 		ResponseType tResponseType = null;
 		ErrorCode tErrorCode = null;
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		
 		if(! isFailed()) {
 			try {

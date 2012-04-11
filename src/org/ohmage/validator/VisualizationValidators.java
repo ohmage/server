@@ -15,11 +15,11 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
-import java.util.Date;
-
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * This class is responsible for validating all values pertaining to 
@@ -141,32 +141,22 @@ public class VisualizationValidators {
 	 * @param startDate The start date string to be validated.
 	 * 
 	 * @return Returns null the start date is null or whitespace only. 
-	 * 		   Otherwise, the start date as a Date object is returned.
+	 * 		   Otherwise, the start date as a DateTime object is returned.
 	 * 
 	 * @throws ValidationException Thrown if the start date is not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateStartDate(final String startDate) 
+	public static DateTime validateStartDate(final String startDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(startDate)) {
 			return null;
 		}
 		
-		Date result = StringUtils.decodeDateTime(startDate);
-		if(result == null) {
-			result = StringUtils.decodeDate(startDate);
-			
-			if(result == null) {
-				throw new ValidationException(
-						ErrorCode.SERVER_INVALID_DATE, 
-						"The start date is not a valid date: " + startDate);
-			}
-			else {
-				return result;
-			}
+		try {
+			return TimeUtils.getDateTimeFromString(startDate);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.SERVER_INVALID_DATE, 
 					"Only a date is allowed, not time: " + startDate);
@@ -180,32 +170,22 @@ public class VisualizationValidators {
 	 * @param endDate The end date string to be validated.
 	 * 
 	 * @return Returns null the end date is null or whitespace only. Otherwise, 
-	 * 		   the end date as a Date object is returned.
+	 * 		   the end date as a DateTime object is returned.
 	 * 
 	 * @throws ValidationException Thrown if the end date is not null, not
 	 * 							   whitespace only, and not a valid date.
 	 */
-	public static Date validateEndDate(final String endDate) 
+	public static DateTime validateEndDate(final String endDate) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(endDate)) {
 			return null;
 		}
 		
-		Date result = StringUtils.decodeDateTime(endDate);
-		if(result == null) {
-			result = StringUtils.decodeDate(endDate);
-			
-			if(result == null) {
-				throw new ValidationException(
-						ErrorCode.SERVER_INVALID_DATE, 
-						"The end date is not a valid date: " + endDate);
-			}
-			else {
-				return result;
-			}
+		try {
+			return TimeUtils.getDateTimeFromString(endDate);
 		}
-		else {
+		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.SERVER_INVALID_DATE, 
 					"Only a date is allowed, not time: " + endDate);

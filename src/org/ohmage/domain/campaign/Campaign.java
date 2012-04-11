@@ -43,9 +43,11 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.config.grammar.custom.ConditionParseException;
 import org.ohmage.config.grammar.custom.ConditionValidator;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
@@ -172,7 +174,7 @@ public class Campaign {
 	/**
 	 * The date and time that this configuration was created.
 	 */
-	private final Date creationTimestamp;
+	private final DateTime creationTimestamp;
 	/**
 	 * The map of survey unique identifiers to Survey objects for this 
 	 * configuration.
@@ -386,7 +388,7 @@ public class Campaign {
 			final String authoredBy, 
 			final RunningState runningState, 
 			final PrivacyState privacyState, 
-			final Date creationTimestamp, 
+			final DateTime creationTimestamp, 
 			final Map<String, Survey> surveyMap, 
 			final String xml) 
 			throws DomainException {
@@ -421,7 +423,7 @@ public class Campaign {
 		this.runningState = runningState;
 		this.privacyState = privacyState;
 		
-		this.creationTimestamp = new Date(creationTimestamp.getTime());
+		this.creationTimestamp = new DateTime(creationTimestamp);
 		
 		this.xml = xml;
 		
@@ -482,7 +484,9 @@ public class Campaign {
 		}
 		
 		try {
-			creationTimestamp = StringUtils.decodeDateTime(information.getString(JSON_KEY_CREATION_TIMESTAMP));
+			creationTimestamp = 
+					TimeUtils.getDateTimeFromString(
+						information.getString(JSON_KEY_CREATION_TIMESTAMP));
 			
 			if(creationTimestamp == null) {
 				throw new DomainException("The creation timestamp is invalid.");
@@ -490,6 +494,12 @@ public class Campaign {
 		}
 		catch(JSONException e) {
 			throw new DomainException("The creation timestamp is missing.", e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_DATE,
+					"The date-time could not be parsed.",
+					e);
 		}
 		
 		Map<String, Collection<Role>> tUserRoles = new HashMap<String, Collection<Role>>();
@@ -697,7 +707,7 @@ public class Campaign {
 		this.runningState = runningState;
 		this.privacyState = privacyState;
 		
-		this.creationTimestamp = new Date(creationTimestamp.getTime());
+		this.creationTimestamp = new DateTime(creationTimestamp);
 		
 		this.xml = xml;
 		
@@ -821,8 +831,8 @@ public class Campaign {
 	 * 
 	 * @return The date and time the configuration was creatd.
 	 */
-	public Date getCreationTimestamp() {
-		return new Date(creationTimestamp.getTime());
+	public DateTime getCreationTimestamp() {
+		return new DateTime(creationTimestamp);
 	}
 	
 	/**
@@ -1719,7 +1729,7 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
-		result.put(JSON_KEY_CREATION_TIMESTAMP, TimeUtils.getIso8601DateTimeString(creationTimestamp));
+		result.put(JSON_KEY_CREATION_TIMESTAMP, TimeUtils.getIso8601DateString(creationTimestamp, true));
 		
 		if(withClasses) {
 			result.put(JSON_KEY_CLASSES, classes);

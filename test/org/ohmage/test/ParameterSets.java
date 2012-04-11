@@ -18,11 +18,11 @@ package org.ohmage.test;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.campaign.Campaign;
@@ -73,8 +73,8 @@ public class ParameterSets {
 	
 	private static final Collection<String> simpleValidLists = new LinkedList<String>();
 	
-	private static final Map<Date, String> dateToString = new HashMap<Date, String>();
-	private static final Map<Date, String> dateTimeToString = new HashMap<Date, String>();
+	private static final Map<DateTime, String> dateToString = new HashMap<DateTime, String>();
+	private static final Map<DateTime, String> dateTimeToString = new HashMap<DateTime, String>();
 	private static final Collection<String> invalidDates = new LinkedList<String>();
 	private static final Collection<String> invalidDateTimes = new LinkedList<String>();
 
@@ -327,7 +327,7 @@ public class ParameterSets {
 	 * @return A map of Date objects and their corresponding String
 	 * 		   representation.
 	 */
-	public static Map<Date, String> getDateToString() {
+	public static Map<DateTime, String> getDateToString() {
 		return Collections.unmodifiableMap(dateToString);
 	}
 	
@@ -338,7 +338,7 @@ public class ParameterSets {
 	 * @return A map of Date objects and their corresponding String
 	 * 		   representation that includes both their date and time values.
 	 */
-	public static Map<Date, String> getDateTimeToString() {
+	public static Map<DateTime, String> getDateTimeToString() {
 		return Collections.unmodifiableMap(dateTimeToString);
 	}
 	
@@ -1206,8 +1206,8 @@ public class ParameterSets {
 		
 		// Test at the epoch.
 		currCalendar.setTimeInMillis(epochCalendar.getTimeInMillis());
-		dateToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01");
-		dateTimeToString.put(new Date(currCalendar.getTimeInMillis()), "1970-01-01 00:00:00");
+		dateToString.put(new DateTime(28800000), "1970-01-01");
+		dateTimeToString.put(new DateTime(28800000), "1970-01-01 00:00:00");
 
 		invalidDates.add("1970-13-01");
 		invalidDateTimes.add("1970-13-01 00:00:00");

@@ -15,11 +15,11 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
-import java.util.Date;
 import java.util.Map;
 
 import junit.framework.TestCase;
 
+import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
@@ -241,13 +241,13 @@ public class CampaignValidatorsTest extends TestCase {
 				// Passed.
 			}
 
-			Map<Date, String> dateToString = ParameterSets.getDateToString();
-			for(Date date : dateToString.keySet()) {
+			Map<DateTime, String> dateToString = ParameterSets.getDateToString();
+			for(DateTime date : dateToString.keySet()) {
 				Assert.assertEquals(date, CampaignValidators.validateStartDate(dateToString.get(date)));
 			}
 			
-			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
-			for(Date date : dateTimeToString.keySet()) {
+			Map<DateTime, String> dateTimeToString = ParameterSets.getDateTimeToString();
+			for(DateTime date : dateTimeToString.keySet()) {
 				Assert.assertEquals(date, CampaignValidators.validateStartDate(dateTimeToString.get(date)));
 			}
 		}
@@ -274,13 +274,13 @@ public class CampaignValidatorsTest extends TestCase {
 				// Passed.
 			}
 
-			Map<Date, String> dateToString = ParameterSets.getDateToString();
-			for(Date date : dateToString.keySet()) {
+			Map<DateTime, String> dateToString = ParameterSets.getDateToString();
+			for(DateTime date : dateToString.keySet()) {
 				Assert.assertEquals(date, CampaignValidators.validateEndDate(dateToString.get(date)));
 			}
 			
-			Map<Date, String> dateTimeToString = ParameterSets.getDateTimeToString();
-			for(Date date : dateTimeToString.keySet()) {
+			Map<DateTime, String> dateTimeToString = ParameterSets.getDateTimeToString();
+			for(DateTime date : dateTimeToString.keySet()) {
 				Assert.assertEquals(date, CampaignValidators.validateEndDate(dateTimeToString.get(date)));
 			}
 		}

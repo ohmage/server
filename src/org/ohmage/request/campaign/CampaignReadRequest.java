@@ -21,7 +21,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -184,8 +184,8 @@ public class CampaignReadRequest extends UserRequest {
 	private final Collection<String> nameTokens;
 	private final Collection<String> descriptionTokens;
 	
-	private final Date startDate;
-	private final Date endDate;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	
 	private final Campaign.PrivacyState privacyState;
 	private final Campaign.RunningState runningState;
@@ -215,8 +215,8 @@ public class CampaignReadRequest extends UserRequest {
 		Set<String> tNameTokens = null;
 		Set<String> tDescriptionTokens = null;
 		
-		Date tStartDate = null;
-		Date tEndDate = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		
 		Campaign.PrivacyState tPrivacyState = null;
 		Campaign.RunningState tRunningState = null;
@@ -272,16 +272,6 @@ public class CampaignReadRequest extends UserRequest {
 				}
 				else if(t.length == 1) {
 					tEndDate = CampaignValidators.validateEndDate(t[0]);
-				}
-				
-				// TODO: Should this really be an issue? Should we simply 
-				// return nothing? There was a GitHub issue, and it was decided 
-				// that it was better to send an error to the user than to 
-				// return nothing.
-				if((tStartDate != null) && (tEndDate != null) && (tStartDate.after(tEndDate))) {
-					throw new ValidationException(
-							ErrorCode.SERVER_INVALID_DATE, 
-							"The start date cannot be after the end date.");
 				}
 				
 				t = getParameterValues(InputKeys.CAMPAIGN_URN_LIST);

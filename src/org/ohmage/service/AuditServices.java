@@ -16,10 +16,10 @@
 package org.ohmage.service;
 
 import java.net.URI;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
 import org.ohmage.exception.DataAccessException;
@@ -164,7 +164,7 @@ public class AuditServices {
 			final RequestType requestType, final URI uri, final String client, 
 			final String deviceId, final ResponseType responseType, 
 			final ErrorCode errorCode, 
-			final Date startDate, final Date endDate) 
+			final DateTime startDate, final DateTime endDate) 
 			throws ServiceException {
 		try {
 			List<Long> auditIds = null;
