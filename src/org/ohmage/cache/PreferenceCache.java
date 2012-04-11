@@ -114,6 +114,9 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_MAIL_PASSWORD_RECOVERY_TEXT = 
 			"mail_password_reset_text";
 	
+	// CORS leniency mode
+	public static final String KEY_CORS_LENIENT_MODE = "cors-lenient-mode";
+		
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
 	

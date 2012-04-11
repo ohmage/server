@@ -30,6 +30,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.PreferenceCache;
+import org.ohmage.exception.CacheMissException;
+import org.ohmage.util.StringUtils;
 
 import com.thetransactioncompany.cors.CORSFilter;
 
@@ -53,23 +56,40 @@ public class OhmageCORSFilter extends CORSFilter {
 		
 		super.init(filterConfig);
 		
-		Enumeration<?> en = filterConfig.getInitParameterNames();
+		// Check the preference cache to see if CORS lenient mode is enabled
 		
-		while(en.hasMoreElements()) {
+		boolean strict = true;
+		
+		try {
+			Boolean lenientMode = StringUtils.decodeBoolean(PreferenceCache.instance().lookup(PreferenceCache.KEY_CORS_LENIENT_MODE));
+			if(lenientMode != null && lenientMode) {
+				LOGGER.info(PreferenceCache.KEY_CORS_LENIENT_MODE + " enabled");
+				strict = false;
+			}
+		}
+		catch(CacheMissException cacheMiss) {
+			LOGGER.info(PreferenceCache.KEY_CORS_LENIENT_MODE + " not found: defaulting to strict.");
+		}
+		
+		if(strict) {
+			Enumeration<?> en = filterConfig.getInitParameterNames();
 			
-			String key = (String) en.nextElement();
-			
-			if(key.equals("disallowedURIs")) {
+			while(en.hasMoreElements()) {
 				
-				String value = filterConfig.getInitParameter(key);
-				String[] uris = value.split(",");
-				disallowedURIs = new ArrayList<String>();
+				String key = (String) en.nextElement();
 				
-				for(String uri : uris) {
-					disallowedURIs.add(uri);
+				if(key.equals("disallowedURIs")) {
+					
+					String value = filterConfig.getInitParameter(key);
+					String[] uris = value.split(",");
+					disallowedURIs = new ArrayList<String>();
+					
+					for(String uri : uris) {
+						disallowedURIs.add(uri);
+					}
+					
+					break;
 				}
-				
-				break;
 			}
 		}
 		
