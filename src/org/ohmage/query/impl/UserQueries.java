@@ -1750,7 +1750,7 @@ public class UserQueries extends Query implements IUserQueries {
 						}
 					}
 				}
-				else {
+				else if((firstName != null) && (lastName != null) && (organization != null) && (personalId != null)) {
 					try {
 						getJdbcTemplate().update(
 								SQL_INSERT_USER_PERSONAL, 
