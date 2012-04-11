@@ -184,7 +184,6 @@ public class MobilityUploadRequest extends UserRequest {
 					throw new ValidationException("Multiple data parameters were given: " + ErrorCode.MOBILITY_INVALID_DATA);
 				}
 				else {
-					LOGGER.debug(dataArray[0]);
 					tData = MobilityValidators.validateDataAsJsonArray(dataArray[0], invalidMobilityPoints);
 				}
 			}
