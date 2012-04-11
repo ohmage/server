@@ -112,11 +112,11 @@
 					    	    <div class="accordion" id="accordion_configuration">
 									<div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_configuration" href="#collapseOne">
-								    	        Server Configuration
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_configuration" href="#collapseServerConfiguration">
+								    	        <i class="icon-plus"></i> Server Configuration
 								    	    </a>
 								    	</div>
-								    	<div id="collapseOne" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseServerConfiguration" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								    	        <form id="serverConfiguration" action="/app/config/read" method="post" class="well" target="outputframe">
 								                    <input type="submit" class="btn" value="Submit">
@@ -126,11 +126,11 @@
 				                    </div>
 				                    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_configuration" href="#collapseTwo">
-								    	        Registration Configuration
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_configuration" href="#collapseRegistrationConfiguration">
+								    	        <i class="icon-plus"></i> Registration Configuration
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseRegistrationConfiguration" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner">
 								                <form id="registrationConfiguration" action="/app/registration/read" method="post" class="well" target="outputframe">
 								                     <input type="submit" class="btn" value="Submit">
@@ -156,11 +156,11 @@
 	    					    
 								    <div class="accordion-group">
 								       	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseThree">
-								    	        Token-Based Authentication
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseTokenBasedAuth">
+								    	        <i class="icon-plus"></i> Token-Based Authentication
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThree" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseTokenBasedAuth" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"   >
 								                <form action="/app/user/auth_token" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Username</label>
@@ -177,11 +177,11 @@
 								    </div>
 							        <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseFour">
-								    	        Logout
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseLogout">
+								    	        <i class="icon-plus"></i> Logout
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFour" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseLogout" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/logout" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -194,11 +194,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseFive">
-								    	        Change Password
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseChangePassword">
+								    	        <i class="icon-plus"></i> Change Password
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFive" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseChangePassword" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/change_password" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Username</label>
@@ -234,11 +234,11 @@
 	    					    
 								 	<div class="accordion-group">
 					    				<div class="accordion-heading pad-inner">
-					    	    			<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-audit" href="#collapseSix">
-					    	        			Audit Read
+					    	    			<a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-audit" href="#collapseAuditRead">
+					    	        			<i class="icon-plus"></i> Audit Read
 						    	    		</a>
 						    			</div>
-						    			<div id="collapseSix" class="accordion-body collapse" style="height: 0px; ">
+						    			<div id="collapseAuditRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/audit/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -284,11 +284,11 @@
 	    					    
 		    					    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-registation" href="#collapseSeven">
-								    	        Self-Registration
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-registation" href="#collapseSelfRegistration">
+								    	        <i class="icon-plus"></i> Self-Registration
 								    	    </a>
 								    	</div>
-								    	<div id="collapseSeven" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSelfRegistration" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form id="frmRegistration" action="/app/user/register" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Username</label>
@@ -311,7 +311,7 @@
 								    <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">
                                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-registation" href="#collapsePasswordReset">
-                                                Password Reset
+                                                <i class="icon-plus"></i> Password Reset
                                             </a>
                                         </div>
                                         <div id="collapsePasswordReset" class="accordion-body collapse" style="height: 0px; ">
@@ -345,11 +345,11 @@
 	    					    
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseEight">
-								    	        Create User
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserCreate">
+								    	        <i class="icon-plus"></i> Create User
 								    	    </a>
 								    	</div>
-								    	<div id="collapseEight" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/create" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -376,11 +376,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseNine">
-								    	        User Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserRead">
+								    	        <i class="icon-plus"></i> User Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseNine" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -423,11 +423,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseTen">
-								    	        User Search
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserSearch">
+								    	        <i class="icon-plus"></i> User Search
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserSearch" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/search" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -465,11 +465,11 @@
 								    </div>
 								    <div class="accordion-group">    
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseEleven">
-								    	        User Info Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserInfoRead">
+								    	        <i class="icon-plus"></i> User Info Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseEleven" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserInfoRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user_info/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -482,11 +482,11 @@
 							        </div>
 								    <div class="accordion-group">    
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseTwelve">
-								    	        User Stats
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserStatsRead">
+								    	        <i class="icon-plus"></i> User Stats
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwelve" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserStatsRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user_stats/read" method="post" class="well" target="outputframe">
 								                     <label><span class="label label-info">required</span> Campaign ID</label>
@@ -503,11 +503,11 @@
 									</div>
 									<div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseThirteen">
-								    	        User Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserUpdate">
+								    	        <i class="icon-plus"></i> User Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirteen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/update" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -544,11 +544,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseFourteen">
-								    	        User Delete
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserDelete">
+								    	        <i class="icon-plus"></i> User Delete
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFourteen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/user/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -578,11 +578,11 @@
 	    					    <div class="accordion" id="accordion-campaign">
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner"> 
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseFifteen">
-								    	        Campaign Create
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignCreate">
+								    	       <i class="icon-plus"></i> Campaign Create
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFifteen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseCampaignCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/campaign/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -607,11 +607,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseSixteen">
-								    	        Campaign Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignRead">
+								    	        <i class="icon-plus"></i> Campaign Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseSixteen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseCampaignRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/campaign/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Output Format</label>
@@ -644,11 +644,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseSeventeen">
-								    	        Campaign Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignUpdate">
+								    	        <i class="icon-plus"></i> Campaign Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseSeventeen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseCampaignUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/campaign/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -679,11 +679,11 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseEighteen">
-								    	        Campaign Delete
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignDelete">
+								    	        <i class="icon-plus"></i> Campaign Delete
 								    	    </a>
 								    	</div>
-								    	<div id="collapseEighteen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseCampaignDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/campaign/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -715,11 +715,11 @@
 	    					    
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseNineteen">
-								    	        Class Create
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassCreate">
+								    	        <i class="icon-plus"></i> Class Create
 								    	    </a>
 								    	</div>
-								    	<div id="collapseNineteen" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                 <form action="/app/class/create" method="post" class="well" target="outputframe">
 								                     <label><span class="label label-info">required</span> Token</label>
@@ -740,11 +740,11 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwenty">
-								    	        Class Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassRead">
+								    	        <i class="icon-plus"></i> Class Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwenty" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/class/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -767,11 +767,11 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyOne">
-								    	        Class Search
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassSearch">
+								    	        <i class="icon-plus"></i> Class Search
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassSearch" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/class/search" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -793,11 +793,11 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyTwo">
-								    	        Class Roster Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassRosterRead">
+								    	        <i class="icon-plus"></i> Class Roster Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassRosterRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/class/roster/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Class List</label>
@@ -812,11 +812,11 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyThree">
-								    	        Class Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassUpdate">
+								    	        <i class="icon-plus"></i> Class Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyThree" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/class/update" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -843,11 +843,11 @@
 									</div>
 									<div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyFour">
-								    	        Class Roster Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassRosterUpdate">
+								    	        <i class="icon-plus"></i> Class Roster Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyFour" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassRosterUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/class/roster/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -864,11 +864,11 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseTwentyFive">
-								    	        Class Delete
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-class" href="#collapseClassDelete">
+								    	        <i class="icon-plus"></i> Class Delete
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyFive" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseClassDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/class/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -899,11 +899,11 @@
 	    					    <div class="accordion" id="accordion-document">
 								    <div class="accordion-group">    
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentySix">
-								    	        Document Create
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseDocumentCreate">
+								    	       <i class="icon-plus"></i> Document Create
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentySix" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseDocumentCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/document/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -918,7 +918,7 @@
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label><span class="label">either this ...</span> Campaign-Role List</label>
 								                    <input type="text" name="document_campaign_role_list">
-								                    <label><span class="label">or this ...</span> Class-Role List</label>
+								                    <label><span class="label">... or this</span> Class-Role List</label>
 								                    <input type="text" name="document_class_role_list">
 								                    <label>Description</label> <input type="text" name="description" />
 								                    <br>
@@ -929,16 +929,16 @@
 									</div>
 									<div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentySeven">
-								    	        Document Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseDocumentRead">
+								    	        <i class="icon-plus"></i> Document Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentySeven" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseDocumentRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/document/read" method="post" class="well" target="outputframe">
-								                	<label>Client</label>
+								                	<label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Personal Documents</label>
+								                    <label><span class="label label-info">required</span> Personal Documents</label>
 								                    <input type="text" name="personal_documents">
 								                    <label>Campaign ID List</label>
 								                    <input type="text" name="campaign_urn_list">
@@ -956,16 +956,16 @@
 								      </div>
 								      <div class="accordion-group">  
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentyEight">
-								    	        Document Read Contents
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseDocumentReadContents">
+								    	        <i class="icon-plus"></i> Document Read Contents
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyEight" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseDocumentReadContents" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/document/read/contents" method="post" class="well" target="outputframe">
-								                    <label>Document ID</label>
+								                    <label><span class="label label-info">required</span> Document ID</label>
 								                    <input type="text" name="document_id">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -975,18 +975,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseTwentyNine">
-								    	        Document Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseDocumentUpdate">
+								    	        <i class="icon-plus"></i> Document Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseTwentyNine" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseDocumentUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/document/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
-								                    <label>Token</label>
+								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Document ID</label>
+								                    <label><span class="label label-info">required</span> Document ID</label>
 								                    <input type="text" name="document_id">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>New Name</label>
 								                    <input type="text" name="document_name">
@@ -1016,18 +1016,18 @@
 							        </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseThirty">
-								    	        Document Delete
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-document" href="#collapseDocumentDelete">
+								    	        <i class="icon-plus"></i> Document Delete
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirty" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseDocumentDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/document/delete" method="post" class="well" target="outputframe">
-								                    <label>Token</label>
+								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Document ID</label>
+								                    <label><span class="label label-info">required</span> Document ID</label>
 								                    <input type="text" name="document_id">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1047,30 +1047,58 @@
 					    	    </a>
 					    	</div>
 	    					<div id="collapseSurvey" class="accordion-body collapse" style="height: 0px; ">
-	    					    
 	    					    <div class="accordion" id="accordion-survey">
-								    <div class="accordion-group">
+	    					        <div class="accordion-group">    
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyOne">
-								    	        Survey Response Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseSurveyUpload">
+								    	        <i class="icon-plus"></i> Survey Upload
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyUpload" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/survey/upload" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> User</label>
+								                    <input type="text" name="user">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Campaign URN</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label><span class="label label-info">required</span> Campaign Creation Timestamp</label>
+								                    <input type="text" name="campaign_creation_timestamp">
+								                    <label><span class="label label-info">required</span> Surveys</label>
+								                    <input type="text" name="surveys">
+								                    <label>Images</label>
+								                    <input type="text" name="images">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+								    <div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseSurveyResponseRead">
+								    	        <i class="icon-plus"></i> Survey Response Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseSurveyResponseRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/survey_response/read" method="post" class="well" target="outputframe">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
-								                    <label>Column List</label>
+								                    <label><span class="label label-info">required</span> Column List</label>
 								                    <input type="text" name="column_list">
-								                    <label>Output Format</label>
+								                    <label><span class="label label-info">required</span> Output Format</label>
 								                    <input type="text" name="output_format">
-								                    <label>User List</label>
+								                    <label><span class="label label-info">required</span> User List</label>
 								                    <input type="text" name="user_list">
 								                    <label>Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>+ Survey ID List</label>
+								                    <label><span class="label">either this ...</span> Survey ID List</label>
 								                    <input type="text" name="survey_id_list">
-								                    <label>+ Prompt ID List</label>
+								                    <label><span class="label">... or this</span> Prompt ID List</label>
 								                    <input type="text" name="prompt_id_list">
 								                    <label>Privacy State</label>
 								                    <input type="text" name="privacy_state">
@@ -1102,20 +1130,22 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyTwo">
-								    	        Survey Response Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseSurveyResponseUpdate">
+								    	        <i class="icon-plus"></i> Survey Response Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyResponseUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/survey_response/update" method="post" class="well" target="outputframe">
-								                    <label>Token</label>
+								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Survey ID List</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label><span class="label label-info">required</span> Survey ID List</label>
 								                    <input type="text" name="survey_response_id_list">
-								                    <label>Privacy State</label>
+								                    <label><span class="label label-info">required</span> Privacy State</label>
 								                    <input type="text" name="privacy_state">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1125,17 +1155,21 @@
 							         </div>
 							         <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyThree">
-								    	        Image Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseImageRead">
+								    	        <i class="icon-plus"></i> Image Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyThree" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseImageRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/image/read" method="post" class="well" target="outputframe">
-								                    <label>Image ID</label>
-								                    <input type="text" name="id">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Image ID</label>
+								                    <input type="text" name="id">
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label><span class="label label-info">required</span> Owner</label>
+								                    <input type="text" name="owner">
 								                    <label>Size</label>
 								                    <input type="text" name="size">
 								                    <br>
@@ -1146,18 +1180,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyFour">
-								    	        Survey Response Function Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseSurveyResponseFunctionRead">
+								    	        <i class="icon-plus"></i> Survey Response Function Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyFour" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyResponseFunctionRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/survey_response/function/read" method="post" class="well" target="outputframe">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
-								                    <label>Function ID</label>
+								                    <label><span class="label label-info">required</span> Function ID</label>
 								                    <input type="text" name="id">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>Privacy State Items</label>
 								                    <input type="text" name="privacy_state_item_list">
@@ -1169,18 +1203,20 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseThirtyFive">
-								    	        Survey Response Delete
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseSurveyResponseDelete">
+								    	        <i class="icon-plus"></i> Survey Response Delete
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyFive" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyResponseDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/survey_response/delete" method="post" class="well" target="outputframe">
-								                    <label>Token</label>
+								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Survey Response ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label><span class="label label-info">required</span> Survey Response ID</label>
 								                    <input type="text" name="survey_id">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1202,13 +1238,36 @@
 	    					<div id="collapseMobility" class="accordion-body collapse" style="height: 0px; ">
 	    					    
 	    					    <div class="accordion" id="accordion-mobility">
-									<div class="accordion-group">
+	    					        <div class="accordion-group">    
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtySix">
-								    	        Mobility Dates Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityUpload">
+								    	        <i class="icon-plus"></i> Mobility Upload
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtySix" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseMobilityUpload" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="/app/mobility/upload" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> User</label>
+								                    <input type="text" name="user">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Data</label>
+								                    <input type="text" name="data">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+									<div class="accordion-group">
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityDatesRead">
+								    	       <i class="icon-plus"></i> Mobility Dates Read
+								    	    </a>
+								    	</div>
+								    	<div id="collapseMobilityDatesRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/mobility/dates/read" method="post" class="well" target="outputframe">
 								                    <label>Start Date</label>
@@ -1217,7 +1276,7 @@
 								                    <input type="text" name="end_date">
 								                    <label>Username</label>
 								                    <input type="text" name="username">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1227,22 +1286,22 @@
 								    </div>
 									<div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtySeven">
-								    	        Mobility Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityRead">
+								    	        <i class="icon-plus"></i> Mobility Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtySeven" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseMobilityRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/mobility/read" method="post" class="well" target="outputframe">
-								                    <label>Date</label>
+								                    <label><span class="label label-info">required</span> Date</label>
 								                    <input type="text" name="date">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>Username</label>
 								                    <input type="text" name="username">
-								                    <label>+ With Sensor Data</label>
+								                    <label><span class="label">either this ...</span> With Sensor Data (Deprecated)</label>
 								                    <input type="text" name="with_sensor_data">
-								                    <label>+ Columns</label>
+								                    <label><span class="label">... or this</span> Columns</label>
 								                    <input type="text" name="column_list">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1252,14 +1311,14 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtyEight">
-								    	        Mobility Read CSV
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityReadCsv">
+								    	        <i class="icon-plus"></i> Mobility Read CSV
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyEight" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseMobilityReadCsv" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/mobility/read/csv" method="post" class="well" target="outputframe">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1277,21 +1336,21 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseThirtyNine">
-								    	        Mobility Chunked Read
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityReadChunked">
+								    	        <i class="icon-plus"></i> Mobility Chunked Read
 								    	    </a>
 								    	</div>
-								    	<div id="collapseThirtyNine" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseMobilityReadChunked" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/mobility/read/chunked" method="post" class="well" target="outputframe">
-								                    <label>User</label>
-								                    <input type="text" name="user">
-								                    <label>Start Date</label>
+								                    <label><span class="label label-info">required</span> Start Date</label>
 								                    <input type="text" name="start_date">
-								                    <label>End Date</label>
+								                    <label><span class="label label-info">required</span> End Date</label>
 								                    <input type="text" name="end_date">
-								                    <label>Client</label>
-								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="end_date">
+								                    <label>Chunk Minutes</label>
+								                    <input type="text" name="chunk_min">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
 								                </form>
@@ -1315,18 +1374,18 @@
 	    					    
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty">
-								    	        Survey Response Count Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseSurveyResponseCountViz">
+								    	        <i class="icon-plus"></i> Survey Response Count Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyResponseCountViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/survey_response_count/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1336,7 +1395,7 @@
 								                    <input type="text" name="privacy_state">
 								                    <label>Aggregate</label>
 								                    <input type="text" name="aggregate">
-								                    <label>Client:</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1346,18 +1405,18 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseFortyOne">
-								    	        Survey Responses Privacy State Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseSurveyResponsePrivacyStateViz">
+								    	        <i class="icon-plus"></i> Survey Responses Privacy State Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFortyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyResponsePrivacyStateViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/survey_responses_privacy_state/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1365,7 +1424,7 @@
 								                    <input type="text" name="end_date">
 								                    <label>Privacy State</label>
 								                    <input type="text" name="privacy_state">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost" />
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1375,18 +1434,18 @@
 							        </div>
 							        <div class="accordion-group">
 							            <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseFortyTwo">
-								    	        Survey Responses Privacy State Over Time Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseSurveyResponsePrivacyStateTimeViz">
+								    	        <i class="icon-plus"></i> Survey Responses Privacy State Over Time Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFortyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseSurveyResponsePrivacyStateTimeViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/survey_responses_privacy_state_time/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1396,7 +1455,7 @@
 								                    <input type="text" name="privacy_state">
 								                    <label>Aggregate</label>
 								                    <input type="text" name="aggregate">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1406,18 +1465,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty43">
-								    	        User Timeseries Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseUserTimeSeriesViz">
+								    	        <i class="icon-plus"></i> User Timeseries Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty43" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseUserTimeSeriesViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/user_timeseries/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1425,11 +1484,11 @@
 								                    <input type="text" name="end_date">
 								                    <label>Privacy State</label>
 								                    <input type="text" name="privacy_state">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
-								                    <label>User</label>
+								                    <label><span class="label label-info">required</span> User</label>
 								                    <input type="text" name="user">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1439,18 +1498,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty44">
-								    	        Prompt Timeseries Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapsePromptTimeSeriesViz">
+								    	        <i class="icon-plus"></i> Prompt Timeseries Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty44" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapsePromptTimeSeriesViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/prompt_timeseries/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1460,9 +1519,9 @@
 								                    <input type="text" name="privacy_state">
 								                    <label>Aggregate</label>
 								                    <input type="text" name="aggregate">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1472,18 +1531,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty45">
-								    	        Prompt Distribution Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapsePromptDistributionViz">
+								    	        <i class="icon-plus"></i> Prompt Distribution Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty45" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapsePromptDistributionViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/prompt_distribution/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1491,9 +1550,9 @@
 								                    <input type="text" name="end_date">
 								                    <label>Privacy State</label>
 								                    <input type="text" name="privacy_state">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1503,18 +1562,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty46">
-								    	        Scatter Plot Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseScatterPlotViz">
+								    	        <i class="icon-plus"></i> Scatter Plot Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty46" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseScatterPlotViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/scatter_plot/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1522,11 +1581,11 @@
 								                    <input type="text" name="end_date">
 								                    <label>Privacy State</label>
 								                    <input type="text" name="privacy_state">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
-								                    <label>Prompt2 ID</label>
+								                    <label><span class="label label-info">required</span> Prompt2 ID</label>
 								                    <input type="text" name="prompt2_id">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1536,18 +1595,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapseForty47">
-								    	        2D Density Visualization
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-visualization" href="#collapse2DDensityViz">
+								    	        <i class="icon-plus"></i> 2D Density Visualization
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty47" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapse2DDensityViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/viz/2d_density/read" method="post" class="well" target="outputframe">
-								                    <label>Width</label>
+								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
-								                    <label>Height</label>
+								                    <label><span class="label label-info">required</span> Height</label>
 								                    <input type="text" name="height">
-								                    <label>Campaign ID</label>
+								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
@@ -1555,11 +1614,11 @@
 								                    <input type="text" name="end_date">
 								                    <label>Privacy State</label>
 								                    <input type="text" name="privacy_state">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
-								                    <label>Prompt2 ID</label>
+								                    <label><span class="label label-info">required</span> Prompt2 ID</label>
 								                    <input type="text" name="prompt2_id">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1584,24 +1643,24 @@
 	    					    
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseForty48">
-								    	        Create Survey Response Annotation
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseAnnotationSurveyResponseCreate">
+								    	        <i class="icon-plus"></i> Create Survey Response Annotation
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty48" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseAnnotationSurveyResponseCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/annotation/survey_response/create" method="post" class="well" target="outputframe">
-								                    <label>Auth Token</label>
+								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Survey ID</label>
+								                    <label><span class="label label-info">required</span> Survey ID</label>
 								                    <input type="text" name="survey_id">
-								                    <label>Time</label>
+								                    <label><span class="label label-info">required</span> Time</label>
 								                    <input type="text" name="time" value="0">
-								                    <label>Timezone</label>
+								                    <label><span class="label label-info">required</span> Timezone</label>
 								                    <input type="text" name="timezone" value="America/Los_Angeles">
-								                    <label>Annotation Text</label>
+								                    <label><span class="label label-info">required</span> Annotation Text</label>
 								                    <input type="text" name="annotation">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1611,18 +1670,18 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseForty49">
-								    	        Read Survey Response Annotation
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseAnnotationSurveyResponseRead">
+								    	        <i class="icon-plus"></i> Read Survey Response Annotation
 								    	    </a>
 								    	</div>
-								    	<div id="collapseForty49" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseAnnotationSurveyResponseRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/annotation/survey_response/read" method="post" class="well" target="outputframe">
-								                    <label>Auth Token</label>
+								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Survey ID</label>
+								                    <label><span class="label label-info">required</span> Survey ID</label>
 								                    <input type="text" name="survey_id">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1632,30 +1691,30 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFifty">
-								    	        Create Prompt Response Annotation
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseAnnotationPromptResponseCreate">
+								    	        <i class="icon-plus"></i> Create Prompt Response Annotation
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFifty" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseAnnotationPromptResponseCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/annotation/prompt_response/create" method="post" class="well" target="outputframe">
-								                    <label>Auth Token</label>
+								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Survey ID</label>
+								                    <label><span class="label label-info">required</span> Survey ID</label>
 								                    <input type="text" name="survey_id">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
 								                    <label>Repeatable Set ID</label>
 								                    <input type="text" name="repeatable_set_id">
 								                    <label>Repeatable Set Iteration</label>
 								                    <input type="text" name="repeatable_set_iteration">
-								                    <label>Time</label>
+								                    <label><span class="label label-info">required</span> Time</label>
 								                    <input type="text" name="time" value="0">
-								                    <label>Timezone</label>
+								                    <label><span class="label label-info">required</span> Timezone</label>
 								                    <input type="text" name="timezone" value="America/Los_Angeles">
-								                    <label>Annotation Text</label>
+								                    <label><span class="label label-info">required</span> Annotation Text</label>
 								                    <input type="text" name="annotation">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
@@ -1665,20 +1724,20 @@
 									</div>
 									<div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFiftyOne">
-								    	        Read Prompt Response Annotation
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseAnnotationPromptResponseRead">
+								    	        <i class="icon-plus"></i> Read Prompt Response Annotation
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFiftyOne" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseAnnotationPromptResponseRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/annotation/prompt_response/read" method="post" class="well" target="outputframe">
-								                    <label>Auth Token</label>
+								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Survey ID</label>
+								                    <label><span class="label label-info">required</span> Survey ID</label>
 								                    <input type="text" name="survey_id">
-								                    <label>Prompt ID</label>
+								                    <label><span class="label label-info">required</span> Prompt ID</label>
 								                    <input type="text" name="prompt_id">
 								                    <label>Repeatable Set ID</label>
 								                    <input type="text" name="repeatable_set_id">
@@ -1692,24 +1751,24 @@
 							        </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFiftyTwo">
-								    	        Annotation Update
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseAnnotationUpdate">
+								    	        <i class="icon-plus"></i> Annotation Update
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFiftyTwo" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseAnnotationUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/annotation/update" method="post" class="well" target="outputframe">
-								                    <label>Auth Token</label>
+								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Annotation ID</label>
+								                    <label><span class="label label-info">required</span> Annotation ID</label>
 								                    <input type="text" name="annotation_id">
-								                    <label>Time</label>
+								                    <label><span class="label label-info">required</span> Time</label>
 								                    <input type="text" name="time" value="0">
-								                    <label>Timezone</label>
+								                    <label><span class="label label-info">required</span> Timezone</label>
 								                    <input type="text" name="timezone" value="America/Los_Angeles">
-								                    <label>Annotation Text</label>
+								                    <label><span class="label label-info">required</span> Annotation Text</label>
 								                    <input type="text" name="annotation" />
 								                    <input type="submit" class="btn" value="Submit">
 								                </form>
@@ -1718,18 +1777,18 @@
 								    </div>
 								    <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseFiftyThree">
-								    	        Annotation Delete
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-annotation" href="#collapseAnnotationDelete">
+								    	        <i class="icon-plus"></i> Annotation Delete
 								    	    </a>
 								    	</div>
-								    	<div id="collapseFiftyThree" class="accordion-body collapse" style="height: 0px; ">
+								    	<div id="collapseAnnotationDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
 								                <form action="/app/annotation/delete" method="post" class="well" target="outputframe">
-								                    <label>Auth Token</label>
+								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
-								                    <label>Client</label>
+								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label>Annotation ID</label>
+								                    <label><span class="label label-info">required</span> Annotation ID</label>
 								                    <input type="text" name="annotation_id">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
