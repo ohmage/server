@@ -171,7 +171,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -193,7 +195,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				}
 				else {
 					throw new DomainException(
-							"The value was a collection, but not all of the items were integers.");
+							"The value was a collection, but not all of the items were integers for prompt '" +
+								getId() +
+								"'.");
 				}
 			}
 		}
@@ -209,7 +213,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 				}
 				catch(JSONException notKey) {
 					throw new DomainException(
-							"The value was a JSONArray, but not all of the elements were integers.", 
+							"The value was a JSONArray, but not all of the elements were integers for prompt '" +
+								getId() +
+								"'.", 
 							notKey);
 				}
 			}
@@ -235,7 +241,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 						}
 						catch(JSONException notKey) {
 							throw new DomainException(
-									"The value was a JSONArray, but not all fo the elements were integers.", 
+									"The value was a JSONArray, but not all of the elements were integers for prompt '" +
+										getId() +
+										"'.", 
 									notKey);
 						}
 					}
@@ -253,7 +261,9 @@ public class MultiChoicePrompt extends ChoicePrompt {
 							}
 							catch(NumberFormatException notKey) {
 								throw new DomainException(
-										"The value was a comma-separated list, but not all of the elemtns were integers.", 
+										"The value was a comma-separated list, but not all of the elemtns were integers for prompt '" +
+											getId() +
+											"'.", 
 										notKey);
 							}
 						}
@@ -263,14 +273,19 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		}
 		else {
 			throw new DomainException(
-					"The value is not decodable as a reponse value: " + 
+					"The value is not decodable as a reponse value for prompt '" +
+						getId() +
+						"': " + 
 						value.toString());
 		}
 		
 		for(Integer key : collectionValue) {
 			if(! choices.containsKey(key)) {
 				throw new DomainException(
-						"A key was given that isn't a known choice.");
+						"A key was given that isn't a known choice for prompt '" +
+							getId() +
+							"': " +
+							key);
 			}
 		}
 		

@@ -142,7 +142,9 @@ public class SingleChoicePrompt extends ChoicePrompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -160,18 +162,25 @@ public class SingleChoicePrompt extends ChoicePrompt {
 				}
 				catch(NumberFormatException notChoiceKey) {
 					throw new DomainException(
-							"The value was not a valid response value for this prompt.", 
+							"The value was not a valid response value for this prompt, '" +
+								getId() +
+								"'.", 
 							notChoiceKey);
 				}
 			}
 		}
 		else {
 			throw new DomainException(
-					"The value is not decodable as a reponse value.");
+					"The value is not decodable as a reponse value for prompt '" +
+						getId() +
+						"'.");
 		}
 
 		if(! getChoices().keySet().contains(keyValue)) {
-			throw new DomainException("The value is not a value choice.");
+			throw new DomainException(
+					"The value is not a value choice for prompt '" +
+						getId() +
+						"'.");
 		}
 		
 		return keyValue;

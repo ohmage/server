@@ -324,7 +324,7 @@ public class UserUpdateRequest extends UserRequest {
 			LOGGER.info("Verifying that the requesting user is an admin.");
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			
-			LOGGER.info("Verifying that the user to be upaded exists.");
+			LOGGER.info("Verifying that the user to be updated exists.");
 			UserServices.instance().checkUserExistance(username, true);
 			
 			LOGGER.info("Verify that either the user to be updated already has a personal record or that enough information was provided to create a new one.");

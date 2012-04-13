@@ -171,7 +171,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			//throw new NoResponseException((NoResponse) value);
@@ -189,7 +191,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 				}
 				else {
 					throw new DomainException(
-						"An object in the list was not a valid label value.");
+						"An object in the list was not a valid label value for prompt '" +
+							getId() +
+							"'.");
 				}
 			}
 		}
@@ -205,7 +209,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 				}
 				catch(JSONException notKey) {
 					throw new DomainException(
-						"The value was a JSONArray, but not all of the elements were strings.", 
+						"The value was a JSONArray, but not all of the elements were strings for prompt '" +
+							getId() +
+							"'.", 
 						notKey);
 				}
 			}
@@ -230,7 +236,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 						}
 						catch(JSONException notString) {
 							throw new DomainException(
-								"One of the items in the list was not decodable as a string value.");
+								"One of the items in the list was not decodable as a string value for prompt '" +
+									getId() +
+									"'.");
 						}
 					}
 				}
@@ -250,7 +258,9 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 		}
 		else {
 			throw new DomainException(
-					"The value is not decodable as a reponse value.");
+					"The value is not decodable as a reponse value for prompt '" +
+						getId() +
+						"'.");
 		}
 		
 		Map<Integer, LabelValuePair> choices = getAllChoices();

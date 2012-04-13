@@ -275,7 +275,9 @@ public class RemoteActivityPrompt extends Prompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -299,14 +301,19 @@ public class RemoteActivityPrompt extends Prompt {
 				}
 				catch(JSONException e) {
 					throw new DomainException(
-							"The string value could not be decoded as a NoResponse or JSONObject object.");
+							"The string value could not be decoded as a NoResponse or JSONObject object for prompt '" +
+								getId() +
+								"': " +
+								valueString);
 				}
 			}
 		}
 		// Finally, if its type is unknown, throw an exception.
 		else {
 			throw new DomainException(
-					"The value is not decodable as a response value.");
+					"The value is not decodable as a response value for prompt '" +
+						getId() +
+						"'.");
 		}
 		
 		int numResponses = valueJson.length();
@@ -319,7 +326,9 @@ public class RemoteActivityPrompt extends Prompt {
 				throw new DomainException(
 						"The item at index '" +
 							i +
-							"' isn't a valid JSONObject.",
+							"' isn't a valid JSONObject for prompt '" +
+							getId() +
+							"'.",
 						e);
 			}
 			
@@ -330,7 +339,9 @@ public class RemoteActivityPrompt extends Prompt {
 				throw new DomainException(
 						"The JSON response value must contain the key '" +
 							JSON_KEY_SCORE +
-							"' which must be a numeric value.",
+							"' which must be a numeric value for prompt '" +
+							getId() +
+							"'.",
 						e);
 			}
 		}
