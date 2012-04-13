@@ -156,7 +156,9 @@ public class TextPrompt extends Prompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -176,16 +178,30 @@ public class TextPrompt extends Prompt {
 		// Finally, if its type is unknown, throw an exception.
 		else {
 			throw new DomainException(
-					"The value is not decodable as a response value.");
+					"The value is not decodable as a response value for prompt '" +
+						getId() +
+						"'.");
 		}
 		
 		// Ensure that the length falls within the bounds.
 		long length = ((String) value).length();
-		if(length < getMin()) {
-			throw new DomainException("The value is too short.");
+		if(length < min) {
+			throw new DomainException(
+					"The value for prompt '" +
+						getId() +
+						"' is too short (" +
+						min +
+						"): " +
+						length);
 		}
-		else if(length > getMax()) {
-			throw new DomainException("The value is too long.");
+		else if(length > max) {
+			throw new DomainException(
+					"The value for prompt '" +
+						getId() +
+						"' is too long (" +
+						max +
+						"): " +
+						length);
 		}
 		
 		return valueString;

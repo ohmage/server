@@ -156,7 +156,9 @@ public class PhotoPrompt extends Prompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -179,13 +181,18 @@ public class PhotoPrompt extends Prompt {
 				}
 				catch(IllegalArgumentException notUuid) {
 					throw new DomainException(
-							"The string response value was not decodable into a UUID.");
+							"The string response value was not decodable into a UUID for prompt '" +
+								getId() +
+								"': " +
+								valueString);
 				}
 			}
 		}
 		else {
 			throw new DomainException(
-					"The value is not decodable as a reponse value.");
+					"The value is not decodable as a reponse value for prompt '" +
+						getId() + 
+						"'.");
 		}
 	}
 	

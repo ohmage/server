@@ -130,7 +130,9 @@ public class TimestampPrompt extends Prompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -162,12 +164,16 @@ public class TimestampPrompt extends Prompt {
 				}
 			
 				throw new DomainException(
-						"The string value could not be converted to a date.");
+						"The string value could not be converted to a date for prompt '" +
+							getId() +
+							"'.");
 			}
 		}
 		
 		throw new DomainException(
-				"The value could not be converted to a valid Date.");
+				"The value could not be converted to a valid date for prompt '" +
+					getId() +
+					"'.");
 	}
 	
 	/**

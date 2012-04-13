@@ -141,7 +141,9 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -179,7 +181,10 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		}
 		else {
 			throw new DomainException(
-					"The value is not decodable as a reponse value: " + value);
+					"The value for prompt '" +
+						getId() +
+						"' is not decodable as a reponse value: " + 
+						value);
 		}
 	}
 	

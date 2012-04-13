@@ -239,7 +239,9 @@ public abstract class BoundedPrompt extends Prompt {
 		if(value instanceof NoResponse) {
 			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
 				throw new DomainException(
-						"The prompt was skipped, but it is not skippable.");
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
 			}
 			
 			return value;
@@ -257,7 +259,10 @@ public abstract class BoundedPrompt extends Prompt {
 				longValue = ((Number) value).longValue();
 			}
 			else {
-				throw new DomainException("Only whole numbers are allowed.");
+				throw new DomainException(
+						"Only whole numbers are allowed for prompt '" +
+							getId() +
+							"'.");
 			}
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
@@ -276,7 +281,10 @@ public abstract class BoundedPrompt extends Prompt {
 				}
 				catch(NumberFormatException nfe) {
 					throw new DomainException(
-							"The value is not a valid number.",
+							"The value is not a valid number for prompt '" +
+								getId() +
+								"': " +
+								stringValue,
 							nfe);
 				}
 			}
@@ -284,7 +292,9 @@ public abstract class BoundedPrompt extends Prompt {
 		// Finally, if its type is unknown, throw an exception.
 		else {
 			throw new DomainException(
-					"The value is not decodable as a response value.");
+					"The value is not decodable as a response value for prompt '" +
+						getId() +
+						"'.");
 		}
 		
 		// Now that we have a Long value, verify that it is within bounds.
