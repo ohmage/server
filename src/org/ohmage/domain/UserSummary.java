@@ -37,6 +37,8 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class UserSummary {
+	private static final String JSON_KEY_EMAIL_ADDRESS = "email_address";
+	
 	private static final String JSON_KEY_PERMISSIONS = "permissions";
 	private static final String JSON_KEY_PERMISSIONS_ADMIN = "is_admin";
 	private static final String JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION = "can_create_campaigns";
@@ -46,6 +48,8 @@ public class UserSummary {
 	
 	private static final String JSON_KEY_CLASSES = "classes";
 	private static final String JSON_KEY_CLASS_ROLES = "class_roles";
+	
+	private final String emailAddress;
 	
 	private final boolean isAdmin;
 	private final boolean campaignCreationPrivilege;
@@ -60,6 +64,9 @@ public class UserSummary {
 	 * Creates a new user information object with a default campaign creation
 	 * privilege, no campaigns or campaign roles, and no classes or class 
 	 * roles.
+	 * 
+	 * @param emailAddress The user's email address if one exists, which it may
+	 * 					   not.
 	 * 
 	 * @param isAdmin Whether or not the user is an admin.
 	 * 
@@ -83,6 +90,7 @@ public class UserSummary {
 	 * @throws DomainException The campaigns, classes, or role lists is empty.
 	 */
 	public UserSummary(
+			String emailAddress,
 			boolean isAdmin,
 			boolean campaignCreationPrivilege,
 			final Map<String, String> campaigns,
@@ -108,6 +116,8 @@ public class UserSummary {
 					"The set of class roles for a user cannot be empty.");
 		}
 		
+		this.emailAddress = emailAddress;
+		
 		this.isAdmin = isAdmin;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		
@@ -129,6 +139,13 @@ public class UserSummary {
 	public UserSummary(final JSONObject information) throws DomainException {
 		if(information == null) {
 			throw new DomainException("The information is null.");
+		}
+		
+		try {
+			emailAddress = information.getString(JSON_KEY_EMAIL_ADDRESS);
+		}
+		catch(JSONException e) {
+			throw new DomainException("The email address is missing.", e);
 		}
 		
 		JSONObject permissions;
@@ -287,6 +304,8 @@ public class UserSummary {
 	 */
 	public JSONObject toJsonObject() throws JSONException {
 		JSONObject result = new JSONObject();
+		
+		result.put(JSON_KEY_EMAIL_ADDRESS, emailAddress);
 		
 		JSONObject permissions = new JSONObject();
 		permissions.put(JSON_KEY_PERMISSIONS_ADMIN, isAdmin);

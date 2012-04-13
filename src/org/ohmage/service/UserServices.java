@@ -1046,6 +1046,7 @@ public final class UserServices {
 			// Get campaign creation privilege.
 			try {
 				return new UserSummary(
+						userQueries.getEmailAddress(username),
 						userQueries.userIsAdmin(username), 
 						userQueries.userCanCreateCampaigns(username),
 						campaigns,
