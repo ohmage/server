@@ -182,7 +182,6 @@ public final class MobilityServices {
 						mobilityPoint.setClassifierData(
 								classification.getFft(), 
 								classification.getVariance(),
-								classification.getN95Variance(), 
 								classification.getAverage(), 
 								MobilityPoint.Mode.valueOf(classification.getMode().toUpperCase()));
 					}
