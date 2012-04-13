@@ -290,11 +290,21 @@ public abstract class BoundedPrompt extends Prompt {
 		// Now that we have a Long value, verify that it is within bounds.
 		if(longValue < min) {
 			throw new DomainException(
-					"The value is less than the lower bound.");
+					"The value is less than the lower bound (" +
+						min + 
+						") for the prompt, '" +
+						getId() +
+						"': " + 
+						longValue);
 		}
 		else if(longValue > max) {
 			throw new DomainException(
-					"The value is greater than the lower bound.");
+					"The value is greater than the upper bound (" +
+						max +
+						") for the prompt, '" +
+						getId() +
+						"': " +
+						longValue);
 		}
 		
 		return longValue;
