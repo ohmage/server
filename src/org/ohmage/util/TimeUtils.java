@@ -158,11 +158,17 @@ public final class TimeUtils {
 			return null;
 		}
 		
-		String sanitizedDate = timeZone;
-		if(timeZone.startsWith("GMT") || timeZone.startsWith("UTC")) {
-			sanitizedDate = timeZone.substring(3);
+		try {
+			return DateTimeZone.forID(timeZone);
 		}
-		
-		return DateTimeZone.forID(sanitizedDate);
+		catch(IllegalArgumentException e) {
+			// This is acceptable if it starts with "GMT" or "UTC".
+			if(timeZone.startsWith("GMT") || timeZone.startsWith("UTC")) {
+				return DateTimeZone.forID(timeZone.substring(3));
+			}
+			else {
+				throw e;
+			}
+		}
 	}
 }
