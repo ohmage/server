@@ -38,9 +38,7 @@ import javax.mail.SendFailedException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
@@ -90,6 +88,15 @@ public final class UserServices {
 	private static final String ACTIVATION_FUNCTION = "#activate";
 	
 	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 4;
+	
+	final static char[] CHARS_TEMPORARY_PASSWORD = 
+			new char[] { 
+				'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
+				'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+				'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+				'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 
+				'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', 
+				'8', '9' };
 	
 	private static UserServices instance;
 	
@@ -1197,7 +1204,7 @@ public final class UserServices {
 	public void resetPassword(final String username)
 			throws ServiceException {
 			
-		String newPassword = generateRandomPassword();
+		String newPassword = generateRandomTemporaryPassword();
 		
 		String emailAddress;
 		try {
@@ -1286,16 +1293,13 @@ public final class UserServices {
 					e);
 		}
 		
-		// Create the multi-part message.
-		MimeMultipart content = new MimeMultipart();
-		
-		// Create the HTML portion of the message.
-		MimeBodyPart html = new MimeBodyPart();
 		try {
-			html.setContent(
+			message.setContent(
 					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_TEXT), 
-						"text/html");
+						PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_TEXT) +
+						"<br /><br />" +
+						newPassword, 
+					"text/html");
 		}
 		catch(CacheMissException e) {
 			throw new ServiceException(
@@ -1308,42 +1312,7 @@ public final class UserServices {
 					"Could not set the HTML portion of the message.", 
 					e);
 		}
-		try {
-			content.addBodyPart(html);
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"Could not add the HTML portion of the message.",
-					e);
-		}
-		
-		MimeBodyPart passwordPart = new MimeBodyPart();
-		try {
-			passwordPart.setContent(newPassword, "text/text");
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"Could not add the password text.",
-					e);
-		}
-		try {
-			content.addBodyPart(passwordPart);
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"Could not add the password potion of the message.",
-					e);
-		}
-		
-		try {
-			message.setContent(content);
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"Could not add the content to the message.",
-					e);
-		}
-		
+
 		try {
 			message.saveChanges();
 		}
@@ -1416,29 +1385,18 @@ public final class UserServices {
 	}
 	
 	/**
-	 * Generates a plaintext password based on our rule set.
+	 * Generates a plaintext temporary password based that does not observe our
+	 * rule set.
 	 * 
 	 * @return The plaintext password.
 	 */
-	private String generateRandomPassword() {
-		char[] validChars = 
-				new char[] { 
-					'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
-					'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
-					'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
-					'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 
-					'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', 
-					'8', '9', ',', '.', '<', '>', '[', ']', '!', '@', '#', '$',
-					'%', '^', '&', '*', '+', '-', '/', '=', '?', '_', '{', '}',
-					'|', ':' };
-
+	private String generateRandomTemporaryPassword() {
 		Random random = new Random();
-		int length = random.nextInt(16 - 8) + 8; 
-		
 		StringBuilder passwordBuilder = new StringBuilder();
-		for(int i = 0; i < length; i++) {
+		for(int i = 0; i < 32; i++) {
 			passwordBuilder.append(
-					validChars[random.nextInt(validChars.length)]);
+				CHARS_TEMPORARY_PASSWORD[random.nextInt(
+					CHARS_TEMPORARY_PASSWORD.length)]);
 		}
 		return passwordBuilder.toString();
 	}
