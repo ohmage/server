@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
+import org.ohmage.util.TimeUtils;
 
 /**
  * This class contains all of the information associated with a location
@@ -246,7 +247,7 @@ public class Location {
 		DateTimeZone tTimeZone;
 		try {
 			tTimeZone = 
-					DateTimeZone.forID(
+					TimeUtils.getDateTimeZoneFromString(
 						locationData.getString(
 							LocationColumnKey.TIMEZONE.toString(
 								false)));
@@ -254,7 +255,7 @@ public class Location {
 		catch(JSONException noRegular) {
 			try {
 				tTimeZone = 
-						DateTimeZone.forID(
+						TimeUtils.getDateTimeZoneFromString(
 							locationData.getString(
 								LocationColumnKey.TIMEZONE.toString(
 									true)));

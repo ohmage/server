@@ -729,7 +729,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								return new MobilityPoint(
 										UUID.fromString(rs.getString("uuid")),
 										rs.getLong("epoch_millis"),
-										DateTimeZone.forID(rs.getString("phone_timezone")),
+										TimeUtils.getDateTimeZoneFromString(rs.getString("phone_timezone")),
 										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
 										location,
 										Mode.valueOf(rs.getString("mode").toUpperCase()),

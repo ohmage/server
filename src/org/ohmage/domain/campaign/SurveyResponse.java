@@ -38,6 +38,7 @@ import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 
 /**
  * This class is responsible for converting an uploaded or database-stored copy
@@ -201,7 +202,9 @@ public class SurveyResponse {
 			}
 			
 			try {
-				timezone = DateTimeZone.forID(launchContext.getString(JSON_KEY_LAUNCH_TIMEZONE));
+				timezone = 
+						TimeUtils.getDateTimeZoneFromString(
+							launchContext.getString(JSON_KEY_LAUNCH_TIMEZONE));
 			}
 			catch(JSONException e) {
 				throw new DomainException(
@@ -1047,7 +1050,9 @@ public class SurveyResponse {
 		}
 		
 		try {
-			timezone = DateTimeZone.forID(response.getString(JSON_KEY_TIMEZONE));
+			timezone = 
+					TimeUtils.getDateTimeZoneFromString(
+						response.getString(JSON_KEY_TIMEZONE));
 		}
 		catch(JSONException e) {
 			throw new DomainException(

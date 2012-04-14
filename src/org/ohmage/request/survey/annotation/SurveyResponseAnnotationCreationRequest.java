@@ -33,6 +33,7 @@ import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -148,7 +149,7 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 					throw new ValidationException("timezone is missing or there is more than one value");
 				} else {
 					try {
-						tTimezone = DateTimeZone.forID(t[0]);
+						tTimezone = TimeUtils.getDateTimeZoneFromString(t[0]);
 					}
 					catch(IllegalArgumentException unknownTimezone) {
 						setFailed(ErrorCode.ANNOTATION_INVALID_TIMEZONE, "unknown timezone");

@@ -19,6 +19,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
@@ -139,5 +140,29 @@ public final class TimeUtils {
 			// If it's not a date-time, maybe it is just a date.
 			return DATE_FORMATTER.parseDateTime(date);
 		}
+	}
+	
+	/**
+	 * Sanitizes and decodes a time zone string.
+	 * 
+	 * @param timeZone The time zone to be decoded.
+	 * 
+	 * @return The DateTimeZone that represents this time zone.
+	 * 
+	 * @throws IllegalArgumentException The date time zone is invalid.
+	 */
+	public static DateTimeZone getDateTimeZoneFromString(
+			final String timeZone) {
+		
+		if(timeZone == null) {
+			return null;
+		}
+		
+		String sanitizedDate = timeZone;
+		if(timeZone.startsWith("GMT") || timeZone.startsWith("UTC")) {
+			sanitizedDate = timeZone.substring(3);
+		}
+		
+		return DateTimeZone.forID(sanitizedDate);
 	}
 }
