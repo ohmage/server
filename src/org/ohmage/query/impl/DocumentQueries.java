@@ -41,7 +41,9 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
+import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
@@ -606,7 +608,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					StringUtils.generateStatementPList(
 						campaignIds.size()))
 				.append(
-					"AND c.id = urc.campaign_id " +
+					" AND c.id = urc.campaign_id " +
 					"AND u.id = urc.user_id " +
 					"AND c.id = dcr.campaign_id" +
 				")");
@@ -633,7 +635,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				.append(
 					StringUtils.generateStatementPList(classIds.size()))
 				.append(
-					"AND c.id = uc.class_id " +
+					" AND c.id = uc.class_id " +
 					"AND u.id = uc.user_id " +
 					"AND c.id = dcr.class_id" +
 				")");
@@ -684,6 +686,93 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 			}
 			sql.append(")");
 		}
+		
+		// Now, we will tack on the ACL's to limit the results to only those
+		// that are visible to the requesting user. The whole work flow of this
+		// function is bad and should be optimized. But, we have a deadline and
+		// the performance isn't bad.
+		sql.append(
+				" AND (" +
+					// The user is an admin.
+					"(u.admin = true)" +
+					" OR " +
+					// The document is shared.
+					"(dps.privacy_state = '" + 
+						Document.PrivacyState.SHARED + 
+						"'" +
+					")" +
+					// If the document is not public then it must be private,
+					// so the user must have the role of owner and/or writer. 
+					" OR (" +
+						"EXISTS (" +
+							"SELECT dr.id " +
+							"FROM document_role dr " +
+							"WHERE dr.role IN (" +
+								"'" + Document.Role.OWNER.toString() + "', " +
+								"'" + Document.Role.WRITER.toString() + "'" +
+							")" +
+							"AND (" +
+								// See if the user is directly related to the 
+								// document with the specified roles.
+								"EXISTS (" +
+									"SELECT dur.id " +
+									"FROM document_user_role dur " +
+									"WHERE d.id = dur.document_id " +
+									"AND u.id = dur.user_id " +
+									"AND dr.id = dur.document_role_id" +
+								")" +
+								// See if the user is related to the document
+								// through a class.
+								" OR EXISTS (" +
+									"SELECT dcr.id " +
+									"FROM document_class_role dcr, " +
+										"user_class uc, user_class_role ucr " +
+									"WHERE d.id = dcr.document_id " +
+									"AND u.id = uc.user_id " +
+									"AND uc.class_id = dcr.class_id " +
+									// The class has the appropriate role or
+									// the user is privileged in that class.
+									"AND (" +	
+										"(dr.id = dcr.document_role_id)" +
+										" OR " +
+										"(" +
+											"uc.user_class_role_id = ucr.id" +
+											" AND " +
+											"ucr.role = '" +
+												Clazz.Role.PRIVILEGED.toString() +
+												"'" +
+										")" +
+									")" +
+								")" +
+								// See if the user is related to the document
+								// through a campaign.
+								" OR EXISTS (" +
+									"SELECT dcr.id " +
+									"FROM document_campaign_role dcr, " +
+										"user_role ur, " +
+										"user_role_campaign urc " +
+									"WHERE d.id = dcr.document_id " +
+									"AND u.id = urc.user_id " +
+									"AND urc.campaign_id = dcr.campaign_id " +
+									// The campaign has the appropriate role or
+									// the user is a supervisor in that 
+									//campaign.
+									"AND (" +
+										"(dr.id = dcr.document_role_id)" +
+										" OR " +
+										"(" +
+											"urc.user_role_id = ur.id" +
+											" AND " +
+											"ur.role = '" +
+												Campaign.Role.SUPERVISOR.toString() +
+												"'" +
+										")" +
+									")" +
+								")" +
+							")" +
+						")" +
+					")" +
+				")");
 		
 		try {
 			return getJdbcTemplate().query(
