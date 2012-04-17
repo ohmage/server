@@ -134,7 +134,7 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 				
 				// If there weren't any users, return and let the service
 				// handle the lack of results.
-				userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user in the request.");
+				userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
 				return null;
 			}
 			catch(org.springframework.dao.DataAccessException e) {
