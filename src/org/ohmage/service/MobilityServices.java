@@ -16,6 +16,8 @@
 package org.ohmage.service;
 
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.joda.time.DateTime;
@@ -39,6 +41,13 @@ import edu.ucla.cens.mobilityclassifier.WifiScan;
  * @author John Jenkins
  */
 public final class MobilityServices {
+	/**
+	 * This is the maximum number of milliseconds before a Mobility point that
+	 * we need to get the WiFi data for the classifier.
+	 */
+	private static final long MAX_MILLIS_OF_PREVIOUS_WIFI_DATA = 
+			1000 * 60 * 10;
+	
 	private static MobilityServices instance;
 	private IUserMobilityQueries userMobilityQueries;
 	
@@ -110,21 +119,55 @@ public final class MobilityServices {
 	 * 							classification service.
 	 */
 	public void classifyData(
+			final String uploadersUsername,
 			final List<MobilityPoint> mobilityPoints) 
-					throws ServiceException {
+			throws ServiceException {
 		
 		// If the list is empty, just exit.
 		if(mobilityPoints == null) {
 			return;
 		}
-
+		
 		// Create a new classifier.
 		MobilityClassifier classifier = new MobilityClassifier();
-		
+				
 		// Create place holders for the previous data.
-		WifiScan previousWifiScan = null;
 		String previousWifiMode = null;
+		List<WifiScan> previousWifiScans = new LinkedList<WifiScan>();
 		
+		if(mobilityPoints.size() > 0) {
+			try {
+				DateTime startDate = new DateTime();
+
+				startDate = 
+						new DateTime(
+							mobilityPoints.get(0).getTime() -
+							MAX_MILLIS_OF_PREVIOUS_WIFI_DATA);
+
+				List<MobilityPoint> previousPoints = 
+						userMobilityQueries.getMobilityInformation(
+							uploadersUsername, 
+							startDate, 
+							null, 
+							null, 
+							null, 
+							null);
+
+				for(MobilityPoint previousPoint : previousPoints) {
+					try {
+						previousWifiScans.add(previousPoint.getWifiScan());
+					}
+					catch(DomainException e) {
+						// This point does not have a WifiScan, so we will skip
+						// it.
+					}
+				}
+			}
+			catch(DataAccessException e) {
+				throw new ServiceException(e);
+			}
+		}
+
 		// For each of the Mobility points,
 		for(MobilityPoint mobilityPoint : mobilityPoints) {
 			// If the data point is of type error, don't attempt to classify 
@@ -137,6 +180,7 @@ public final class MobilityServices {
 			if(MobilityPoint.SubType.SENSOR_DATA.equals(mobilityPoint.getSubType())) {
 				SensorData currSensorData = mobilityPoint.getSensorData();
 				
+				// Get the Samples from this new point.
 				List<Sample> samples;
 				try {
 					samples = mobilityPoint.getSamples();
@@ -147,6 +191,7 @@ public final class MobilityServices {
 							e);
 				}
 				
+				// Get the new WifiScan from this new point.
 				WifiScan wifiScan;
 				if(mobilityPoint.getSensorData().getWifiData() == null) {
 					wifiScan = null;
@@ -162,17 +207,38 @@ public final class MobilityServices {
 					}
 				}
 				
+				// Prune out the old WifiScans that are more than 10 minutes 
+				// old.
+				long minPreviousTime = 
+						mobilityPoint.getTime() - 
+							MAX_MILLIS_OF_PREVIOUS_WIFI_DATA;
+				Iterator<WifiScan> previousWifiScansIter = 
+						previousWifiScans.iterator();
+				while(previousWifiScansIter.hasNext()) {
+					if(previousWifiScansIter.next().getTime() < minPreviousTime) {
+						previousWifiScansIter.remove();
+					}
+					else {
+						// Given the fact that the list is ordered, we can now
+						// be assured that all of the remaining WiFi scans are
+						// invalid.
+						break;
+					}
+				}
+				
 				// Classify the data.
 				Classification classification =
 						classifier.classify(
 								samples,
 								currSensorData.getSpeed(),
 								wifiScan,
-								previousWifiScan,
+								previousWifiScans,
 								previousWifiMode);
 				
 				// Update the place holders for the previous data.
-				previousWifiScan = wifiScan;
+				if(wifiScan != null) {
+					previousWifiScans.add(wifiScan);
+				}
 				previousWifiMode = classification.getWifiMode();
 				
 				// If the classification generated some results, pull them out
@@ -208,7 +274,7 @@ public final class MobilityServices {
 	}
 	
 	/**
-	 * Retrieves the information about all of the Mobility points that satisify
+	 * Retrieves the information about all of the Mobility points that satisfy
 	 * the parameters. The username is required as that is how Mobility points
 	 * are referenced; however, all other parameters are optional and limit the
 	 * results based on their value.<br />

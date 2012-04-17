@@ -212,7 +212,7 @@ public class MobilityUploadRequest extends UserRequest {
 			Collections.sort(data);
 			
 			LOGGER.info("Running the server-side classifier.");
-			MobilityServices.instance().classifyData(data);
+			MobilityServices.instance().classifyData(getUser().getUsername(), data);
 			
 			LOGGER.info("Storing the Mobility data points.");
 			MobilityServices.instance().createMobilityPoint(getUser().getUsername(), getClient(), data);

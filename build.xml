@@ -29,7 +29,7 @@
     <include name="json.org-2011-11-03.jar"/>
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
-    <include name="mobility-classifier-1.2.10.jar"/>
+    <include name="mobility-classifier-1.3.3.jar"/>
     <include name="httpcore-4.1.2.jar"/>
     <include name="httpclient-4.1.2.jar"/>
     <include name="httpmime-4.1.2.jar"/>
@@ -60,7 +60,7 @@
     <include name="json.org-2011-11-03.jar"/>
     <include name="jbcrypt-0.3.jar"/>
     <include name="xom-1.2.6.jar"/>
-    <include name="mobility-classifier-1.2.10.jar"/>
+    <include name="mobility-classifier-1.3.3.jar"/>
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
     <include name="joda-time-2.1.jar"/>
