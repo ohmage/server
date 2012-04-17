@@ -370,6 +370,7 @@ CREATE TABLE mobility (
   privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
   INDEX (uuid),
+  INDEX index_time (epoch_millis),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES mobility_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

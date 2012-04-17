@@ -91,3 +91,5 @@ ALTER TABLE annotation ADD COLUMN creation_timestamp datetime NOT NULL;
 -- Add the annotation owner's user_id for handling delete and update functionality
 ALTER TABLE annotation ADD COLUMN user_id int unsigned NOT NULL;
 ALTER TABLE annotation ADD FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE mobility ADD INDEX index_time (epoch_millis);
