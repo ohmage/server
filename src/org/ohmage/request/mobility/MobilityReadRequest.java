@@ -240,6 +240,7 @@ public class MobilityReadRequest extends UserRequest {
 		
 		try {
 			if((username != null) && (! username.equals(getUser().getUsername()))) {
+				LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
 				boolean isPlausible;
 				try {
 					isPlausible = 
@@ -252,11 +253,14 @@ public class MobilityReadRequest extends UserRequest {
 				}
 				
 				try {
+					LOGGER.info("Checking if the user is an admin.");
 					UserServices.instance().verifyUserIsAdmin(
 							getUser().getUsername());
 				}
 				catch(ServiceException notAdmin) {
+					LOGGER.info("The user is not an admin.");
 					if(isPlausible) {
+						LOGGER.info("Checking if the requester is allowed to read Mobility points about the user.");
 						UserClassServices
 							.instance()
 							.userIsPrivilegedInAnotherUserClass(
@@ -283,6 +287,7 @@ public class MobilityReadRequest extends UserRequest {
 			
 			DateTime endDate = startDate.plusDays(1);
 			
+			LOGGER.info("Gathering the Mobility points.");
 			result = MobilityServices.instance().retrieveMobilityData(
 					(username == null) ? getUser().getUsername() : username,
 					startDate, 
@@ -290,6 +295,7 @@ public class MobilityReadRequest extends UserRequest {
 					null, 
 					null, 
 					null);
+			LOGGER.info("Found " + result.size() + " results.");
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
