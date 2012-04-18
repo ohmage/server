@@ -40,7 +40,7 @@ public class Location {
 	 * 
 	 * @author John Jenkins
 	 */
-	public enum LocationColumnKey implements ColumnKey {
+	public static enum LocationColumnKey implements ColumnKey {
 		/**
 		 * The time at which the location information was acquired.
 		 */
