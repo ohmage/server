@@ -1153,31 +1153,64 @@
 								            </div>
 								        </div>
 							         </div>
-							         <div class="accordion-group">
-								        <div class="accordion-heading pad-inner">
-								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseImageRead">
-								    	        <i class="icon-plus"></i> Image Read
-								    	    </a>
-								    	</div>
-								    	<div id="collapseImageRead" class="accordion-body collapse" style="height: 0px; ">
-								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/image/read" method="post" class="well" target="outputframe">
-								                    <label><span class="label label-info">required</span> Client</label>
-								                    <input type="text" name="client" value="ohmageEasyPost">
-								                    <label><span class="label label-info">required</span> Image ID</label>
-								                    <input type="text" name="id">
-								                    <label><span class="label label-info">required</span> Campaign ID</label>
-								                    <input type="text" name="campaign_urn">
-								                    <label><span class="label label-info">required</span> Owner</label>
-								                    <input type="text" name="owner">
-								                    <label>Size</label>
-								                    <input type="text" name="size">
-								                    <br>
-								                    <input type="submit" class="btn" value="Submit">
-								                </form>
-								            </div>
-								        </div>
-							        </div>
+                                     <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseImageRead">
+                                                <i class="icon-plus"></i> Image Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseImageRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/image/read" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Image ID</label>
+                                                    <input type="text" name="id">
+                                                    <label><span class="label label-info">required</span> Campaign ID</label>
+                                                    <input type="text" name="campaign_urn">
+                                                    <label><span class="label label-info">required</span> Owner</label>
+                                                    <input type="text" name="owner">
+                                                    <label>Size</label>
+                                                    <input type="text" name="size">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                     <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseImageBatchZipRead">
+                                                <i class="icon-plus"></i> Image ZIP Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseImageBatchZipRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/image/batch/zip/read" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Campaign ID</label>
+                                                    <input type="text" name="campaign_urn">
+                                                    <label><span class="label label-info">required</span> User List</label>
+                                                    <input type="text" name="user_list">
+                                                    <label>Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label">either this ...</span> Survey ID List</label>
+                                                    <input type="text" name="survey_id_list">
+                                                    <label><span class="label">... or this</span> Prompt ID List</label>
+                                                    <input type="text" name="prompt_id_list">
+                                                    <label>Privacy State</label>
+                                                    <input type="text" name="privacy_state">
+                                                    <label>Start Date</label>
+                                                    <input type="text" name="start_date">
+                                                    <label>End Date</label>
+                                                    <input type="text" name="end_date">
+                                                    <label>Survey Response ID List</label>
+                                                    <input type="text" name="survey_response_id_list">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 							        <div class="accordion-group">
 								        <div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseSurveyResponseFunctionRead">

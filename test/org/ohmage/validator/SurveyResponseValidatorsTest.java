@@ -32,7 +32,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.survey.SurveyResponseReadRequest;
+import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.test.ParameterSets;
 
 /**
@@ -161,38 +161,38 @@ public class SurveyResponseValidatorsTest extends TestCase {
 					fail("A validation exception was thrown for a valid username list: " + validUsernameList);
 				}
 				
-				String validUsernameListWithAll = validUsernameList + InputKeys.LIST_ITEM_SEPARATOR + SurveyResponseReadRequest.URN_SPECIAL_ALL;
+				String validUsernameListWithAll = validUsernameList + InputKeys.LIST_ITEM_SEPARATOR + SurveyResponseRequest.URN_SPECIAL_ALL;
 				try {
 					Set<String> usernameList = SurveyResponseValidators.validateUsernames(validUsernameListWithAll);
 					if(usernameList.size() == 1) {
-						if(! SurveyResponseReadRequest.URN_SPECIAL_ALL.equals(usernameList.iterator().next())) {
+						if(! SurveyResponseRequest.URN_SPECIAL_ALL.equals(usernameList.iterator().next())) {
 							fail("The username list contained '" + 
-									SurveyResponseReadRequest.URN_SPECIAL_ALL +
+									SurveyResponseRequest.URN_SPECIAL_ALL +
 									"', and the validator only returned one element, but it was not the expected element: " + 
 									usernameList.iterator().next());
 						}
 					}
 					else {
-						fail("The username list contained '" + SurveyResponseReadRequest.URN_SPECIAL_ALL + "' but returned more than one result: " + usernameList);
+						fail("The username list contained '" + SurveyResponseRequest.URN_SPECIAL_ALL + "' but returned more than one result: " + usernameList);
 					}
 				}
 				catch(ValidationException e) {
 					fail("A validation exception was thrown for a valid username list: " + validUsernameListWithAll);
 				}
 
-				String allWithValidUsernameList = SurveyResponseReadRequest.URN_SPECIAL_ALL + InputKeys.LIST_ITEM_SEPARATOR + validUsernameList;
+				String allWithValidUsernameList = SurveyResponseRequest.URN_SPECIAL_ALL + InputKeys.LIST_ITEM_SEPARATOR + validUsernameList;
 				try {
 					Set<String> usernameList = SurveyResponseValidators.validateUsernames(allWithValidUsernameList);
 					if(usernameList.size() == 1) {
-						if(! SurveyResponseReadRequest.URN_SPECIAL_ALL.equals(usernameList.iterator().next())) {
+						if(! SurveyResponseRequest.URN_SPECIAL_ALL.equals(usernameList.iterator().next())) {
 							fail("The username list contained '" + 
-									SurveyResponseReadRequest.URN_SPECIAL_ALL +
+									SurveyResponseRequest.URN_SPECIAL_ALL +
 									"', and the validator only returned one element, but it was not the expected element: " + 
 									usernameList.iterator().next());
 						}
 					}
 					else {
-						fail("The username list contained '" + SurveyResponseReadRequest.URN_SPECIAL_ALL + "' but returned more than one result: " + usernameList);
+						fail("The username list contained '" + SurveyResponseRequest.URN_SPECIAL_ALL + "' but returned more than one result: " + usernameList);
 					}
 				}
 				catch(ValidationException e) {

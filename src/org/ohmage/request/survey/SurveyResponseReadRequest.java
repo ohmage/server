@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,7 +43,6 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
-import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -66,16 +64,9 @@ import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.SingleChoicePromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
-import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.UserRequest;
-import org.ohmage.service.CampaignServices;
-import org.ohmage.service.SurveyResponseReadServices;
-import org.ohmage.service.SurveyResponseServices;
-import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.TimeUtils;
-import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -200,8 +191,9 @@ import org.ohmage.validator.SurveyResponseValidators;
  * 
  * @author Joshua Selsky
  */
-public final class SurveyResponseReadRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(SurveyResponseReadRequest.class);
+public final class SurveyResponseReadRequest extends SurveyResponseRequest {
+	public static final Logger LOGGER = 
+			Logger.getLogger(SurveyResponseReadRequest.class);
 	
 	/**
 	 * The, optional, additional JSON key associated with a prompt responses in
@@ -252,45 +244,17 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 */
 	public static final String JSON_KEY_COUNT = "count";
 	
-	public static final String URN_SPECIAL_ALL = "urn:ohmage:special:all";
-	public static final Collection<String> URN_SPECIAL_ALL_LIST;
-	static {
-		URN_SPECIAL_ALL_LIST = new HashSet<String>();
-		URN_SPECIAL_ALL_LIST.add(URN_SPECIAL_ALL);
-	}
-
-	private static final int MAX_NUMBER_OF_USERS = 10;
-	private static final int MAX_NUMBER_OF_SURVEYS = 10;
-	private static final int MAX_NUMBER_OF_PROMPTS = 10;
-
-	private final String campaignId;
-	private final Collection<SurveyResponse.ColumnKey> columns;
-	private final Collection<String> usernames;
+	final Collection<SurveyResponse.ColumnKey> columns;
 	private final SurveyResponse.OutputFormat outputFormat;
-
-	private final Collection<String> surveyIds;
-	private final Collection<String> promptIds;
-	
-	private final Set<UUID> surveyResponseIds;
-
-	private final DateTime startDate;
-	private final DateTime endDate;
-
 	private final List<SortParameter> sortOrder;
 
-	private final SurveyResponse.PrivacyState privacyState;
-
-	private final Boolean collapse;
+	final Boolean collapse;
 	private final Boolean prettyPrint;
 	private final Boolean returnId;
 	private final Boolean suppressMetadata;
 	
-	private final long surveyResponsesToSkip;
-	private final long surveyResponsesToProcess;
-	
-	private Campaign campaign;
-	private List<SurveyResponse> surveyResponseList;
-	private long surveyResponseCount;
+	final long surveyResponsesToSkip;
+	final long surveyResponsesToProcess;
 	
 	/**
 	 * Creates a survey response read request.
@@ -298,25 +262,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 	 * @param httpRequest  The request to retrieve parameters from.
 	 */
 	public SurveyResponseReadRequest(HttpServletRequest httpRequest) {
-		// Handle user-password or token-based authentication
-		super(httpRequest, TokenLocation.EITHER, false);
-
-		String tCampaignId = null;
+		super(httpRequest);
+		
 		Set<SurveyResponse.ColumnKey> tColumns = null;
-		Set<String> tUsernames = null;
 		SurveyResponse.OutputFormat tOutputFormat = null;
-
-		Set<String> tSurveyIds = null;
-		Set<String> tPromptIds = null;
-		
-		Set<UUID> tSurveyResponseIds = null;
-		
-		DateTime tStartDate = null;
-		DateTime tEndDate = null;
-		
 		List<SortParameter> tSortOrder = null;
-		
-		SurveyResponse.PrivacyState tPrivacyState = null;
 
 		Boolean tCollapse = null;
 		Boolean tPrettyPrint = null;
@@ -345,36 +295,11 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		}
 		
 		if(! isFailed()) {
-		
+			
 			LOGGER.info("Creating a survey response read request.");
 			String[] t;
 			
 			try {
-				// Campaign ID
-				t = getParameterValues(InputKeys.CAMPAIGN_URN);
-				if(t.length == 0) {
-					throw new ValidationException(
-							ErrorCode.CAMPAIGN_INVALID_ID, 
-							"The required campaign ID was not present: " + 
-								InputKeys.CAMPAIGN_URN);
-				}
-				else if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.CAMPAIGN_INVALID_ID, 
-							"Multiple campaign IDs were found: " + 
-								InputKeys.CAMPAIGN_URN);
-				}
-				else {
-					tCampaignId = CampaignValidators.validateCampaignId(t[0]);
-					
-					if(tCampaignId == null) {
-						throw new ValidationException(
-								ErrorCode.CAMPAIGN_INVALID_ID, 
-								"The required campaign ID was not present: " + 
-									InputKeys.CAMPAIGN_URN);
-					}
-				}
-				
 				// Column List
 				t = getParameterValues(InputKeys.COLUMN_LIST);
 				if(t.length == 0) {
@@ -398,40 +323,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 								ErrorCode.SURVEY_INVALID_COLUMN_ID, 
 								"The required column list was missing: " + 
 									InputKeys.COLUMN_LIST);
-					}
-				}
-				
-				// User List
-				t = getParameterValues(InputKeys.USER_LIST);
-				if(t.length == 0) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_MALFORMED_USER_LIST, 
-							"The user list is missing: " + 
-								InputKeys.USER_LIST);
-				}
-				else if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_MALFORMED_USER_LIST, 
-							"Mutliple user lists were given: " + 
-								InputKeys.USER_LIST);
-				}
-				else {
-					tUsernames = 
-							SurveyResponseValidators.validateUsernames(t[0]);
-					
-					if(tUsernames == null) {
-						throw new ValidationException(
-								ErrorCode.SURVEY_MALFORMED_USER_LIST, 
-								"The user list is missing: " + 
-									InputKeys.USER_LIST);
-					}
-					else if(tUsernames.size() > MAX_NUMBER_OF_USERS) {
-						throw new ValidationException(
-								ErrorCode.SURVEY_TOO_MANY_USERS, 
-								"The user list contains more than " + 
-									MAX_NUMBER_OF_USERS + 
-									" users: " + 
-									tUsernames.size());
 					}
 				}
 				
@@ -462,110 +353,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					}
 				}
 				
-				// Survey ID List
-				t = getParameterValues(InputKeys.SURVEY_ID_LIST);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_MALFORMED_SURVEY_ID_LIST, 
-							"Multiple survey ID lists were given: " + 
-								InputKeys.SURVEY_ID_LIST);
-				}
-				else if(t.length == 1) {
-					tSurveyIds = 
-							SurveyResponseValidators.validateSurveyIds(t[0]);
-					
-					if((tSurveyIds != null) && (tSurveyIds.size() > MAX_NUMBER_OF_SURVEYS)) {
-						throw new ValidationException(
-								ErrorCode.SURVEY_TOO_MANY_SURVEY_IDS, 
-								"More than " + 
-									MAX_NUMBER_OF_SURVEYS + 
-									" survey IDs were given: " + 
-									tSurveyIds.size());
-					}
-				}
-				
-				// Prompt ID List
-				t = getParameterValues(InputKeys.PROMPT_ID_LIST);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_MALFORMED_PROMPT_ID_LIST, 
-							"Multiple prompt ID lists were given: " + 
-								InputKeys.PROMPT_ID_LIST);
-				}
-				else if(t.length == 1) {
-					tPromptIds = 
-							SurveyResponseValidators.validatePromptIds(t[0]);
-					
-					if((tPromptIds != null) && (tPromptIds.size() > MAX_NUMBER_OF_PROMPTS)) {
-						throw new ValidationException(
-								ErrorCode.SURVEY_TOO_MANY_PROMPT_IDS, 
-								"More than " + 
-									MAX_NUMBER_OF_PROMPTS + 
-									" prompt IDs were given: " + 
-									tPromptIds.size());
-					}
-				}
-				
-				// Survey ID List and Prompt ID List Presence Check
-				if(((tSurveyIds == null) || (tSurveyIds.size() == 0)) && 
-				   ((tPromptIds == null) || (tPromptIds.size() == 0))) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, 
-							"A survey list (" + 
-								InputKeys.SURVEY_ID_LIST + 
-								") or prompt list (" + 
-								InputKeys.PROMPT_ID_LIST + 
-								") must be given.");
-				}
-				else if(((tSurveyIds != null) && (tSurveyIds.size() > 0)) && 
-						((tPromptIds != null) && (tPromptIds.size() > 0))) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_SURVEY_LIST_OR_PROMPT_LIST_ONLY, 
-							"Both a survey list (" + 
-								InputKeys.SURVEY_ID_LIST + 
-								") and a prompt list (" + 
-								InputKeys.PROMPT_ID_LIST + 
-								") must be given.");
-				}
-				
-				t = getParameterValues(InputKeys.SURVEY_RESPONSE_ID_LIST);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_INVALID_SURVEY_ID,
-							"Multiple survey response ID lists were given: " +
-								InputKeys.SURVEY_RESPONSE_ID_LIST);
-				}
-				else if(t.length == 1) {
-					tSurveyResponseIds = 
-							SurveyResponseValidators.validateSurveyResponseIds(
-									t[0]);
-				}
-				
-				// Start Date
-				t = getParameterValues(InputKeys.START_DATE);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SERVER_INVALID_DATE, 
-							"Multiple start dates were given: " + 
-								InputKeys.START_DATE);
-				}
-				else if(t.length == 1) {
-					tStartDate = 
-							SurveyResponseValidators.validateStartDate(t[0]);
-				}
-				
-				// End Date
-				t = getParameterValues(InputKeys.END_DATE);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SERVER_INVALID_DATE, 
-							"Multiple end dates were given: " + 
-								InputKeys.END_DATE);
-				}
-				else if(t.length == 1) {
-					tEndDate = SurveyResponseValidators.validateEndDate(t[0]);
-				}
-				
 				// Sort Order
 				t = getParameterValues(InputKeys.SORT_ORDER);
 				if(t.length > 1) {
@@ -577,20 +364,6 @@ public final class SurveyResponseReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tSortOrder = 
 							SurveyResponseValidators.validateSortOrder(t[0]);
-				}
-				
-				// Privacy State
-				t = getParameterValues(InputKeys.PRIVACY_STATE);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.SURVEY_INVALID_PRIVACY_STATE, 
-							"Multiple privacy state values were given: " + 
-								InputKeys.PRIVACY_STATE);
-				}
-				else if(t.length == 1) {
-					tPrivacyState = 
-							SurveyResponseValidators.validatePrivacyState(
-									t[0]);
 				}
 				
 				// Collapse
@@ -682,23 +455,10 @@ public final class SurveyResponseReadRequest extends UserRequest {
 			}
 		}
 		
-		campaignId = tCampaignId;
 		columns = tColumns;
-		usernames = tUsernames;
 		outputFormat = tOutputFormat;
-		
-		surveyIds = tSurveyIds;
-		promptIds = tPromptIds;
-		
-		surveyResponseIds = tSurveyResponseIds;
-
-		startDate = tStartDate;
-		endDate = tEndDate;
-
 		sortOrder = tSortOrder;
-
-		privacyState = tPrivacyState;
-
+		
 		collapse = tCollapse;
 		prettyPrint = tPrettyPrint;
 		returnId = tReturnId;
@@ -706,80 +466,22 @@ public final class SurveyResponseReadRequest extends UserRequest {
 		
 		surveyResponsesToSkip = tSurveyResponsesToSkip;
 		surveyResponsesToProcess = tSurveyResponsesToProcess;
-		
-		surveyResponseList = new ArrayList<SurveyResponse>();
 	}
 	
-	/**
-	 * Services this request.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.Request#service()
 	 */
 	@Override
 	public void service() {
-		
 		LOGGER.info("Servicing a survey response read request.");
-		
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
-			return;
-		}
-		
-		try {
-			// This is not necessarily the case because the user may no longer
-			// belong to the campaign but still want to see their data. This
-			// should only check that the campaign exists.
-			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
-		    UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, this.getUser().getUsername());
-			
-		    // The user may want to read survey responses from a user that no
-		    // longer belongs to the campaign.
-		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
-		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
-		    	UserCampaignServices.instance().verifyUsersExistInCampaign(campaignId, usernames);
-		    }
-		    
-		    LOGGER.info("Retrieving campaign configuration.");
-			campaign = CampaignServices.instance().getCampaign(campaignId);
-			
-			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
-				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
-				SurveyResponseReadServices.instance().verifyPromptIdsBelongToConfiguration(promptIds, campaign);
-			}
-			
-			if((surveyIds != null) && (! surveyIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(surveyIds))) {
-				LOGGER.info("Verifying that the survey ids in the query belong to the campaign.");
-				SurveyResponseReadServices.instance().verifySurveyIdsBelongToConfiguration(surveyIds, campaign);
-			}
-		    
-			LOGGER.info("Dispatching to the data layer.");
-			surveyResponseCount = 
-					SurveyResponseServices.instance().readSurveyResponseInformation(
-							campaign,
-							getUser().getUsername(),
-							surveyResponseIds,
-							(URN_SPECIAL_ALL_LIST.equals(usernames) ? null : usernames), 
-							startDate, 
-							endDate, 
-							privacyState, 
-							(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
-							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
-							null,
-							((collapse != null) && collapse && (! columns.equals(URN_SPECIAL_ALL_LIST))) ? columns : null,
-							sortOrder,
-							surveyResponsesToSkip,
-							surveyResponsesToProcess,
-							surveyResponseList
-						);
-			
-			LOGGER.info(
-					"Found " + 
-						surveyResponseList.size() + 
-						" results after filtering and paging a total of " + 
-						surveyResponseCount + 
-						" applicable responses.");
-		}
-		catch(ServiceException e) {
-			e.failRequest(this);
-			e.logException(LOGGER);
-		}
+		super.service(
+				columns, 
+				null, 
+				sortOrder,
+				collapse, 
+				surveyResponsesToSkip, 
+				surveyResponsesToProcess);
 	}
 	
 	/**
@@ -826,7 +528,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					List<String> uniqueSurveyIds = new LinkedList<String>();
 					List<String> uniquePromptIds = new LinkedList<String>();
 					JSONArray results = new JSONArray();
-					for(SurveyResponse surveyResponse : surveyResponseList) {
+					for(SurveyResponse surveyResponse : getSurveyResponses()) {
 						uniqueSurveyIds.add(surveyResponse.getSurvey().getId());
 						uniquePromptIds.addAll(surveyResponse.getPromptIds());
 						
@@ -1010,7 +712,7 @@ public final class SurveyResponseReadRequest extends UserRequest {
 						// Add the total count to the metadata.
 						metadata.put(
 								JSON_KEY_TOTAL_NUM_RESULTS, 
-								surveyResponseCount);
+								getSurveyResponseCount());
 						
 						result.put(JSON_KEY_METADATA, metadata);
 					}
@@ -1056,13 +758,13 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							columns.contains(ColumnKey.PROMPT_RESPONSE)) {
 						
 						// If the user-supplied list of survey IDs is present,
-						if(this.surveyIds != null) {
-							Map<String, Survey> campaignSurveys = campaign.getSurveys();
+						if(getSurveyIds() != null) {
+							Map<String, Survey> campaignSurveys = getCampaign().getSurveys();
 							// If the user asked for all surveys for this
 							// campaign, then populate the prompt information
 							// with all of the data about all of the prompts in
 							// all of the surveys in this campaign.
-							if(this.surveyIds.equals(URN_SPECIAL_ALL_LIST)) {
+							if(getSurveyIds().equals(URN_SPECIAL_ALL_LIST)) {
 								for(Survey currSurvey : campaignSurveys.values()) {
 									populatePrompts(currSurvey.getSurveyItems(), prompts);
 								}
@@ -1070,19 +772,19 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							// Otherwise, populate the prompt information only
 							// with the data about the requested surveys.
 							else {
-								for(String surveyId : this.surveyIds) {
+								for(String surveyId : this.getSurveyIds()) {
 									populatePrompts(campaignSurveys.get(surveyId).getSurveyItems(), prompts);
 								}
 							}
 						}
 						// If the user-supplied list of prompt IDs is present,
-						else if(promptIds != null) {
+						else if(getPromptIds() != null) {
 							// If the user asked for all prompts for this
 							// campaign, then populate the prompt information
 							// with all of the data about all of the prompts in
 							// this campaign.
-							if(this.promptIds.equals(URN_SPECIAL_ALL_LIST)) {
-								for(Survey currSurvey : campaign.getSurveys().values()) {
+							if(getPromptIds().equals(URN_SPECIAL_ALL_LIST)) {
+								for(Survey currSurvey : getCampaign().getSurveys().values()) {
 									populatePrompts(currSurvey.getSurveyItems(), prompts);
 								}
 							}
@@ -1091,14 +793,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 							else {
 								int currNumPrompts = 0;
 								Map<Integer, SurveyItem> tempPromptMap = 
-										new HashMap<Integer, SurveyItem>(promptIds.size());
+										new HashMap<Integer, SurveyItem>(getPromptIds().size());
 								
-								for(String promptId : promptIds) {
+								for(String promptId : getPromptIds()) {
 									try {
 										tempPromptMap.put(
 												currNumPrompts, 
-												campaign.getPrompt(
-														campaign.getSurveyIdForPromptId(
+												getCampaign().getPrompt(
+														getCampaign().getSurveyIdForPromptId(
 																promptId), 
 														promptId));
 									}
@@ -1122,9 +824,9 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					
 					// Process each of the survey responses and keep track of
 					// the number of prompt responses.
-					int numSurveyResponses = surveyResponseList.size();
+					int numSurveyResponses = getSurveyResponses().size();
 					int numPromptResponses = 0;
-					for(SurveyResponse surveyResponse : surveyResponseList) {
+					for(SurveyResponse surveyResponse : getSurveyResponses()) {
 						try {
 							numPromptResponses += processResponses(allColumns, 
 									surveyResponse, 
@@ -1309,14 +1011,14 @@ public final class SurveyResponseReadRequest extends UserRequest {
 					if((suppressMetadata == null) || (! suppressMetadata)) {
 						metadata = new JSONObject();
 						
-						metadata.put(InputKeys.CAMPAIGN_URN, campaignId);
-						metadata.put(JSON_KEY_NUM_SURVEYS, surveyResponseList.size());
+						metadata.put(InputKeys.CAMPAIGN_URN, getCampaignId());
+						metadata.put(JSON_KEY_NUM_SURVEYS, getSurveyResponses().size());
 						metadata.put(JSON_KEY_NUM_PROMPTS, numPromptResponses);
 						
 						// Add the total count to the metadata.
 						metadata.put(
 								JSON_KEY_TOTAL_NUM_RESULTS, 
-								surveyResponseCount);
+								getSurveyResponseCount());
 					}
 					
 					if(OutputFormat.JSON_COLUMNS.equals(outputFormat)) {

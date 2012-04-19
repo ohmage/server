@@ -42,6 +42,7 @@ import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageReadRequest;
+import org.ohmage.request.image.ImageZipReadRequest;
 import org.ohmage.request.mobility.MobilityDatesReadRequest;
 import org.ohmage.request.mobility.MobilityReadChunkedRequest;
 import org.ohmage.request.mobility.MobilityReadCsvRequest;
@@ -214,6 +215,7 @@ public final class RequestBuilder {
 
 	// Image
 	public static final String API_IMAGE_READ = API_ROOT + "/image/read";
+	public static final String API_IMAGE_BATCH_ZIP_READ = API_ROOT + "/image/batch/zip/read";
 	
 	// Mobility
 	public static final String API_MOBILITY_UPLOAD = API_ROOT + "/mobility/upload";
@@ -365,6 +367,9 @@ public final class RequestBuilder {
 		else if(API_IMAGE_READ.equals(requestUri)) {
 			return new ImageReadRequest(httpRequest);
 		}
+		else if(API_IMAGE_BATCH_ZIP_READ.equals(requestUri)) {
+			return new ImageZipReadRequest(httpRequest);
+		}
 		// Mobility
 		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
 			return new MobilityUploadRequest(httpRequest);
@@ -509,6 +514,7 @@ public final class RequestBuilder {
 				API_DOCUMENT_DELETE.equals(uri) ||
 				// Image
 				API_IMAGE_READ.equals(uri) ||
+				API_IMAGE_BATCH_ZIP_READ.equals(uri) ||
 				// Mobility
 				API_MOBILITY_UPLOAD.equals(uri) ||
 				API_MOBILITY_READ.equals(uri) ||

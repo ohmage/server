@@ -71,7 +71,7 @@ import org.ohmage.request.auth.AuthTokenRequest;
 import org.ohmage.request.clazz.ClassRosterUpdateRequest;
 import org.ohmage.request.document.DocumentCreationRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
-import org.ohmage.request.survey.SurveyResponseReadRequest;
+import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -1641,7 +1641,7 @@ public class OhmageApi {
 		
 		if(usernames != null) {
 			if(usernames.size() == 0) {
-				parameters.put(InputKeys.USER_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.USER_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1650,7 +1650,7 @@ public class OhmageApi {
 		
 		if(columnList != null) {
 			if(columnList.size() == 0) {
-				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.COLUMN_LIST, StringUtils.collectionToStringList(columnList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1659,7 +1659,7 @@ public class OhmageApi {
 		
 		if(surveyIdList != null) {
 			if(surveyIdList.size() == 0) {
-				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.SURVEY_ID_LIST, StringUtils.collectionToStringList(surveyIdList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1667,7 +1667,7 @@ public class OhmageApi {
 		}
 		if(promptIdList != null) {
 			if(promptIdList.size() == 0) {
-				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.PROMPT_ID_LIST, StringUtils.collectionToStringList(promptIdList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1780,7 +1780,7 @@ public class OhmageApi {
 		
 		if(usernames != null) {
 			if(usernames.size() == 0) {
-				parameters.put(InputKeys.USER_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.USER_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1789,7 +1789,7 @@ public class OhmageApi {
 		
 		if(columnList != null) {
 			if(columnList.size() == 0) {
-				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.COLUMN_LIST, StringUtils.collectionToStringList(columnList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1798,7 +1798,7 @@ public class OhmageApi {
 		
 		if(surveyIdList != null) {
 			if(surveyIdList.size() == 0) {
-				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.SURVEY_ID_LIST, StringUtils.collectionToStringList(surveyIdList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1806,7 +1806,7 @@ public class OhmageApi {
 		}
 		if(promptIdList != null) {
 			if(promptIdList.size() == 0) {
-				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.PROMPT_ID_LIST, StringUtils.collectionToStringList(promptIdList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1926,7 +1926,7 @@ public class OhmageApi {
 		
 		if(usernames != null) {
 			if(usernames.size() == 0) {
-				parameters.put(InputKeys.USER_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.USER_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.USER_LIST, StringUtils.collectionToStringList(usernames, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1935,7 +1935,7 @@ public class OhmageApi {
 		
 		if(columnList != null) {
 			if(columnList.size() == 0) {
-				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.COLUMN_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.COLUMN_LIST, StringUtils.collectionToStringList(columnList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1944,7 +1944,7 @@ public class OhmageApi {
 		
 		if(surveyIdList != null) {
 			if(surveyIdList.size() == 0) {
-				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.SURVEY_ID_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.SURVEY_ID_LIST, StringUtils.collectionToStringList(surveyIdList, InputKeys.LIST_ITEM_SEPARATOR));
@@ -1952,7 +1952,7 @@ public class OhmageApi {
 		}
 		if(promptIdList != null) {
 			if(promptIdList.size() == 0) {
-				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				parameters.put(InputKeys.PROMPT_ID_LIST, SurveyResponseRequest.URN_SPECIAL_ALL);
 			}
 			else {
 				parameters.put(InputKeys.PROMPT_ID_LIST, StringUtils.collectionToStringList(promptIdList, InputKeys.LIST_ITEM_SEPARATOR));

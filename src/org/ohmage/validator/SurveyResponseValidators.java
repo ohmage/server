@@ -40,7 +40,7 @@ import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.survey.SurveyResponseReadRequest;
+import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 
@@ -226,9 +226,9 @@ public final class SurveyResponseValidators {
 		
 		String[] usernamesArray = usernames.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int i = 0; i < usernamesArray.length; i++) {
-			if(SurveyResponseReadRequest.URN_SPECIAL_ALL.equals(usernamesArray[i])) {
+			if(SurveyResponseRequest.URN_SPECIAL_ALL.equals(usernamesArray[i])) {
 				Set<String> result = new HashSet<String>(1);
-				result.add(SurveyResponseReadRequest.URN_SPECIAL_ALL);
+				result.add(SurveyResponseRequest.URN_SPECIAL_ALL);
 				return result;
 			}
 		}
@@ -274,7 +274,7 @@ public final class SurveyResponseValidators {
 				catch(IllegalArgumentException e) {
 					// If the column key is unknown, check if it is the special
 					// key that represents all columns.
-					if(SurveyResponseReadRequest.URN_SPECIAL_ALL.equals(currValue)) {
+					if(SurveyResponseRequest.URN_SPECIAL_ALL.equals(currValue)) {
 						// It is the special key, so add all of the known 
 						// column keys and return the result.
 						ColumnKey[] allKeys = SurveyResponse.ColumnKey.values();
