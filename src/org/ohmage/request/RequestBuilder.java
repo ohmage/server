@@ -42,7 +42,7 @@ import org.ohmage.request.document.DocumentReadContentsRequest;
 import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageReadRequest;
-import org.ohmage.request.image.ImageZipReadRequest;
+import org.ohmage.request.image.ImageBatchZipReadRequest;
 import org.ohmage.request.mobility.MobilityDatesReadRequest;
 import org.ohmage.request.mobility.MobilityReadChunkedRequest;
 import org.ohmage.request.mobility.MobilityReadCsvRequest;
@@ -368,7 +368,7 @@ public final class RequestBuilder {
 			return new ImageReadRequest(httpRequest);
 		}
 		else if(API_IMAGE_BATCH_ZIP_READ.equals(requestUri)) {
-			return new ImageZipReadRequest(httpRequest);
+			return new ImageBatchZipReadRequest(httpRequest);
 		}
 		// Mobility
 		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
