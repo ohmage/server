@@ -230,6 +230,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 						null, 
 						null, 
 						null);
+			LOGGER.info("Found " + result.size() + " results.");
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -282,7 +283,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 						timestamp = 
 								TimeUtils.getIso8601DateString(
 									mobilityPoint.getDate(), 
-									false);
+									true);
 						timezone = mobilityPoint.getTimezone();
 						
 						locationStatus = mobilityPoint.getLocationStatus();
