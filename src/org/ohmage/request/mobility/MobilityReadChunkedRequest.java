@@ -248,7 +248,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		Map<Long, List<MobilityPoint>> millisToPointMap =
 				new HashMap<Long, List<MobilityPoint>>();
 		
-		// Bucket the items perserving order in the bucket.
+		// Bucket the items preserving order in the bucket.
 		for(MobilityPoint mobilityPoint : result) {
 			long time = mobilityPoint.getTime();
 			

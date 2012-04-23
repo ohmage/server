@@ -21,6 +21,7 @@ import junit.framework.TestCase;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.ohmage.domain.Image;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.test.ParameterSets;
 
@@ -68,7 +69,7 @@ public class ImageValidatorsTest extends TestCase {
 	public void testValidateImageSize() {
 		try {
 			for(String emptyValue : ParameterSets.getEmptyValues()) {
-				Assert.assertNull(ImageValidators.validateImageSize(emptyValue));
+				Assert.assertEquals(Image.Size.ORIGINAL, ImageValidators.validateImageSize(emptyValue));
 			}
 			
 			try {
@@ -79,7 +80,7 @@ public class ImageValidatorsTest extends TestCase {
 				// Passed.
 			}
 			
-			for(ImageValidators.ImageSize imageSize : ImageValidators.ImageSize.values()) {
+			for(Image.Size imageSize : Image.Size.values()) {
 				Assert.assertEquals(imageSize, ImageValidators.validateImageSize(imageSize.toString()));
 			}
 		}

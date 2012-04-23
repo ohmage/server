@@ -15,13 +15,10 @@
  ******************************************************************************/
 package org.ohmage.request.image;
 
-import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -41,7 +38,6 @@ import org.ohmage.service.UserImageServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ImageValidators;
-import org.ohmage.validator.ImageValidators.ImageSize;
 
 /**
  * <p>Returns an image based on the given ID. The requester must be requesting
@@ -84,7 +80,7 @@ public class ImageReadRequest extends UserRequest {
 	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final UUID imageId;
-	private final ImageSize size;
+	private final Image.Size size;
 	
 	private Image image;
 	
@@ -97,27 +93,47 @@ public class ImageReadRequest extends UserRequest {
 	public ImageReadRequest(HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
-		LOGGER.info("Creating an image read request.");
-		
 		UUID tImageId = null;
-		ImageSize tSize = null;
+		Image.Size tSize = Image.Size.ORIGINAL;
 		
 		if(! isFailed()) {
+			LOGGER.info("Creating an image read request.");
+			String[] t;
+			
 			try {
-				tImageId = ImageValidators.validateId(httpRequest.getParameter(InputKeys.IMAGE_ID));
-				if(tImageId == null) {
-					setFailed(ErrorCode.IMAGE_INVALID_ID, "The image ID is missing: " + InputKeys.IMAGE_ID);
-					throw new ValidationException("The image ID is missing: " + InputKeys.IMAGE_ID);
+				t = getParameterValues(InputKeys.IMAGE_ID);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.IMAGE_INVALID_ID,
+							"Multiple image IDs were given: " +
+								InputKeys.IMAGE_ID);
 				}
-				else if(httpRequest.getParameterValues(InputKeys.IMAGE_ID).length > 1) {
-					setFailed(ErrorCode.IMAGE_INVALID_ID, "Multiple owner values were given: " + InputKeys.IMAGE_ID);
-					throw new ValidationException("Multiple owner values were given: " + InputKeys.IMAGE_ID);
+				else if(t.length == 0) {
+					throw new ValidationException(
+							ErrorCode.IMAGE_INVALID_ID,
+							"The image ID is missing: " +
+								InputKeys.IMAGE_ID);
+				}
+				else {
+					tImageId = ImageValidators.validateId(t[0]);
+					
+					if(tImageId == null) {
+						throw new ValidationException(
+								ErrorCode.IMAGE_INVALID_ID,
+								"The image ID is missing: " +
+									InputKeys.IMAGE_ID);
+					}
 				}
 				
-				tSize = ImageValidators.validateImageSize(httpRequest.getParameter(InputKeys.IMAGE_SIZE));
-				if((tSize != null) && (httpRequest.getParameterValues(InputKeys.IMAGE_SIZE).length > 1)) {
-					setFailed(ErrorCode.IMAGE_INVALID_SIZE, "Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
-					throw new ValidationException("Multiple image sizes were given: " + InputKeys.IMAGE_SIZE);
+				t = getParameterValues(InputKeys.IMAGE_SIZE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.IMAGE_INVALID_SIZE,
+							"Multiple image sizes were given: " +
+								InputKeys.IMAGE_SIZE);
+				}
+				else if(t.length == 1) {
+					tSize = ImageValidators.validateImageSize(t[0]);
 				}
 			}
 			catch(ValidationException e) {
@@ -171,32 +187,26 @@ public class ImageReadRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		LOGGER.info("Writing image read response.");
-		
-		// Creates the writer that will write the response, success or fail.
-		OutputStream os;
-		try {
-			os = httpResponse.getOutputStream();
-		}
-		catch(IOException e) {
-			LOGGER.error("Unable to create writer object. Aborting.", e);
-			return;
-		}
+		LOGGER.info("Writing the image read response.");
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
-		if(! isFailed()) {
+		if(isFailed()) {
+			super.respond(httpRequest, httpResponse, null);
+		}
+		else {
 			try {
-				// Set the type as a JPEG.
+				// Set the type of the value.
 				// FIXME: This isn't necessarily the case. We might want to do
 				// some sort of image inspection to figure out what this should
 				// be.
 				httpResponse.setContentType("image/png");
-				httpResponse.setHeader("Content-Disposition", "filename=image");
-				httpResponse.setHeader("Content-Length", new Long(image.getSize()).toString());
+				httpResponse.setHeader(
+						"Content-Length", 
+						new Long(image.getSizeBytes(size)).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {
@@ -209,12 +219,25 @@ public class ImageReadRequest extends UserRequest {
 								(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 					}
 				}
+
+				// Creates the writer that will write the response, success or 
+				// fail.
+				OutputStream os;
+				try {
+					os = httpResponse.getOutputStream();
+				}
+				catch(IOException e) {
+					LOGGER.error(
+							"Unable to create writer object. Aborting.", 
+							e);
+					return;
+				}
 				
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
 				
 				// Read the file in chunks and write it to the output stream.
-				InputStream imageStream = image.openStream();
+				InputStream imageStream = image.openStream(size);
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
 				while((currRead = imageStream.read(bytes)) != -1) {
@@ -234,41 +257,26 @@ public class ImageReadRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
+			// If there was an error getting the image's information, abort
+			// the whole operation and return an error.
 			catch(DomainException e) {
 				LOGGER.error(
-						"There was a problem connecting to the image.", 
+						"There was a problem reading or writing the image.", 
 						e);
+				setFailed();
+				httpResponse.setStatus(
+						HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			// If the error occurred while reading from the input stream or
 			// writing to the output stream, abort the whole operation and
 			// return an error.
 			catch(IOException e) {
-				LOGGER.error("The contents of the file could not be read or written to the response.", e);
+				LOGGER.error(
+						"The contents of the file could not be read or written to the response.", 
+						e);
 				setFailed();
-			}
-		}
-		
-		// If the request ever failed, write an error message.
-		// FIXME: This should probably check if it's a GET and send a 404.
-		if(isFailed()) {
-			httpResponse.setContentType("text/html");
-			Writer writer = new BufferedWriter(new OutputStreamWriter(os));
-			
-			// Write the error response.
-			try {
-				writer.write(getFailureMessage()); 
-			}
-			catch(IOException e) {
-				LOGGER.error("Unable to write failed response message. Aborting.", e);
-			}
-			
-			// Flush it and close.
-			try {
-				writer.flush();
-				writer.close();
-			}
-			catch(IOException e) {
-				LOGGER.warn("Unable to flush or close the writer.", e);
+				httpResponse.setStatus(
+					HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 		}
 	}
