@@ -251,21 +251,25 @@ public class MobilityUploadRequest extends UserRequest {
 	public Map<String, String[]> getAuditInformation() {
 		Map<String, String[]> result = super.getAuditInformation();
 		
-		String[] validPointIds = new String[data.size()];
-		int numIdsAdded = 0;
-		for(MobilityPoint mobilityPoint : data) {
-			validPointIds[numIdsAdded] = mobilityPoint.getId().toString();
-			numIdsAdded++;
+		if(data != null) {
+			String[] validPointIds = new String[data.size()];
+			int numIdsAdded = 0;
+			for(MobilityPoint mobilityPoint : data) {
+				validPointIds[numIdsAdded] = mobilityPoint.getId().toString();
+				numIdsAdded++;
+			}
+			result.put(AUDIT_KEY_VALID_POINT_IDS, validPointIds);
 		}
-		result.put(AUDIT_KEY_VALID_POINT_IDS, validPointIds);
 		
-		String[] invalidPointsArray = new String[invalidMobilityPoints.size()];
-		int numPointsAdded = 0;
-		for(JSONObject invalidPoint : invalidMobilityPoints) {
-			invalidPointsArray[numPointsAdded] = invalidPoint.toString();
-			numPointsAdded++;
+		if(invalidMobilityPoints != null) {
+			String[] invalidPointsArray = new String[invalidMobilityPoints.size()];
+			int numPointsAdded = 0;
+			for(JSONObject invalidPoint : invalidMobilityPoints) {
+				invalidPointsArray[numPointsAdded] = invalidPoint.toString();
+				numPointsAdded++;
+			}
+			result.put(AUDIT_KEY_INVALID_POINTS, invalidPointsArray);
 		}
-		result.put(AUDIT_KEY_INVALID_POINTS, invalidPointsArray);
 		
 		return result;
 	}
