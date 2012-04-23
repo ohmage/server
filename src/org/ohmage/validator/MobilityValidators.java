@@ -246,7 +246,7 @@ public final class MobilityValidators {
 		
 		Map<ColumnKey, String> duplicates = new HashMap<ColumnKey, String>();
 		List<ColumnKey> result = new LinkedList<ColumnKey>();
-		String[] columns = value.split(InputKeys.LIST_ITEM_SEPARATOR);
+		String[] columns = value.trim().split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(String column : columns) {
 			if(StringUtils.isEmptyOrWhitespaceOnly(column)) {
 				continue;
@@ -254,7 +254,7 @@ public final class MobilityValidators {
 			
 			try {
 				List<ColumnKey> validatedColumns =
-						MobilityPoint.validateKeyString(column);
+						MobilityPoint.validateKeyString(column.trim());
 				
 				if(! allowDuplicates) {
 					String duplicate;
