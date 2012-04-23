@@ -34,10 +34,10 @@ CREATE TABLE user_registration(
 -- database.
 DELETE FROM preference WHERE p_key='properties_file';
 
--- Need to update the preference table to remove an unnecessary UNIQUE 
--- constraint.
+-- Need to update the preference table to remove an overly unnecessary UNIQUE 
+-- constraint and add it only on the key.
 DROP INDEX p_key ON preference;
-ALTER TABLE preference ADD INDEX index_p_key (p_key);
+ALTER TABLE preference ADD UNIQUE unique_p_key (p_key);
 ALTER TABLE preference MODIFY p_value TEXT NOT NULL;
 
 -- Add the new preference information.
