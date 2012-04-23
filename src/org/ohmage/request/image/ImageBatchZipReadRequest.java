@@ -165,6 +165,10 @@ public class ImageBatchZipReadRequest extends SurveyResponseRequest {
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.Request#respond(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
+	 */
 	@Override
 	public void respond(
 			HttpServletRequest httpRequest,
