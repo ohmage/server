@@ -137,18 +137,19 @@ public final class MobilityServices {
 		
 		if(mobilityPoints.size() > 0) {
 			try {
+				MobilityPoint firstPoint = mobilityPoints.get(0);
 				DateTime startDate = new DateTime();
 
 				startDate = 
 						new DateTime(
-							mobilityPoints.get(0).getTime() -
+							firstPoint.getTime() -
 							MAX_MILLIS_OF_PREVIOUS_WIFI_DATA);
 
 				List<MobilityPoint> previousPoints = 
 						userMobilityQueries.getMobilityInformation(
 							uploadersUsername, 
 							startDate, 
-							null, 
+							new DateTime(firstPoint.getTime()), 
 							null, 
 							null, 
 							null);
