@@ -67,6 +67,9 @@
   
   <bean class="org.ohmage.service.MobilityServices">
     <constructor-arg>
+      <ref bean="userQueries" />
+    </constructor-arg>
+    <constructor-arg>
       <ref bean="userMobilityQueries" />
     </constructor-arg>
   </bean>

@@ -19,8 +19,10 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
 
 import org.joda.time.DateTime;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
@@ -29,6 +31,7 @@ import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IUserMobilityQueries;
+import org.ohmage.query.IUserQueries;
 
 import edu.ucla.cens.mobilityclassifier.Classification;
 import edu.ucla.cens.mobilityclassifier.MobilityClassifier;
@@ -49,6 +52,7 @@ public final class MobilityServices {
 			1000 * 60 * 10;
 	
 	private static MobilityServices instance;
+	private IUserQueries userQueries;
 	private IUserMobilityQueries userMobilityQueries;
 	
 	/**
@@ -60,15 +64,23 @@ public final class MobilityServices {
 	 * 
 	 * @throws IllegalArgumentException if iUserMobilityQueries is null
 	 */
-	private MobilityServices(IUserMobilityQueries iUserMobilityQueries) {
+	private MobilityServices(
+			final IUserQueries iUserQueries,
+			final IUserMobilityQueries iUserMobilityQueries) {
+		
 		if(instance != null) {
 			throw new IllegalStateException("An instance of this class already exists.");
+		}
+		
+		if(iUserQueries == null) {
+			throw new IllegalArgumentException("An instance of IUserQueries is required.");
 		}
 		
 		if(iUserMobilityQueries == null) {
 			throw new IllegalArgumentException("An instance of IUserMobilityQueries is required.");
 		}
 		
+		userQueries = iUserQueries;
 		userMobilityQueries = iUserMobilityQueries;
 		instance = this;
 	}
@@ -356,6 +368,65 @@ public final class MobilityServices {
 		
 		try {
 			return userMobilityQueries.getDates(startDate, endDate, username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a Mobility point can be updated by the requesting user.
+	 * 
+	 * @param username The requesting user's username.
+	 * 
+	 * @param mobilityId The Mobility point's unique identifier.
+	 * 
+	 * @throws ServiceException The user does not have sufficient permission to
+	 * 							update the Mobility point.
+	 */
+	public void verifyUserCanUpdatePoint(
+			final String username,
+			final UUID mobilityId)
+			throws ServiceException {
+		
+		try {
+			// If the user is an admin, we are OK.
+			if(userQueries.userIsAdmin(username)) {
+				return;
+			}
+			
+			// If the user owns the point, we are OK.
+			String owner = userMobilityQueries.getUserForId(mobilityId);
+			if((owner != null) && (owner.equals(username))) {
+				return;
+			}
+			
+			throw new ServiceException(
+					ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
+					"You do not have permissions to modify this Mobility point.");
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates a Mobility point.
+	 * 
+	 * @param mobilityId The Mobility point's unique identifier. Required.
+	 * 
+	 * @param privacyState The new privacy state or null if no change is 
+	 * 					   required.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public void updateMobilityPoint(
+			final UUID mobilityId,
+			final MobilityPoint.PrivacyState privacyState)
+			throws ServiceException {
+		
+		try {
+			userMobilityQueries.updateMobilityPoint(mobilityId, privacyState);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

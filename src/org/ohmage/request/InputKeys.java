@@ -44,6 +44,7 @@ public final class InputKeys {
 	public static final String MOBILITY_WITH_SENSOR_DATA = "with_sensor_data";
 	
 	// Mobility Constants
+	public static final String MOBILITY_ID = "mobility_id";
 	public static final String MOBILITY_CHUNK_DURATION_MINUTES = "chunk_mins";
 	
 	// Temporal Constants
