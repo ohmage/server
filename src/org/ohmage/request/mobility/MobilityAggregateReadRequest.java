@@ -72,6 +72,11 @@ import org.ohmage.validator.UserValidators;
  * @author John Jenkins
  */
 public class MobilityAggregateReadRequest extends UserRequest {
+	private static final String JSON_KEY_TIMESTAMP = "timestamp";
+	private static final String JSON_KEY_DATA = "data";
+	private static final String JSON_KEY_MODE = "mode";
+	private static final String JSON_KEY_DURATION = "duration";
+	
 	private static final Logger LOGGER = 
 			Logger.getLogger(MobilityAggregateReadRequest.class);
 	
@@ -289,7 +294,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					
 					// Compute the starting time stamp for this chunk.
 					currResult.put(
-						"timestamp", 
+						JSON_KEY_TIMESTAMP, 
 						TimeUtils.getIso8601DateString(
 							new DateTime(
 								startDate.getMillis() + (bucketNum * duration)),
@@ -300,7 +305,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					
 					// Create the data array.
 					JSONArray data = new JSONArray();
-					currResult.put("data", data);
+					currResult.put(JSON_KEY_DATA, data);
 					
 					Map<MobilityPoint.Mode, JSONObject> modeToObjectMap =
 							new HashMap<MobilityPoint.Mode, JSONObject>();
@@ -319,15 +324,18 @@ public class MobilityAggregateReadRequest extends UserRequest {
 								modeToObjectMap.get(mode);
 						if(modeDurationObject == null) {
 							modeDurationObject = new JSONObject();
-							modeDurationObject.put("mode", mode.toString().toLowerCase());
-							modeDurationObject.put("duration", 0);
+							modeDurationObject.put(
+									JSON_KEY_MODE, 
+									mode.toString().toLowerCase());
+							modeDurationObject.put(JSON_KEY_DURATION, 0);
 							
 							data.put(modeDurationObject);
 							modeToObjectMap.put(mode, modeDurationObject);
 						}
 						
 						// Get the current duration.
-						long duration = modeDurationObject.getLong("duration");
+						long duration = 
+								modeDurationObject.getLong(JSON_KEY_DURATION);
 						
 						// Compute the additional duration for this mode.
 						long additionalDuration;
@@ -345,7 +353,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 						
 						// Update the duration with the additional duration.
 						modeDurationObject.put(
-								"duration", 
+								JSON_KEY_DURATION, 
 								duration + additionalDuration);
 						
 						previousPoint = mobilityPoint;
@@ -355,7 +363,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				super.respond(
 						httpRequest, 
 						httpResponse, 
-						JSON_KEY_DATA, 
+						UserRequest.JSON_KEY_DATA, 
 						result);
 			}
 			catch(JSONException e) {
