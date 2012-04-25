@@ -16,6 +16,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.domain.MobilityAggregatePoint;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
@@ -85,7 +86,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	private final long duration;
 	private final String username;
 	
-	private List<MobilityPoint> points;
+	private List<MobilityAggregatePoint> points;
 	
 	/**
 	 * Creates a new Mobility aggregate read request.
@@ -236,13 +237,10 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			}
 			
 			LOGGER.info("Gathering the Mobility points.");
-			points = MobilityServices.instance().retrieveMobilityData(
+			points = MobilityServices.instance().retrieveMobilityAggregateData(
 					(username == null) ? getUser().getUsername() : username,
 					startDate, 
-					endDate, 
-					null, 
-					null, 
-					null);
+					endDate);
 			LOGGER.info("Found " + points.size() + " results.");
 		}
 		catch(ServiceException e) {
@@ -266,15 +264,15 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			try {
 				// Bucket the data based on its duration. The first bucket begins at 
 				// the start date not at the earliest point.
-				Map<Long, List<MobilityPoint>> buckets = 
-						new HashMap<Long, List<MobilityPoint>>();
-				for(MobilityPoint mobilityPoint : points) {
+				Map<Long, List<MobilityAggregatePoint>> buckets = 
+						new HashMap<Long, List<MobilityAggregatePoint>>();
+				for(MobilityAggregatePoint mobilityPoint : points) {
 					long bucketNum = 
 						(mobilityPoint.getTime() - startDate.getMillis()) / duration;
 					
-					List<MobilityPoint> bucket = buckets.get(bucketNum);
+					List<MobilityAggregatePoint> bucket = buckets.get(bucketNum);
 					if(bucket == null) {
-						bucket = new LinkedList<MobilityPoint>();
+						bucket = new LinkedList<MobilityAggregatePoint>();
 						buckets.put(bucketNum, bucket);
 					}
 					bucket.add(mobilityPoint);
@@ -285,7 +283,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				// Parse each bucket.
 				for(Long bucketNum : buckets.keySet()) {
 					// Get the buckets.
-					List<MobilityPoint> mobilityPoints = 
+					List<MobilityAggregatePoint> mobilityPoints = 
 							buckets.get(bucketNum);
 					
 					// Create a map to hold the mode to duration times.
@@ -312,8 +310,8 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					
 					// Go from point to point looking backwards to determine 
 					// how much time should be added to this mode.
-					MobilityPoint previousPoint = null;
-					for(MobilityPoint mobilityPoint : mobilityPoints) {
+					MobilityAggregatePoint previousPoint = null;
+					for(MobilityAggregatePoint mobilityPoint : mobilityPoints) {
 						// Get this point's mode.
 						MobilityPoint.Mode mode = mobilityPoint.getMode();
 						
