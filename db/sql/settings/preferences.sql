@@ -1,7 +1,7 @@
 -- Adds the preferences to the preferences table.
 INSERT INTO preference(p_key, p_value) VALUES 
-    ('document_directory', '/opt/aw/userdata/documents'), 
-    ('image_directory', '/opt/aw/userdata/images'), 
+    ('document_directory', '/opt/ohmage/userdata/documents'), 
+    ('image_directory', '/opt/ohmage/userdata/images'), 
     ('max_files_per_dir', '1000'), 
     ('document_depth', '5'), 
     ('visualization_server_address', 'http://rdev.mobilizingcs.org/R/call/Mobilize/'),

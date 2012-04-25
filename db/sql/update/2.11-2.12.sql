@@ -25,3 +25,10 @@ ALTER TABLE survey_response ADD KEY key_campaign_id (campaign_id);
 ALTER TABLE survey_response DROP KEY user_id;
 ALTER TABLE survey_response DROP KEY campaign_id;
 
+-- Point the image and document directories to the /opt/ohmage subtree 
+UPDATE preference SET p_value = '/opt/ohmage/userdata/documents' 
+	WHERE p_key = 'document_directory'; 
+
+UPDATE preference SET p_value = '/opt/ohmage/userdata/images' 
+	WHERE p_key = 'image_directory'; 
+    

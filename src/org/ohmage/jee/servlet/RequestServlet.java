@@ -46,7 +46,7 @@ import org.ohmage.service.AuditServices;
 // different parameters. Therefore, there is no way through this call to limit
 // individual file uploads via POST.
 @MultipartConfig(
-		location="/opt/aw/as/temp/", 
+		location="/opt/ohmage/as/temp/", 
 		maxFileSize=1024*1024*5, 
 		maxRequestSize=1024*1024*5*5, 
 		fileSizeThreshold=1024*1024*5*5 + 1)
