@@ -30,6 +30,47 @@ import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.MobilityValidators;
 import org.ohmage.validator.UserValidators;
 
+/**
+ * Gathers the Mobility information between the given dates and aggregates the
+ * time for each mode in each chunk where a chunk's length is the given
+ * duration.<br />
+ * <br />
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>The earliest date for which the data is desired.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>The latest date for which the data is desired.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#MOBILITY_AGGREGATE_DURATION}</td>
+ *     <td>The number of milliseconds which defines the size of the buckets.
+ *       </td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>The user on which to gather the data.</td>
+ *     <td>true</td>
+ *   </tr>
+ * </table> 
+ * 
+ * @author John Jenkins
+ */
 public class MobilityAggregateReadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 			Logger.getLogger(MobilityAggregateReadRequest.class);
