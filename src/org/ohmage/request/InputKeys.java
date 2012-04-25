@@ -46,6 +46,7 @@ public final class InputKeys {
 	// Mobility Constants
 	public static final String MOBILITY_ID = "mobility_id";
 	public static final String MOBILITY_CHUNK_DURATION_MINUTES = "chunk_mins";
+	public static final String MOBILITY_AGGREGATE_DURATION = "duration";
 	
 	// Temporal Constants
 	public static final String DATE = "date";

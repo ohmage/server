@@ -1413,6 +1413,31 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityAggregateRead">
+                                                <i class="icon-plus"></i> Mobility Aggregate Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseMobilityAggregateRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/mobility/aggregate/read" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Start Date</label>
+                                                    <input type="text" name="start_date">
+                                                    <label><span class="label label-info">required</span> End Date</label>
+                                                    <input type="text" name="end_date">
+                                                    <label><span class="label label-info">required</span> Duration</label>
+                                                    <input type="text" name="duration">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label>Username</label>
+                                                    <input type="text" name="username">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
    								</div>
 							</div>
 						</div>
