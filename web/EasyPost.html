@@ -1390,6 +1390,29 @@
 								            </div>
 								        </div>
 								    </div>
+								    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-mobility" href="#collapseMobilityUpdate">
+                                                <i class="icon-plus"></i> Mobility Update
+                                            </a>
+                                        </div>
+                                        <div id="collapseMobilityUpdate" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/mobility/update" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Mobility ID</label>
+                                                    <input type="text" name="mobility_id">
+                                                    <label>Privacy State</label>
+                                                    <input type="text" name="privacy_state">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
    								</div>
 							</div>
 						</div>
