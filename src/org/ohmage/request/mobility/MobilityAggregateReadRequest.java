@@ -83,7 +83,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	
 	private final DateTime startDate;
 	private final DateTime endDate;
-	private final long duration;
+	private final Long duration;
 	private final String username;
 	
 	private List<MobilityAggregatePoint> points;
