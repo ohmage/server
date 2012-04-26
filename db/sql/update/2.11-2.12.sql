@@ -30,6 +30,11 @@ ALTER TABLE user ADD COLUMN last_modified_timestamp
     TIMESTAMP DEFAULT now() ON UPDATE now();
 ALTER TABLE user_personal ADD COLUMN last_modified_timestamp 
     TIMESTAMP DEFAULT now() ON UPDATE now();
+    
+-- Change the 'audit_timestamp' to the 'last_modified_timestamp' in the
+-- 'survey_response' table.
+ALTER TABLE survey_response CHANGE COLUMN audit_timestamp 
+    last_modified_timestamp TIMESTAMP DEFAULT now() ON UPDATE now();
 
 -- Point the image and document directories to the /opt/ohmage subtree 
 UPDATE preference SET p_value = '/opt/ohmage/userdata/documents' 
