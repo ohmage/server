@@ -258,7 +258,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			final HttpServletRequest httpRequest,
 			final HttpServletResponse httpResponse) {
 		
-		LOGGER.info("Responding to the Mobiltiy read request.");
+		LOGGER.info("Responding to the Mobility aggregate read request.");
 		
 		if(! isFailed()) {
 			try {
