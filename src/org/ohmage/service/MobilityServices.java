@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.MobilityAggregatePoint;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
@@ -338,6 +339,38 @@ public final class MobilityServices {
 					privacyState, 
 					locationStatus, 
 					mode);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the Mobility aggregate information for a user within a range.
+	 * 
+	 * @param username The user name of the user. Required
+	 * 
+	 * @param startDate Limits the results to only those on or after this date.
+	 * 					Optional.
+	 * 
+	 * @param endDate Limits the results to only those on or before this date.
+	 * 				  Optional.
+	 * 
+	 * @return A list of Mobility aggregate information.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public List<MobilityAggregatePoint> retrieveMobilityAggregateData(
+			final String username,
+			final DateTime startDate,
+			final DateTime endDate)
+			throws ServiceException {
+		
+		try {
+			return userMobilityQueries.getMobilityAggregateInformation(
+					username,
+					startDate,
+					endDate);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

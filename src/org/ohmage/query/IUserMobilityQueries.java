@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.joda.time.DateTime;
+import org.ohmage.domain.MobilityAggregatePoint;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.domain.MobilityPoint.Mode;
@@ -101,6 +102,27 @@ public interface IUserMobilityQueries {
 			final MobilityPoint.PrivacyState privacyState,
 			final LocationStatus locationStatus,
 			final Mode mode) 
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the Mobility aggregate information for a user within a range.
+	 * 
+	 * @param username The user name of the user. Required
+	 * 
+	 * @param startDate Limits the results to only those on or after this date.
+	 * 					Optional.
+	 * 
+	 * @param endDate Limits the results to only those on or before this date.
+	 * 				  Optional.
+	 * 
+	 * @return A list of Mobility aggregate information.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	List<MobilityAggregatePoint> getMobilityAggregateInformation(
+			final String username,
+			final DateTime startDate,
+			final DateTime endDate)
 			throws DataAccessException;
 	
 	/**
