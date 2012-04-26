@@ -31,7 +31,6 @@
 
   <util:map id="systemProps">
     <entry key="system.imageDir" value="/opt/ohmage/userdata/images" />
-    <entry key="system.configurationXmlSchemaFile" value="/opt/ohmage/conf/configuration.xsd" />
   </util:map>
   
   <util:map id="auditProps">
