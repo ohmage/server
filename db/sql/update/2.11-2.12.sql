@@ -26,10 +26,10 @@ ALTER TABLE survey_response DROP KEY user_id;
 ALTER TABLE survey_response DROP KEY campaign_id;
 
 -- Add audit timestamps to the user table.
-ALTER TABLE user ADD COLUMN last_modified_timestamp 
-    TIMESTAMP DEFAULT now() ON UPDATE now();
-ALTER TABLE user_personal ADD COLUMN last_modified_timestamp 
-    TIMESTAMP DEFAULT now() ON UPDATE now();
+ALTER TABLE user ADD COLUMN
+    last_modified_timestamp TIMESTAMP DEFAULT now() ON UPDATE now();
+ALTER TABLE user_personal ADD COLUMN
+    last_modified_timestamp TIMESTAMP DEFAULT now() ON UPDATE now();
     
 -- Change the 'audit_timestamp' to the 'last_modified_timestamp' in the
 -- 'survey_response' table.

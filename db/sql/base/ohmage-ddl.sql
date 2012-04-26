@@ -155,6 +155,7 @@ CREATE TABLE user (
   campaign_creation_privilege bit NOT NULL,
   email_address varchar(320),
   admin bit NOT NULL,
+  last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
   PRIMARY KEY (id),
   UNIQUE (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -170,6 +171,7 @@ CREATE TABLE user_personal (
   last_name varchar(255) NOT NULL,
   organization varchar(255) NOT NULL,
   personal_id varchar(255) NOT NULL,  -- this is e.g., the Mobilize student's student id
+  last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
   PRIMARY KEY (id),
   UNIQUE (user_id),
   UNIQUE (first_name, last_name, organization, personal_id), 
@@ -290,11 +292,11 @@ CREATE TABLE survey_response (
   location_status tinytext NOT NULL,  -- one of: unavailable, valid, stale, inaccurate 
   location text,                      -- JSON location data: longitude, latitude, accuracy, provider
   upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone  
-  audit_timestamp timestamp default current_timestamp on update current_timestamp,
+  last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
   privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
-  INDEX (user_id, campaign_id),
-  INDEX (user_id, upload_timestamp),
+  KEY key_user_id (user_id),
+  KEY key_campaign_id (campaign_id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,    
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES survey_response_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
