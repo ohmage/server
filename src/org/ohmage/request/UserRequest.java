@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.request;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -475,7 +474,7 @@ public abstract class UserRequest extends Request {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> result = new HashMap<String, String[]>();
+		Map<String, String[]> result = super.getAuditInformation();
 		
 		if(! isFailed()) {
 			String[] userArray = new String[1];

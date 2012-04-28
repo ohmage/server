@@ -122,10 +122,14 @@ public abstract class Request {
 	private static final String PARAMETER_SEPARATOR = "&";
 	private static final String PARAMETER_VALUE_SEPARATOR = "=";
 	
+	private static final String KEY_AUDIT_REQUESTER_INTERNET_ADDRESS = 
+			"requester_inet_addr";
+	
 	private final Annotator annotator;
 	private boolean failed;
 	
 	private final Map<String, String[]> parameters;
+	private final String requesterInetAddr; 
 	
 	/**
 	 * Default constructor. Creates a new, generic annotator for this object.
@@ -138,6 +142,13 @@ public abstract class Request {
 		failed = false;
 
 		parameters = getParameters(httpRequest);
+		
+		if(httpRequest != null) {
+			requesterInetAddr = httpRequest.getRemoteAddr();
+		}
+		else {
+			requesterInetAddr = null;
+		}
 	}
 	
 	/**
@@ -272,7 +283,17 @@ public abstract class Request {
 	/**
 	 * Gathers an request-specific data that should be logged in the audit.
 	 */
-	public abstract Map<String, String[]> getAuditInformation();
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
+		
+		if(requesterInetAddr != null) {
+			auditInfo.put(
+					KEY_AUDIT_REQUESTER_INTERNET_ADDRESS, 
+					new String[] { requesterInetAddr });
+		}
+		
+		return auditInfo;
+	}
 		
 	/**************************************************************************
 	 *  Begin JEE Requirements

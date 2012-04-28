@@ -1,8 +1,5 @@
 package org.ohmage.request.user;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -121,15 +118,5 @@ public class UserActivationRequest extends Request {
 		// already been activated.
 
 		super.respond(httpRequest, httpResponse, new JSONObject());
-	}
-
-	/**
-	 * Returns an empty map.
-	 * 
-	 * @return An empty map.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
 	}
 }

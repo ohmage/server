@@ -16,8 +16,6 @@
 package org.ohmage.request;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,15 +47,6 @@ public class FailedRequest extends Request {
 	@Override
 	public void service() {
 		// Do nothing.
-	}
-	
-	/**
-	 * Returns an empty map. This is for requests that don't have any specific
-	 * information to return.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
 	}
 
 	/**

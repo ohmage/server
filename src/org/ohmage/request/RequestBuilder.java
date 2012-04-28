@@ -278,7 +278,7 @@ public final class RequestBuilder {
 		
 		// Config
 		if(API_CONFIG_READ.equals(requestUri)) {
-			return new ConfigReadRequest();
+			return new ConfigReadRequest(httpRequest);
 		}
 		// Authentication
 		else if(API_USER_AUTH.equals(requestUri)) {

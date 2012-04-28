@@ -1,8 +1,5 @@
 package org.ohmage.request.user;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -124,13 +121,5 @@ public class UserPasswordResetRequest extends Request {
 		final HttpServletResponse httpResponse) {
 		
 		super.respond(httpRequest, httpResponse, new JSONObject());
-	}
-
-	/**
-	 * Returns an empty map.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
 	}
 }
