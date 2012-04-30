@@ -20,6 +20,7 @@ import java.util.Date;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
@@ -159,16 +160,22 @@ public class TimestampPrompt extends Prompt {
 			try {
 				return NoResponse.valueOf((String) value);
 			}
-			catch(IllegalArgumentException iae) {
+			catch(IllegalArgumentException notNoResponse) {
 				try {
 					return TimeUtils.getDateTimeFromString((String) value);
 				}
-				catch(IllegalArgumentException e) {
-					throw new DomainException(
-						"The string value could not be converted to a date for prompt '" +
-							getId() +
-							"'.",
-						e);
+				catch(IllegalArgumentException notOurDateTime) {
+					try {
+						return ISODateTimeFormat.dateTimeParser().parseDateTime(
+								(String) value);
+					}
+					catch(IllegalArgumentException notIsoDateTime) {
+						throw new DomainException(
+							"The string value could not be converted to a date for prompt '" +
+								getId() +
+								"'.",
+							notIsoDateTime);
+					}
 				}
 			}
 		}
