@@ -38,6 +38,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
+import org.ohmage.domain.MobilityAggregatePoint;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.ClassifierData;
 import org.ohmage.domain.MobilityPoint.ClassifierData.ClassifierDataColumnKey;
@@ -848,6 +849,75 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							}
 							catch(IllegalArgumentException e) {
 								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
+							}
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+							sqlBuilder.toString() + 
+						"' with parameters: " + 
+							parameters,
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserMobilityQueries#getMobilityAggregateInformation(java.lang.String, org.joda.time.DateTime, org.joda.time.DateTime)
+	 */
+	@Override
+	public List<MobilityAggregatePoint> getMobilityAggregateInformation(
+			final String username,
+			final DateTime startDate,
+			final DateTime endDate)
+			throws DataAccessException {
+		
+		StringBuilder sqlBuilder = 
+				new StringBuilder(
+					"SELECT m.epoch_millis, m.phone_timezone, m.mode " +
+					"FROM user u, mobility m " +
+					"WHERE u.username = ? " +
+					"AND u.id = m.user_id");
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		
+		if(startDate != null) {
+			sqlBuilder.append(SQL_WHERE_ON_OR_AFTER_DATE);
+			parameters.add(startDate.getMillis());
+		}
+		if(endDate != null) {
+			sqlBuilder.append(SQL_WHERE_ON_OR_BEFORE_DATE);
+			parameters.add(endDate.getMillis());
+		}
+		
+		sqlBuilder.append(SQL_ORDER_BY_DATE);
+		
+		try {
+			return getJdbcTemplate().query(
+					sqlBuilder.toString(),
+					parameters.toArray(),
+					new RowMapper<MobilityAggregatePoint>() {
+						@Override
+						public MobilityAggregatePoint mapRow(
+								ResultSet rs, 
+								int rowNum) 
+								throws SQLException {
+							
+							try {
+								return new MobilityAggregatePoint(
+										new DateTime(
+											rs.getLong("epoch_millis"),
+											DateTimeZone.forID(
+												rs.getString("phone_timezone"))),
+										Mode.valueOf(rs.getString("mode").toUpperCase()));
+							}
+							catch(DomainException e) {
+								throw new SQLException(
+									"Error building the MobilityAggregatePoint object. This suggests malformed data in the database.", 
+									e);
 							}
 						}
 					}

@@ -195,6 +195,35 @@ public final class MobilityValidators {
 	}
 	
 	/**
+	 * Validates that the duration is a valid number.
+	 * 
+	 * @param duration The duration to be validated.
+	 * 
+	 * @return The duration as a long value or null if the duration was null or
+	 * 		   an empty string.
+	 * 
+	 * @throws ValidationException Thrown if there is an error.
+	 */
+	public static Long validateAggregateDuration(final String duration)
+			throws ValidationException {
+		
+		LOGGER.info("Validating the aggregate duration.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(duration)) {
+			return null;
+		}
+		
+		try {
+			return Long.decode(duration);
+		}
+		catch(NumberFormatException e) {
+			throw new ValidationException(
+					ErrorCode.MOBILITY_INVALID_AGGREGATE_DURATION,
+					"The aggregate duration is invalid: " + duration);
+		}
+	}
+	
+	/**
 	 * Validates that a value representing a boolean indicating if we should or
 	 * should not return sensor data along with the other information 
 	 * representing a Mobility point.
