@@ -1,5 +1,6 @@
 package org.ohmage.domain;
 
+import org.joda.time.DateTime;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -9,7 +10,7 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class MobilityAggregatePoint implements Comparable<MobilityAggregatePoint> {
-	private final Long date;
+	private final DateTime date;
 	private final MobilityPoint.Mode mode;
 	
 	/**
@@ -22,7 +23,7 @@ public class MobilityAggregatePoint implements Comparable<MobilityAggregatePoint
 	 * @throws DomainException The date and/or mode were null.
 	 */
 	public MobilityAggregatePoint(
-			final Long date, 
+			final DateTime date, 
 			final MobilityPoint.Mode mode) 
 			throws DomainException {
 		
@@ -42,7 +43,7 @@ public class MobilityAggregatePoint implements Comparable<MobilityAggregatePoint
 	 * 
 	 * @return The date this Mobility point was made as a long value.
 	 */
-	public Long getTime() {
+	public DateTime getDateTime() {
 		return date;
 	}
 	
@@ -61,7 +62,7 @@ public class MobilityAggregatePoint implements Comparable<MobilityAggregatePoint
 	 */
 	@Override
 	public int compareTo(MobilityAggregatePoint other) {
-		long difference = date - other.date;
+		long difference = date.getMillis() - other.date.getMillis();
 		
 		return (difference < 0) ? -1 : (difference > 0) ? 1 : 0;
 	}

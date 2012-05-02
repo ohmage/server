@@ -552,7 +552,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		
 		StringBuilder sqlBuilder = 
 				new StringBuilder(
-					"SELECT m.epoch_millis, m.mode " +
+					"SELECT m.epoch_millis, m.phone_timezone, m.mode " +
 					"FROM user u, mobility m " +
 					"WHERE u.username = ? " +
 					"AND u.id = m.user_id");
@@ -583,7 +583,10 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							
 							try {
 								return new MobilityAggregatePoint(
-										rs.getLong("epoch_millis"),
+										new DateTime(
+											rs.getLong("epoch_millis"),
+											DateTimeZone.forID(
+												rs.getString("phone_timezone"))),
 										Mode.valueOf(rs.getString("mode").toUpperCase()));
 							}
 							catch(DomainException e) {

@@ -1,6 +1,5 @@
 package org.ohmage.request.mobility;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -262,15 +261,37 @@ public class MobilityAggregateReadRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
+				// Get the "day value" or "bucket number" for the start date.
+				int startYear = startDate.getYear();
+				int startBucketNum =
+					(startYear * 365) + (startYear / 4) - (startYear / 100) + (startYear / 400);
+				startBucketNum += startDate.getDayOfYear();
+				
 				// Bucket the data based on its duration. The first bucket begins at 
 				// the start date not at the earliest point.
 				Map<Long, List<MobilityAggregatePoint>> buckets = 
 						new HashMap<Long, List<MobilityAggregatePoint>>();
 				for(MobilityAggregatePoint mobilityPoint : points) {
-					long bucketNum = 
-						(mobilityPoint.getTime() - startDate.getMillis()) / duration;
+					// Get the point's date and time.
+					DateTime pointDateTime = mobilityPoint.getDateTime();
 					
-					List<MobilityAggregatePoint> bucket = buckets.get(bucketNum);
+					// Calculate this points "day value".
+					int year = pointDateTime.getYear();
+					long bucketNum =
+						(year * 365) + (year / 4) - (year / 100) + (year / 400);
+					bucketNum += pointDateTime.getDayOfYear();
+					
+					// Subtract the starting bucket number to get a  
+					// zero-indexed bucket number.
+					bucketNum -= startBucketNum;
+					
+					// Figure out the actual bucket number based on the 
+					// duration.
+					bucketNum /= duration;
+					
+					// Add this point to its appropriate bucket.
+					List<MobilityAggregatePoint> bucket = 
+						buckets.get(bucketNum);
 					if(bucket == null) {
 						bucket = new LinkedList<MobilityAggregatePoint>();
 						buckets.put(bucketNum, bucket);
@@ -290,16 +311,14 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					JSONObject currResult = new JSONObject();
 					result.put(currResult);
 					
+					// Calculate the start of the chunk.
+					DateTime timestamp = 
+						startDate.plusDays((int) (bucketNum * duration));
+					
 					// Compute the starting time stamp for this chunk.
 					currResult.put(
 						JSON_KEY_TIMESTAMP, 
-						TimeUtils.getIso8601DateString(
-							new DateTime(
-								startDate.getMillis() + (bucketNum * duration)),
-								true));
-					
-					// Sort the bucket.
-					Collections.sort(mobilityPoints);
+						TimeUtils.getIso8601DateString(timestamp, true));
 					
 					// Create the data array.
 					JSONArray data = new JSONArray();
@@ -342,8 +361,8 @@ public class MobilityAggregateReadRequest extends UserRequest {
 						}
 						else {
 							long difference = 
-									mobilityPoint.getTime() - 
-									previousPoint.getTime();
+									mobilityPoint.getDateTime().getMillis() - 
+									previousPoint.getDateTime().getMillis();
 							
 							additionalDuration = 
 								(difference <= 3600000) ? difference : 60000;
