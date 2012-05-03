@@ -108,20 +108,20 @@ public class AuditQueries extends Query implements IAuditQueries {
 	private static final String SQL_GET_AUDIT_IDS_ON_OR_AFTER_DATE =
 		"SELECT id " +
 		"FROM audit " +
-		"WHERE db_timestamp >= ?";
+		"WHERE respond_millis >= ?";
 	
 	// Retrieves the audit ID for all audits made on or before some date.
 	private static final String SQL_GET_AUDIT_IDS_ON_OR_BEFORE_DATE = 
 		"SELECT id " +
 		"FROM audit " +
-		"WHERE db_timestamp <= ?";
+		"WHERE received_millis <= ?";
 	
 	// Retrieves the audit ID for all audits made between two dates, inclusive.
 	private static final String SQL_GET_AUDIT_IDS_ON_OR_BETWEEN_DATES = 
 		"SELECT id " +
 		"FROM audit " +
-		"WHERE db_timestamp >= ? " +
-		"AND db_timestamp <= ?";
+		"WHERE respond_millis >= ? " +
+		"AND received_millis <= ?";
 	
 	// Retrieves all the information about a single audit entry.
 	private static final String SQL_GET_AUDIT_INFORMATION_FROM_ID =
