@@ -1,11 +1,20 @@
 package org.ohmage.domain;
 
+import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
+import org.apache.avro.SchemaParseException;
+import org.apache.avro.generic.GenericContainer;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
 import org.ohmage.exception.DomainException;
+
 
 public class Probe {
 	private static final Pattern PATTERN_ID_VALIDATOR = 
@@ -26,7 +35,7 @@ public class Probe {
 		private final String description;
 		
 		// This may not be a string if Avro has it's own representation.
-		private final String definition; 
+		private final Schema schema; 
 		
 		public Observer(
 				final String id,
@@ -55,14 +64,36 @@ public class Probe {
 			this.name = name;
 			this.description = description;
 			
-			// There will probably need to be an Avro component here that 
-			// validates this string.
-			Parser parser = new Parser();
-			Schema schema = parser.parse(definition);
-			this.definition = definition;
+			try {
+				schema = (new Parser()).parse(definition);
+			}
+			catch(SchemaParseException e) {
+				throw new DomainException("The schema was invalid.", e);
+			}
+		}
+		
+		public GenericContainer parseDatum(
+				final byte[] binary) 
+				throws DomainException {
+			
+			if(binary == null) {
+				throw new DomainException("The binary data is null.");
+			}
+			
+			Decoder decoder = 
+				(new DecoderFactory()).binaryDecoder(binary, null);
+			GenericDatumReader<GenericContainer> genericReader =
+				new GenericDatumReader<GenericContainer>(schema);
+			
+			try {
+				return genericReader.read(null, decoder);
+			}
+			catch(IOException e) {
+				throw new DomainException("The data could not be read.", e);
+			}
 		}
 	}
-	private final Collection<Observer> observers;
+	private final Map<String, Observer> observers;
 	
 	public Probe(
 			final String id,
@@ -99,11 +130,14 @@ public class Probe {
 		this.description = description.trim();
 		this.versionString = versionString.trim();
 		
-		this.observers = observers;
-	}
-	
-	public void validateValue(final String value) {
-		DeocderFactory.get();
+		this.observers = new HashMap<String, Observer>(observers.size());
+		for(Observer observer : observers) {
+			if(observer == null) {
+				continue;
+			}
+			
+			this.observers.put(observer.id, observer);
+		}
 	}
 	
 	private static final String sanitizeId(
@@ -111,7 +145,7 @@ public class Probe {
 			throws DomainException {
 		
 		if(id == null) {
-			throw new DomainException("The ID is null,");
+			throw new DomainException("The ID is null.");
 		}
 		
 		String trimmedId = id.trim();
