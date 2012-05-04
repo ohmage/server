@@ -318,7 +318,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					// Compute the starting time stamp for this chunk.
 					currResult.put(
 						JSON_KEY_TIMESTAMP, 
-						TimeUtils.getIso8601DateString(timestamp, true));
+						TimeUtils.getIso8601DateString(timestamp, false));
 					
 					// Create the data array.
 					JSONArray data = new JSONArray();
