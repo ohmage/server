@@ -193,6 +193,9 @@ public final class InputKeys {
 	public static final String ANNOTATION_TEXT = "annotation";
 	public static final String ANNOTATION_ID = "annotation_id";
 	
+	// Probe Constants
+	public static final String PROBE_DEFINITION = "probe_definition";
+	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";
 	public static final String ENTITY_ROLE_SEPARATOR = ";";
