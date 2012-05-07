@@ -10,6 +10,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.ProbeServices;
 import org.ohmage.validator.ProbeValidators;
 
 public class ProbeCreationRequest extends UserRequest {
@@ -64,7 +65,7 @@ public class ProbeCreationRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Storing the new probe.");
-			ProbeServices.createProbe(probe);
+			ProbeServices.instance().createProbe(probe);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
