@@ -1881,6 +1881,41 @@
     					    </div>
    					    </div>
    					    
+   					    <div class="accordion-group">
+                            <div class="accordion-heading">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseObserver">
+                                    <button class="btn btn-primary"><i class="icon-plus"></i> Observer APIs</button>
+                                </a>
+                            </div>
+                            <div id="collapseObserver" class="accordion-body collapse" style="height: 0px; ">
+                                
+                                <div class="accordion" id="accordion-observer">
+                                
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseObserverCreate">
+                                                <i class="icon-plus"></i> Create Observer
+                                            </a>
+                                        </div>
+                                        <div id="collapseObserverCreate" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/observer/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Auth Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Observer XML</label>
+                                                    <input type="file" name="observer_definition">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+   					    
 			    	</div> <!--  end top-level accordion -->
 
 		    	</div> <!--  end colspan -->

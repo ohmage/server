@@ -50,6 +50,8 @@ import org.ohmage.request.mobility.MobilityReadCsvRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUpdateRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
+import org.ohmage.request.observer.ObserverCreationRequest;
+import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -228,6 +230,10 @@ public final class RequestBuilder {
 	public static final String API_MOBILITY_READ_CSV = API_ROOT + "/mobility/read/csv";
 	public static final String API_MOBILITY_UPDATE = API_ROOT + "/mobility/update";
 	
+	// Observer
+	public static final String API_OBSERVER_CREATE = API_ROOT + "/observer/create";
+	public static final String API_OBSERVER_UPLOAD = API_ROOT + "/observer/";
+	
 	// Survey
 	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
 	public static final String API_SURVEY_RESPONSE_DELETE = API_ROOT + "/survey_response/delete";
@@ -396,6 +402,13 @@ public final class RequestBuilder {
 		else if(API_MOBILITY_UPDATE.equals(requestUri)) {
 			return new MobilityUpdateRequest(httpRequest);
 		}
+		// Observer
+		else if(API_OBSERVER_CREATE.equals(requestUri)) {
+			return new ObserverCreationRequest(httpRequest);
+		}
+		else if(requestUri.startsWith(API_OBSERVER_UPLOAD)) {
+			return new StreamUploadRequest(httpRequest);
+		}
 		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
@@ -533,6 +546,9 @@ public final class RequestBuilder {
 				API_MOBILITY_DATES_READ.equals(uri) ||
 				API_MOBILITY_READ_CSV.equals(uri) ||
 				API_MOBILITY_UPDATE.equals(uri) ||
+				// Observer
+				API_OBSERVER_CREATE.equals(uri) ||
+				uri.startsWith(API_OBSERVER_UPLOAD) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
 				API_SURVEY_RESPONSE_READ.equals(uri) ||

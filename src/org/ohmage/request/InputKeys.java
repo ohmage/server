@@ -193,8 +193,10 @@ public final class InputKeys {
 	public static final String ANNOTATION_TEXT = "annotation";
 	public static final String ANNOTATION_ID = "annotation_id";
 	
-	// Probe Constants
-	public static final String PROBE_DEFINITION = "probe_definition";
+	// Observer Constants
+	public static final String OBSERVER_DEFINITION = "observer_definition";
+	public static final String STREAM_ID = "stream_id";
+	public static final String STREAM_VERSION = "stream_version";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

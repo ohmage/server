@@ -1,0 +1,693 @@
+package org.ohmage.domain;
+
+import java.io.IOException;
+import java.io.StringReader;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import nu.xom.Builder;
+import nu.xom.Document;
+import nu.xom.Node;
+import nu.xom.Nodes;
+import nu.xom.ParsingException;
+import nu.xom.ValidityException;
+import nu.xom.XMLException;
+import nu.xom.XPathException;
+
+import org.apache.avro.Schema;
+import org.apache.avro.Schema.Parser;
+import org.apache.avro.SchemaParseException;
+import org.apache.avro.generic.GenericContainer;
+import org.apache.avro.generic.GenericDatumReader;
+import org.apache.avro.io.Decoder;
+import org.apache.avro.io.DecoderFactory;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.DomainException;
+import org.ohmage.util.StringUtils;
+import org.w3c.dom.DOMException;
+
+/**
+ * This class represents an observer which contains the overall information
+ * including its set of streams.
+ *
+ * @author John Jenkins
+ */
+public class Observer {
+	private static final Pattern PATTERN_ID_VALIDATOR = 
+		Pattern.compile("([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}");
+
+	/**
+	 * This class represents the definition of a single stream of data.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class Stream {
+		private static final Pattern PATTERN_ID_VALIDATOR = 
+			Pattern.compile("[a-zA-Z0-9_]{1,255}");
+		
+		private final String id;
+		private final long version;
+
+		private final String name;
+		private final String description;
+		
+		// NULL or true means that it should be checked for, however, false
+		// means that it should explicitly be ignored.
+		private final Boolean withTimestamp;
+		private final Boolean withLocation;
+
+		private final Schema schema;
+
+		/**
+		 * Creates a new stream definition.
+		 * 
+		 * @param id The unique identifier.
+		 * 
+		 * @param version The version for internal use.
+		 * 
+		 * @param name The display name for this stream.
+		 * 
+		 * @param description The description to be displayed to users.
+		 * 
+		 * @param withTimestamp Whether or not the data streams for this stream
+		 * 						should contain a timestamp. False means to 
+		 * 						explicitly ignore timestamps whereas true means
+		 * 						to consume them if they exist.
+		 * 
+		 * @param withLocation Whether or not the data streams for this stream
+		 * 					   should contain a locatoin. False means to
+		 * 					   explicitly ignore location data whereas true 
+		 * 					   means to consume them if they exist.
+		 * 
+		 * @param schema A string representing a valid Avro JSON schema.
+		 * 
+		 * @throws DomainException Required information was missing or invalid.
+		 */
+		public Stream(
+				final String id,
+				final long version,
+				final String name,
+				final String description,
+				final Boolean withTimestamp,
+				final Boolean withLocation,
+				final String schema) 
+				throws DomainException {
+
+			if(id == null) {
+				throw new DomainException("The ID is null.");
+			}
+			if(name == null) {
+				throw new DomainException("The name is null.");
+			}
+			if(description == null) {
+				throw new DomainException("The description is null.");
+			}
+			if(schema == null) {
+				throw new DomainException(
+					"The schema of this observer is null.");
+			}
+
+			this.id = sanitizeId(id);
+			this.version = version;
+
+			this.name = name;
+			this.description = description;
+			
+			this.withTimestamp = withTimestamp;
+			this.withLocation = withLocation;
+
+			try {
+				this.schema = (new Parser()).parse(schema);
+			}
+			catch(SchemaParseException e) {
+				throw new DomainException("The schema was invalid.", e);
+			}
+		}
+		
+		/**
+		 * Creates a Stream from the XML node.
+		 * 
+		 * @param stream The XML node that defines a Stream.
+		 * 
+		 * @throws DomainException Required fields were missing or invalid from
+		 * 						   the XML.
+		 */
+		private Stream(final Node stream) throws DomainException {
+			id = sanitizeId(getXmlValue(stream, "id", "stream ID"));
+
+			try {
+				version =
+					Long.decode(getXmlValue(
+						stream,
+						"version",
+						"stream, '" + id + "', version"));
+			}
+			catch(NumberFormatException e) {
+				throw new DomainException(
+					"The stream's, '" +
+						id +
+						"', version was not a number.", e);
+			}
+
+			name = getXmlValue(stream, "name", "stream, '" + id + "', name");
+
+			description =
+				getXmlValue(
+					stream, 
+					"description", 
+					"stream, '" +
+						id +
+						"', description");
+			
+			Nodes metadatas;
+			try {
+				metadatas = stream.query("metadata");
+			}
+			catch(XPathException e) {
+				// The XPath is invalid.
+				throw new DomainException(e);
+			}
+			
+			if(metadatas.size() > 1) {
+				throw new DomainException(
+					"Multiple metadata tags were given for '" + id + "'.");
+			}
+			else if(metadatas.size() == 1) {
+				Node metadata = metadatas.get(0);
+				
+				Nodes timestamps = metadata.query("timestamp");
+				if(timestamps.size() > 1) {
+					throw new DomainException(
+						"Multiple timestamp flags were given for the stream '" +
+							id +
+							"'.");
+				}
+				else if(timestamps.size() == 1) {
+					Node timestamp = timestamps.get(0);
+					String timestampString = timestamp.getValue().trim();
+					if(timestampString.length() == 0) {
+						withTimestamp = true;
+					}
+					else {
+						Boolean tWithTimestamp =
+							StringUtils.decodeBoolean(timestampString);
+						
+						if(tWithTimestamp == null) {
+							throw new DomainException(
+								"The timestamp flag in observer '" +
+									id +
+									"' is not a valid boolean: " + 
+									timestampString);
+						}
+						else {
+							withTimestamp = tWithTimestamp;
+						}
+					}
+				}
+				else {
+					withTimestamp = null;
+				}
+				
+				Nodes locations = metadata.query("location");
+				if(locations.size() > 1) {
+					throw new DomainException(
+						"Multiple location flags were given for the stream '" +
+							id +
+							"'.");
+				}
+				else if(locations.size() == 1) {
+					Node location = locations.get(0);
+					String locationString = location.getValue().trim();
+					if(locationString.length() == 0) {
+						withLocation = true;
+					}
+					else {
+						Boolean tWithLocation =
+							StringUtils.decodeBoolean(locationString);
+						
+						if(tWithLocation == null) {
+							throw new DomainException(
+								"The location flag in observer '" +
+									id +
+									"' is not a valid boolean: " + 
+									locationString);
+						}
+						else {
+							withLocation = tWithLocation;
+						}
+					}
+				}
+				else {
+					withLocation = false;
+				}
+			}
+			else {
+				withTimestamp = false;
+				withLocation = false;
+			}
+			
+			try {
+				schema =
+					(new Parser()).parse(
+						getXmlValue(
+							stream, 
+							"schema", 
+							"stream, " +
+								id +
+								", schema"));
+			}
+			catch(SchemaParseException e) {
+				throw new DomainException("The schema was invalid.", e);
+			}
+		}
+
+		/**
+		 * Returns id.
+		 * 
+		 * @return The id.
+		 */
+		public String getId() {
+			return id;
+		}
+
+		/**
+		 * Returns version.
+		 * 
+		 * @return The version.
+		 */
+		public long getVersion() {
+			return version;
+		}
+
+		/**
+		 * Returns name.
+		 * 
+		 * @return The name.
+		 */
+		public String getName() {
+			return name;
+		}
+
+		/**
+		 * Returns description.
+		 * 
+		 * @return The description.
+		 */
+		public String getDescription() {
+			return description;
+		}
+		
+		/**
+		 * Returns whether or not records may contain a time stamp.
+		 * 
+		 * @return Whether or not records may contain a time stamp.
+		 */
+		public boolean getWithTimestamp() {
+			return withTimestamp;
+		}
+		
+		/**
+		 * Returns whether or not records may contain a location.
+		 * 
+		 * @return Whether or not records may contain a location.
+		 */
+		public boolean getWithLocation() {
+			return withLocation;
+		}
+
+		/**
+		 * Returns schema.
+		 * 
+		 * @return The schema.
+		 */
+		public Schema getSchema() {
+			return schema;
+		}
+
+		/**
+		 * Parses a binary set of data based on this Stream's schema.
+		 * 
+		 * @param binary The binary set of data as a byte array.
+		 * 
+		 * @return The GenericContainer that represents the data.
+		 * 
+		 * @throws DomainException The data was null or could not be read.
+		 */
+		public GenericContainer parseDatum(
+				final byte[] binary)
+				throws DomainException {
+
+			if(binary == null) {
+				throw new DomainException("The binary data is null.");
+			}
+
+			Decoder decoder =
+				(new DecoderFactory()).binaryDecoder(binary, null);
+			GenericDatumReader<GenericContainer> genericReader =
+				new GenericDatumReader<GenericContainer>(schema);
+
+			try {
+				return genericReader.read(null, decoder);
+			}
+			catch(IOException e) {
+				throw new DomainException("The data could not be read.", e);
+			}
+		}
+		
+		/**
+		 * Sanitizes the stream ID and returns it.
+		 * 
+		 * @param id The ID to be sanitized.
+		 * 
+		 * @return The sanitized ID.
+		 * 
+		 * @throws DomainException The ID was not valid.
+		 */
+		public static String sanitizeId(
+				final String id) 
+				throws DomainException {
+			
+			if(id == null) {
+				throw new DomainException("The ID is null.");
+			}
+			
+			String trimmedId = id.trim();
+			if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
+				throw new DomainException(
+					ErrorCode.OBSERVER_INVALID_STREAM_ID,
+					"The stream ID is invalid. " +
+						"It must contain only alphanumeric characters " +
+						"and underscores, " +
+						"and it cannot be more than 255 characters.");
+			}
+			
+			return trimmedId;
+		}
+	}
+	private final Map<String, Stream> streams;
+
+	private final String id;
+	private final long version;
+
+	private final String name;
+	private final String description;
+	private final String versionString;
+
+	/**
+	 * Creates a new observer.
+	 * 
+	 * @param id The universally unique identifier for this observer. This 
+	 * 			 should conform to Java's name-spacing. 
+	 *  
+	 * @param version The version of this observer for internal use.
+	 * 
+	 * @param name The display name of this observer.
+	 * 
+	 * @param description A description of what this observer does.
+	 * 
+	 * @param versionString A string representing the version of this observer.
+	 * 
+	 * @param streams A collection of Streams for this observer.
+	 * 
+	 * @throws DomainException Some of the parameters were missing or invalid.
+	 */
+	public Observer(
+			final String id,
+			final long version,
+			final String name,
+			final String description,
+			final String versionString,
+			final Collection<Stream> streams) 
+			throws DomainException {
+
+		if(id == null) {
+			throw new DomainException("The ID is null.");
+		}
+		if(name == null) {
+			throw new DomainException("The name is null.");
+		}
+		if(description == null) {
+			throw new DomainException("The description is null.");
+		}
+		if(versionString == null) {
+			throw new DomainException("The version string is null.");
+		}
+		if(streams == null) {
+			throw new DomainException("The streams collection is null.");
+		}
+		if(streams.size() == 0) {
+			throw new DomainException("The streams collection is empty.");
+		}
+
+		this.id = sanitizeId(id);
+		this.version = version;
+
+		this.name = name.trim();
+		this.description = description.trim();
+		this.versionString = versionString.trim();
+
+		this.streams = new HashMap<String, Stream>(streams.size());
+		for(Stream observer : streams) {
+			if(observer == null) {
+				continue;
+			}
+
+			this.streams.put(observer.id, observer);
+		}
+	}
+
+	/**
+	 * Creates a new Observer based on an XML string.
+	 * 
+	 * @param xml The XML string.
+	 * 
+	 * @throws DomainException The XML was not valid XML or some of the  
+	 * 						   required elements were missing or invalid.
+	 */
+	public Observer(final String xml) throws DomainException {
+		Node root;
+		try {
+			Document document = 
+				(new Builder()).build(new StringReader(xml));
+			
+			Nodes roots = document.query("/observer");
+			if(roots.size() > 1) {
+				throw new DomainException(
+					"Multiple observers were defined in the XML.");
+			}
+			else if(roots.size() == 0) {
+				throw new DomainException(
+					"No observers were defined in the XML.");
+			}
+			
+			root = roots.get(0);
+		}
+		catch(XMLException e) {
+			// No XML parser is installed in the local class path.
+			throw new DomainException(e);
+		}
+		catch(ValidityException e) {
+			// The XML is invalid.
+			throw new DomainException("The XML is not valid XML.", e);
+		}
+		catch(ParsingException e) {
+			// The XML is not well formed.
+			throw new DomainException("The XML is not valid XML.", e);
+		}
+		catch(IOException e) {
+			// The stream failed!?
+			throw new DomainException(e);
+		}
+		catch(XPathException e) {
+			// The XPath for the root node is not valid XPath.
+			throw new DomainException(e);
+		}
+
+		id = sanitizeId(getXmlValue(root, "id", "observer ID"));
+
+		try {
+			version =
+				Long.decode(getXmlValue(root, "version", "observer version"));
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+				"The observer version was not a number.", 
+				e);
+		}
+
+		name = getXmlValue(root, "name", "observer name");
+		description = getXmlValue(root, "description", "observer description");
+		versionString = 
+			getXmlValue(root, "versionString", "observer version string");
+
+		Nodes streamList;
+		try {
+			streamList = root.query("stream");
+		}
+		catch(XPathException e) {
+			// The XPath is invalid.
+			throw new DomainException(e);
+		}
+		
+		streams = new HashMap<String, Stream>();
+		int streamListLength = streamList.size();
+		for(int i = 0; i < streamListLength; i++) {
+			Stream stream = new Stream(streamList.get(i));
+			streams.put(stream.id, stream);
+		}
+		if(streams.size() == 0) {
+			throw new DomainException("No streams were given.");
+		}
+	}
+
+	/**
+	 * Returns id.
+	 * 
+	 * @return The id.
+	 */
+	public String getId() {
+		return id;
+	}
+
+	/**
+	 * Returns version.
+	 * 
+	 * @return The version.
+	 */
+	public long getVersion() {
+		return version;
+	}
+
+	/**
+	 * Returns name.
+	 * 
+	 * @return The name.
+	 */
+	public String getName() {
+		return name;
+	}
+
+	/**
+	 * Returns description.
+	 * 
+	 * @return The description.
+	 */
+	public String getDescription() {
+		return description;
+	}
+
+	/**
+	 * Returns versionString.
+	 * 
+	 * @return The versionString.
+	 */
+	public String getVersionString() {
+		return versionString;
+	}
+
+	/**
+	 * Returns streams.
+	 * 
+	 * @return The streams.
+	 */
+	public Map<String, Stream> getObservers() {
+		return Collections.unmodifiableMap(streams);
+	}
+
+	/**
+	 * Sanitizes the observer's ID to ensure that it conforms, at least to some
+	 * degree, to Java's namespacing and doesn't contain any illegal 
+	 * characters.
+	 * 
+	 * @param id The ID to sanitize.
+	 * 
+	 * @return The sanitized ID.
+	 * 
+	 * @throws DomainException The ID could not be sanitized because it was 
+	 * 						   invalid.
+	 */
+	public static String sanitizeId(
+			final String id)
+			throws DomainException {
+
+		if(id == null) {
+			throw new DomainException("The ID is null.");
+		}
+
+		String trimmedId = id.trim();
+		if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
+			throw new DomainException(
+				ErrorCode.OBSERVER_INVALID_ID,
+				"The observer is invalid. " +
+					"It must consist of only alphanumeric values, " +
+					"include at least one '.', " +
+					"cannot end in a '.', " +
+					"and cannot be longer than 255 characters: " +
+					trimmedId);
+		}
+
+		return trimmedId;
+	}
+
+	/**
+	 * Parses the current node of an XML document and returns the requested
+	 * tag's value.
+	 * 
+	 * @param node The node in which to perform the parsing.
+	 * 
+	 * @param tagName The tag name to search for within this node.
+	 * 
+	 * @param errorName A string describing the tag being parsed which will be
+	 * 					used to construct the error message if it is invalid.
+	 * 
+	 * @return The tag's value.
+	 * 
+	 * @throws DomainException Multiple or no tags with that name exist or the
+	 * 						   tag isn't a string tag and, therefore, doesn't
+	 * 						   have a value.
+	 */
+	private static String getXmlValue(
+			final Node node,
+			final String tagName,
+			final String errorName)
+			throws DomainException {
+
+		String result = null;
+		Nodes results;
+		try {
+			results = node.query(tagName);
+		}
+		catch(XPathException e) {
+			// The XPath expression is invalid.
+			throw new DomainException(e);
+		}
+		
+		if(results.size() > 1) {
+			throw new DomainException(
+				"Multiple " +
+					errorName +
+					"s were defined in the XML.");
+		}
+		else if(results.size() == 1) {
+			try {
+				result = results.get(0).getValue();
+			}
+			catch(DOMException e) {
+				throw new DomainException(
+					"The " +
+						errorName +
+						" was not a value.", 
+					e);
+			}
+		}
+		if(result == null || result.trim().length() == 0) {
+			throw new DomainException("The " + errorName + " is missing.");
+		}
+		else {
+			return result.trim();
+		}
+	}
+}

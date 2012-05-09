@@ -73,6 +73,12 @@
       <ref bean="userMobilityQueries" />
     </constructor-arg>
   </bean>
+  
+  <bean class="org.ohmage.service.ObserverServices">
+    <constructor-arg>
+      <ref bean="observerQueries" />
+    </constructor-arg>
+  </bean>
 
   <bean class="org.ohmage.service.PromptResponseServices">
     <constructor-arg>

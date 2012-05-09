@@ -39,7 +39,7 @@
     <include name="mail.jar"/>
   	<include name="joda-time-2.1.jar"/>
   	<include name="avro-1.6.3.jar"/>
-    <include name="jackson-mini-1.9.7.jar"/>
+    <include name="jackson-all-1.9.7.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${library}">
@@ -67,7 +67,7 @@
     <include name="mail.jar"/>
     <include name="joda-time-2.1.jar"/>
     <include name="avro-1.6.3.jar"/>
-  	<include name="jackson-mini-1.9.7.jar"/>
+  	<include name="jackson-all-1.9.7.jar"/>
   </fileset>
 
   <path id="compile-classpath">
