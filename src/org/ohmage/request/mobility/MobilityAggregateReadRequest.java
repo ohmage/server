@@ -262,7 +262,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 		if(! isFailed()) {
 			try {
 				// Get the "day value" or "bucket number" for the start date.
-				int startYear = startDate.getYear();
+				int startYear = startDate.getYear() - 1;
 				int startBucketNum =
 					(startYear * 365) + (startYear / 4) - (startYear / 100) + (startYear / 400);
 				startBucketNum += startDate.getDayOfYear();
@@ -276,7 +276,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					DateTime pointDateTime = mobilityPoint.getDateTime();
 					
 					// Calculate this points "day value".
-					int year = pointDateTime.getYear();
+					int year = pointDateTime.getYear() - 1;
 					long bucketNum =
 						(year * 365) + (year / 4) - (year / 100) + (year / 400);
 					bucketNum += pointDateTime.getDayOfYear();
@@ -318,7 +318,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					// Compute the starting time stamp for this chunk.
 					currResult.put(
 						JSON_KEY_TIMESTAMP, 
-						TimeUtils.getIso8601DateString(timestamp, true));
+						TimeUtils.getIso8601DateString(timestamp, false));
 					
 					// Create the data array.
 					JSONArray data = new JSONArray();
