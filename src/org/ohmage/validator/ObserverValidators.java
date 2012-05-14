@@ -1,5 +1,11 @@
 package org.ohmage.validator;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Observer;
 import org.ohmage.exception.DomainException;
@@ -160,5 +166,49 @@ public class ObserverValidators {
 				"The value is not a valid number: " + value,
 				e);
 		}
+	}
+	
+	/**
+	 * Decodes the uploaded data as a JSON array of JSON objects.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return A collection of JSONObjects or null if the value was null or 
+	 * 		   only whitespace.
+	 * 
+	 * @throws ValidationException The data is invalid.
+	 */
+	public static final Collection<JSONObject> validateData(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		JSONArray array;
+		try {
+			array = new JSONArray(value);
+		}
+		catch(JSONException e) {
+			throw new ValidationException(
+				ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+				"The data stream was not a JSON array of JSON objects.");
+		}
+		
+		int arrayLength = array.length();
+		Collection<JSONObject> result = new ArrayList<JSONObject>(arrayLength);
+		for(int i = 0; i < arrayLength; i++) {
+			try {
+				result.add(array.getJSONObject(i));
+			}
+			catch(JSONException e) {
+				throw new ValidationException(
+					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+					"The element at index, " + i + ", was not a JSON object.");
+			}
+		}
+		
+		return result;
 	}
 }

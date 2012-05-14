@@ -20,11 +20,10 @@ import nu.xom.XPathException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
 import org.apache.avro.SchemaParseException;
-import org.apache.avro.generic.GenericContainer;
-import org.apache.avro.generic.GenericDatumReader;
-import org.apache.avro.io.Decoder;
-import org.apache.avro.io.DecoderFactory;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.w3c.dom.DOMException;
@@ -40,7 +39,8 @@ public class Observer {
 		Pattern.compile("([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}");
 
 	/**
-	 * This class represents the definition of a single stream of data.
+	 * This class represents the definition of a single stream of data. This
+	 * class is immutable and, therefore, thread-safe.
 	 *
 	 * @author John Jenkins
 	 */
@@ -301,21 +301,23 @@ public class Observer {
 		}
 		
 		/**
-		 * Returns whether or not records may contain a time stamp.
+		 * Returns whether or not records may contain a time stamp. If this was
+		 * not specified in the XML, then the default is true.
 		 * 
 		 * @return Whether or not records may contain a time stamp.
 		 */
 		public boolean getWithTimestamp() {
-			return withTimestamp;
+			return (withTimestamp == null) ? true : withTimestamp;
 		}
 		
 		/**
-		 * Returns whether or not records may contain a location.
+		 * Returns whether or not records may contain a location. If this was
+		 * not specified in the XML, then the default is true.
 		 * 
 		 * @return Whether or not records may contain a location.
 		 */
 		public boolean getWithLocation() {
-			return withLocation;
+			return (withLocation == null) ? true : withLocation;
 		}
 
 		/**
@@ -325,36 +327,6 @@ public class Observer {
 		 */
 		public Schema getSchema() {
 			return schema;
-		}
-
-		/**
-		 * Parses a binary set of data based on this Stream's schema.
-		 * 
-		 * @param binary The binary set of data as a byte array.
-		 * 
-		 * @return The GenericContainer that represents the data.
-		 * 
-		 * @throws DomainException The data was null or could not be read.
-		 */
-		public GenericContainer parseDatum(
-				final byte[] binary)
-				throws DomainException {
-
-			if(binary == null) {
-				throw new DomainException("The binary data is null.");
-			}
-
-			Decoder decoder =
-				(new DecoderFactory()).binaryDecoder(binary, null);
-			GenericDatumReader<GenericContainer> genericReader =
-				new GenericDatumReader<GenericContainer>(schema);
-
-			try {
-				return genericReader.read(null, decoder);
-			}
-			catch(IOException e) {
-				throw new DomainException("The data could not be read.", e);
-			}
 		}
 		
 		/**
@@ -596,10 +568,107 @@ public class Observer {
 	public Map<String, Stream> getObservers() {
 		return Collections.unmodifiableMap(streams);
 	}
+	
+	/**
+	 * Takes a JSON object that represents a single data record, validates it,
+	 * and returns it as a DataStream object.
+	 * 
+	 * @param data A single data record as a JSON object.
+	 * 
+	 * @return The record as a DataStream object.
+	 * 
+	 * @throws DomainException The data record was invalid.
+	 */
+	public DataStream getDataStream(
+			final JSONObject data) 
+			throws DomainException {
+		
+		// Get the stream's ID.
+		String streamId;
+		try {
+			streamId = data.getString("stream_id");
+		}
+		catch(JSONException e) {
+			throw new DomainException("The stream ID is missing.", e);
+		}
+		
+		// Get the stream's version.
+		long streamVersion;
+		try {
+			streamVersion = data.getLong("stream_version");
+		}
+		catch(JSONException e) {
+			throw new DomainException("The stream version is missing.");
+		}
+		
+		// Get the Stream and validate the version.
+		Stream currStream = streams.get(streamId);
+		if(currStream == null) {
+			throw new DomainException(
+				"There is no such stream with the given ID: " + streamId);
+		}
+		if(currStream.getVersion() != streamVersion) {
+			throw new DomainException(
+				"The stream's version, " + 
+					currStream.getVersion() + 
+					", does not match the given version: " + 
+					streamVersion);
+		}
+		
+		// Get the meta-data.
+		MetaData metaData = null;
+		if(data.has("metadata")) {
+			try {
+				JSONObject jsonMetaData = data.getJSONObject("metadata");
+				MetaData.Builder metaDataBuilder = new MetaData.Builder();
+				
+				if(currStream.getWithTimestamp()) {
+					metaDataBuilder.setTimestamp(jsonMetaData);
+				}
+				
+				if(currStream.getWithLocation()) {
+					metaDataBuilder.setLocation(jsonMetaData);
+				}
+				
+				metaData = metaDataBuilder.build();
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+					"The metadata is not a JSON object.", 
+					e);
+			}
+		}
+		
+		DataStream result;
+
+		// Get the data which may be JSON or may be binary.
+		if(data.has("data")) {
+			byte[] currData;
+			try {
+				currData = data.getString("data").getBytes();
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+					"The data was not encoded as a string.",
+					e);
+			}
+			
+			result = 
+				new DataStream(
+					currStream, 
+					metaData, 
+					currData);
+		}
+		else {
+			throw new DomainException("The data is missing.");
+		}
+		
+		return result;
+	}
 
 	/**
 	 * Sanitizes the observer's ID to ensure that it conforms, at least to some
-	 * degree, to Java's namespacing and doesn't contain any illegal 
+	 * degree, to Java's name-spacing and doesn't contain any illegal 
 	 * characters.
 	 * 
 	 * @param id The ID to sanitize.

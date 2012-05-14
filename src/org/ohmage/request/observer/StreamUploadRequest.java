@@ -1,13 +1,20 @@
 package org.ohmage.request.observer;
 
+import java.util.Collection;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.DataStream;
+import org.ohmage.domain.Observer;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
 
 public class StreamUploadRequest extends UserRequest {
@@ -16,19 +23,14 @@ public class StreamUploadRequest extends UserRequest {
 
 	private final String observerId;
 	private final Long observerVersion;
-	private final String streamId;
-	private final Long streamVersion;
-	private final byte[] data;
-	
+	private final Collection<JSONObject> data;
 	
 	public StreamUploadRequest(final HttpServletRequest httpRequest) {
 		super(httpRequest, TokenLocation.PARAMETER, false);
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;
-		String tStreamId = null;
-		Long tStreamVersion = null;
-		byte[] tData = null;
+		Collection<JSONObject> tData = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a stream upload request.");
@@ -55,31 +57,20 @@ public class StreamUploadRequest extends UserRequest {
 						"The observer's version is missing.");
 				}
 				
-				t = getParameterValues(InputKeys.STREAM_ID);
+				t = getParameterValues(InputKeys.DATA);
 				if(t.length > 1) {
 					throw new ValidationException(
-						ErrorCode.OBSERVER_INVALID_STREAM_ID,
-						"Multiple stream IDs were given: " + 
-							InputKeys.STREAM_ID);
+						ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+						"Multiple data streams were uploaded: " + 
+							InputKeys.DATA);
 				}
 				else if(t.length == 1) {
-					tStreamId = ObserverValidators.validateStreamId(t[0]);
+					tData = ObserverValidators.validateData(t[0]);
 				}
-				if(tStreamId == null) {
+				if(tData == null) {
 					throw new ValidationException(
-						ErrorCode.OBSERVER_INVALID_STREAM_ID,
-						"The stream ID is missing: " + InputKeys.STREAM_ID);
-				}
-				
-				t = getParameterValues(InputKeys.STREAM_VERSION);
-				if(t.length > 1) {
-					throw new ValidationException(
-						ErrorCode.OBSERVER_INVALID_STREAM_VERSION,
-						"Multiple stream versions were given: " +
-							InputKeys.STREAM_VERSION);
-				}
-				else if(t.length == 1) {
-					tStreamVersion = 
+						ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+						"The data was missing: " + InputKeys.DATA);
 				}
 			}
 			catch(ValidationException e) {
@@ -90,8 +81,6 @@ public class StreamUploadRequest extends UserRequest {
 		
 		observerId = tObserverId;
 		observerVersion = tObserverVersion;
-		streamId = tStreamId;
-		streamVersion = tStreamVersion;
 		data = tData;
 	}
 	
@@ -108,10 +97,24 @@ public class StreamUploadRequest extends UserRequest {
 		}
 		
 		try {
+			LOGGER.info("Getting the observer definition.");
+			Observer observer = 
+				ObserverServices.instance().getObserver(
+					observerId, 
+					observerVersion);
 			
+			LOGGER.info("Validating the uploaded data.");
+			Collection<DataStream> dataStreams =
+				ObserverServices.instance().validateData(observer, data);
+			
+			LOGGER.info("Storing the uploaded data.");
+			ObserverServices.instance().storeData(
+				getUser().getUsername(), 
+				dataStreams);
 		}
 		catch(ServiceException e) {
-			
+			e.failRequest(this);
+			e.logException(LOGGER);
 		}
 	}
 

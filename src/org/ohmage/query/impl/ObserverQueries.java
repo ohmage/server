@@ -2,15 +2,25 @@ package org.ohmage.query.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
+import org.ohmage.domain.DataStream;
+import org.ohmage.domain.DataStream.MetaData;
+import org.ohmage.domain.Location;
 import org.ohmage.domain.Observer;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IObserverQueries;
 import org.springframework.jdbc.core.PreparedStatementCreator;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -207,6 +217,233 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					sql +
 					"' with parameter: " +
 					observerId);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getObserver(java.lang.String, long)
+	 */
+	@Override
+	public Observer getObserver(
+			final String id, 
+			final long version)
+			throws DataAccessException {
+		
+		if(id == null) {
+			return null;
+		}
+		
+		String observerSql =
+			"SELECT observer_id, version, name, description, version_string " +
+			"FROM observer o " +
+			"WHERE o.observer_id = ? " +
+			"AND o.version = ?";
+		
+		String streamSql = 
+			"SELECT " +
+				"stream_id, " +
+				"version, " +
+				"name, " +
+				"description, " +
+				"with_timestamp, " +
+				"with_location, " +
+				"stream_schema " +
+			"FROM observer o, observer_stream os " +
+			"WHERE o.observer_id = ? " +
+			"AND o.version = ? " +
+			"AND o.id = os.observer_id";
+		
+		final List<Observer.Stream> streams;
+		try {
+			streams = 
+				getJdbcTemplate().query(
+					streamSql, 
+					new Object[] { id, version },
+					new RowMapper<Observer.Stream>() {
+						/**
+						 * Maps the row of data to a new stream.
+						 */
+						@Override
+						public Stream mapRow(
+								final ResultSet rs, 
+								final int rowNum)
+								throws SQLException {
+							
+							try {
+								return new Observer.Stream(
+									rs.getString("stream_id"), 
+									rs.getLong("version"), 
+									rs.getString("name"), 
+									rs.getString("description"), 
+									rs.getBoolean("with_timestamp"), 
+									rs.getBoolean("with_location"), 
+									rs.getString("stream_schema"));
+							}
+							catch(DomainException e) {
+								throw new SQLException(e);
+							}
+						}
+						
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					streamSql + 
+					"' with parameters: " +
+					id + ", " + 
+					version,
+				e);
+		}
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+				observerSql, 
+				new Object[] { id, version },
+				new RowMapper<Observer> () {
+					/**
+					 * Maps the row of data to a new observer.
+					 */
+					@Override
+					public Observer mapRow(
+							final ResultSet rs, 
+							final int rowNum)
+							throws SQLException {
+						
+						try {
+							return new Observer(
+								rs.getString("observer_id"),
+								rs.getLong("version"),
+								rs.getString("name"),
+								rs.getString("description"),
+								rs.getString("version_string"),
+								streams);
+						}
+						catch(DomainException e) {
+							throw new SQLException(e);
+						}
+					}
+				
+				}
+			);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					observerSql + 
+					"' with parameters: " +
+					id + ", " + 
+					version,
+				e);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					observerSql + 
+					"' with parameters: " +
+					id + ", " + 
+					version,
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#storeData(java.lang.String, java.util.Collection)
+	 */
+	@Override
+	public void storeData(
+			final String username, 
+			final Collection<DataStream> data)
+			throws DataAccessException {
+		
+		String sql =
+			"INSERT INTO observer_stream_data (" +
+				"stream_id, " +
+				"user_id, " +
+				"time, " +
+				"time_offset, " +
+				"time_zone, " +
+				"location_timestamp, " +
+				"location_latitude, " +
+				"location longitude, " +
+				"location_accuracy, " +
+				"location_provider, " +
+				"data) " +
+			"VALUES (" +
+				"(SELECT id FROM observer_stream WHERE stream_id = ?), " +
+				"(SELECT id FROM user WHERE username = ?), " +
+				"?, " +
+				"?, " +
+				"?, " +
+				"?, " +
+				"?, " +
+				"?, " +
+				"?, " +
+				"?, " +
+				"?)";
+		
+		List<Object[]> args = new ArrayList<Object[]>(data.size());
+		for(DataStream currData : data) {
+			MetaData metaData = currData.getMetaData();
+			DateTime timestamp = null;
+			Location location = null;
+			if(metaData != null) {
+				timestamp = metaData.getTimestamp();
+				
+				location = metaData.getLocation();
+			}
+				
+			args.add(
+				new Object[] {
+					currData.getStream().getId(),
+					username,
+					(timestamp == null) ? null : timestamp.getMillis(),
+					(timestamp == null) ? null : timestamp.getZone().getOffset(null),
+					(timestamp == null) ? null : timestamp.getZone().getID(),
+					(location == null) ? null : (new DateTime(location.getTime(), location.getTimeZone())).toString(),
+					(location == null) ? null : location.getLatitude(),
+					(location == null) ? null : location.getLongitude(),
+					(location == null) ? null : location.getAccuracy(),
+					(location == null) ? null : location.getProvider(),
+					new String(currData.getBinaryData())
+				}
+			);
+		}
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating a request audit.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = 
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			getJdbcTemplate().batchUpdate(sql, args);
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error while committing the transaction.", 
+					e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException(
+				"Error while attempting to rollback the transaction.", 
+				e);
 		}
 	}
 }
