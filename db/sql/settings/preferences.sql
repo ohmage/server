@@ -7,4 +7,5 @@ INSERT INTO preference(p_key, p_value) VALUES
     ('visualization_server_address', 'http://rdev.mobilizingcs.org/R/call/Mobilize/'),
     ('max_survey_response_page_size', '-1'),
     ('recaptcha_public_key', ''),
-    ('recaptcha_private_key', '');
+    ('recaptcha_private_key', ''),
+    ('public_class_id', 'urn:class:public');

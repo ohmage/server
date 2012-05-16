@@ -79,7 +79,8 @@ We are constantly striving to build a great software and a pleasing experience t
     ('mail_password_reset_sender_address', 'no-reply@ohmage.org'),
     ('mail_password_reset_subject', 'ohmage: Password Reset'),
     ('mail_password_reset_text', '<h3>Password Reset</h3><p>Your password has been reset. Please attempt to login with your new password below at which time you will be prompted to change your password.</p>'),
-    ('cors-lenient-mode', 'false');
+    ('cors-lenient-mode', 'false'),
+    ('public_class_id', 'urn:class:public');
     
 -- The key in the classifier JSON for Mobility points for the N95 variance has
 -- been changed from "N95Variance" to "n95variance".
