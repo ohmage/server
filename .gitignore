@@ -6,3 +6,4 @@ bin
 web/WEB-INF/properties/system.properties
 .sonar
 thirdparty
+/nbproject/

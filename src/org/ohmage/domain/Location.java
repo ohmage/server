@@ -217,12 +217,19 @@ public class Location {
 	 * @param locationData A JSONObject representing all of the data for a
 	 * 					   Location object.
 	 * 
+	 * @param defaultTimeZone This is a patch for the issue when the time zone
+	 * 						  is only the value "0".
+	 * 
 	 * @throws DomainException Thrown if the location data is null, isn't
 	 * 						   a valid JSONObject, doesn't contain all of
 	 * 						   the required information, or any of the 
 	 * 						   information is invalid for its type.
 	 */
-	public Location(JSONObject locationData) throws DomainException {
+	public Location(
+			final JSONObject locationData,
+			final DateTimeZone defaultTimeZone) 
+			throws DomainException {
+		
 		Long tTime;
 		try {
 			tTime = 
@@ -244,34 +251,55 @@ public class Location {
 		}
 		time = tTime;
 		
-		DateTimeZone tTimeZone;
-		try {
-			tTimeZone = 
-					TimeUtils.getDateTimeZoneFromString(
-						locationData.getString(
-							LocationColumnKey.TIMEZONE.toString(
-								false)));
+		Object tTimeZoneObject;
+		if(locationData.has(LocationColumnKey.TIMEZONE.toString(false))) {
+			try {
+				tTimeZoneObject = 
+					locationData.get(
+						LocationColumnKey.TIMEZONE.toString(false));
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+					"There is a concurrency issue. We just checked for existence.",
+					e);
+			}
 		}
-		catch(JSONException noRegular) {
+		else if(locationData.has(LocationColumnKey.TIMEZONE.toString(true))) {
+			try {
+				tTimeZoneObject = 
+					locationData.get(
+						LocationColumnKey.TIMEZONE.toString(true));
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+					"There is a concurrency issue. We just checked for existence.",
+					e);
+			}
+		}
+		else {
+			throw new DomainException(
+				ErrorCode.SERVER_INVALID_TIMEZONE, 
+				"The time zone is missing.");
+		}
+
+		DateTimeZone tTimeZone = defaultTimeZone;
+		if(tTimeZoneObject instanceof String) {
 			try {
 				tTimeZone = 
-						TimeUtils.getDateTimeZoneFromString(
-							locationData.getString(
-								LocationColumnKey.TIMEZONE.toString(
-									true)));
+					TimeUtils.getDateTimeZoneFromString(
+						(String) tTimeZoneObject);
 			}
-			catch(JSONException noShort) {
+			catch(IllegalArgumentException e) {
 				throw new DomainException(
-						ErrorCode.SERVER_INVALID_TIMEZONE, 
-						"The time zone is missing.", 
-						noShort);
+						ErrorCode.SERVER_INVALID_TIMEZONE,
+						"The time zone is unknown.",
+						e);
 			}
 		}
-		catch(IllegalArgumentException e) {
+		if(tTimeZone == null) {
 			throw new DomainException(
-					ErrorCode.SERVER_INVALID_TIMEZONE,
-					"The time zone is unknown.",
-					e);
+				ErrorCode.SERVER_INVALID_TIMEZONE,
+				"The time zone is unknown.");
 		}
 		timeZone = tTimeZone;
 		
