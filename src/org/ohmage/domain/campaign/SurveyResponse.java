@@ -854,7 +854,7 @@ public class SurveyResponse {
 			throw new DomainException("Unknown location status.", e);
 		}
 		if(location != null) {
-			this.location = new Location(location);
+			this.location = new Location(location, timezone);
 		}
 		else {
 			this.location = null;
@@ -1113,7 +1113,10 @@ public class SurveyResponse {
 		
 		Location tLocation = null;
 		try {
-			tLocation = new Location(response.getJSONObject(JSON_KEY_LOCATION));
+			tLocation = 
+				new Location(
+					response.getJSONObject(JSON_KEY_LOCATION),
+					timezone);
 		}
 		catch(JSONException e) {
 			if(!LocationStatus.UNAVAILABLE.equals(locationStatus)) {

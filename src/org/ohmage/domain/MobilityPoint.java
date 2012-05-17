@@ -2508,7 +2508,8 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					new Location(
 							mobilityPoint.getJSONObject(
 									MobilityColumnKey.LOCATION.toString(
-											false)));
+											false)),
+							timezone);
 		}
 		catch(JSONException outerException) {
 			try {
@@ -2516,7 +2517,8 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 						new Location(
 								mobilityPoint.getJSONObject(
 										MobilityColumnKey.LOCATION.toString(
-												true)));
+												true)),
+								timezone);
 			}
 			catch(JSONException innerException) {
 				// If there was no location information in the JSONObject, 
@@ -2751,7 +2753,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			this.location = null;
 		}
 		else {
-			this.location = new Location(location);
+			this.location = new Location(location, timezone);
 		}
 		
 		if(mode == null) {
