@@ -1,3 +1,7 @@
+
+
+BACKGROUND:
+
 This is the ohmage server project developed at CENS (http://research.cens.ucla.edu/ http://ohmage.org).
 
 ohmage is a platform for creating, capturing and visualizing configurable mobile phone data streams.
@@ -5,3 +9,21 @@ ohmage is a platform for creating, capturing and visualizing configurable mobile
 ohmage server is the reference DSU (data storage unit) for Open mHealth. (http://openmhealth.org/)
 
 For more details or if you have questions, you can check out our wiki or contact selsky@cens.ucla.edu.
+
+
+COLLABORATION POLICY:
+
+Please avoid pushing to master. Instead, please push to a development branch.
+
+
+CODING STANDARDS:
+
+4 space indents (no tabs)
+
+Always use curly braces even if the conditional or loop is one line
+
+Opening curly braces go on the same line of the loop or conditional declaration
+
+Comments anywhere can only be 80 chars per line
+
+For code, most of us have been going with 80 chars per line, but that is not a hard and fast rule.
