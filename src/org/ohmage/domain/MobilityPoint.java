@@ -839,7 +839,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 						currList = new LinkedList<Double>();
 						result.set(index, currList);
 					}
-					currList.add(y);
+					currList.add(z);
 				}
 			}
 		}
