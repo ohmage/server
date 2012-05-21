@@ -3,10 +3,12 @@ package org.ohmage.service;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
+import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -100,7 +102,7 @@ public class ObserverServices {
 	}
 	
 	/**
-	 * Retrieve's the observer.
+	 * Retrieves the observer.
 	 * 
 	 * @param observerId The observer's unique identifier.
 	 * 
@@ -124,6 +126,35 @@ public class ObserverServices {
 			}
 			
 			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the stream.
+	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @param streamId The stream's unique identifier.
+	 * 
+	 * @param streamVersion The stream's version.
+	 * 
+	 * @return The Stream or null if no stream with that observer/ID/version 
+	 * 		   exists.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Observer.Stream getStream(
+			final String observerId,
+			final String streamId,
+			final long streamVersion)
+			throws ServiceException {
+		
+		try {
+			return 
+				observerQueries.getStream(observerId, streamId, streamVersion);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -179,6 +210,60 @@ public class ObserverServices {
 		
 		try {
 			observerQueries.storeData(username, data);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Retrieves the data for a stream.
+	 * 
+	 * @param stream The Stream object for the stream whose data is in 
+	 * 				 question. Required.
+	 * 
+	 * @param username The username of the user to which the data must belong.
+	 * 				   Required.
+	 * 
+	 * @param observerId The observer's unique identifier. Required if the 
+	 * 					 observer's version is given.
+	 * 
+	 * @param observerVersion The observer's version. Optional.
+	 * 
+	 * @param startDate The earliest data point to return. Optional.
+	 * 
+	 * @param endDate The latest point data point to return. Optional.
+	 * 
+	 * @param numToSkip The number of data points to skip. Optional.
+	 * 
+	 * @param numToReturn The number of data points to return. Optional.
+	 * 
+	 * @return A collection of data points that match the query.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Collection<DataStream> getStreamData(
+			final Stream stream,
+			final String username,
+			final String observerId,
+			final Long observerVersion,
+			final DateTime startDate,
+			final DateTime endDate,
+			final long numToSkip,
+			final long numToReturn) 
+			throws ServiceException {
+		
+		try {
+			return 
+				observerQueries.readData(
+					stream,
+					username,
+					observerId,
+					observerVersion,
+					startDate,
+					endDate,
+					numToSkip,
+					numToReturn);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

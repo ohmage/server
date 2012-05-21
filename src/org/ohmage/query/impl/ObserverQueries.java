@@ -6,11 +6,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.sql.DataSource;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.domain.Location;
@@ -355,6 +358,84 @@ public class ObserverQueries extends Query implements IObserverQueries {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getStream(java.lang.String, java.lang.String, long)
+	 */
+	@Override
+	public Stream getStream(
+			final String observerId,
+			final String streamId,
+			final long streamVersion) 
+			throws DataAccessException {
+		
+		if(observerId == null) {
+			return null;
+		}
+		else if(streamId == null) {
+			return null;
+		}
+		
+		String streamSql = 
+			"SELECT " +
+				"stream_id, " +
+				"version, " +
+				"name, " +
+				"description, " +
+				"with_timestamp, " +
+				"with_location, " +
+				"stream_schema " +
+			"FROM observer o, observer_stream os " +
+			"WHERE o.observer_id = ? " +
+			"AND o.id = os.observer_id " +
+			"AND os.stream_id = ? " +
+			"AND os.version = ?";
+		
+		try {
+			return 
+				getJdbcTemplate().queryForObject(
+					streamSql, 
+					new Object[] { observerId, streamId, streamVersion },
+					new RowMapper<Observer.Stream>() {
+						/**
+						 * Maps the row of data to a new stream.
+						 */
+						@Override
+						public Stream mapRow(
+								final ResultSet rs, 
+								final int rowNum)
+								throws SQLException {
+							
+							try {
+								return new Observer.Stream(
+									rs.getString("stream_id"), 
+									rs.getLong("version"), 
+									rs.getString("name"), 
+									rs.getString("description"), 
+									rs.getBoolean("with_timestamp"), 
+									rs.getBoolean("with_location"), 
+									rs.getString("stream_schema"));
+							}
+							catch(DomainException e) {
+								throw new SQLException(e);
+							}
+						}
+						
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					streamSql + 
+					"' with parameters: " +
+					observerId + ", " +
+					streamId + ", " +
+					streamVersion,
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.IObserverQueries#storeData(java.lang.String, java.util.Collection)
 	 */
 	@Override
@@ -444,6 +525,157 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			throw new DataAccessException(
 				"Error while attempting to rollback the transaction.", 
 				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#readData(org.ohmage.domain.Observer.Stream, java.lang.Long, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+	 */
+	@Override
+	public List<DataStream> readData(
+			final Stream stream,
+			final String username,
+			final String observerId,
+			final Long observerVersion,
+			final DateTime startDate,
+			final DateTime endDate,
+			final long numToSkip,
+			final long numToReturn) 
+			throws DataAccessException {
+		
+		StringBuilder builder = 
+			new StringBuilder(
+				"SELECT " +
+					"osd.time, " +
+					"osd.time_zone, " +
+					"osd.location_timestamp, " +
+					"osd.location_latitude, " +
+					"osd.location_longitude, " +
+					"osd.location_accuracy, " +
+					"osd.location_provider, " +
+					"osd.data " +
+				"FROM " +
+					"user u, " +
+					"observer_stream os, " +
+					"observer_stream_data osd");
+		List<Object> parameters = new LinkedList<Object>();
+		
+		if(observerVersion != null) {
+			builder.append(", observer o");
+		}
+		
+		builder.append(
+			"WHERE u.username = ? " +
+			"AND osd.user_id = u.id " +
+			"AND os.stream_id = ? " +
+			"AND os.version = ? " +
+			"AND osd.stream_id = os.id");
+		parameters.add(username);
+		parameters.add(stream.getId());
+		parameters.add(stream.getVersion());
+		
+		if(observerVersion != null) {
+			builder.append(
+				" " +
+				"AND o.observer_id = ? " +
+				"AND o.version = ? " +
+				"AND os.observer_id = o.id");
+			parameters.add(observerId);
+			parameters.add(observerVersion);
+		}
+		
+		if(startDate != null) {
+			builder.append(" AND (osd.time + osd.time_offset) >= ?");
+			parameters.add(startDate.getMillis());
+		}
+		
+		if(endDate != null) {
+			builder.append(" AND (osd.time + osd.time_offset) <= ?");
+			parameters.add(endDate.getMillis());
+		}
+		
+		builder.append(" LIMIT " + numToSkip + ", " + numToReturn);
+		
+		try {
+			return
+				getJdbcTemplate().query(
+					builder.toString(),
+					parameters.toArray(),
+					new RowMapper<DataStream>() {
+						/**
+						 * Decodes the resulting data into a data stream.
+						 */
+						@Override
+						public DataStream mapRow(
+								final ResultSet rs, 
+								final int rowNum)
+								throws SQLException {
+							
+							MetaData.Builder metaDataBuilder =
+								new MetaData.Builder();
+							
+							Long time = rs.getLong("osd.time");
+							if(time != null) {
+								metaDataBuilder.setTimestamp(
+									new DateTime(
+										time,
+										DateTimeZone.forID(
+											rs.getString("osd.time_zone"))));
+							}
+							
+							String locationTimestampString = 
+								rs.getString("location_timestamp");
+							if(locationTimestampString != null) {
+								Location location;
+								try {
+									location =
+										new Location(
+											ISODateTimeFormat
+												.dateTime()
+												.parseDateTime(
+													rs.getString(
+														"osd.location_timestamp")),
+											rs.getDouble("osd.location_latitude"),
+											rs.getDouble("osd.location_longitude"),
+											rs.getDouble("osd.location_accuracy"),
+											rs.getString("osd.location_provider"));
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException(
+										"The timestamp in the database is corrupted.",
+										e);
+								}
+								catch(NullPointerException e) {
+									throw new SQLException(
+										"A double in the database is corrupted.",
+										e);
+								}
+								catch(DomainException e) {
+									throw new SQLException(
+										"Could not create the location object.",
+										e);
+								}
+								
+								metaDataBuilder.setLocation(location);
+							}
+							
+							try {
+								return new DataStream(
+									stream, 
+									metaDataBuilder.build(), 
+									rs.getBytes("data"));
+							}
+							catch(DomainException e) {
+								throw new SQLException(
+									"Could not create the data stream.",
+									e);
+							}
+						}
+					});
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(e);
 		}
 	}
 }

@@ -106,7 +106,7 @@ public class UserPasswordResetRequest extends Request {
 			UserServices.instance().resetPassword(username);
 		}
 		catch(ServiceException e) {
-			LOGGER.info("Something failed validationWe do not fail the request when things fail because we do not want to leak information.");
+			LOGGER.info("Something failed validation. We do not fail the request when things fail because we do not want to leak information.");
 			e.logException(LOGGER);
 		}
 	}

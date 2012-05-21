@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -214,6 +215,46 @@ public class Location {
 	/**
 	 * Creates a new Location object.
 	 * 
+	 * @param latitude The latitude of the device.
+	 * 
+	 * @param longitude The longitude of the device.
+	 * 
+	 * @param accuracy The accuracy of the reading.
+	 * 
+	 * @param provider A string representing who the provider was.
+	 * 
+	 * @param timestamp A timestamp of when this reading was made.
+	 * 
+	 * @throws DomainException Thrown if the provider or time zone are null.
+	 */
+	public Location(
+			final DateTime timestamp,
+			final double latitude, 
+			final double longitude, 
+			final double accuracy, 
+			final String provider) 
+			throws DomainException {
+		
+		if(timestamp == null) {
+			throw new DomainException(
+				"The timestamp is null.");
+		}
+		if(provider == null) {
+			throw new DomainException(
+				"The provider is null.");
+		}
+
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.accuracy = accuracy;
+		this.provider = provider;
+		this.time = timestamp.getMillis();
+		this.timeZone = timestamp.getZone();
+	}
+	
+	/**
+	 * Creates a new Location object.
+	 * 
 	 * @param locationData A JSONObject representing all of the data for a
 	 * 					   Location object.
 	 * 
@@ -387,49 +428,6 @@ public class Location {
 			}
 		}
 		provider = tProvider;
-	}
-	
-	/**
-	 * Creates a new Location object.
-	 * 
-	 * @param latitude The latitude of the device.
-	 * 
-	 * @param longitude The longitude of the device.
-	 * 
-	 * @param accuracy The accuracy of the reading.
-	 * 
-	 * @param provider A string representing who the provider was.
-	 * 
-	 * @param timestamp A timestamp of when this reading was made.
-	 * 
-	 * @throws DomainException Thrown if the provider or time zone are null.
-	 */
-	public Location(
-			final double latitude, 
-			final double longitude, 
-			final double accuracy, 
-			final String provider, 
-			final long time, 
-			final DateTimeZone timeZone) 
-			throws DomainException {
-		
-		if(provider == null) {
-			throw new DomainException(
-					ErrorCode.SERVER_INVALID_LOCATION, 
-					"The provider cannot be null.");
-		}
-		else if(timeZone == null) {
-			throw new DomainException(
-					ErrorCode.SERVER_INVALID_LOCATION,
-					"The time zone cannot be null.");
-		}
-		
-		this.latitude = latitude;
-		this.longitude = longitude;
-		this.accuracy = accuracy;
-		this.provider = provider;
-		this.time = time;
-		this.timeZone = timeZone;
 	}
 
 	/**

@@ -510,6 +510,24 @@ public abstract class UserRequest extends Request {
 		
 		return token;
 	}
+	
+	/**
+	 * Refreshes the token cookie for the request.
+	 * 
+	 * @param httpResponse The HTTP response.
+	 */
+	protected void refreshTokenCookie(final HttpServletResponse httpResponse) {
+		if(user != null) {
+			final String token = user.getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(
+					httpResponse, 
+					InputKeys.AUTH_TOKEN, 
+					token, 
+					(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+	}
 
 	/**
 	 * Generates the success/fail response for the user with an additional key-
@@ -531,16 +549,7 @@ public abstract class UserRequest extends Request {
 			final String key, 
 			final Object value) {
 		
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(
-						httpResponse, 
-						InputKeys.AUTH_TOKEN, 
-						token, 
-						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-		}
+		refreshTokenCookie(httpResponse);
 		
 		JSONObject response = new JSONObject();
 		
@@ -595,16 +604,7 @@ public abstract class UserRequest extends Request {
 			final JSONObject metadata, 
 			final JSONObject data) {
 		
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(
-						httpResponse, 
-						InputKeys.AUTH_TOKEN, 
-						token, 
-						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-		}
+		refreshTokenCookie(httpResponse);
 		
 		JSONObject response = new JSONObject();
 		try {
