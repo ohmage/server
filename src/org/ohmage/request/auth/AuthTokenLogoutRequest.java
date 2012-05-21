@@ -15,11 +15,14 @@
  ******************************************************************************/
 package org.ohmage.request.auth;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -48,8 +51,13 @@ public class AuthTokenLogoutRequest extends UserRequest {
 	 * bin.
 	 * 
 	 * @param httpRequest The HTTP request containing the parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public AuthTokenLogoutRequest(HttpServletRequest httpRequest) {
+	public AuthTokenLogoutRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a logout request.");

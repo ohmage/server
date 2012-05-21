@@ -15,11 +15,14 @@
  ******************************************************************************/
 package org.ohmage.request.clazz;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -72,8 +75,13 @@ public class ClassCreationRequest extends UserRequest {
 	 * 
 	 * @param httpRequest A HttpServletRequest object that contains the
 	 * 					  parameters to and metadata for this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public ClassCreationRequest(HttpServletRequest httpRequest) {
+	public ClassCreationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a class creation request.");

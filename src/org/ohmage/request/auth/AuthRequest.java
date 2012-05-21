@@ -15,10 +15,13 @@
  ******************************************************************************/
 package org.ohmage.request.auth;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -61,8 +64,13 @@ public class AuthRequest extends UserRequest {
 	 * 
 	 * @param httpRequest A HttpServletRequest containing the parameters for
 	 * 					  this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public AuthRequest(HttpServletRequest httpRequest) {
+	public AuthRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, true);
 		
 		LOGGER.info("Building an username / password authentication request.");

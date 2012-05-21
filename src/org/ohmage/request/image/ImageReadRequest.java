@@ -32,6 +32,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Image;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -93,8 +94,13 @@ public class ImageReadRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with all of the parameters to
 	 * 					  build this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public ImageReadRequest(HttpServletRequest httpRequest) {
+	public ImageReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		LOGGER.info("Creating an image read request.");

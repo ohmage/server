@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.request.user;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.UserSummary;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
@@ -55,8 +58,13 @@ public class UserInfoReadRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserInfoReadRequest(HttpServletRequest httpRequest) {
+	public UserInfoReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating a user info read request.");

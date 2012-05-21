@@ -19,6 +19,7 @@ import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -89,8 +90,13 @@ public class MobilityReadCsvRequest extends UserRequest {
 	 * attachment on success and JSON when it fails.
 	 * 
 	 * @param httpRequest The HttpServletRequest for this information.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityReadCsvRequest(HttpServletRequest httpRequest) {
+	public MobilityReadCsvRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		DateTime tStartDate = null;

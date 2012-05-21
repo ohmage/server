@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.document;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -168,8 +170,13 @@ public class DocumentUpdateRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest containing the specific 
 	 * 					  information.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public DocumentUpdateRequest(HttpServletRequest httpRequest) {
+	public DocumentUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		String tDocumentId = null;

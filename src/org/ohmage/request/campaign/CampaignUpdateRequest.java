@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.campaign;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -126,8 +128,13 @@ public class CampaignUpdateRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters to build
 	 * 					  this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public CampaignUpdateRequest(HttpServletRequest httpRequest) {
+	public CampaignUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a campaign update request.");

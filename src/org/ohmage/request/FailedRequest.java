@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.InvalidRequestException;
 
 /**
  * This class represents a failed request. It will simply set the request as 
@@ -35,8 +36,13 @@ public class FailedRequest extends Request {
 	
 	/**
 	 * Default constructor. Sets the request as failed.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public FailedRequest() {
+	public FailedRequest() throws IOException, InvalidRequestException {
 		super(null);
 		
 		setFailed();

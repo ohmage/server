@@ -15,12 +15,14 @@
  ******************************************************************************/
 package org.ohmage.request.visualization;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -43,8 +45,13 @@ public class VizUserTimeseriesRequest extends VisualizationRequest {
 	 * Creates a user distribution visualization request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the required parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public VizUserTimeseriesRequest(HttpServletRequest httpRequest) {
+	public VizUserTimeseriesRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		LOGGER.info("Creating a user timeseries request.");
