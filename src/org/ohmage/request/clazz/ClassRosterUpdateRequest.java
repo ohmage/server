@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.clazz;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -92,8 +94,13 @@ public class ClassRosterUpdateRequest extends UserRequest {
 	 * 
 	 * @param httpRequest A HttpServletRequest that contains the parameters for
 	 * 					  this request. 
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public ClassRosterUpdateRequest(HttpServletRequest httpRequest) {
+	public ClassRosterUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Create a class roster update request.");

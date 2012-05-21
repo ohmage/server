@@ -15,11 +15,13 @@
  ******************************************************************************/
 package org.ohmage.request;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenLogoutRequest;
@@ -270,8 +272,16 @@ public final class RequestBuilder {
 	 * @param httpRequest The incoming HTTP request.
 	 * 
 	 * @return A new Request object based on the HTTP request's URI.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public static Request buildRequest(HttpServletRequest httpRequest) {
+	public static Request buildRequest(
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
+		
 		String requestUri = httpRequest.getRequestURI();
 		
 		LOGGER.debug(requestUri);

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.survey.annotation;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Annotation;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -97,8 +99,13 @@ public class PromptResponseAnnotationReadRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public PromptResponseAnnotationReadRequest(HttpServletRequest httpRequest) {
+	public PromptResponseAnnotationReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a prompt response annotation read request.");

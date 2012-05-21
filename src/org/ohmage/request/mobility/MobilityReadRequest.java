@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.mobility;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -126,8 +128,13 @@ public class MobilityReadRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityReadRequest(HttpServletRequest httpRequest) {
+	public MobilityReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		LOGGER.info("Creating a Mobility read request.");

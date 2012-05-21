@@ -15,11 +15,14 @@
  ******************************************************************************/
 package org.ohmage.request.auth;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -60,8 +63,13 @@ public class AuthTokenRequest extends UserRequest {
 	 * A request for an authentication token.
 	 * 
 	 * @param httpRequest The HTTP request containing the parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public AuthTokenRequest(HttpServletRequest httpRequest) {
+	public AuthTokenRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, true);
 		
 		LOGGER.info("Building an authentication token request.");

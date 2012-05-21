@@ -16,6 +16,7 @@
 package org.ohmage.request.user;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -32,6 +33,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -129,8 +131,13 @@ public class UserReadRequest extends UserRequest {
 	 * Creates a new user read request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the required parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserReadRequest(HttpServletRequest httpRequest) {
+	public UserReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 
 		Collection<String> tUsernames = null;

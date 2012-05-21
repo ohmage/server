@@ -15,11 +15,14 @@
  ******************************************************************************/
 package org.ohmage.request.document;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -63,8 +66,13 @@ public class DocumentDeletionRequest extends UserRequest {
 	 * Creates a new request for deleting a document's contents.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the request's parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public DocumentDeletionRequest(HttpServletRequest httpRequest) {
+	public DocumentDeletionRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		String tempDocumentId = null;

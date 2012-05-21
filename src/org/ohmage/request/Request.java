@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.request;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -45,6 +44,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
 
@@ -136,8 +136,16 @@ public abstract class Request {
 	 * 
 	 * @param httpRequest An HttpServletRequest that was used to create this 
 	 * 					  request. This may be null if no such request exists.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	protected Request(final HttpServletRequest httpRequest) {
+	protected Request(
+			final HttpServletRequest httpRequest)
+			throws IOException, InvalidRequestException {
+		
 		annotator = new Annotator();
 		failed = false;
 
@@ -396,14 +404,14 @@ public abstract class Request {
 	 * 		   parameters contained in the request. This may return an empty 
 	 * 		   map, but it will never return null.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the parameters cannot be 
-	 * 									parsed.
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
 	 * 
-	 * @throws IllegalStateException Thrown if there is a problem connecting to
-	 * 								 or reading from the request.
+	 * @throws IOException There was an error reading from the request.
 	 */
 	private Map<String, String[]> getParameters(
-			final HttpServletRequest httpRequest) {
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
 		
 		if(httpRequest == null) {
 			return Collections.emptyMap();
@@ -484,24 +492,44 @@ public abstract class Request {
 	 * 		   parameters passed to the server. This may return an empty map,
 	 * 		   but it will never return null.
 	 * 
-	 * @throws IllegalArgumentException Thrown if the parameters cannot be 
-	 * 									parsed.
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
 	 * 
-	 * @throws IllegalStateException Thrown if there is a problem connecting to
-	 * 								 or reading from the request.
+	 * @throws IOException There was an error reading from the request.
 	 */
-	private Map<String, String[]> gunzipRequest(HttpServletRequest httpRequest) {
-		// Retrieve the InputStream for the GZIP'd content of the request.
-		InputStream inputStream;
+	private Map<String, String[]> gunzipRequest(
+			final HttpServletRequest httpRequest)
+			throws IOException, InvalidRequestException {
+		
+		// Get the request's InputStream.
+		InputStream requestInputStream;
 		try {
-			inputStream = 
-					new BufferedInputStream(
-							new GZIPInputStream(httpRequest.getInputStream()));
+			requestInputStream = httpRequest.getInputStream();
 		}
 		catch(IOException e) {
-			LOGGER.error("The uploaded content was not GZIP content.", e);
-			setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Not GZIP content.");
-			return Collections.emptyMap();
+			LOGGER.info("Could not connect to the request's input stream.", e);
+			throw e;
+		}
+		
+		// Pass it through the GZIP input stream.
+		GZIPInputStream gzipInputStream;
+		try {
+			gzipInputStream = new GZIPInputStream(requestInputStream);
+		}
+		catch(IOException e) {
+			try {
+				requestInputStream.close();
+			}
+			catch(IOException requestIs) {
+				LOGGER.error(
+					"Could not close the request's input stream.", 
+					requestIs);
+				throw requestIs;
+			}
+			
+			throw new InvalidRequestException(
+				HttpServletResponse.SC_BAD_REQUEST,
+				"The content was not a valid GZIP stream.");
 		}
 		
 		// Retrieve the parameter list as a string.
@@ -514,26 +542,33 @@ public abstract class Request {
 			byte[] chunk = new byte[CHUNK_SIZE];
 			int readLen = 0;
 			
-			while((readLen = inputStream.read(chunk)) != -1) {
+			while((readLen = gzipInputStream.read(chunk)) != -1) {
 				builder.append(new String(chunk, 0, readLen));
 			}
 			
 			parameterString = builder.toString();
 		}
 		catch(IOException e) {
-			throw new IllegalStateException(
-					"There was an error while reading from the request's input stream.", 
-					e);
+			LOGGER.info(
+				"The stream was cut off before reading was finished.",
+				e);
+			throw e;
 		}
 		finally {
 			try {
-				inputStream.close();
-				inputStream = null;
+				gzipInputStream.close();
+				gzipInputStream = null;
 			}
 			catch(IOException e) {
-				throw new IllegalStateException(
-						"An error occurred while closing the input stream.", 
-						e);
+				LOGGER.info("Error closing the GZIP input stream.", e);
+			}
+
+			try {
+				requestInputStream.close();
+				requestInputStream = null;
+			}
+			catch(IOException e) {
+				LOGGER.info("Error closing the request's input stream.", e);
 			}
 		}
 		
@@ -560,18 +595,28 @@ public abstract class Request {
 				// If there isn't exactly one key to one value, then there is a
 				// problem, and we need to abort.
 				if(splitPair.length <= 1) {
-					throw new IllegalArgumentException(
-							"One of the parameter's 'pairs' did not contain a '" + 
-									PARAMETER_VALUE_SEPARATOR + 
-									"': " + 
-									keyValuePair);
+					String errorText =
+						"One of the parameter's 'pairs' did not contain a '" + 
+							PARAMETER_VALUE_SEPARATOR + 
+							"': " + 
+							keyValuePair;
+					
+					LOGGER.error(errorText);
+					throw new InvalidRequestException(
+						HttpServletResponse.SC_BAD_REQUEST, 
+						errorText);
 				}
 				else if(splitPair.length > 2) {
-					throw new IllegalArgumentException(
-							"One of the parameter's 'pairs' contained multiple '" + 
-									PARAMETER_VALUE_SEPARATOR + 
-									"'s: " + 
-									keyValuePair);
+					String errorText =
+						"One of the parameter's 'pairs' contained multiple '" + 
+							PARAMETER_VALUE_SEPARATOR + 
+							"'s: " + 
+							keyValuePair;
+					
+					LOGGER.error(errorText);
+					throw new InvalidRequestException(
+						HttpServletResponse.SC_BAD_REQUEST, 
+						errorText);
 				}
 				
 				// The key is the first part of the pair.

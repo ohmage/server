@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.service.AuthenticationService;
@@ -62,8 +64,15 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param hashPassword Whether or not to hash the user's password when 
 	 * 					   authenticating the user.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) {
+	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) 
+			throws IOException, InvalidRequestException {
+		
 		super(httpRequest);
 		
 		if(isFailed()) {
@@ -155,8 +164,15 @@ public abstract class UserRequest extends Request {
 	 * 					  client parameters.
 	 * 
 	 * @param tokenLocation This indicates where the token must be located.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation) {
+	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation) 
+			throws IOException, InvalidRequestException {
+		
 		super(httpRequest);
 		
 		if(isFailed()) {
@@ -276,8 +292,13 @@ public abstract class UserRequest extends Request {
 	 * @param hashPassword If using a username and password, this indicates
 	 * 					   whether or not to hash the user's password when 
 	 * 					   authenticating them.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation, boolean hashPassword) {
+	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation, boolean hashPassword) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		if(isFailed()) {

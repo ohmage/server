@@ -39,6 +39,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.OutputFormat;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -203,8 +204,13 @@ public class CampaignReadRequest extends UserRequest {
 	 * Creates a campaign read request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public CampaignReadRequest(HttpServletRequest httpRequest) {
+	public CampaignReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		Campaign.OutputFormat tOutputFormat = null;

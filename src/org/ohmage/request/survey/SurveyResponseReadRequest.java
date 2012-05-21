@@ -64,6 +64,7 @@ import org.ohmage.domain.campaign.response.SingleChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.SingleChoicePromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.TimeUtils;
@@ -260,8 +261,13 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 	 * Creates a survey response read request.
 	 * 
 	 * @param httpRequest  The request to retrieve parameters from.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public SurveyResponseReadRequest(HttpServletRequest httpRequest) {
+	public SurveyResponseReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		Set<SurveyResponse.ColumnKey> tColumns = null;

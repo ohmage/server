@@ -16,6 +16,7 @@
 package org.ohmage.jee.servlet;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -29,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -357,15 +359,44 @@ public class RequestServlet extends HttpServlet {
 	 * @param httpResponse The HTTP response that will be sent back to the user
 	 * 					   once the request has been processed.
 	 */
-	protected void processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		Request request = RequestBuilder.buildRequest(httpRequest);
-
-		if(! request.isFailed()) {
-			request.service();
+	protected void processRequest(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse) {
+		
+		try {
+			Request request = RequestBuilder.buildRequest(httpRequest);
+	
+			if(! request.isFailed()) {
+				request.service();
+			}
+			
+			request.respond(httpRequest, httpResponse);
+			
+			httpRequest.setAttribute(KEY_ATTRIBUTE, request);
 		}
-		
-		request.respond(httpRequest, httpResponse);
-		
-		httpRequest.setAttribute(KEY_ATTRIBUTE, request);
+		catch(IOException e) {
+			LOGGER.info(
+				"There was an issue reading from the input stream or writing to the output stream.",
+				e);
+		}
+		catch(InvalidRequestException e) {
+			LOGGER.info("The request was invalid.", e);
+			
+			httpResponse.setStatus(e.getErrorCode());
+			String message = e.getErrorText();
+			if(message != null) {
+				try {
+					Writer writer = httpResponse.getWriter();
+					writer.write(message);
+					writer.flush();
+					writer.close();
+				}
+				catch(IOException errorResponding) {
+					LOGGER.error(
+						"Could not respond with an error.", 
+						errorResponding);
+				}
+			}
+		}
 	}
 }

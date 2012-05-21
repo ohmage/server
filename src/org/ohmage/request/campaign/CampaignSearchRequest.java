@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.campaign;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
@@ -28,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -135,8 +137,13 @@ public class CampaignSearchRequest extends UserRequest {
 	 * 
 	 * @param httpRequest A HttpServletRequest object that contains the
 	 * 					  parameters to and metadata for this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public CampaignSearchRequest(HttpServletRequest httpRequest) {
+	public CampaignSearchRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		String tCampaignId = null;
