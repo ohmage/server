@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.survey.annotation;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeZone;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -91,8 +93,13 @@ public class AnnotationUpdateRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public AnnotationUpdateRequest(HttpServletRequest httpRequest) {
+	public AnnotationUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a survey annotation update request.");

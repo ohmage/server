@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.user;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Set;
 
@@ -23,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -63,8 +65,13 @@ public class UserDeletionRequest extends UserRequest {
 	 * Creates a user deletion request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserDeletionRequest(HttpServletRequest httpRequest) {
+	public UserDeletionRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a user deletion request.");

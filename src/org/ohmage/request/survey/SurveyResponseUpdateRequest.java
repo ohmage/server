@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -25,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -93,8 +95,13 @@ public class SurveyResponseUpdateRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public SurveyResponseUpdateRequest(HttpServletRequest httpRequest) {
+	public SurveyResponseUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.PARAMETER);
 		
 		LOGGER.info("Creating a survey response update request.");

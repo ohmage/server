@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.audit;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audit;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet;
@@ -128,8 +130,13 @@ public class AuditReadRequest extends UserRequest {
 	 * Creates an audit read request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public AuditReadRequest(HttpServletRequest httpRequest) {
+	public AuditReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		LOGGER.info("Creating an audit read request.");

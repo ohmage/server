@@ -1,5 +1,6 @@
 package org.ohmage.request.user;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -44,8 +46,13 @@ public class UserActivationRequest extends Request {
 	 * 
 	 * @param httpRequest The HttpServletRequest that contains the required and
 	 * 					  optional parameters for creating this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserActivationRequest(final HttpServletRequest httpRequest) {
+	public UserActivationRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		String tRegistrationId = null;

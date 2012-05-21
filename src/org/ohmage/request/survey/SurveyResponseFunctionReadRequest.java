@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -38,6 +39,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.Function;
 import org.ohmage.domain.campaign.SurveyResponse.FunctionPrivacyStateItem;
 import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -122,8 +124,13 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for the
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public SurveyResponseFunctionReadRequest(HttpServletRequest httpRequest) {
+	public SurveyResponseFunctionReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		LOGGER.info("Creating a survey response function read request.");

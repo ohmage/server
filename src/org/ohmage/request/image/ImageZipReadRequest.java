@@ -21,6 +21,7 @@ import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.service.ImageServices;
@@ -31,7 +32,7 @@ public class ImageZipReadRequest extends SurveyResponseRequest {
 	
 	private final Map<UUID, URL> imageUrls;
 	
-	public ImageZipReadRequest(final HttpServletRequest httpRequest) {
+	public ImageZipReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		// There are no parameters specific to this API that aren't covered in

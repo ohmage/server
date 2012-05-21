@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.mobility;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,6 +37,7 @@ import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.LocationStatus;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -106,8 +108,13 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	 * Creates a new Mobility read chunked request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityReadChunkedRequest(HttpServletRequest httpRequest) {
+	public MobilityReadChunkedRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		LOGGER.info("Creating a Mobility read chunked request.");

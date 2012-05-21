@@ -15,11 +15,13 @@
  ******************************************************************************/
 package org.ohmage.request.visualization;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.VisualizationServices;
@@ -43,8 +45,13 @@ public class VizSurveyResponsePrivacyStateTimeseriesRequest extends Visualizatio
 	 * 
 	 * @param httpRequest A HttpServletRequest with the parameters for this
 	 * 					  request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public VizSurveyResponsePrivacyStateTimeseriesRequest(HttpServletRequest httpRequest) {
+	public VizSurveyResponsePrivacyStateTimeseriesRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		LOGGER.info("Creating a survey response privacy state timeseries visualization request.");

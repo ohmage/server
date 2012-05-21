@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -79,8 +80,13 @@ public class DocumentReadContentsRequest extends UserRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters necessary
 	 * 					  to build this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public DocumentReadContentsRequest(HttpServletRequest httpRequest) {
+	public DocumentReadContentsRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		String tempDocumentId = null;

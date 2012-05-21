@@ -21,6 +21,7 @@ import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.service.ImageServices;
@@ -103,8 +104,13 @@ public class ImageBatchZipReadRequest extends SurveyResponseRequest {
 	 * Creates a new ImageBatchZipReadRequest.
 	 * 
 	 * @param httpRequest The HTTP request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public ImageBatchZipReadRequest(final HttpServletRequest httpRequest) {
+	public ImageBatchZipReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		// There are no parameters specific to this API that aren't covered in

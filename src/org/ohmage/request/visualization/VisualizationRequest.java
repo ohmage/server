@@ -31,6 +31,7 @@ import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -96,8 +97,13 @@ public abstract class VisualizationRequest extends UserRequest {
 	 * @param httpRequest A HttpServletRequest with the basic requirements for
 	 * 					  a visualization request plus the requirements for a
 	 * 					  UserRequest.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public VisualizationRequest(HttpServletRequest httpRequest) {
+	public VisualizationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		String tCampaignId = null;

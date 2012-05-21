@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.clazz;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -116,8 +118,13 @@ public class ClassSearchRequest extends UserRequest {
 	 * 
 	 * @param httpRequest A HttpServletRequest object that contains the
 	 * 					  parameters to and metadata for this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public ClassSearchRequest(final HttpServletRequest httpRequest) {
+	public ClassSearchRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER);
 		
 		String tClassId = null;
