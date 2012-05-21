@@ -1,5 +1,6 @@
 package org.ohmage.request.registration;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.RegistrationConfig;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.Request;
 import org.ohmage.service.RegistrationServices;
@@ -29,8 +31,13 @@ public class RegistrationReadRequest extends Request {
 	 * Creates a new registration read request.
 	 * 
 	 * @param httpRequest The HttpServletRequest that began this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public RegistrationReadRequest(final HttpServletRequest httpRequest) {
+	public RegistrationReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 	}
 

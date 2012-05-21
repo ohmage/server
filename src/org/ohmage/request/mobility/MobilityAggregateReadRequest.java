@@ -1,5 +1,6 @@
 package org.ohmage.request.mobility;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.MobilityAggregatePoint;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -91,8 +93,13 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	 * Creates a new Mobility aggregate read request.
 	 * 
 	 * @param httpRequest The HTTP request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityAggregateReadRequest(final HttpServletRequest httpRequest) {
+	public MobilityAggregateReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		DateTime tStartDate = null;

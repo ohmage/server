@@ -15,12 +15,14 @@
  ******************************************************************************/
 package org.ohmage.request.visualization;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -50,8 +52,13 @@ public class VizSurveyResponseCountRequest extends VisualizationRequest {
 	 * 
 	 * @param httpRequest The HttpServletRequest that contains the parameters 
 	 * 					  to build this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public VizSurveyResponseCountRequest(HttpServletRequest httpRequest) {
+	public VizSurveyResponseCountRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		LOGGER.info("Creating a survey response count visualization request.");

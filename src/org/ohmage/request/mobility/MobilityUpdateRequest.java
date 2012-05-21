@@ -1,5 +1,6 @@
 package org.ohmage.request.mobility;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -8,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -26,8 +28,16 @@ public class MobilityUpdateRequest extends UserRequest {
 	 * Creates a new Mobility update request.
 	 * 
 	 * @param httpRequest The HTTP request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityUpdateRequest(final HttpServletRequest httpRequest) {
+	public MobilityUpdateRequest(
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
+		
 		super(httpRequest, TokenLocation.PARAMETER, false);
 		
 		UUID tMobilityId = null; 

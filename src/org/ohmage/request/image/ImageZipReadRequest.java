@@ -26,91 +26,13 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.service.ImageServices;
 
-/**
- * <p>Reads all of the images for a campaign that match the given criteria and
- * returns them as a ZIP file.</p>
- * <table>
- *   <tr>
- *     <td>Parameter Name</td>
- *     <td>Description</td>
- *     <td>Required</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
- *     <td>A string describing the client that is making this request.</td>
- *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_URN}</td>
- *     <td>The campaign URN to use when retrieving responses.</td>
- *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_LIST}</td>
- *     <td>A comma-separated list of usernames to retrieve responses for
- *         or the value {@value URN_SPECIAL_ALL}</td>
- *     <td>true</td>
- *   </tr>  
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#SURVEY_ID_LIST}</td>
- *     <td>A comma-separated list of survey ids to retrieve responses for
- *         or the value {@link #_URN_SPECIAL_ALL}. This key is only
- *         optional if {@value org.ohmage.request.InputKeys#PROMPT_ID_LIST}
- *         is not present.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PROMPT_ID_LIST}</td>
- *     <td>A comma-separated list of prompt ids to retrieve responses for
- *         or the value {@link #_URN_SPECIAL_ALL}. This key is only
- *         optional if {@value org.ohmage.request.InputKeys#SURVEY_ID_LIST}
- *         is not present.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
- *     <td>The start date to use for results between dates.
- *         Required if end date is present.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
- *     <td>The end date to use for results between dates.
- *         Required if start date is present.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PRIVACY_STATE}</td>
- *     <td>Filters the results by their associated privacy state.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#SURVEY_RESPONSE_ID_LIST}</td>
- *     <td>Filters the results to only those whose UUID is in the given list.
- *       </td>
- *     <td>false</td>
- *   </tr>
- * </table>
- *
- * @author John Jenkins
- */
-public class ImageBatchZipReadRequest extends SurveyResponseRequest {
+public class ImageZipReadRequest extends SurveyResponseRequest {
 	private static final Logger LOGGER = 
-			Logger.getLogger(ImageBatchZipReadRequest.class);
+			Logger.getLogger(ImageZipReadRequest.class);
 	
 	private final Map<UUID, URL> imageUrls;
 	
-	/**
-	 * Creates a new ImageBatchZipReadRequest.
-	 * 
-	 * @param httpRequest The HTTP request.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	public ImageBatchZipReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public ImageZipReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest);
 		
 		// There are no parameters specific to this API that aren't covered in
@@ -122,9 +44,6 @@ public class ImageBatchZipReadRequest extends SurveyResponseRequest {
 		imageUrls = new HashMap<UUID, URL>();
 	}
 	
-	/**
-	 * Gathers all of the image IDs and their associated URLs.
-	 */
 	@Override
 	public void service() {
 		LOGGER.info("Servicing a image ZIP read request.");
@@ -171,10 +90,6 @@ public class ImageBatchZipReadRequest extends SurveyResponseRequest {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.request.Request#respond(javax.servlet.http.HttpServletRequest, javax.servlet.http.HttpServletResponse)
-	 */
 	@Override
 	public void respond(
 			HttpServletRequest httpRequest,

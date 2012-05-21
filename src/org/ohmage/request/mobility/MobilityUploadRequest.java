@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.request.mobility;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,6 +29,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.MobilityPoint;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -163,8 +165,13 @@ public class MobilityUploadRequest extends UserRequest {
 	 * 
 	 * @param httpRequest A HttpServletRequest that contains the parameters for
 	 * 					  this request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityUploadRequest(HttpServletRequest httpRequest) {
+	public MobilityUploadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, false);
 		
 		LOGGER.info("Creating a Mobility upload request.");

@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.request;
 
+import java.io.IOException;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.domain.ServerConfig;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.service.ConfigServices;
 
@@ -38,8 +41,16 @@ public class ConfigReadRequest extends Request {
 	
 	/**
 	 * Default constructor.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public ConfigReadRequest(final HttpServletRequest httpRequest) {
+	public ConfigReadRequest(
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
+		
 		super(httpRequest);
 		
 		result = null;

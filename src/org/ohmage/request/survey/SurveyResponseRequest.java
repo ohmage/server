@@ -1,5 +1,6 @@
 package org.ohmage.request.survey;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,6 +17,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -69,8 +71,13 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	 * privacy state.
 	 * 
 	 * @param httpRequest The HTTP request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public SurveyResponseRequest(final HttpServletRequest httpRequest) {
+	public SurveyResponseRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		// Handle user-password or token-based authentication
 		super(httpRequest, TokenLocation.EITHER, false);
 
