@@ -119,6 +119,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				getJdbcTemplate().update(observerCreator, observerKeyHolder);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
 				throw new DataAccessException(
 					"Error executing SQL '" + 
 						observerSql + 
@@ -161,6 +162,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 						});
 				}
 				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
 					throw new DataAccessException(
 						"Error executing SQL '" + 
 							streamSql + 
@@ -245,13 +247,13 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		
 		String streamSql = 
 			"SELECT " +
-				"stream_id, " +
-				"version, " +
-				"name, " +
-				"description, " +
-				"with_timestamp, " +
-				"with_location, " +
-				"stream_schema " +
+				"os.stream_id, " +
+				"os.version, " +
+				"os.name, " +
+				"os.description, " +
+				"os.with_timestamp, " +
+				"os.with_location, " +
+				"os.stream_schema " +
 			"FROM observer o, observer_stream os " +
 			"WHERE o.observer_id = ? " +
 			"AND o.version = ? " +
@@ -453,7 +455,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"time_zone, " +
 				"location_timestamp, " +
 				"location_latitude, " +
-				"location longitude, " +
+				"location_longitude, " +
 				"location_accuracy, " +
 				"location_provider, " +
 				"data) " +
@@ -508,7 +510,15 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
-			getJdbcTemplate().batchUpdate(sql, args);
+			try {
+				getJdbcTemplate().batchUpdate(sql, args);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + sql +"'.", 
+					e);
+			}
 			
 			// Commit the transaction.
 			try {
