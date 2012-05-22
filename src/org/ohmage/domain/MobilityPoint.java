@@ -282,6 +282,10 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		 */
 		public static enum SensorDataColumnKey implements ColumnKey {
 			/**
+			 * The mode from this sensor data column key.
+			 */
+			MODE ("mode", "m"),
+			/**
 			 * The speed from this sensor data information.
 			 */
 			SPEED ("speed", "sp"),
@@ -307,6 +311,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			public static final List<ColumnKey> ALL_COLUMNS;
 			static {
 				List<ColumnKey> keys = new ArrayList<ColumnKey>();
+				keys.add(MODE);
 				keys.add(SPEED);
 				keys.addAll(AccelDataColumnKey.ALL_COLUMNS);
 				keys.addAll(WifiDataColumnKey.ALL_COLUMNS);
@@ -756,15 +761,24 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				
 				JSONObject result = new JSONObject();
 				
-				if(columns.contains(AccelDataColumnKey.X)) {
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.ACCELEROMETER_DATA) ||
+					columns.contains(AccelDataColumnKey.X)) {
+					
 					result.put(AccelDataColumnKey.X.toString(false), x);
 				}
 
-				if(columns.contains(AccelDataColumnKey.Y)) {
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.ACCELEROMETER_DATA) ||
+					columns.contains(AccelDataColumnKey.Y)) {
+					
 					result.put(AccelDataColumnKey.Y.toString(false), y);
 				}
 
-				if(columns.contains(AccelDataColumnKey.Z)) {
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.ACCELEROMETER_DATA) ||
+					columns.contains(AccelDataColumnKey.Z)) {
+					
 					result.put(AccelDataColumnKey.Z.toString(false), z);
 				}
 				
@@ -1160,14 +1174,21 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 							WifiDataColumnKey.SCAN.toString(false));
 				}
 				catch(JSONException e) {
-					if(Mode.ERROR.equals(mode)) {
-						scan = null;
+					try {
+						scan = 
+							wifiData.getJSONArray(
+								WifiDataColumnKey.SCAN.toString(true));
 					}
-					else {
-						throw new DomainException(
-								ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
-								"The scan is missing.", 
-								e);
+					catch(JSONException notShort) {
+						if(Mode.ERROR.equals(mode)) {
+							scan = null;
+						}
+						else {
+							throw new DomainException(
+									ErrorCode.MOBILITY_INVALID_WIFI_DATA, 
+									"The scan is missing.", 
+									notShort);
+						}
 					}
 				}
 				
@@ -1321,13 +1342,19 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 
 				JSONObject result = new JSONObject();
 				
-				if(columns.contains(WifiDataColumnKey.TIME)) {
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					columns.contains(WifiDataColumnKey.TIME)) {
+					
 					result.put(
 							WifiDataColumnKey.TIME.toString(abbreviated), 
 							time);
 				}
 					
-				if(columns.contains(WifiDataColumnKey.TIMESTAMP)) {
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					columns.contains(WifiDataColumnKey.TIMESTAMP)) {
+					
 					DateTime dateTime = new DateTime(time, timezone);
 					DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
 					builder.appendPattern(DATE_TIME_FORMAT);
@@ -1338,14 +1365,19 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 							builder.toFormatter().print(dateTime));
 				}
 					
-				if(columns.contains(WifiDataColumnKey.TIMEZONE)) {
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					columns.contains(WifiDataColumnKey.TIMEZONE)) {
+					
 					result.put(
 							WifiDataColumnKey.TIMEZONE.toString(
 									abbreviated),
 							timezone.getID());
 				}
 				
-				if(columns.contains(WifiDataColumnKey.SCAN) ||
+				if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					columns.contains(WifiDataColumnKey.SCAN) ||
 						(columns.contains(WifiDataColumnKey.SSID) &&
 						 columns.contains(WifiDataColumnKey.STRENGTH))) {
 					
@@ -1372,7 +1404,10 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 								scans);
 					}
 				}
-				else if(columns.contains(WifiDataColumnKey.SSID)) {
+				else if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					columns.contains(WifiDataColumnKey.SSID)) {
+					
 					if(scan != null) {
 						JSONArray scans = new JSONArray();
 						for(String ssid : scan.keySet()) {
@@ -1392,7 +1427,10 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 								scans);
 					}
 				}
-				else if(columns.contains(WifiDataColumnKey.STRENGTH)) {
+				else if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+					columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+					columns.contains(WifiDataColumnKey.STRENGTH)) {
+					
 					if(scan != null) {
 						JSONArray scans = new JSONArray();
 						for(String ssid : scan.keySet()) {
@@ -1737,11 +1775,16 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 			JSONObject result = new JSONObject();
 			
-			result.put(
-					MobilityColumnKey.MODE.toString(abbreviated),
-					mode.name().toLowerCase());
+			if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+				columns.contains(SensorDataColumnKey.MODE)) {
+				result.put(
+						MobilityColumnKey.MODE.toString(abbreviated),
+						mode.name().toLowerCase());
+			}
 			
-			if(columns.contains(SensorDataColumnKey.SPEED)) {
+			if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+				columns.contains(SensorDataColumnKey.SPEED)) {
+				
 				if(speed == null) {
 					// Don't put it in the JSON.
 				}
@@ -1771,8 +1814,9 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 			}
 			
-			if(columns.contains(SensorDataColumnKey.ACCELEROMETER_DATA) ||
-					AccelDataColumnKey.containsAccelDataColumnKey(columns)) {
+			if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+				columns.contains(SensorDataColumnKey.ACCELEROMETER_DATA) ||
+				AccelDataColumnKey.containsAccelDataColumnKey(columns)) {
 
 				if(accelData == null) {
 					// Don't put it in the JSON.
@@ -1789,8 +1833,9 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 			}
 			
-			if(columns.contains(SensorDataColumnKey.WIFI_DATA) ||
-					WifiDataColumnKey.containsWifiDataColumnKey(columns)) {
+			if(columns.contains(MobilityColumnKey.SENSOR_DATA) ||
+				columns.contains(SensorDataColumnKey.WIFI_DATA) ||
+				WifiDataColumnKey.containsWifiDataColumnKey(columns)) {
 				
 				if(wifiData == null) {
 					result.put(
@@ -2289,25 +2334,33 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 			JSONObject result = new JSONObject();
 			
-			if(columns.contains(ClassifierDataColumnKey.MODE)) {
+			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
+				columns.contains(ClassifierDataColumnKey.MODE)) {
+				
 				result.put(
 					ClassifierDataColumnKey.MODE.toString(abbreviated), 
 					mode.name().toLowerCase());
 			}
 			
-			if(columns.contains(ClassifierDataColumnKey.FFT)) {
+			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
+				columns.contains(ClassifierDataColumnKey.FFT)) {
+				
 				result.put(
 					ClassifierDataColumnKey.FFT.toString(abbreviated), 
 					fft);
 			}
 			
-			if(columns.contains(ClassifierDataColumnKey.VARIANCE)) {
+			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
+				columns.contains(ClassifierDataColumnKey.VARIANCE)) {
+				
 				result.put(
 					ClassifierDataColumnKey.VARIANCE.toString(abbreviated), 
 					variance);
 			}
 			
-			if(columns.contains(ClassifierDataColumnKey.AVERAGE)) {
+			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
+				columns.contains(ClassifierDataColumnKey.AVERAGE)) {
+				
 				result.put(
 					ClassifierDataColumnKey.AVERAGE.toString(abbreviated), 
 					average);
