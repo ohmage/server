@@ -17,7 +17,13 @@
  */
 package org.ohmage.test;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.Clazz;
