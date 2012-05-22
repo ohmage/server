@@ -28,6 +28,9 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.w3c.dom.DOMException;
 
+import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
+import com.sun.org.apache.xml.internal.security.utils.Base64;
+
 /**
  * This class represents an observer which contains the overall information
  * including its set of streams.
@@ -645,11 +648,16 @@ public class Observer {
 		if(data.has("data")) {
 			byte[] currData;
 			try {
-				currData = data.getString("data").getBytes();
+				currData = Base64.decode(data.getString("data"));
 			}
 			catch(JSONException e) {
 				throw new DomainException(
 					"The data was not encoded as a string.",
+					e);
+			}
+			catch(Base64DecodingException e) {
+				throw new DomainException(
+					"The data was not correctly encoded in BASE64.",
 					e);
 			}
 			
