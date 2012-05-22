@@ -22,6 +22,7 @@ import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -136,8 +137,16 @@ public class StreamReadRequest extends UserRequest {
 	 * Creates a stream read request.
 	 * 
 	 * @param httpRequest The HTTP request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
-	public StreamReadRequest(final HttpServletRequest httpRequest) {
+	public StreamReadRequest(
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
+		
 		super(httpRequest, TokenLocation.EITHER, false);
 		
 		String tObserverId = null;

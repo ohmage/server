@@ -1,5 +1,6 @@
 package org.ohmage.request.observer;
 
+import java.io.IOException;
 import java.util.Collection;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
@@ -25,7 +27,20 @@ public class StreamUploadRequest extends UserRequest {
 	private final Long observerVersion;
 	private final Collection<JSONObject> data;
 	
-	public StreamUploadRequest(final HttpServletRequest httpRequest) {
+	/**
+	 * Creates a stream upload request.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 */
+	public StreamUploadRequest(
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
+		
 		super(httpRequest, TokenLocation.PARAMETER, false);
 		
 		String tObserverId = null;
