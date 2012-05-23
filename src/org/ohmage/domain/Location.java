@@ -15,12 +15,15 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
@@ -482,6 +485,71 @@ public class Location {
 	 */
 	public final DateTimeZone getTimeZone() {
 		return timeZone;
+	}
+	
+	/**
+	 * Streams this object to the output.
+	 * 
+	 * @param generator The generator that will generate the result.
+	 * 
+	 * @param abbreviated Whether or not to stream the abbreviated keys.
+	 * 
+	 * @param columns The columns indicating which fields to include.
+	 * 
+	 * @throws JsonGenerationException There was a problem generating the JSON.
+	 * 
+	 * @throws IOException There was a problem writing to the stream.
+	 * 
+	 * @throws DomainException A required parameter was missing.
+	 */
+	public final void streamJson(
+			final JsonGenerator generator,
+			final boolean abbreviated,
+			final Collection<ColumnKey> columns)
+			throws JsonGenerationException, IOException, DomainException {
+		
+		if(generator == null) {
+			throw new DomainException("The generator is null.");
+		}
+		else if(columns == null) {
+			throw new DomainException("The list of columns cannot be null.");
+		}
+		
+		if(columns.contains(LocationColumnKey.TIME)) {
+			generator.writeNumberField(
+				LocationColumnKey.TIME.toString(abbreviated), 
+				time);
+		}
+			
+		if(columns.contains(LocationColumnKey.TIMEZONE)) {
+			generator.writeStringField(
+				LocationColumnKey.TIMEZONE.toString(abbreviated), 
+				timeZone.getID());
+		}
+			
+		if(columns.contains(LocationColumnKey.LATITUDE)) {
+			generator.writeNumberField(
+				LocationColumnKey.LATITUDE.toString(abbreviated),  
+				latitude);
+		}
+			
+		if(columns.contains(LocationColumnKey.LONGITUDE)) {
+			generator.writeNumberField(
+				LocationColumnKey.LONGITUDE.toString(abbreviated), 
+				longitude);
+		}
+			
+		if(columns.contains(LocationColumnKey.ACCURACY)) {
+			generator.writeNumberField(
+				LocationColumnKey.ACCURACY.toString(abbreviated), 
+				accuracy);
+		}
+			
+		if(columns.contains(LocationColumnKey.PROVIDER)) {
+			generator.writeStringField(
+				LocationColumnKey.PROVIDER.toString(abbreviated), 
+				provider);
+		}
 	}
 	
 	/**
