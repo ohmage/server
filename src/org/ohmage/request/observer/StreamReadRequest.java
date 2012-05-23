@@ -11,17 +11,23 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.util.Utf8;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
+import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
+import org.ohmage.domain.Location;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.Observer;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -45,70 +51,67 @@ public class StreamReadRequest extends UserRequest {
 	 * @author John Jenkins
 	 */
 	public static class ColumnNode<T> {
-		private Map<T, ColumnNode<T>> node;
+		private Map<T, ColumnNode<T>> children;
 		
 		/**
-		 * Creates an empty node.
+		 * Creates a node with a value.
 		 */
 		public ColumnNode() {
-			node = null;
+			this.children = new HashMap<T, ColumnNode<T>>();
 		}
 		
 		/**
-		 * Adds a sub-node to this node.
+		 * Adds a child to this node. Adding null has no effect.
 		 * 
-		 * @param value The value of the sub-node.
+		 * @param value The value of the child.
 		 */
-		public void addNode(final T value) {
-			if(node == null) {
-				node = new HashMap<T, ColumnNode<T>>();
+		public void addChild(final T value) {
+			if(value == null) {
+				return;
 			}
 			
-			node.put(value, new ColumnNode<T>());
+			children.put(value, new ColumnNode<T>());
 		}
 		
 		/**
-		 * Checks if this node has a sub-node with the given value.
+		 * Checks if this node has a child with the given value.
 		 * 
 		 * @param value The value to check for.
 		 * 
 		 * @return True if this node has a sub-node with the given value; 
 		 * 		   false, otherwise.
 		 */
-		public boolean hasNode(final T value) {
-			if(node == null) {
-				return false;
-			}
-			
-			return node.containsKey(value);
+		public boolean hasChild(final T value) {
+			return children.containsKey(value);
 		}
 		
 		/**
-		 * Returns the sub-node with the given value.
+		 * Returns the child with the given value.
 		 * 
 		 * @param value The value.
 		 * 
-		 * @return The sub-node or null if no such sub-node exists.
+		 * @return The child or null if no such child exists.
 		 */
-		public ColumnNode<T> getNode(final T value) {
-			if(node == null) {
-				return null;
-			}
-			
-			return node.get(value);
+		public ColumnNode<T> getChild(final T value) {
+			return children.get(value);
 		}
 		
 		/**
-		 * The values for this node's sub-nodes.
+		 * The values for this node's children.
 		 * 
-		 * @return An unmodifiable collection of this node's sub-nodes. 
+		 * @return An unmodifiable collection of this node's children. 
 		 */
-		public Collection<T> getValues() {
-			if(node == null) {
-				return Collections.emptyList();
-			}
-			
-			return Collections.unmodifiableSet(node.keySet());
+		public Collection<T> getChildrenValues() {
+			return Collections.unmodifiableSet(children.keySet());
+		}
+		
+		/**
+		 * Returns whether or not this node is a leaf node.
+		 * 
+		 * @return Whether or not this node is a leaf node.
+		 */
+		public boolean isLeaf() {
+			return children.size() == 0;
 		}
 	}
 	
@@ -377,8 +380,26 @@ public class StreamReadRequest extends UserRequest {
 			LOGGER.warn("Could not connect to the output stream.", e);
 			return;
 		}
-		
-		// Be sure to close the stream before leaving.
+				
+		/*
+		 * Example output:
+		 * 
+		 * 	{
+		 * 		"result":"success",
+		 * 		"metadata":{
+		 * 			"count":<A number representing the number of results.>,
+		 * 			"prev":"<The URL for the previous set of results.>",
+		 * 			"next":"<The URL for the next set of results.>"
+		 * 		},
+		 * 		"data":[
+		 * 			{
+		 * 				"metadata":{},
+		 * 				"data":{} // Data based on the columns.
+		 * 			},
+		 * 			...
+		 * 		]
+		 * 	}
+		 */
 		try {
 			// Create the generator that will stream to the requester.
 			JsonGenerator generator;
@@ -391,33 +412,17 @@ public class StreamReadRequest extends UserRequest {
 				return;
 			}
 			
-			/*
-			 * Example output:
-			 * 
-			 * 	{
-			 * 		"result":"success",
-			 * 		"data":[
-			 * 			{
-			 * 				"metadata":{},
-			 * 				"data":{} // Data based on the columns.
-			 * 			},
-			 * 			...
-			 * 		],
-			 * 		"metadata":{
-			 * 			"count":<A number representing the number of results.>,
-			 * 			"prev":"<The URL for the previous set of results.>",
-			 * 			"next":"<The URL for the next set of results.>"
-			 * 		}
-			 * 	}
-			 */
-			
 			// Start the resulting object.
 			generator.writeStartObject();
 			
 			// Add the result to the object.
 			generator.writeObjectField("result", "success");
 			
-			// TODO: Add the meta-data.
+			// Add the meta-data.
+			generator.writeObjectFieldStart("metadata");
+			generator.writeNumberField("count", results.size());
+			// TODO: Add the "prev" and "next" fields.
+			generator.writeEndObject();
 			
 			// Add a "data" key that is an array of the results.
 			generator.writeArrayFieldStart("data");
@@ -425,10 +430,37 @@ public class StreamReadRequest extends UserRequest {
 				// Begin this data stream.
 				generator.writeStartObject();
 				
-				// TODO: Write the meta-data.
+				// Write the meta-data.
+				DataStream.MetaData metaData = dataStream.getMetaData();
+				if(metaData != null) {
+					generator.writeObjectFieldStart("metadata");
+					
+					DateTime timestamp = metaData.getTimestamp();
+					if(timestamp != null) {
+						generator.writeStringField(
+							"timestamp",
+							ISODateTimeFormat.dateTime().print(timestamp));
+					}
+					
+					Location location = metaData.getLocation();
+					if(location != null) {
+						generator.writeObjectFieldStart("location");
+						location.streamJson(
+							generator, 
+							false, 
+							LocationColumnKey.ALL_COLUMNS);
+						generator.writeEndObject();
+					}
+					
+					generator.writeEndObject();
+				}
 				
-				// TODO: Write the data.
-				handleGeneric(generator, dataStream.getData(), columnsRoot);
+				// Write the data.
+				handleGeneric(
+					generator, 
+					dataStream.getData(), 
+					columnsRoot, 
+					"data");
 				
 				// End this data stream.
 				generator.writeEndObject();
@@ -437,15 +469,29 @@ public class StreamReadRequest extends UserRequest {
 			
 			// End the overall object.
 			generator.writeEndObject();
+			
+			// Flush and close the writer.
+			generator.flush();
+			generator.close();
 		}
 		catch(JsonProcessingException e) {
 			LOGGER.error("The JSON could not be processed.", e);
+			httpResponse.setStatus(
+				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 		catch(IOException e) {
 			LOGGER.error(
 				"The response could no longer be writtent to the response",
 				e);
+			httpResponse.setStatus(
+				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			return;
+		}
+		catch(DomainException e) {
+			LOGGER.error("Could not read one of the objects.", e);
+			httpResponse.setStatus(
+				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 		finally {
@@ -488,30 +534,45 @@ public class StreamReadRequest extends UserRequest {
 	private static void handleGeneric(
 			final JsonGenerator generator,
 			final Object generic,
-			final ColumnNode<String> columns)
+			final ColumnNode<String> columns,
+			final String fieldName)
 			throws JsonGenerationException, IOException {
-		
-		// If the object is null, then someone is requesting something that
-		// never existed, so we can safely just ignore this.
-		if(generic == null) {
-			return;
-		}
 		
 		// If it's an array, then process it as such.
 		if(generic instanceof GenericData.Array) {
 			handleArray(
 				generator, 
 				(GenericData.Array<GenericContainer>) generic,
-				columns);
+				columns,
+				fieldName);
 		}
 		// If it's an object, then process it as such.
 		else if(generic instanceof GenericData.Record) {
-			handleObject(generator, (GenericData.Record) generic, columns);
+			handleObject(
+				generator, 
+				(GenericData.Record) generic, 
+				columns,
+				fieldName);
 		}
-		// Otherwise, it must be a primitive type, so just add it to the 
-		// result.
+		// If it's a string, then we need to code around their string type.
+		else if(generic instanceof Utf8) {
+			String value = ((Utf8) generic).toString();
+			
+			if(fieldName == null) {
+				generator.writeString(value);
+			}
+			else {
+				generator.writeStringField(fieldName, value);
+			}
+		}
+		// Otherwise, it can be added to its encapsulating object.
 		else {
-			generator.writeObject(generic);
+			if(fieldName == null) {
+				generator.writeObject(generic);
+			}
+			else {
+				generator.writeObjectField(fieldName, generic);
+			}
 		}
 	}
 	
@@ -533,16 +594,22 @@ public class StreamReadRequest extends UserRequest {
 	private static void handleArray(
 			final JsonGenerator generator,
 			final GenericData.Array<GenericContainer> array,
-			final ColumnNode<String> currColumn) 
+			final ColumnNode<String> currColumn,
+			final String fieldName) 
 			throws JsonGenerationException, IOException {
 		
 		// Start the array.
-		generator.writeStartArray();
+		if(fieldName == null) {
+			generator.writeStartArray();
+		}
+		else {
+			generator.writeArrayFieldStart(fieldName);
+		}
 		
 		// Iterate over the elements and add them to the result.
 		int numElements = array.size();
 		for(int i = 0; i < numElements; i++) {
-			handleGeneric(generator, array.get(i), currColumn);
+			handleGeneric(generator, array.get(i), currColumn, null);
 		}
 		
 		// End the array.
@@ -567,23 +634,42 @@ public class StreamReadRequest extends UserRequest {
 	private static void handleObject(
 			final JsonGenerator generator,
 			final GenericData.Record object,
-			final ColumnNode<String> currColumn) 
+			final ColumnNode<String> currColumn,
+			final String fieldName) 
 			throws JsonGenerationException, IOException {
 		
 		// Start the object.
-		generator.writeStartObject();
+		if(fieldName == null) {
+			generator.writeStartObject();
+		}
+		else {
+			generator.writeObjectFieldStart(fieldName);
+		}
 		
 		// Add the values of all of the requested keys.
-		if(currColumn == null) {
-			generator.writeObject(object);
+		if(currColumn.isLeaf()) {
+			for(Schema.Field field : object.getSchema().getFields()) {
+				String currFieldName = field.name();
+				
+				handleGeneric(
+					generator,
+					object.get(currFieldName),
+					currColumn,
+					currFieldName);
+			}
 		}
 		// Add only the requested columns.
 		else {
-			for(String key : currColumn.getValues()) {
-				handleGeneric(
-					generator, 
-					object.get(key), 
-					currColumn.getNode(key));
+			for(String key : currColumn.getChildrenValues()) {
+				Object currObject = object.get(key);
+				
+				if(currObject != null) {
+					handleGeneric(
+						generator, 
+						currObject, 
+						currColumn.getChild(key),
+						key);
+				}
 			}
 		}
 		

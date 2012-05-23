@@ -53,6 +53,7 @@ import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUpdateRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.observer.ObserverCreationRequest;
+import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
@@ -416,8 +417,11 @@ public final class RequestBuilder {
 		else if(API_OBSERVER_CREATE.equals(requestUri)) {
 			return new ObserverCreationRequest(httpRequest);
 		}
-		else if(requestUri.startsWith(API_OBSERVER_UPLOAD)) {
+		else if(requestUri.startsWith(API_OBSERVER_UPLOAD) && httpRequest.getMethod().equals("POST")) {
 			return new StreamUploadRequest(httpRequest);
+		}
+		else if(requestUri.startsWith(API_OBSERVER_UPLOAD) && httpRequest.getMethod().equals("GET")) {
+			return new StreamReadRequest(httpRequest);
 		}
 		//Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {

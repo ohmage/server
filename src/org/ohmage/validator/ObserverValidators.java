@@ -261,11 +261,12 @@ public class ObserverValidators {
 			final String value)
 			throws ValidationException {
 		
+		ColumnNode<String> result = new ColumnNode<String>();
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
-			return null;
+			return result;
 		}
 		
-		ColumnNode<String> result = new ColumnNode<String>();
 		String[] items = value.split(InputKeys.LIST_ITEM_SEPARATOR);
 		for(int currColumn = 0; currColumn < items.length; currColumn++) {
 			String column = items[currColumn];
@@ -297,11 +298,11 @@ public class ObserverValidators {
 						"Two ':'s were given in sequence: " + trimmedColumn);
 				}
 				
-				if(! currNode.hasNode(trimmedPart)) {
-					currNode.addNode(trimmedPart);
+				if(! currNode.hasChild(trimmedPart)) {
+					currNode.addChild(trimmedPart);
 				}
 				
-				currNode = currNode.getNode(trimmedPart);
+				currNode = currNode.getChild(trimmedPart);
 			}
 		}
 		

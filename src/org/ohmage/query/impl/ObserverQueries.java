@@ -378,13 +378,13 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		
 		String streamSql = 
 			"SELECT " +
-				"stream_id, " +
-				"version, " +
-				"name, " +
-				"description, " +
-				"with_timestamp, " +
-				"with_location, " +
-				"stream_schema " +
+				"os.stream_id, " +
+				"os.version, " +
+				"os.name, " +
+				"os.description, " +
+				"os.with_timestamp, " +
+				"os.with_location, " +
+				"os.stream_schema " +
 			"FROM observer o, observer_stream os " +
 			"WHERE o.observer_id = ? " +
 			"AND o.id = os.observer_id " +
@@ -495,7 +495,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					(location == null) ? null : location.getLongitude(),
 					(location == null) ? null : location.getAccuracy(),
 					(location == null) ? null : location.getProvider(),
-					new String(currData.getBinaryData())
+					currData.getBinaryData()
 				}
 			);
 		}
@@ -576,6 +576,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		}
 		
 		builder.append(
+			" " +
 			"WHERE u.username = ? " +
 			"AND osd.user_id = u.id " +
 			"AND os.stream_id = ? " +
