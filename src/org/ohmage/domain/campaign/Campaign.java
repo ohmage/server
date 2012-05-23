@@ -151,7 +151,7 @@ public class Campaign {
 	private static final String JSON_KEY_PARTICIPANT = "participant";
 	
 	private static final Pattern VALID_CHARACTERS_PATTERN = 
-			Pattern.compile("[a-zA-Z0-9_]+");
+			Pattern.compile("[a-zA-Z0-9_\\s]+");
 	
 	private static final int MAX_ID_LENGTH = 255;
 	private static final int MAX_NAME_LENGTH = 255;
