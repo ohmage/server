@@ -159,6 +159,17 @@ public abstract class Request {
 		}
 	}
 	
+	protected Request(
+			final Map<String, String[]> parameters,
+			final String requestInetAddr) {
+		
+		annotator = new Annotator();
+		failed = false;
+		
+		this.parameters = new HashMap<String, String[]>(parameters);
+		this.requesterInetAddr = requestInetAddr;
+	}
+	
 	/**
 	 * @return Returns the parameters from the HTTP request.
 	 */
