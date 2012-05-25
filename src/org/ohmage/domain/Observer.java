@@ -20,16 +20,12 @@ import nu.xom.XPathException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
 import org.apache.avro.SchemaParseException;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.codehaus.jackson.JsonNode;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 import org.w3c.dom.DOMException;
-
-import com.sun.org.apache.xml.internal.security.exceptions.Base64DecodingException;
-import com.sun.org.apache.xml.internal.security.utils.Base64;
 
 /**
  * This class represents an observer which contains the overall information
@@ -583,26 +579,28 @@ public class Observer {
 	 * @throws DomainException The data record was invalid.
 	 */
 	public DataStream getDataStream(
-			final JSONObject data) 
+			final JsonNode data) 
 			throws DomainException {
 		
 		// Get the stream's ID.
-		String streamId;
-		try {
-			streamId = data.getString("stream_id");
+		JsonNode idNode = data.get("stream_id");
+		if(idNode == null) {
+			throw new DomainException("The stream ID is missing.");
 		}
-		catch(JSONException e) {
-			throw new DomainException("The stream ID is missing.", e);
+		else if(! idNode.isTextual()) {
+			throw new DomainException("The stream ID is not a string");
 		}
+		String streamId = idNode.getTextValue();
 		
 		// Get the stream's version.
-		long streamVersion;
-		try {
-			streamVersion = data.getLong("stream_version");
-		}
-		catch(JSONException e) {
+		JsonNode versionNode = data.get("stream_version");
+		if(versionNode == null) {
 			throw new DomainException("The stream version is missing.");
 		}
+		else if(! versionNode.isNumber()) {
+			throw new DomainException("The version is not a number.");
+		}
+		long streamVersion = versionNode.getNumberValue().longValue();
 		
 		// Get the Stream and validate the version.
 		Stream currStream = streams.get(streamId);
@@ -618,58 +616,40 @@ public class Observer {
 					streamVersion);
 		}
 		
-		// Get the meta-data.
+		// Get the meta-data, which is optional.
 		MetaData metaData = null;
-		if(data.has("metadata")) {
-			try {
-				JSONObject jsonMetaData = data.getJSONObject("metadata");
-				MetaData.Builder metaDataBuilder = new MetaData.Builder();
-				
-				if(currStream.getWithTimestamp()) {
-					metaDataBuilder.setTimestamp(jsonMetaData);
-				}
-				
-				if(currStream.getWithLocation()) {
-					metaDataBuilder.setLocation(jsonMetaData);
-				}
-				
-				metaData = metaDataBuilder.build();
-			}
-			catch(JSONException e) {
+		JsonNode metaDataNode = data.get("metadata");
+		if(metaDataNode != null) {
+			if(! metaDataNode.isObject()) {
 				throw new DomainException(
-					"The metadata is not a JSON object.", 
-					e);
+					"The meta-dat is not a JSON object.");
 			}
-		}
-		
-		DataStream result;
 
-		// Get the data which may be JSON or may be binary.
-		if(data.has("data")) {
-			byte[] currData;
-			try {
-				currData = Base64.decode(data.getString("data"));
-			}
-			catch(JSONException e) {
-				throw new DomainException(
-					"The data was not encoded as a string.",
-					e);
-			}
-			catch(Base64DecodingException e) {
-				throw new DomainException(
-					"The data was not correctly encoded in BASE64.",
-					e);
+			MetaData.Builder metaDataBuilder = new MetaData.Builder();
+			
+			if(currStream.getWithTimestamp()) {
+				metaDataBuilder.setTimestamp(metaDataNode);
 			}
 			
-			result = 
-				new DataStream(
-					currStream, 
-					metaData, 
-					currData);
+			if(currStream.getWithLocation()) {
+				metaDataBuilder.setLocation(metaDataNode);
+			}
+			
+			metaData = metaDataBuilder.build();
 		}
-		else {
+
+		// Get the data which may be JSON or may be binary.
+		DataStream result;
+		JsonNode dataNode = data.get("data");
+		if(dataNode == null) {
 			throw new DomainException("The data is missing.");
 		}
+		
+		result = 
+			new DataStream(
+				currStream, 
+				metaData, 
+				dataNode.toString());
 		
 		return result;
 	}

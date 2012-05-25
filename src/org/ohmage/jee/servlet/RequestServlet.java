@@ -304,7 +304,7 @@ public class RequestServlet extends HttpServlet {
 			httpRequest.getRequestURI().startsWith("/app/viz/") ||
 			RequestBuilder.API_USER_ACTIVATE.equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.API_REGISTRATION_READ.equals(httpRequest.getRequestURI()) ||
-			httpRequest.getRequestURI().startsWith(RequestBuilder.API_OBSERVER_UPLOAD)) {
+			RequestBuilder.API_OBSERVER_READ.equals(httpRequest.getRequestURI())) {
 			
 			processRequest(httpRequest, httpResponse);
 		}

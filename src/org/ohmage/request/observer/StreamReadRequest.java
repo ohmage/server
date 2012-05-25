@@ -158,7 +158,7 @@ public class StreamReadRequest extends UserRequest {
 		Long tStreamVersion = null;
 		DateTime tStartDate = null;
 		DateTime tEndDate = null;
-		ColumnNode<String> tColumnsRoot = null;
+		ColumnNode<String> tColumnsRoot = new ColumnNode<String>();
 		long tNumToSkip = 0;
 		long tNumToReturn = MAX_NUMBER_TO_RETURN;
 		
@@ -167,11 +167,17 @@ public class StreamReadRequest extends UserRequest {
 			String[] t;
 			
 			try {
-				String[] uriParts = httpRequest.getRequestURI().split("/");
-				
-				tObserverId = 
-					ObserverValidators.validateObserverId(
-						uriParts[uriParts.length - 1]);
+				t = getParameterValues(InputKeys.OBSERVER_ID);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OBSERVER_INVALID_ID,
+						"Multiple observer IDs were given: " +
+							InputKeys.OBSERVER_ID);
+				}
+				else if(t.length == 1) {
+					tObserverId = 
+						ObserverValidators.validateObserverId(t[0]);
+				}
 				if(tObserverId == null) {
 					throw new ValidationException(
 						ErrorCode.OBSERVER_INVALID_ID,

@@ -1,10 +1,13 @@
 package org.ohmage.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
-import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
@@ -167,7 +170,7 @@ public class ObserverServices {
 	 * 
 	 * @param observer The observer that contains the streams.
 	 * 
-	 * @param data The data to validated.
+	 * @param data The data to validate.
 	 * 
 	 * @return A collection of DataStreams where each stream represents a 
 	 * 		   different piece of data.
@@ -176,21 +179,41 @@ public class ObserverServices {
 	 */
 	public Collection<DataStream> validateData(
 			final Observer observer,
-			final Collection<JSONObject> data)
+			final JsonParser data)
 			throws ServiceException {
 		
-		Collection<DataStream> result = new ArrayList<DataStream>(data.size());
-		for(JSONObject dataPoint : data) {
+		JsonNode nodes;
+		try {
+			nodes = data.readValueAsTree();
+		}
+		catch(JsonProcessingException e) {
+			throw new ServiceException(
+				ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+				"The data was not well-formed JSON.",
+				e);
+		}
+		catch(IOException e) {
+			throw new ServiceException(
+				ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+				"Could not read the data from the parser.",
+				e);
+		}
+		int numNodes = nodes.size();
+		
+		Collection<DataStream> result = new ArrayList<DataStream>(numNodes);
+		for(int i = 0; i < numNodes; i++) {
 			try {
-				result.add(observer.getDataStream(dataPoint));
+				result.add(observer.getDataStream(nodes.get(i)));
 			}
 			catch(DomainException e) {
 				throw new ServiceException(
 					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
-					"The data was invalid.",
+					"The data was malformed: " + e.getMessage(),
 					e);
 			}
 		}
+		
+		
 		return result;
 	}
 	

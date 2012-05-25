@@ -1,12 +1,10 @@
 package org.ohmage.validator;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.io.IOException;
 
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Observer;
 import org.ohmage.exception.DomainException;
@@ -183,7 +181,7 @@ public class ObserverValidators {
 	 * 
 	 * @throws ValidationException The data is invalid.
 	 */
-	public static final Collection<JSONObject> validateData(
+	public static final JsonParser validateData(
 			final String value)
 			throws ValidationException {
 		
@@ -191,30 +189,12 @@ public class ObserverValidators {
 			return null;
 		}
 		
-		JSONArray array;
 		try {
-			array = new JSONArray(value);
+			return (new MappingJsonFactory()).createJsonParser(value);
 		}
-		catch(JSONException e) {
-			throw new ValidationException(
-				ErrorCode.OBSERVER_INVALID_STREAM_DATA,
-				"The data stream was not a JSON array of JSON objects.");
+		catch(IOException e) {
+			throw new ValidationException("The data could not be read.", e);
 		}
-		
-		int arrayLength = array.length();
-		Collection<JSONObject> result = new ArrayList<JSONObject>(arrayLength);
-		for(int i = 0; i < arrayLength; i++) {
-			try {
-				result.add(array.getJSONObject(i));
-			}
-			catch(JSONException e) {
-				throw new ValidationException(
-					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
-					"The element at index, " + i + ", was not a JSON object.");
-			}
-		}
-		
-		return result;
 	}
 	
 	/**

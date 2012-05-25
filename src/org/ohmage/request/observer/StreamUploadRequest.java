@@ -2,12 +2,13 @@ package org.ohmage.request.observer;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
+import org.codehaus.jackson.JsonParser;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
@@ -25,7 +26,69 @@ public class StreamUploadRequest extends UserRequest {
 
 	private final String observerId;
 	private final Long observerVersion;
-	private final Collection<JSONObject> data;
+	private final JsonParser data;
+	
+	/**
+	 * Creates a stream upload request from the set of parameters.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param observerId The observer's ID.
+	 * 
+	 * @param observerVersion The observer's version.
+	 * 
+	 * @param data The data to be uploaded.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 */
+	public StreamUploadRequest(
+			final HttpServletRequest httpRequest, 
+			final Map<String, String[]> parameters,
+			final String observerId,
+			final long observerVersion,
+			final String data)
+			throws IOException, InvalidRequestException {
+		
+		super(httpRequest, TokenLocation.PARAMETER, false, parameters);
+		
+		String tObserverId = null;
+		Long tObserverVersion = null;
+		JsonParser tData = null;
+		
+		if(! isFailed()) {
+			LOGGER.info("Creating a stream upload request.");
+			
+			if(observerId == null) {
+				setFailed(
+					ErrorCode.OBSERVER_INVALID_ID, 
+					"The observer ID is missing.");
+			}
+			if(data == null) {
+				setFailed(
+					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+					"The data is missing.");
+			}
+			
+			LOGGER.debug(data);
+		
+			try {
+				tObserverId = ObserverValidators.validateObserverId(observerId);
+				tObserverVersion = observerVersion;
+				tData = ObserverValidators.validateData(data);
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
+			}
+		}
+		
+		this.observerId = tObserverId;
+		this.observerVersion = tObserverVersion;
+		this.data = tData;
+	}
 	
 	/**
 	 * Creates a stream upload request.
@@ -45,27 +108,41 @@ public class StreamUploadRequest extends UserRequest {
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;
-		Collection<JSONObject> tData = null;
+		JsonParser tData = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a stream upload request.");
 			String[] t;
 			
 			try {
-				String[] uriParts = httpRequest.getRequestURI().split("/");
-				
-				tObserverId = 
-					ObserverValidators.validateObserverId(
-						uriParts[uriParts.length - 2]);
+				t = getParameterValues(InputKeys.OBSERVER_ID);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OBSERVER_INVALID_ID,
+						"Multiple observer IDs were given: " +
+							InputKeys.OBSERVER_ID);
+				}
+				else if(t.length == 1) {
+					tObserverId = 
+						ObserverValidators.validateObserverId(t[0]);
+				}
 				if(tObserverId == null) {
 					throw new ValidationException(
 						ErrorCode.OBSERVER_INVALID_ID,
 						"The observer's ID is missing.");
 				}
 				
-				tObserverVersion = 
-					ObserverValidators.validateObserverVersion(
-						uriParts[uriParts.length - 1]);
+				t = getParameterValues(InputKeys.OBSERVER_VERSION);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OBSERVER_INVALID_VERSION,
+						"Multiple observer versions were given: " +
+							InputKeys.OBSERVER_VERSION);
+				}
+				else if(t.length == 1) {
+					tObserverVersion = 
+						ObserverValidators.validateObserverVersion(t[0]);
+				}
 				if(tObserverVersion == null) {
 					throw new ValidationException(
 						ErrorCode.OBSERVER_INVALID_VERSION,

@@ -194,6 +194,7 @@ public final class InputKeys {
 	public static final String ANNOTATION_ID = "annotation_id";
 	
 	// Observer Constants
+	public static final String OBSERVER_ID = "observer_id";
 	public static final String OBSERVER_VERSION = "observer_version";
 	public static final String OBSERVER_DEFINITION = "observer_definition";
 	public static final String STREAM_ID = "stream_id";

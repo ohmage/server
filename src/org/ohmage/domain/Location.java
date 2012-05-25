@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
@@ -253,6 +254,87 @@ public class Location {
 		this.provider = provider;
 		this.time = timestamp.getMillis();
 		this.timeZone = timestamp.getZone();
+	}
+	
+	/**
+	 * Creates a Location object from a Jackson JsonNode.
+	 * 
+	 * @param locationNode The location JsonNode.
+	 * 
+	 * @throws DomainException The node was invalid.
+	 */
+	public Location(
+			final JsonNode locationNode)
+			throws DomainException {
+		
+		if(locationNode == null) {
+			throw new DomainException("The location node is null.");
+		}
+		
+		// Get the time.
+		JsonNode timeNode = locationNode.get("time");
+		if(timeNode == null) {
+			throw new DomainException("The time is missing.");
+		}
+		else if(! timeNode.isNumber()) {
+			throw new DomainException("The time is not a number.");
+		}
+		time = timeNode.getNumberValue().longValue();
+		
+		// Get the time zone.
+		JsonNode timeZoneNode = locationNode.get("timezone");
+		if(timeZoneNode == null) {
+			throw new DomainException("The time zone is missing.");
+		}
+		else if(! timeZoneNode.isTextual()) {
+			throw new DomainException("The time zone is not a string.");
+		}
+		try {
+			timeZone = DateTimeZone.forID(timeZoneNode.getTextValue());
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException("The time zone is unknown.");
+		}
+		
+		// Get the latitude.
+		JsonNode latitudeNode = locationNode.get("latitude");
+		if(latitudeNode == null) {
+			throw new DomainException("The latitude is missing.");
+		}
+		else if(! latitudeNode.isNumber()) {
+			throw new DomainException("The latitude is not a number.");
+		}
+		latitude = latitudeNode.getNumberValue().doubleValue();
+		
+		// Get the longitude.
+		JsonNode longitudeNode = locationNode.get("longitude");
+		if(longitudeNode == null) {
+			throw new DomainException("The longitude is missing.");
+		}
+		else if(! longitudeNode.isNumber()) {
+			throw new DomainException("The longitude is not a number.");
+		}
+		longitude = longitudeNode.getNumberValue().doubleValue();
+		
+		// Get the accuracy.
+		JsonNode accuracyNode = locationNode.get("accuracy");
+		if(accuracyNode == null) {
+			throw new DomainException("The accuracy is missing.");
+		}
+		else if(! accuracyNode.isNumber()) {
+			throw new DomainException("The accuracy is not a number.");
+		}
+		accuracy = accuracyNode.getNumberValue().doubleValue();
+		
+		// Get the provider.
+		JsonNode providerNode = locationNode.get("provider");
+		if(providerNode == null) {
+			throw new DomainException("The provider is missing.");
+		}
+		else if(! providerNode.isTextual()) {
+			throw new DomainException("The provider is not a string.");
+		}
+		provider = providerNode.getTextValue();
 	}
 	
 	/**

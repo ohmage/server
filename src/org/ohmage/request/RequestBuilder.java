@@ -235,7 +235,8 @@ public final class RequestBuilder {
 	
 	// Observer
 	public static final String API_OBSERVER_CREATE = API_ROOT + "/observer/create";
-	public static final String API_OBSERVER_UPLOAD = API_ROOT + "/observer/";
+	public static final String API_OBSERVER_UPLOAD = API_ROOT + "/observer/upload";
+	public static final String API_OBSERVER_READ = API_ROOT + "/observer/read";
 	
 	// Survey
 	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
@@ -417,10 +418,10 @@ public final class RequestBuilder {
 		else if(API_OBSERVER_CREATE.equals(requestUri)) {
 			return new ObserverCreationRequest(httpRequest);
 		}
-		else if(requestUri.startsWith(API_OBSERVER_UPLOAD) && httpRequest.getMethod().equals("POST")) {
+		else if(API_OBSERVER_UPLOAD.equals(requestUri)) {
 			return new StreamUploadRequest(httpRequest);
 		}
-		else if(requestUri.startsWith(API_OBSERVER_UPLOAD) && httpRequest.getMethod().equals("GET")) {
+		else if(API_OBSERVER_READ.equals(requestUri)) {
 			return new StreamReadRequest(httpRequest);
 		}
 		//Survey
@@ -562,7 +563,8 @@ public final class RequestBuilder {
 				API_MOBILITY_UPDATE.equals(uri) ||
 				// Observer
 				API_OBSERVER_CREATE.equals(uri) ||
-				uri.startsWith(API_OBSERVER_UPLOAD) ||
+				API_OBSERVER_UPLOAD.equals(uri) ||
+				API_OBSERVER_READ.equals(uri) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
 				API_SURVEY_RESPONSE_READ.equals(uri) ||

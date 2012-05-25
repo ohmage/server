@@ -482,22 +482,29 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				
 				location = metaData.getLocation();
 			}
-				
-			args.add(
-				new Object[] {
-					currData.getStream().getId(),
-					username,
-					(timestamp == null) ? null : timestamp.getMillis(),
-					(timestamp == null) ? null : timestamp.getZone().getOffset(null),
-					(timestamp == null) ? null : timestamp.getZone().getID(),
-					(location == null) ? null : (new DateTime(location.getTime(), location.getTimeZone())).toString(),
-					(location == null) ? null : location.getLatitude(),
-					(location == null) ? null : location.getLongitude(),
-					(location == null) ? null : location.getAccuracy(),
-					(location == null) ? null : location.getProvider(),
-					currData.getBinaryData()
-				}
-			);
+			
+			try {
+				args.add(
+					new Object[] {
+						currData.getStream().getId(),
+						username,
+						(timestamp == null) ? null : timestamp.getMillis(),
+						(timestamp == null) ? null : timestamp.getZone().getOffset(null),
+						(timestamp == null) ? null : timestamp.getZone().getID(),
+						(location == null) ? null : (new DateTime(location.getTime(), location.getTimeZone())).toString(),
+						(location == null) ? null : location.getLatitude(),
+						(location == null) ? null : location.getLongitude(),
+						(location == null) ? null : location.getAccuracy(),
+						(location == null) ? null : location.getProvider(),
+						currData.getBinaryData()
+					}
+				);
+			}
+			catch(DomainException e) {
+				throw new DataAccessException(
+					"Could not get the binary data.",
+					e);
+			}
 		}
 		
 		// Create the transaction.
