@@ -198,13 +198,25 @@ public class ImageReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
+		// Open the connection to the image if it is not null.
+		InputStream imageStream = null;
+		try {
+			if(image != null) {
+				imageStream = image.openStream(size);
+			}
+		}
+		catch(DomainException e) {
+			LOGGER.error("Could not connect to the image.", e);
+			this.setFailed();
+		}
+		
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
-		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
-		}
-		else {
-			try {
+		try {
+			if(isFailed()) {
+				super.respond(httpRequest, httpResponse, null);
+			}
+			else {
 				// Set the type of the value.
 				// FIXME: This isn't necessarily the case. We might want to do
 				// some sort of image inspection to figure out what this should
@@ -241,9 +253,6 @@ public class ImageReadRequest extends UserRequest {
 				
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
-				
-				// Read the file in chunks and write it to the output stream.
-				InputStream imageStream = image.openStream(size);
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
 				while((currRead = imageStream.read(bytes)) != -1) {
@@ -263,26 +272,39 @@ public class ImageReadRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
-			// If there was an error getting the image's information, abort
-			// the whole operation and return an error.
-			catch(DomainException e) {
-				LOGGER.error(
-						"There was a problem reading or writing the image.", 
-						e);
-				setFailed();
-				httpResponse.setStatus(
-						HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+		// If there was an error getting the image's information, abort
+		// the whole operation and return an error.
+		catch(DomainException e) {
+			LOGGER.error(
+				"There was a problem reading or writing the image.", 
+				e);
+			setFailed();
+			httpResponse.setStatus(
+				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+		// If the error occurred while reading from the input stream or
+		// writing to the output stream, abort the whole operation and
+		// return an error.
+		catch(IOException e) {
+			LOGGER.error(
+				"The contents of the file could not be read or written to the response.", 
+				e);
+			setFailed();
+			httpResponse.setStatus(
+				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+		// No matter what, try to close the input stream if it exists.
+		finally {
+			try {
+				if(imageStream != null) {
+					imageStream.close();
+				}
 			}
-			// If the error occurred while reading from the input stream or
-			// writing to the output stream, abort the whole operation and
-			// return an error.
 			catch(IOException e) {
-				LOGGER.error(
-						"The contents of the file could not be read or written to the response.", 
-						e);
-				setFailed();
-				httpResponse.setStatus(
-					HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+				LOGGER.warn("Could not close the image stream.", e);
+				// We don't care about failing the request, because, either, it
+				// has already been failed or we wrote everything already.
 			}
 		}
 	}
