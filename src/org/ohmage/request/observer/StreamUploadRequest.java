@@ -71,8 +71,6 @@ public class StreamUploadRequest extends UserRequest {
 					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
 					"The data is missing.");
 			}
-			
-			LOGGER.debug(data);
 		
 			try {
 				tObserverId = ObserverValidators.validateObserverId(observerId);
