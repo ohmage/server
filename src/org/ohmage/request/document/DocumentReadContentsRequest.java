@@ -169,8 +169,8 @@ public class DocumentReadContentsRequest extends UserRequest {
 		
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
-		if(! isFailed()) {
-			try {
+		try {
+			if(! isFailed()) {
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
 				httpResponse.setContentType("ohmage/document");
@@ -180,7 +180,11 @@ public class DocumentReadContentsRequest extends UserRequest {
 				if(getUser() != null) {
 					final String token = getUser().getToken(); 
 					if(token != null) {
-						CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+						CookieUtils.setCookieValue(
+							httpResponse, 
+							InputKeys.AUTH_TOKEN, 
+							token, 
+							(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 					}
 				}
 				
@@ -207,12 +211,25 @@ public class DocumentReadContentsRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
-			// If the error occurred while reading from the input stream or
-			// writing to the output stream, abort the whole operation and
-			// return an error.
-			catch(IOException e) {
-				LOGGER.error("The contents of the file could not be read or written to the response.", e);
-				setFailed();
+		}
+		// If the error occurred while reading from the input stream or
+		// writing to the output stream, abort the whole operation and
+		// return an error.
+		catch(IOException e) {
+			LOGGER.error("The contents of the file could not be read or written to the response.", e);
+			setFailed();
+		}
+		// Always attempt to close the stream if it is not null.
+		finally {
+			if(contentsStream != null) {
+				try {
+					contentsStream.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Could not close the contents stream.", e);
+					// We don't fail the request because that should have 
+					// already been done.
+				}
 			}
 		}
 		
