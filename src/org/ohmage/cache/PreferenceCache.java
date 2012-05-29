@@ -56,6 +56,9 @@ public final class PreferenceCache extends KeyValueCache {
 	// Image-specific information.
 	public static final String KEY_IMAGE_DIRECTORY = "image_directory";
 	
+	// Video-specific information.
+	public static final String KEY_VIDEO_DIRECTORY = "video_directory";
+	
 	// Allows privileged users in a class to view the Mobility information 
 	// about everyone else in the class.
 	public static final String 

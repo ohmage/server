@@ -49,9 +49,14 @@ import org.ohmage.service.AuditServices;
 // individual file uploads via POST.
 @MultipartConfig(
 		location="/opt/ohmage/as/temp/", 
+		// Irrelevant as it is used for PUTs.
 		maxFileSize=1024*1024*5, 
-		maxRequestSize=1024*1024*5*5, 
-		fileSizeThreshold=1024*1024*5*5 + 1)
+		// Max POST size. 300 MB for a video plus 25 MB for the images plus 5
+		// MB for the survey response content.
+		maxRequestSize=1024*1024*300 + 1024*1024*25 + 1024*1024*5,
+		// Let's start caching if the request is greater than that for the 
+		// images plus the survey response content.
+		fileSizeThreshold=1024*1024*25 + 1024*1024*5)
 public class RequestServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(RequestServlet.class);
 	

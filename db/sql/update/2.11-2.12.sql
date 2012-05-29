@@ -42,3 +42,7 @@ UPDATE preference SET p_value = '/opt/ohmage/userdata/documents'
 
 UPDATE preference SET p_value = '/opt/ohmage/userdata/images' 
 	WHERE p_key = 'image_directory';
+	
+-- Add the new video directory.
+INSERT INTO preference VALUES
+    ('video_directory', '/opt/ohmage/userdata/videos');
