@@ -2334,8 +2334,9 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 			JSONObject result = new JSONObject();
 			
-			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
-				columns.contains(ClassifierDataColumnKey.MODE)) {
+			if((columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
+				columns.contains(ClassifierDataColumnKey.MODE)) &&
+				(mode != null)) {
 				
 				result.put(
 					ClassifierDataColumnKey.MODE.toString(abbreviated), 
@@ -2352,7 +2353,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
 				columns.contains(ClassifierDataColumnKey.VARIANCE)) {
-				
+
 				result.put(
 					ClassifierDataColumnKey.VARIANCE.toString(abbreviated), 
 					variance);
@@ -2360,7 +2361,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
 				columns.contains(ClassifierDataColumnKey.AVERAGE)) {
-				
+
 				result.put(
 					ClassifierDataColumnKey.AVERAGE.toString(abbreviated), 
 					average);
@@ -3313,8 +3314,9 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 						sensorData.toJson(abbreviated, columns));
 			}
 		
-			if(columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
-				ClassifierDataColumnKey.containsClassifierDataColumnKey(columns)) {
+			if((columns.contains(MobilityColumnKey.CLASSIFIER_DATA) ||
+				ClassifierDataColumnKey.containsClassifierDataColumnKey(columns)) &&
+				(classifierData != null)){
 				
 				result.put(
 					MobilityColumnKey.CLASSIFIER_DATA.toString(abbreviated), 
