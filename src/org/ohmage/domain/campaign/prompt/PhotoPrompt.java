@@ -240,10 +240,9 @@ public class PhotoPrompt extends Prompt {
 		return result;
 	}
 
-	/**
-	 * Generates a hash code for this prompt.
-	 * 
-	 * @return A hash code for this prompt.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.Prompt#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -253,13 +252,9 @@ public class PhotoPrompt extends Prompt {
 		return result;
 	}
 
-	/**
-	 * Determines if this prompt is logically equivalent to another prompt.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the other object is logically equivalent to this
-	 * 		   prompt.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.Prompt#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {

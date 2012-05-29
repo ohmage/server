@@ -66,6 +66,7 @@ import org.ohmage.domain.campaign.prompt.SingleChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.SingleChoicePrompt;
 import org.ohmage.domain.campaign.prompt.TextPrompt;
 import org.ohmage.domain.campaign.prompt.TimestampPrompt;
+import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
@@ -3003,6 +3004,22 @@ public class Campaign {
 					abbreviatedText, explanationText, skippable, skipLabel, 
 					displayType, displayLabel, defaultValue, properties, index);
 			
+		case VIDEO:
+			return processVideo(
+				id, 
+				condition, 
+				unit, 
+				text, 
+				abbreviatedText,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+			
 		default:
 			return null;
 		}
@@ -4214,5 +4231,98 @@ public class Campaign {
 		return new TimestampPrompt(id, condition, unit, text, 
 				abbreviatedText, explanationText, skippable, skipLabel, 
 				displayType, displayLabel, index);
+	}
+	
+	/**
+	 * Processes a video prompt and returns a VideoPrompt object.
+	 * 
+	 * @param id The prompt's unique identifier.
+	 * 
+	 * @param condition The condition value.
+	 * 
+	 * @param unit The prompt's visualization unit.
+	 * 
+	 * @param text The prompt's text value.
+	 * 
+	 * @param abbreviatedText The prompt's abbreviated text value.
+	 * 
+	 * @param explanationText The prompt's explanation text value.
+	 * 
+	 * @param skippable Whether or not this prompt is skippable.
+	 * 
+	 * @param skipLabel The label to show to skip this prompt.
+	 * 
+	 * @param displayType The display type of this prompt.
+	 * 
+	 * @param displayLabel The label for this display type.
+	 * 
+	 * @param defaultValue The default value given in the XML.
+	 * 
+	 * @param properties The properties defined in the XML for this prompt.
+	 * 
+	 * @param index The index of this prompt in its collection of survey items.
+	 * 
+	 * @return A VideoPrompt object.
+	 * 
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
+	 */
+	private static VideoPrompt processVideo(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String abbreviatedText, 
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final DisplayType displayType, 
+			final String displayLabel,
+			final String defaultValue,
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
+		
+		if(defaultValue != null) {
+			throw new DomainException(
+				"Default values aren't allowed for video prompts: " + id);
+		}
+		
+		int maxSeconds;
+		try {
+			LabelValuePair maxSecondsVlp = 
+				properties.get(VideoPrompt.XML_MAX_SECONDS);
+			
+			if(maxSecondsVlp == null) {
+				throw new DomainException(
+						"Missing the '" +
+							VideoPrompt.XML_MAX_SECONDS +
+							"' property: " +
+							id);
+			}
+			maxSeconds = Integer.decode(maxSecondsVlp.getLabel());
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						VideoPrompt.XML_MAX_SECONDS+
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+		
+		return new VideoPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			abbreviatedText,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			maxSeconds,
+			index);
 	}
 }
