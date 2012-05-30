@@ -233,41 +233,19 @@ public class ImageReadRequest extends UserRequest {
 				
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
-				while((currRead = imageStream.read(bytes)) != -1) {
-					dos.write(bytes, 0, currRead);
-				}
-				
-				// Close the image's InputStream.
-				imageStream.close();
-				
-				// Flush and close the data output stream to which we were 
-				// writing.
 				try {
-					dos.flush();
+					while((currRead = imageStream.read(bytes)) != -1) {
+						dos.write(bytes, 0, currRead);
+					}
 				}
-				catch(IOException e) {
-					LOGGER.warn("Error flushing the data output stream.", e);
-				}
-				try {
-					dos.close();
-				}
-				catch(IOException e) {
-					LOGGER.warn("Error closing the data output stream.", e);
-				}
-				
-				// Flush and close the output stream that was used to generate
-				// the data output stream.
-				try {
-					os.flush();
-				}
-				catch(IOException e) {
-					LOGGER.warn("Error flushing the output stream.", e);
-				}
-				try {
-					os.close();
-				}
-				catch(IOException e) {
-					LOGGER.warn("Error closing the output stream.", e);
+				finally {
+					// Close the data output stream to which we were writing.
+					try {
+						dos.close();
+					}
+					catch(IOException e) {
+						LOGGER.warn("Error closing the data output stream.", e);
+					}
 				}
 			}
 		}
@@ -311,14 +289,6 @@ public class ImageReadRequest extends UserRequest {
 			}
 			catch(IOException e) {
 				LOGGER.warn("Unable to write failed response message. Aborting.", e);
-			}
-			
-			// Flush it.
-			try {
-				writer.flush();
-			}
-			catch(IOException e) {
-				LOGGER.warn("Unable to flush the writer.", e);
 			}
 			
 			// Close it.
