@@ -587,17 +587,23 @@ public class CampaignReadRequest extends UserRequest {
 			writer.write(responseText); 
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to write failed response message. Aborting.", e);
-			return;
+			LOGGER.warn("Unable to write failed response message. Aborting.", e);
 		}
 		
-		// Flush it and close.
+		// Flush it.
 		try {
 			writer.flush();
+		}
+		catch(IOException e) {
+			LOGGER.warn("Unable to flush the writer.", e);
+		}
+		
+		// Close it.
+		try {
 			writer.close();
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to flush or close the writer.", e);
+			LOGGER.warn("Unable to close the writer.", e);
 		}
 	}
 	
