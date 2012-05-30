@@ -408,7 +408,15 @@ public final class SurveyResponseServices {
 		}
 	}
 	
-	
+	/**
+	 * Gets the campaign ID for a survey response ID.
+	 * 
+	 * @param surveyResponseId The survey response's unique identifier.
+	 * 
+	 * @return The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
 	public String getCampaignForSurveyResponseId(UUID surveyResponseId) 
 			throws ServiceException {
 		try {

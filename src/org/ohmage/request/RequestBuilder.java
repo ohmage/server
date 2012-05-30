@@ -75,6 +75,7 @@ import org.ohmage.request.user.UserRegistrationRequest;
 import org.ohmage.request.user.UserSearchRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
+import org.ohmage.request.video.VideoReadRequest;
 import org.ohmage.request.visualization.VizPromptDistributionRequest;
 import org.ohmage.request.visualization.VizPromptTimeseriesRequest;
 import org.ohmage.request.visualization.VizScatterPlotRequest;
@@ -252,6 +253,8 @@ public final class RequestBuilder {
 	
 	// Registration
 	public static final String API_REGISTRATION_READ = API_ROOT + "/registration/read";
+	
+	public static final String API_VIDEO_READ = API_ROOT + "/video/read";
 	
 	// Visualization
 	public static final String API_VISUALIZATION = API_ROOT + "/viz";
@@ -460,6 +463,9 @@ public final class RequestBuilder {
 		else if(API_REGISTRATION_READ.equals(requestUri)) {
 			return new RegistrationReadRequest(httpRequest);
 		}
+		else if(API_VIDEO_READ.equals(requestUri)) {
+			return new VideoReadRequest(httpRequest);
+		}
 		// Visualization
 		else if(API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(requestUri)) {
 			return new VizSurveyResponseCountRequest(httpRequest);
@@ -563,6 +569,8 @@ public final class RequestBuilder {
 				API_USER_DELETE.equals(uri) ||
 				// Registration
 				API_REGISTRATION_READ.equals(uri) ||
+				// Video
+				API_VIDEO_READ.equals(uri) ||
 				// Visualization
 				API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(uri) ||
 				API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(uri) ||

@@ -110,6 +110,9 @@ public final class InputKeys {
 	public static final String IMAGE_OWNER = "owner";
 	public static final String IMAGE_SIZE = "size";
 	
+	// Video Constants
+	public static final String VIDEO_ID = "video_id";
+	
 	// User Constants
 	public static final String USER = "user";
 	public static final String NEW_USERNAME = "new_username";
