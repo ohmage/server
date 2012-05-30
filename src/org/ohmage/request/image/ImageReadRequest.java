@@ -255,22 +255,20 @@ public class ImageReadRequest extends UserRequest {
 				DataOutputStream dos = new DataOutputStream(os);
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
-				while((currRead = imageStream.read(bytes)) != -1) {
-					dos.write(bytes, 0, currRead);
+				try {
+					while((currRead = imageStream.read(bytes)) != -1) {
+						dos.write(bytes, 0, currRead);
+					}
 				}
-				
-				// Close the image's InputStream.
-				imageStream.close();
-				
-				// Flush and close the data output stream to which we were 
-				// writing.
-				dos.flush();
-				dos.close();
-				
-				// Flush and close the output stream that was used to generate
-				// the data output stream.
-				os.flush();
-				os.close();
+				finally {
+					// Close the data output stream to which we were writing.
+					try {
+						dos.close();
+					}
+					catch(IOException e) {
+						LOGGER.warn("Error closing the data output stream.", e);
+					}
+				}
 			}
 		}
 		// If there was an error getting the image's information, abort
