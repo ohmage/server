@@ -383,13 +383,6 @@ public abstract class Request {
 		finally {
 			if(writer != null) {
 				try {
-					writer.flush();
-				}
-				catch(IOException e) {
-					LOGGER.warn("Unable to flush the writer.", e);
-				}
-				
-				try {
 					writer.close();
 				}
 				catch(IOException e) {
