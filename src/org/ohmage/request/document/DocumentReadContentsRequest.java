@@ -209,13 +209,33 @@ public class DocumentReadContentsRequest extends UserRequest {
 				
 				// Flush and close the data output stream to which we were 
 				// writing.
-				dos.flush();
-				dos.close();
+				try {
+					dos.flush();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error flushing the data output stream.", e);
+				}
+				try {
+					dos.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error closing the data output stream.", e);
+				}
 				
 				// Flush and close the output stream that was used to generate
 				// the data output stream.
-				os.flush();
-				os.close();
+				try {
+					os.flush();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error flushing the output stream.", e);
+				}
+				try {
+					os.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error closing the output stream.", e);
+				}
 			}
 		}
 		// If the error occurred while reading from the input stream or
@@ -249,16 +269,23 @@ public class DocumentReadContentsRequest extends UserRequest {
 				writer.write(getFailureMessage()); 
 			}
 			catch(IOException e) {
-				LOGGER.error("Unable to write failed response message. Aborting.", e);
+				LOGGER.warn("Unable to write failed response message. Aborting.", e);
 			}
 			
-			// Flush it and close.
+			// Flush it.
 			try {
 				writer.flush();
+			}
+			catch(IOException e) {
+				LOGGER.warn("Unable to flush the writer.", e);
+			}
+			
+			// Close it.
+			try {
 				writer.close();
 			}
 			catch(IOException e) {
-				LOGGER.error("Unable to flush or close the writer.", e);
+				LOGGER.warn("Unable to close the writer.", e);
 			}
 		}
 	}
