@@ -264,13 +264,33 @@ public class ImageReadRequest extends UserRequest {
 				
 				// Flush and close the data output stream to which we were 
 				// writing.
-				dos.flush();
-				dos.close();
+				try {
+					dos.flush();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error flushing the data output stream.", e);
+				}
+				try {
+					dos.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error closing the data output stream.", e);
+				}
 				
 				// Flush and close the output stream that was used to generate
 				// the data output stream.
-				os.flush();
-				os.close();
+				try {
+					os.flush();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error flushing the output stream.", e);
+				}
+				try {
+					os.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error closing the output stream.", e);
+				}
 			}
 		}
 		// If there was an error getting the image's information, abort
