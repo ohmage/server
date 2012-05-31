@@ -43,7 +43,7 @@ public class StreamReadRequest extends UserRequest {
 	/**
 	 * The maximum number of records that can be returned.
 	 */
-	public static final long MAX_NUMBER_TO_RETURN = 100;
+	public static final long MAX_NUMBER_TO_RETURN = 10000;
 	
 	/**
 	 * This is being used to facilitate an n-ary tree.
@@ -135,6 +135,118 @@ public class StreamReadRequest extends UserRequest {
 	private final long numToReturn;
 	
 	private final Collection<DataStream> results;
+	
+	/**
+	 * Creates a stream read request from the given parameters.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param parameters The parameters from the HTTP request that have already
+	 * 					 been decoded.
+	 * 
+	 * @param observerId The observer's unique identifier. Required.
+	 * 
+	 * @param observerVersion The observer's version. Optional.
+	 * 
+	 * @param streamId The stream's unique identifier. Required.
+	 * 
+	 * @param streamVersion The stream's version. Required.
+	 * 
+	 * @param startDate Limits the results to only those on or after this date.
+	 * 					Optional.
+	 * 
+	 * @param endDate Limits the results to only those on or before this date.
+	 * 				  Optional.
+	 * 
+	 * @param columns A string representing the columns to return or null if
+	 * 				  all columns should be returned. Optional.
+	 * 
+	 * @param numToSkip The number of entries to skip. Optional. Default is 0.
+	 * 
+	 * @param numToReturn The number of entries to return. Optional. Default is
+	 * 					  {@value #MAX_NUMBER_TO_RETURN}.
+	 */
+	public StreamReadRequest(
+			final HttpServletRequest httpRequest, 
+			final Map<String, String[]> parameters,
+			final String observerId,
+			final Long observerVersion,
+			final String streamId,
+			final long streamVersion,
+			final DateTime startDate,
+			final DateTime endDate,
+			final String columns,
+			final Long numToSkip,
+			final Long numToReturn) {
+		
+		super(httpRequest, TokenLocation.EITHER, false, parameters);
+		
+		String tObserverId = null;
+		Long tObserverVersion = null;
+		String tStreamId = null;
+		Long tStreamVersion = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
+		ColumnNode<String> tColumnsRoot = null;
+		long tNumToSkip = 0;
+		long tNumToReturn = MAX_NUMBER_TO_RETURN;
+		
+		if(! isFailed()) {
+			LOGGER.info("Creating a stream read request.");
+			
+			if(observerId == null) {
+				setFailed(
+					ErrorCode.OBSERVER_INVALID_ID,
+					"The observer ID is missing.");
+			}
+			if(streamId == null) {
+				setFailed(
+					ErrorCode.OBSERVER_INVALID_STREAM_ID,
+					"The stream ID is missing.");
+			}
+			
+			try {
+				tObserverId = ObserverValidators.validateObserverId(observerId);
+				tObserverVersion = observerVersion;
+				tStreamId = ObserverValidators.validateStreamId(streamId);
+				tStreamVersion = streamVersion;
+				tStartDate = startDate;
+				
+				LOGGER.debug("Start Date: " + tStartDate);
+				
+				tEndDate = endDate;
+				
+				LOGGER.info("End Date: " + tEndDate);
+				
+				tColumnsRoot = ObserverValidators.validateColumnList(columns);
+
+				if((numToSkip != null) && (numToSkip > 0)) {
+					tNumToSkip = numToSkip;
+				}
+				if((numToReturn != null) && (
+					(numToReturn < 0) || (numToReturn > MAX_NUMBER_TO_RETURN))) {
+					
+					tNumToReturn = MAX_NUMBER_TO_RETURN;
+				}
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
+			}
+		}
+		
+		this.observerId = tObserverId;
+		this.observerVersion = tObserverVersion;
+		this.streamId = tStreamId;
+		this.streamVersion = tStreamVersion;
+		this.startDate = tStartDate;
+		this.endDate = tEndDate;
+		this.columnsRoot = tColumnsRoot;
+		this.numToSkip = tNumToSkip;
+		this.numToReturn = tNumToReturn;
+		
+		results = new LinkedList<DataStream>();
+	}
 	
 	/**
 	 * Creates a stream read request.
@@ -307,6 +419,16 @@ public class StreamReadRequest extends UserRequest {
 		
 		results = new LinkedList<DataStream>();
 	}
+	
+	/**
+	 * Returns an unmodifiable copy of the results. If {@link #service()} has
+	 * not been call on this request, this will be an empty list.
+	 * 
+	 * @return The list of results generated thus far.
+	 */
+	public Collection<DataStream> getResults() {
+		return Collections.unmodifiableCollection(results);
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -386,6 +508,29 @@ public class StreamReadRequest extends UserRequest {
 			LOGGER.warn("Could not connect to the output stream.", e);
 			return;
 		}
+
+		// Create the generator that will stream to the requester.
+		JsonGenerator generator;
+		try {
+			generator =
+				(new JsonFactory()).createJsonGenerator(outputStream);
+		}
+		catch(IOException generatorException) {
+			LOGGER.error(
+				"Could not create the JSON generator.",
+				generatorException);
+			
+			try {
+				outputStream.close();
+			}
+			catch(IOException streamCloseException) {
+				LOGGER.warn(
+					"Could not close the output stream.",
+					streamCloseException);
+			}
+			
+			return;
+		}
 				
 		/*
 		 * Example output:
@@ -407,17 +552,6 @@ public class StreamReadRequest extends UserRequest {
 		 * 	}
 		 */
 		try {
-			// Create the generator that will stream to the requester.
-			JsonGenerator generator;
-			try {
-				generator =
-					(new JsonFactory()).createJsonGenerator(outputStream);
-			}
-			catch(IOException e) {
-				LOGGER.error("Could not create the JSON generator.", e);
-				return;
-			}
-			
 			// Start the resulting object.
 			generator.writeStartObject();
 			
@@ -475,10 +609,6 @@ public class StreamReadRequest extends UserRequest {
 			
 			// End the overall object.
 			generator.writeEndObject();
-			
-			// Flush and close the writer.
-			generator.flush();
-			generator.close();
 		}
 		catch(JsonProcessingException e) {
 			LOGGER.error("The JSON could not be processed.", e);
@@ -501,22 +631,12 @@ public class StreamReadRequest extends UserRequest {
 			return;
 		}
 		finally {
+			// Flush and close the writer.
 			try {
-				outputStream.flush();
+				generator.close();
 			}
 			catch(IOException e) {
-				LOGGER.warn(
-					"Could not flush the writer.",
-					e);
-			}
-
-			try {
-				outputStream.close();
-			}
-			catch(IOException e) {
-				LOGGER.warn(
-					"Could not close the writer.",
-					e);
+				LOGGER.warn("Could not close the generator.", e);
 			}
 		}
 	}

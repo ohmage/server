@@ -202,6 +202,7 @@ public final class InputKeys {
 	public static final String OBSERVER_DEFINITION = "observer_definition";
 	public static final String STREAM_ID = "stream_id";
 	public static final String STREAM_VERSION = "stream_version";
+	public static final String STREAM_IDS_WITH_VERSION = "stream_ids_with_version";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

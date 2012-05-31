@@ -1,6 +1,10 @@
 package org.ohmage.validator;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
 
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.MappingJsonFactory;
@@ -169,6 +173,75 @@ public class ObserverValidators {
 				"The value is not a valid number: " + value,
 				e);
 		}
+	}
+	
+	/**
+	 * Validates that a map of stream IDs and versions is valid. The expected
+	 * format is "streamId1:streamVersion1,streamId2:streamVersion2,...".
+	 * 
+	 * @param value The map as a string to be validated.
+	 * 
+	 * @return The map as Map.
+	 * 
+	 * @throws ValidationException The map string was invalid.
+	 */
+	public static final Map<String, Collection<Long>> validateStreamIdsWithVersions(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		Map<String, Collection<Long>> result = 
+			new HashMap<String, Collection<Long>>();
+		
+		String[] stringIdsWithVersion = 
+			value.split(InputKeys.LIST_ITEM_SEPARATOR);
+		for(int i = 0; i < stringIdsWithVersion.length; i++) {
+			String stringIdWithVersion = stringIdsWithVersion[i];
+			if(stringIdWithVersion == null) {
+				continue;
+			}
+			
+			String trimmedStringIdWithVersion = stringIdWithVersion.trim();
+			if(trimmedStringIdWithVersion.length() == 0) {
+				continue;
+			}
+			
+			String[] idAndVersion = trimmedStringIdWithVersion.split(":");
+			if(idAndVersion.length != 2) {
+				throw new ValidationException(
+					ErrorCode.OBSERVER_INVALID_STREAM_ID,
+					"The stream ID and version is malformed: " +
+						trimmedStringIdWithVersion);
+			}
+			
+			String id = validateStreamId(idAndVersion[0]);
+			if(id == null) {
+				throw new ValidationException(
+					ErrorCode.OBSERVER_INVALID_STREAM_ID,
+					"The stream's ID is missing from: " +
+						trimmedStringIdWithVersion);
+			}
+			
+			Long version = validateStreamVersion(idAndVersion[1]);
+			if(version == null) {
+				throw new ValidationException(
+					ErrorCode.OBSERVER_INVALID_STREAM_VERSION,
+					"The stream's version is missing from: " +
+						trimmedStringIdWithVersion);
+			}
+			
+			Collection<Long> existingVersions = result.get(id);
+			if(existingVersions == null) {
+				existingVersions = new LinkedList<Long>();
+				result.put(id, existingVersions);
+			}
+			existingVersions.add(version);
+		}
+		
+		return result;
 	}
 	
 	/**

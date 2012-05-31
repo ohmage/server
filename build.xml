@@ -38,7 +38,7 @@
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
   	<include name="joda-time-2.1.jar"/>
-  	<include name="avro-1.6.3.jar"/>
+  	<include name="avro-1.7.0.jar"/>
     <include name="jackson-all-1.9.7.jar"/>
   </fileset>
 
@@ -66,7 +66,7 @@
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
     <include name="joda-time-2.1.jar"/>
-    <include name="avro-1.6.3.jar"/>
+    <include name="avro-1.7.0.jar"/>
   	<include name="jackson-all-1.9.7.jar"/>
   </fileset>
 
