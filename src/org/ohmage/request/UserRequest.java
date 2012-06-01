@@ -538,28 +538,26 @@ public abstract class UserRequest extends Request {
 					"The authentication token is missing as a cookie: " + 
 						InputKeys.AUTH_TOKEN);
 			}
-			else {
-				if(cookies.size() == 1) {
-					// Attempt to retrieve the user.
-					User user = UserBin.getUser(cookies.get(0));
-					
-					// If the bin doesn't know about the user, set the request
-					// as failed.
-					if(user == null) {
-						throw new ValidationException(
-							ErrorCode.AUTHENTICATION_FAILED, 
-							"The token is unknown.");
-					}
-					
-					return user;
-				}
-				// If there are multiple authentication token cookies, fail the
-				// request.
-				else {
+			else if(cookies.size() == 1) {
+				// Attempt to retrieve the user.
+				User user = UserBin.getUser(cookies.get(0));
+				
+				// If the bin doesn't know about the user, set the request as
+				// failed.
+				if(user == null) {
 					throw new ValidationException(
 						ErrorCode.AUTHENTICATION_FAILED, 
-						"Multiple authentication token cookies were given.");
+						"The token cookie is unknown.");
 				}
+				
+				return user;
+			}
+			// If there are multiple authentication token cookies, fail the
+			// request.
+			else if(cookies.size() > 1) {
+				throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"Multiple authentication token cookies were given.");
 			}
 		}
 		
