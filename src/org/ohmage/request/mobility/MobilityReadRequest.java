@@ -355,6 +355,11 @@ public class MobilityReadRequest extends Request {
 	 */
 	@Override
 	public void service() {
+		// If any of the sub-requests have failed, then return.
+		if(regularReadRequest.isFailed() || extendedReadRequest.isFailed()) {
+			return;
+		}
+		
 		LOGGER.info("Servicing the Mobility read request.");
 		
 		regularReadRequest.service();
