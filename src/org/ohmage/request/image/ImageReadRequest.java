@@ -192,10 +192,22 @@ public class ImageReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
+		// Open the connection to the image if it is not null.
+		InputStream imageStream = null;
+		try {
+			if(image != null) {
+				imageStream = image.openStream();
+			}
+		}
+		catch(DomainException e) {
+			LOGGER.error("Could not connect to the image.", e);
+			this.setFailed();
+		}
+		
 		// If the request hasn't failed, attempt to write the file to the
-		// output stream. 
-		if(! isFailed()) {
-			try {
+		// output stream.
+		try {
+			if(! isFailed()) {
 				// Set the type as a JPEG.
 				// FIXME: This isn't necessarily the case. We might want to do
 				// some sort of image inspection to figure out what this should
@@ -219,38 +231,49 @@ public class ImageReadRequest extends UserRequest {
 				// Set the output stream to the response.
 				DataOutputStream dos = new DataOutputStream(os);
 				
-				// Read the file in chunks and write it to the output stream.
-				InputStream imageStream = image.openStream();
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
-				while((currRead = imageStream.read(bytes)) != -1) {
-					dos.write(bytes, 0, currRead);
+				try {
+					while((currRead = imageStream.read(bytes)) != -1) {
+						dos.write(bytes, 0, currRead);
+					}
 				}
-				
-				// Close the image's InputStream.
-				imageStream.close();
-				
-				// Flush and close the data output stream to which we were 
-				// writing.
-				dos.flush();
-				dos.close();
-				
-				// Flush and close the output stream that was used to generate
-				// the data output stream.
-				os.flush();
-				os.close();
+				finally {
+					// Close the data output stream to which we were writing.
+					try {
+						dos.close();
+					}
+					catch(IOException e) {
+						LOGGER.warn("Error closing the data output stream.", e);
+					}
+				}
 			}
-			catch(DomainException e) {
-				LOGGER.error(
-						"There was a problem connecting to the image.", 
-						e);
+		}
+		catch(DomainException e) {
+			LOGGER.error(
+					"There was a problem connecting to the image.", 
+					e);
+		}
+		// If the error occurred while reading from the input stream or
+		// writing to the output stream, abort the whole operation and
+		// return an error.
+		catch(IOException e) {
+			LOGGER.error(
+				"The contents of the file could not be read or written to the response.", 
+				e);
+			setFailed();
+		}
+		// No matter what, try to close the input stream if it exists.
+		finally {
+			try {
+				if(imageStream != null) {
+					imageStream.close();
+				}
 			}
-			// If the error occurred while reading from the input stream or
-			// writing to the output stream, abort the whole operation and
-			// return an error.
 			catch(IOException e) {
-				LOGGER.error("The contents of the file could not be read or written to the response.", e);
-				setFailed();
+				LOGGER.warn("Could not close the image stream.", e);
+				// We don't care about failing the request, because, either, it
+				// has already been failed or we wrote everything already.
 			}
 		}
 		
@@ -265,16 +288,15 @@ public class ImageReadRequest extends UserRequest {
 				writer.write(getFailureMessage()); 
 			}
 			catch(IOException e) {
-				LOGGER.error("Unable to write failed response message. Aborting.", e);
+				LOGGER.warn("Unable to write failed response message. Aborting.", e);
 			}
 			
-			// Flush it and close.
+			// Close it.
 			try {
-				writer.flush();
 				writer.close();
 			}
 			catch(IOException e) {
-				LOGGER.warn("Unable to flush or close the writer.", e);
+				LOGGER.warn("Unable to close the writer.", e);
 			}
 		}
 	}

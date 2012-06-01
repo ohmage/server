@@ -1196,15 +1196,15 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 			writer.write(resultString);
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to write response message. Aborting.", e);
+			LOGGER.warn("Unable to write response message. Aborting.", e);
 		}
 		
+		// Close it.
 		try {
-			writer.flush();
 			writer.close();
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to flush or close the writer.", e);
+			LOGGER.warn("Unable to close the writer.", e);
 		}
 	}
 	

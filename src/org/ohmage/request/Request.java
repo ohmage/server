@@ -360,15 +360,13 @@ public abstract class Request {
 			LOGGER.error("Unable to write response message. Aborting.", e);
 		}
 		finally {
-			try {
-				if(writer != null) {
-					writer.flush();
+			if(writer != null) {
+				try {
 					writer.close();
-					writer = null;
 				}
-			}
-			catch(IOException e) {
-				LOGGER.error("Unable to flush or close the writer.", e);
+				catch(IOException e) {
+					LOGGER.warn("Unable to close the writer.", e);
+				}
 			}
 		}
 	}

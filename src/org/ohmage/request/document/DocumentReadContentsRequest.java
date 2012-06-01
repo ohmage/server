@@ -175,8 +175,28 @@ public class DocumentReadContentsRequest extends UserRequest {
 		
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
-		if(! isFailed()) {
-			try {
+		try {
+			if(isFailed()) {
+				httpResponse.setContentType("text/html");
+				Writer writer = new BufferedWriter(new OutputStreamWriter(os));
+				
+				// Write the error response.
+				try {
+					writer.write(getFailureMessage()); 
+				}
+				catch(IOException e) {
+					LOGGER.warn("Unable to write failed response message. Aborting.", e);
+				}
+				
+				// Close it.
+				try {
+					writer.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Unable to close the writer.", e);
+				}
+			}
+			else {
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
 				httpResponse.setContentType("ohmage/document");
@@ -186,7 +206,11 @@ public class DocumentReadContentsRequest extends UserRequest {
 				if(getUser() != null) {
 					final String token = getUser().getToken(); 
 					if(token != null) {
-						CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+						CookieUtils.setCookieValue(
+							httpResponse, 
+							InputKeys.AUTH_TOKEN, 
+							token, 
+							(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
 					}
 				}
 				
@@ -200,48 +224,41 @@ public class DocumentReadContentsRequest extends UserRequest {
 					dos.write(bytes, 0, currRead);
 				}
 				
-				// Close the document's InputStream.
-				contentsStream.close();
-				
-				// Flush and close the data output stream to which we were 
-				// writing.
-				dos.flush();
-				dos.close();
-				
-				// Flush and close the output stream that was used to generate
-				// the data output stream.
-				os.flush();
-				os.close();
-			}
-			// If the error occurred while reading from the input stream or
-			// writing to the output stream, abort the whole operation and
-			// return an error.
-			catch(IOException e) {
-				LOGGER.error("The contents of the file could not be read or written to the response.", e);
-				setFailed();
+				// Close the data output stream to which we were writing.
+				try {
+					dos.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Error closing the data output stream.", e);
+				}
 			}
 		}
-		
-		// If the request ever failed, write an error message.
-		if(isFailed()) {
-			httpResponse.setContentType("text/html");
-			Writer writer = new BufferedWriter(new OutputStreamWriter(os));
-			
-			// Write the error response.
+		// If the error occurred while reading from the input stream or
+		// writing to the output stream, abort the whole operation and
+		// return an error.
+		catch(IOException e) {
+			LOGGER.error(
+				"The contents of the file could not be read or written to the response.",
+				e);
+			setFailed();
+		}
+		// Always attempt to close the stream if it is not null.
+		finally {
+			if(contentsStream != null) {
+				try {
+					contentsStream.close();
+				}
+				catch(IOException e) {
+					LOGGER.warn("Could not close the contents stream.", e);
+				}
+			}
+
+			// Close the output stream.
 			try {
-				writer.write(getFailureMessage()); 
+				os.close();
 			}
 			catch(IOException e) {
-				LOGGER.error("Unable to write failed response message. Aborting.", e);
-			}
-			
-			// Flush it and close.
-			try {
-				writer.flush();
-				writer.close();
-			}
-			catch(IOException e) {
-				LOGGER.error("Unable to flush or close the writer.", e);
+				LOGGER.warn("Couldn't close the output stream.", e);
 			}
 		}
 	}

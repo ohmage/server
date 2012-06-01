@@ -224,8 +224,14 @@ public class DocumentServices {
 			throws ServiceException {
 		
 		try {
-			return (new URL(documentQueries.getDocumentUrl(documentId))).openConnection().getInputStream();
+			String documentUrl = documentQueries.getDocumentUrl(documentId);
+			if(documentUrl == null) {
+				throw new ServiceException(
+					ErrorCode.DOCUMENT_INVALID_ID,
+					"The document doesn't exist.");
+			}
 			
+			return (new URL(documentUrl)).openStream();
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

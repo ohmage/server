@@ -212,17 +212,15 @@ public class ClassRosterReadRequest extends UserRequest {
 			writer.write(responseText); 
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to write failed response message. Aborting.", e);
-			return;
+			LOGGER.warn("Unable to write failed response message. Aborting.", e);
 		}
 		
-		// Flush it and close.
+		// Close it.
 		try {
-			writer.flush();
 			writer.close();
 		}
 		catch(IOException e) {
-			LOGGER.error("Unable to flush or close the writer.", e);
+			LOGGER.warn("Unable to close the writer.", e);
 		}
 	}
 	
