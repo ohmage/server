@@ -26,10 +26,12 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.avro.generic.GenericArray;
 import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
@@ -502,6 +504,10 @@ public class MobilityReadRequest extends Request {
 			// Start the data array.
 			generator.writeArrayFieldStart("data");
 			
+			// FIXME: This doesn't take into account the columns list. The 
+			// easiest way to fix this is to attempt to insert everything like
+			// it exists, and, when it doesn't, just keep on keeping on.
+			
 			// Serialize the regular data.
 			for(DataStream dataStream : regularReadRequest.getResults()) {
 				// Start this point's object.
@@ -640,15 +646,11 @@ public class MobilityReadRequest extends Request {
 					String mode = dataRecord.get("mode").toString();
 					generator.writeStringField("m", mode);
 					
-					// TODO: Write the sensor data.
-					/*
-					generator.writeObjectFieldStart("data");
+					// Write the sensor data.
+					writeSensorData(generator, dataRecord);
 					
-					// End the sensor data.
-					generator.writeEndObject();
-					*/
-					
-					// TODO: Write the classification data.
+					// Write the classification data.
+					writeClassificationData(generator, dataRecord);
 				}
 				else {
 					LOGGER.error("The record is malformed.");
@@ -712,5 +714,214 @@ public class MobilityReadRequest extends Request {
 			
 		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);
 		*/
+	}
+	
+	/**
+	 * Adds the sensor data to the generator.
+	 * 
+	 * @param generator The JSON generator.
+	 * 
+	 * @param dataRecord The data record.
+	 * 
+	 * @throws IOException There was an error writing to the generator.
+	 * 
+	 * @throws JsonGenerationException There was an error generating the JSON.
+	 */
+	private void writeSensorData(
+			final JsonGenerator generator,
+			final GenericRecord dataRecord)
+			throws IOException, JsonGenerationException {
+		
+		generator.writeObjectFieldStart("data");
+		
+		try {
+			Object speed = dataRecord.get("speed");
+			if(speed instanceof Number) {
+				writeNumber(generator, "sp", (Number) speed);
+			}
+			else {
+				LOGGER.error("The speed is not a number.");
+			}
+			
+			Object accelData = dataRecord.get("accel_data");
+			if(accelData instanceof GenericArray) {
+				@SuppressWarnings("unchecked")
+				GenericArray<GenericRecord> accelDataArray = 
+					(GenericArray<GenericRecord>) accelData;
+				generator.writeArrayFieldStart("ad");
+				
+				try {
+					for(GenericRecord accelRecord : accelDataArray) {
+						generator.writeStartObject();
+						
+						try {
+							Object x = accelRecord.get("x");
+							if(x instanceof Number) {
+								writeNumber(generator, "x", (Number) x);
+							}
+							else {
+								LOGGER.error("The x-value is not a number.");
+							}
+
+							Object y = accelRecord.get("y");
+							if(y instanceof Number) {
+								writeNumber(generator, "y", (Number) y);
+							}
+							else {
+								LOGGER.error("The y-value is not a number.");
+							}
+
+							Object z = accelRecord.get("z");
+							if(z instanceof Number) {
+								writeNumber(generator, "z", (Number) z);
+							}
+							else {
+								LOGGER.error("The z-value is not a number.");
+							}
+						}
+						finally {
+							generator.writeEndObject();
+						}
+					}
+				}
+				finally {
+					generator.writeEndArray();
+				}
+			}
+			else {
+				LOGGER.error("The accelerometer data is not an array.");
+			}
+			
+			Object wifiData = dataRecord.get("wifi_data");
+			if(wifiData instanceof GenericRecord) {
+				GenericRecord wifiDataRecord = (GenericRecord) wifiData;
+				generator.writeObjectFieldStart("wd");
+				
+				try {
+					// Write the time.
+					Object time = wifiDataRecord.get("time");
+					if(time instanceof Number) {
+						writeNumber(generator, "t", (Number) time);
+					}
+					else {
+						LOGGER.error("The time is not a number.");
+					}
+					
+					// Write the time zone.
+					String timeZone = 
+						wifiDataRecord.get("timezone").toString();
+					generator.writeStringField("tz", timeZone);
+					
+					// Write the scan.
+					Object scan = wifiDataRecord.get("scan");
+					if(scan instanceof GenericArray) {
+						@SuppressWarnings("unchecked")
+						GenericArray<GenericRecord> scanArray =
+							(GenericArray<GenericRecord>) scan;
+						generator.writeArrayFieldStart("sc");
+						
+						try {
+							for(GenericRecord scanRecord : scanArray) {
+								generator.writeStartObject();
+								
+								try {
+									String ssid = 
+										scanRecord.get("ssid").toString();
+									generator.writeStringField("ss", ssid);
+									
+									Object strength = 
+										scanRecord.get("strength");
+									if(strength instanceof Number) {
+										writeNumber(
+											generator, 
+											"st", 
+											(Number) strength);
+									}
+									else {
+										LOGGER.error(
+											"The strength is not a number.");
+									}
+								}
+								finally {
+									generator.writeEndObject();
+								}
+							}
+						}
+						finally {
+							generator.writeEndArray();
+						}
+					}
+					else {
+						LOGGER.error("The scan is not an array.");
+					}
+				}
+				finally {
+					generator.writeEndObject();
+				}
+			}
+			else {
+				LOGGER.error("The WiFi data is not an object.");
+			}
+		}
+		finally {
+			// End the sensor data.
+			generator.writeEndObject();
+		}
+	}
+	
+	/**
+	 * Writes the classification data to the output.
+	 * 
+	 * @param generator The generator.
+	 * 
+	 * @param dataRecord The classification data record.
+	 * 
+	 * @throws JsonGenerationException There was an error writing the JSON.
+	 * 
+	 * @throws IOException There was an error writing to the output stream.
+	 */
+	private void writeClassificationData(
+			final JsonGenerator generator,
+			final GenericRecord dataRecord)
+			throws JsonGenerationException, IOException {
+		
+		// We still need to decide how we are going to generate and save the
+		// classification data.
+	}
+	
+	/**
+	 * Takes a number and writes it to the generator with the given key.
+	 * 
+	 * @param generator The generator.
+	 * 
+	 * @param key The key to associate with the value.
+	 * 
+	 * @param value The number value to write.
+	 * 
+	 * @throws JsonGenerationException There was an error writing the JSON.
+	 * 
+	 * @throws IOException There was an error writing to the output stream.
+	 */
+	private void writeNumber(
+			final JsonGenerator generator, 
+			final String key, 
+			final Number value)
+			throws JsonGenerationException, IOException {
+		
+		if(value instanceof Double) {
+			generator.writeNumberField(key, (Double) value);
+		}
+		else if(value instanceof Float) {
+			generator.writeNumberField(key, (Float) value);
+		}
+		else if(value instanceof Integer) {
+			generator.writeNumberField(key, (Integer) value);
+		}
+		else if(value instanceof Long) {
+			generator.writeNumberField(key, (Long) value);
+		}
+		else {
+			LOGGER.error("The value is not a number.");
+		}
 	}
 }
