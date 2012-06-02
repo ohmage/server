@@ -43,7 +43,7 @@ public class StreamReadRequest extends UserRequest {
 	/**
 	 * The maximum number of records that can be returned.
 	 */
-	public static final long MAX_NUMBER_TO_RETURN = 10000;
+	public static final long MAX_NUMBER_TO_RETURN = 2000;
 	
 	/**
 	 * This is being used to facilitate an n-ary tree.
