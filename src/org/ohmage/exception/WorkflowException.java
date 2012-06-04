@@ -179,8 +179,7 @@ public abstract class WorkflowException extends Exception {
 	 * @param logger The Logger to which this exception should be output.
 	 */
 	public void logException(final Logger logger) {
-		Throwable cause = this.getCause();
-		if(cause == null) {
+		if(annotator == null) {
 			logger.info(toString());
 		}
 		else {
