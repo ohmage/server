@@ -17,6 +17,7 @@ package org.ohmage.request.mobility;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -156,14 +157,14 @@ import org.ohmage.request.observer.StreamUploadRequest;
 public class MobilityUploadRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(MobilityUploadRequest.class);
 
-	/*
 	private static final String AUDIT_KEY_VALID_POINT_IDS = "accepted_point_id";
 	private static final String AUDIT_KEY_INVALID_POINTS = "invalid_mobility_point";
 	private static final String JSON_KEY_ACCEPTED_IDS = "accepted_ids";
-	*/
+	private static final String JSON_KEY_INVALID_INDICIES = "invalid_indicies";
 	
-	//private final List<MobilityPoint> data;
-	//private final List<JSONObject> invalidMobilityPoints;
+	private final Collection<String> validIds;
+	private final Map<Integer, String> invalidPointsMap;
+	private final Collection<JSONObject> invalidPointsJson;
 	
 	private final StreamUploadRequest streamUploadRequest;
 	
@@ -183,18 +184,26 @@ public class MobilityUploadRequest extends Request {
 		
 		LOGGER.info("Creating a Mobility upload request.");
 		
+		validIds = new LinkedList<String>();
+		invalidPointsMap = new HashMap<Integer, String>();
+		invalidPointsJson = new LinkedList<JSONObject>();
+		
 		StreamUploadRequest tStreamUploadRequest = null;
 		
 		if(! isFailed()) {
 			try {
 				String[] dataArray = getParameterValues(InputKeys.DATA);
 				if(dataArray.length == 0) {
-					setFailed(ErrorCode.MOBILITY_INVALID_DATA, "The upload data is missing: " + ErrorCode.MOBILITY_INVALID_DATA);
-					throw new ValidationException("The upload data is missing: " + ErrorCode.MOBILITY_INVALID_DATA);
+					throw new ValidationException(
+						ErrorCode.MOBILITY_INVALID_DATA,
+						"The upload data is missing: " + 
+							ErrorCode.MOBILITY_INVALID_DATA);
 				}
 				else if(dataArray.length > 1) {
-					setFailed(ErrorCode.MOBILITY_INVALID_DATA, "Multiple data parameters were given: " + ErrorCode.MOBILITY_INVALID_DATA);
-					throw new ValidationException("Multiple data parameters were given: " + ErrorCode.MOBILITY_INVALID_DATA);
+					throw new ValidationException(
+						ErrorCode.MOBILITY_INVALID_DATA,
+						"Multiple data parameters were given: " + 
+							ErrorCode.MOBILITY_INVALID_DATA);
 				}
 				else {
 					JSONArray jsonDataArray;
@@ -210,19 +219,9 @@ public class MobilityUploadRequest extends Request {
 					
 					JSONArray resultDataArray = new JSONArray();
 					for(int i = 0; i < jsonDataArray.length(); i++) {
-						MobilityPoint point;
+						JSONObject pointJson;
 						try {
-							point = 
-								new MobilityPoint(
-									jsonDataArray.getJSONObject(i),
-									MobilityPoint.PrivacyState.PRIVATE);
-						}
-						catch(DomainException e) {
-							throw new ValidationException(
-								ErrorCode.MOBILITY_INVALID_DATA,
-								"The Mobility data is invalid: " +
-									e.getMessage(),
-								e);
+							pointJson = jsonDataArray.getJSONObject(i);
 						}
 						catch(JSONException e) {
 							throw new ValidationException(
@@ -231,10 +230,24 @@ public class MobilityUploadRequest extends Request {
 								e);
 						}
 						
+						MobilityPoint point;
+						try {
+							point = 
+								new MobilityPoint(
+									pointJson,
+									MobilityPoint.PrivacyState.PRIVATE);
+						}
+						catch(DomainException e) {
+							invalidPointsMap.put(i, e.getMessage());
+							invalidPointsJson.add(pointJson);
+							continue;
+						}
+						
 						if(MobilityPoint.Mode.ERROR.equals(point.getMode())) {
 							LOGGER.info("Skipping the error point.");
 							continue;
 						}
+						validIds.add(point.getId().toString());
 						
 						try {
 							JSONObject jsonPoint = new JSONObject();
@@ -322,30 +335,9 @@ public class MobilityUploadRequest extends Request {
 	public void service() {
 		LOGGER.info("Servicing the Mobility upload request.");
 		
-		/*
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
-			return;
+		if(! streamUploadRequest.isFailed()) {
+			streamUploadRequest.service();
 		}
-		
-		try {
-			LOGGER.info("Sorting the points before running the classifier.");
-			Collections.sort(data);
-			
-			LOGGER.info("Running the server-side classifier.");
-			MobilityServices.instance().classifyData(getUser().getUsername(), data);
-			
-			LOGGER.info("Storing the Mobility data points.");
-			MobilityServices.instance().createMobilityPoint(getUser().getUsername(), getClient(), data);
-		}
-		catch(ServiceException e) {
-			e.failRequest(this);
-			e.logException(LOGGER);
-		}
-		*/
-		
-		// TODO: Classify the data?
-		
-		streamUploadRequest.service();
 	}
 
 	/**
@@ -356,23 +348,26 @@ public class MobilityUploadRequest extends Request {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the Mobility upload request.");
 		
-		/*
 		if(isFailed()) {
 			super.respond(httpRequest, httpResponse, null);
 		}
+		else if(streamUploadRequest.isFailed()) {
+			streamUploadRequest.respond(httpRequest, httpResponse);
+		}
 		else {
-			JSONArray acceptedIds = new JSONArray();
-			for(MobilityPoint mobilityPoint : data) {
-				acceptedIds.put(mobilityPoint.getId().toString());
+			JSONObject response = new JSONObject();
+			
+			try {
+				response.put(JSON_KEY_INVALID_INDICIES, invalidPointsMap);
+				response.put(JSON_KEY_ACCEPTED_IDS, validIds);
+			}
+			catch(JSONException e) {
+				LOGGER.error("Error creating the response.", e);
+				setFailed();
 			}
 			
-			super.respond(httpRequest, httpResponse, JSON_KEY_ACCEPTED_IDS, acceptedIds);
+			super.respond(httpRequest, httpResponse, response);
 		}
-		*/
-		
-		// TODO: Get the accepted IDs?
-		
-		streamUploadRequest.respond(httpRequest, httpResponse);
 	}
 	
 	/**
@@ -382,28 +377,17 @@ public class MobilityUploadRequest extends Request {
 	public Map<String, String[]> getAuditInformation() {
 		Map<String, String[]> result = super.getAuditInformation();
 		
-		// FIXME:
-		/*
-		if(data != null) {
-			String[] validPointIds = new String[data.size()];
-			int numIdsAdded = 0;
-			for(MobilityPoint mobilityPoint : data) {
-				validPointIds[numIdsAdded] = mobilityPoint.getId().toString();
-				numIdsAdded++;
-			}
-			result.put(AUDIT_KEY_VALID_POINT_IDS, validPointIds);
-		}
+		result.put(AUDIT_KEY_VALID_POINT_IDS, validIds.toArray(new String[0]));
 		
-		if(invalidMobilityPoints != null) {
-			String[] invalidPointsArray = new String[invalidMobilityPoints.size()];
+		if(invalidPointsJson != null) {
+			String[] invalidPointsArray = new String[invalidPointsJson.size()];
 			int numPointsAdded = 0;
-			for(JSONObject invalidPoint : invalidMobilityPoints) {
+			for(JSONObject invalidPoint : invalidPointsJson) {
 				invalidPointsArray[numPointsAdded] = invalidPoint.toString();
 				numPointsAdded++;
 			}
 			result.put(AUDIT_KEY_INVALID_POINTS, invalidPointsArray);
 		}
-		*/
 		
 		return result;
 	}
