@@ -197,6 +197,11 @@ public class StreamUploadRequest extends UserRequest {
 			Collection<DataStream> dataStreams =
 				ObserverServices.instance().validateData(observer, data);
 			
+			LOGGER.info("Pruning out the duplicates from previous uploads.");
+			ObserverServices.instance().removeDuplicates(
+				getUser().getUsername(), 
+				dataStreams);
+			
 			LOGGER.info("Storing the uploaded data.");
 			ObserverServices.instance().storeData(
 				getUser().getUsername(), 

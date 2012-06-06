@@ -17,8 +17,6 @@ import org.codehaus.jackson.JsonNode;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DomainException;
 
@@ -46,6 +44,7 @@ public class DataStream {
 		 * @author John Jenkins
 		 */
 		public static class Builder {
+			private String id = null;
 			private DateTime timestamp = null;
 			private Location location = null;
 			
@@ -53,6 +52,43 @@ public class DataStream {
 			 * Creates an empty builder.
 			 */
 			public Builder() {};
+			
+			/**
+			 * Sets the ID.
+			 * 
+			 * @param id The ID.
+			 */
+			public void setId(final String id) {
+				this.id = id;
+			}
+			
+			/**
+			 * Decomposes a JsonNode from Jackson into an ID and stores it.
+			 * 
+			 * @param metaDataNode The meta-data node from an upload.
+			 * 
+			 * @throws DomainException Never thrown.
+			 */
+			public void setId(
+					final JsonNode metaDataNode)
+					throws DomainException {
+				
+				if(metaDataNode == null) {
+					return;
+				}
+				
+				if(metaDataNode.has("id")) {
+					JsonNode idNode = metaDataNode.get("id");
+					
+					if(idNode.isValueNode()) {
+						this.id = idNode.asText();
+					}
+					else {
+						throw new DomainException(
+							"The 'id' is not a value.");
+					}
+				}
+			}
 			
 			/**
 			 * Sets the timestamp.
@@ -131,65 +167,6 @@ public class DataStream {
 			}
 			
 			/**
-			 * Analyzes the meta-data JSON object and attempts to retrieve the
-			 * time information. If it is missing, it will simply be ignored, 
-			 * but if it exists, then it will attempt to interpret it. If it
-			 * cannot be interpreted, then an exception is raised.
-			 * 
-			 * @param metaData The meta-data JSON.
-			 * 
-			 * @throws DomainException A valid key was found, but its value was
-			 * 						   not valid.
-			 */
-			public void setTimestamp(
-					final JSONObject metaData) 
-					throws DomainException {
-				
-				if(metaData.has("timestamp")) {
-					try {
-						timestamp =
-							ISODateTimeFormat.dateTime().parseDateTime(
-								metaData.getString("timestamp"));
-					}
-					catch(JSONException e) {
-						throw new DomainException(
-							"The timestamp isn't a string.", 
-							e);
-					}
-				}
-				else if(metaData.has("time")) {
-					long time;
-					try {
-						time = metaData.getLong("time");
-					}
-					catch(JSONException e) {
-						throw new DomainException("The time isn't a long.", e);
-					}
-						
-					DateTimeZone timeZone = DateTimeZone.UTC;
-					if(metaData.has("timezone")) {
-						try {
-							timeZone = 
-								DateTimeZone.forID(
-									metaData.getString("timezone"));
-						}
-						catch(JSONException e) {
-							throw new DomainException(
-								"The time zone isn't a string.", 
-								e);
-						}
-						catch(IllegalArgumentException e) {
-							throw new DomainException(
-								"The time zone is not known.",
-								e);
-						}
-					}
-					
-					timestamp = new DateTime(time, timeZone);
-				}
-			}
-			
-			/**
 			 * Sets the location.
 			 * 
 			 * @param location The Location object.
@@ -221,50 +198,16 @@ public class DataStream {
 			}
 			
 			/**
-			 * Analyzes the meta-data JSON object and attempts to retrieve the
-			 * location information. If it is missing it will simply be 
-			 * ignored, but if it exists, then it will attempt to interpret it.
-			 * If it cannot be interpreted, then an exception will be raised.
-			 * 
-			 * @param metaData The meta-data JSON.
-			 * 
-			 * @throws DomainException The location keys exist, but their 
-			 * 						   values were invalid.
-			 */
-			public void setLocation(
-					final JSONObject metaData) 
-					throws DomainException {
-				
-				if(metaData.has("location")) {
-					try {
-						location = 
-							new Location(
-								metaData.getJSONObject("location"),
-								DateTimeZone.UTC);
-					}
-					catch(JSONException e) {
-						throw new DomainException(
-							"The location was not a JSON object.", 
-							e);
-					}
-					catch(DomainException e) {
-						throw new DomainException(
-							"The location JSON object was invalid.",
-							e);
-					}
-				}
-			}
-			
-			/**
 			 * Builds the MetaData object.
 			 * 
 			 * @return The MetaData object.
 			 */
 			public MetaData build() {
-				return new MetaData(timestamp, location);
+				return new MetaData(id, timestamp, location);
 			}
 		}
 		
+		private final String id;
 		private final DateTime timestamp;
 		private final Location location;
 		
@@ -276,11 +219,22 @@ public class DataStream {
 		 * @param location The location for this meta-data.
 		 */
 		public MetaData(
+				final String id,
 				final DateTime timestamp, 
 				final Location location) {
 			
+			this.id = id;
 			this.timestamp = timestamp;
 			this.location = location;
+		}
+		
+		/**
+		 * Returns the ID.
+		 * 
+		 * @return The ID.
+		 */
+		public String getId() {
+			return id;
 		}
 
 		/**

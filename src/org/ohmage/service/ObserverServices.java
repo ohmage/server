@@ -3,6 +3,11 @@ package org.ohmage.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
 
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
@@ -10,6 +15,7 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
+import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.domain.Observer;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DataAccessException;
@@ -215,6 +221,78 @@ public class ObserverServices {
 		
 		
 		return result;
+	}
+	
+	/**
+	 * Prunes the duplicates from the collection of data elements. A duplicate
+	 * is defined as a point with an ID whose ID already exists for the given
+	 * user and for the associated stream. This will not remove duplicates in
+	 * a single upload.
+	 *  
+	 * @param username The username of the user that will own these points.
+	 * 
+	 * @param data The data that has been uploaded.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public void removeDuplicates(
+			final String username,
+			final Collection<DataStream> data)
+			throws ServiceException {
+		
+		try {
+			// Get the IDs for each stream from this upload's data.
+			Map<String, Collection<String>> uploadIds = 
+				new HashMap<String, Collection<String>>();
+			for(DataStream dataStream : data) {
+				MetaData dataStreamMetaData = dataStream.getMetaData();
+				
+				if(dataStreamMetaData != null) {
+					String id = dataStreamMetaData.getId();
+				
+					if(id != null) {
+						Stream stream = dataStream.getStream();
+						
+						Collection<String> streamIds = 
+							uploadIds.get(stream.getId());
+						if(streamIds == null) {
+							streamIds = new LinkedList<String>();
+							uploadIds.put(stream.getId(), streamIds);
+						}
+						streamIds.add(id);
+					}
+				}
+			}
+			
+			// Get the existing IDs for each stream that are also in this 
+			// upload's IDs.
+			Collection<String> duplicateIds = new HashSet<String>();
+			for(String streamId : uploadIds.keySet()) {
+				duplicateIds.addAll( 
+					observerQueries.getDuplicateIds(
+						username,
+						streamId,
+						uploadIds.get(streamId)));
+			}
+			
+			// Remove any of this upload's IDs that already exist.
+			Iterator<DataStream> dataIter = data.iterator();
+			while(dataIter.hasNext()) {
+				DataStream dataStream = dataIter.next();
+				MetaData dataStreamMetaData = dataStream.getMetaData();
+				
+				if(dataStreamMetaData != null) {
+					String id = dataStreamMetaData.getId();
+				
+					if((id != null) && (duplicateIds.contains(id))) {
+						data.remove(dataStream);
+					}
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
 	}
 	
 	/**

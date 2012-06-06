@@ -120,4 +120,25 @@ public interface IObserverQueries {
 		final long numToSkip,
 		final long numToReturn) 
 		throws DataAccessException;
+	
+	/**
+	 * Compares a list of IDs to the existing IDs for a user for a stream and
+	 * returns the collection of IDs that match.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param streamId The stream's unique identifier.
+	 * 
+	 * @param idsToCheck The collection of IDs to compare against.
+	 * 
+	 * @return The collection of IDs that are already stored for this user for
+	 * 		   this stream and were in the supplied list.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Collection<String> getDuplicateIds(
+		final String username,
+		final String streamId,
+		final Collection<String> idsToCheck)
+		throws DataAccessException;
 }

@@ -123,14 +123,6 @@ public class MobilityReadRequest extends Request {
 		DEFAULT_COLUMNS = Collections.unmodifiableCollection(columnKeys);
 	}
 	
-	/*
-	private final DateTime date;
-	private final String username;
-	private final Collection<ColumnKey> columns;
-	
-	private List<MobilityPoint> result;
-	*/
-	
 	private final StreamReadRequest regularReadRequest;
 	private final StreamReadRequest extendedReadRequest;
 	
@@ -149,12 +141,6 @@ public class MobilityReadRequest extends Request {
 		super(httpRequest);
 		
 		LOGGER.info("Creating a Mobility read request.");
-		
-		/*
-		DateTime tDate = null;
-		String tUsername = null;
-		Collection<ColumnKey> tColumns = DEFAULT_COLUMNS;
-		*/
 		
 		StreamReadRequest tRegularReadRequest = null;
 		StreamReadRequest tExtendedReadRequest = null;
@@ -197,19 +183,6 @@ public class MobilityReadRequest extends Request {
 									InputKeys.DATE);
 				}
 				
-				/*
-				t = getParameterValues(InputKeys.USERNAME);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.USER_INVALID_USERNAME, 
-							"Multiple usernames to query were given: " + 
-									InputKeys.USERNAME);
-				}
-				else if(t.length == 1) {
-					tUsername = UserValidators.validateUsername(t[0]);
-				}
-				*/
-				
 				Collection<ColumnKey> tColumns = null;
 				t = getParameterValues(InputKeys.MOBILITY_WITH_SENSOR_DATA);
 				if(t.length > 1) {
@@ -234,6 +207,12 @@ public class MobilityReadRequest extends Request {
 				else if(t.length == 1) {
 					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
 						if(tColumns == null) {
+							tColumns = 
+								MobilityValidators.validateColumns(
+										t[0],
+										true);
+						}
+						else {
 						//if(! tColumns.equals(DEFAULT_COLUMNS)) {
 							throw new ValidationException(
 									ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
@@ -242,12 +221,6 @@ public class MobilityReadRequest extends Request {
 										"' and '" +
 										InputKeys.COLUMN_LIST +
 										"' were present. Only one may be present.");
-						}
-						else {
-							tColumns = 
-									MobilityValidators.validateColumns(
-											t[0],
-											true);
 						}
 					}
 				}
@@ -263,7 +236,6 @@ public class MobilityReadRequest extends Request {
 					if(columnKey instanceof MobilityColumnKey) {
 						// Only if it is the mode, then I will add it.
 						if(MobilityColumnKey.MODE.equals(columnKey)) {
-						
 							columnsSet.add(
 								((MobilityColumnKey) columnKey).toString(false));
 						}
@@ -340,14 +312,6 @@ public class MobilityReadRequest extends Request {
 			}
 		}
 		
-		/*
-		date = tDate;
-		username = tUsername;
-		columns = tColumns;
-		
-		result = Collections.emptyList();
-		*/
-		
 		regularReadRequest = tRegularReadRequest;
 		extendedReadRequest = tExtendedReadRequest;
 	}
@@ -366,76 +330,6 @@ public class MobilityReadRequest extends Request {
 		
 		regularReadRequest.service();
 		extendedReadRequest.service();
-		
-		/*
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
-			return;
-		}
-		
-		try {
-			if((username != null) && (! username.equals(getUser().getUsername()))) {
-				LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
-				boolean isPlausible;
-				try {
-					isPlausible = 
-							StringUtils.decodeBoolean(
-									PreferenceCache.instance().lookup(
-											PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(e);
-				}
-				
-				try {
-					LOGGER.info("Checking if the user is an admin.");
-					UserServices.instance().verifyUserIsAdmin(
-							getUser().getUsername());
-				}
-				catch(ServiceException notAdmin) {
-					LOGGER.info("The user is not an admin.");
-					if(isPlausible) {
-						LOGGER.info("Checking if the requester is allowed to read Mobility points about the user.");
-						UserClassServices
-							.instance()
-							.userIsPrivilegedInAnotherUserClass(
-									getUser().getUsername(), 
-									username);
-					}
-					else {
-						throw new ServiceException(
-								ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
-								"A user is not allowed to query Mobility information about another user.");
-					}
-				}
-				
-				UserServices.instance().checkUserExistance(username, true);
-			}
-			
-			DateTime startDate = 
-					new DateTime(
-						date.getYear(), 
-						date.getMonthOfYear(), 
-						date.getDayOfMonth(),
-						0, 
-						0);
-			
-			DateTime endDate = startDate.plusDays(1);
-			
-			LOGGER.info("Gathering the Mobility points.");
-			result = MobilityServices.instance().retrieveMobilityData(
-					(username == null) ? getUser().getUsername() : username,
-					startDate, 
-					endDate, 
-					null, 
-					null, 
-					null);
-			LOGGER.info("Found " + result.size() + " results.");
-		}
-		catch(ServiceException e) {
-			e.failRequest(this);
-			e.logException(LOGGER);
-		}
-		*/
 	}
 
 	/**
@@ -518,6 +412,14 @@ public class MobilityReadRequest extends Request {
 					LOGGER.error("The meta-data is missing.");
 				}
 				else {
+					String id = metaData.getId();
+					if(id == null) {
+						LOGGER.error("The ID is missing.");
+					}
+					else {
+						generator.writeStringField("id", id);
+					}
+					
 					DateTime timestamp = metaData.getTimestamp();
 					if(timestamp == null) {
 						LOGGER.error("The timestamp is missing.");
@@ -689,31 +591,6 @@ public class MobilityReadRequest extends Request {
 				LOGGER.warn("Could not close the generator.", e);
 			}
 		}
-		
-		// The old way of doing it.
-		/*
-		JSONArray resultJson = new JSONArray();
-		
-		for(MobilityPoint mobilityPoint : result) {
-			try {
-				resultJson.put(mobilityPoint.toJson(true, columns));
-			}
-			catch(JSONException e) {
-				LOGGER.error("Error creating the JSONObject.", e);
-				setFailed();
-				resultJson = null;
-				break;
-			}
-			catch(DomainException e) {
-				LOGGER.error("Error creating the JSONObject.", e);
-				setFailed();
-				resultJson = null;
-				break;
-			}
-		}
-			
-		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);
-		*/
 	}
 	
 	/**
@@ -885,6 +762,7 @@ public class MobilityReadRequest extends Request {
 			final GenericRecord dataRecord)
 			throws JsonGenerationException, IOException {
 		
+		// FIXME:
 		// We still need to decide how we are going to generate and save the
 		// classification data.
 	}

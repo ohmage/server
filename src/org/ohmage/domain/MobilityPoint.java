@@ -1543,6 +1543,56 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		private final WifiData wifiData;
 		
 		/**
+		 * Creates a SensorData object.
+		 * 
+		 * @param mode The mode generated from this sensor data.
+		 * 
+		 * @param speed The speed or null if the sensor data is 'ERROR' mode.
+		 * 
+		 * @param accelData The accelerometer data or null if the sensor data 
+		 * 					is 'ERROR' mode.
+		 * 
+		 * @param wifiData The WiFi data or null if the sensor data is 'ERROR'
+		 * 				   mode.
+		 * 
+		 * @throws DomainException A field was null and the mode was not 
+		 * 						   'ERROR'.
+		 */
+		public SensorData(
+				final Mode mode,
+				final Double speed,
+				final List<AccelData> accelData,
+				final WifiData wifiData) 
+				throws DomainException {
+			
+			if(mode == null) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_MODE, 
+					"The mode is null.");
+			}
+			if((speed == null) && Mode.ERROR.equals(mode)) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_SPEED,
+					"The speed is null and the mode is not 'ERROR'.");
+			}
+			if((accelData == null) && Mode.ERROR.equals(mode)) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+					"The accelerometer data is null and the mode is not 'ERROR'.");
+			}
+			if((wifiData == null) && Mode.ERROR.equals(mode)) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+					"The WiFi data is null and the mode is not 'ERROR'.");
+			}
+			
+			this.mode = mode;
+			this.speed = speed;
+			this.accelData = accelData;
+			this.wifiData = wifiData;
+		}
+		
+		/**
 		 * Creates a new SensorData point from a JSONObject of sensor data.
 		 * 
 		 * @param sensorData The sensor data as a JSONObject.

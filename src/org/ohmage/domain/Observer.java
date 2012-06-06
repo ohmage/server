@@ -55,8 +55,9 @@ public class Observer {
 		
 		// NULL or true means that it should be checked for, however, false
 		// means that it should explicitly be ignored.
-		private final Boolean withTimestamp;
-		private final Boolean withLocation;
+		private final boolean withId;
+		private final boolean withTimestamp;
+		private final boolean withLocation;
 
 		private final Schema schema;
 
@@ -90,8 +91,9 @@ public class Observer {
 				final long version,
 				final String name,
 				final String description,
-				final Boolean withTimestamp,
-				final Boolean withLocation,
+				final boolean withId,
+				final boolean withTimestamp,
+				final boolean withLocation,
 				final String schema) 
 				throws DomainException {
 
@@ -115,6 +117,7 @@ public class Observer {
 			this.name = name;
 			this.description = description;
 			
+			this.withId = withId;
 			this.withTimestamp = withTimestamp;
 			this.withLocation = withLocation;
 
@@ -177,6 +180,39 @@ public class Observer {
 			else if(metadatas.size() == 1) {
 				Node metadata = metadatas.get(0);
 				
+				Nodes withIds = metadata.query("id");
+				if(withIds.size() > 1) {
+					throw new DomainException(
+						"Multiple ID flags were given for the stream '" +
+							id +
+							"'.");
+				}
+				else if(withIds.size() == 1) {
+					Node withId = withIds.get(0);
+					String timestampString = withId.getValue().trim();
+					if(timestampString.length() == 0) {
+						this.withId = true;
+					}
+					else {
+						Boolean tWithId =
+							StringUtils.decodeBoolean(timestampString);
+						
+						if(tWithId == null) {
+							throw new DomainException(
+								"The timestamp flag in observer '" +
+									id +
+									"' is not a valid boolean: " + 
+									timestampString);
+						}
+						else {
+							this.withId = tWithId;
+						}
+					}
+				}
+				else {
+					this.withId = false;
+				}
+				
 				Nodes timestamps = metadata.query("timestamp");
 				if(timestamps.size() > 1) {
 					throw new DomainException(
@@ -207,7 +243,7 @@ public class Observer {
 					}
 				}
 				else {
-					withTimestamp = null;
+					withTimestamp = false;
 				}
 				
 				Nodes locations = metadata.query("location");
@@ -244,6 +280,7 @@ public class Observer {
 				}
 			}
 			else {
+				withId = false;
 				withTimestamp = false;
 				withLocation = false;
 			}
@@ -300,23 +337,30 @@ public class Observer {
 		}
 		
 		/**
-		 * Returns whether or not records may contain a time stamp. If this was
-		 * not specified in the XML, then the default is true.
+		 * Returns whether or not records may contain an ID.
+		 * 
+		 * @return Whether or not records may contain an ID.
+		 */
+		public boolean getWithId() {
+			return withId;
+		}
+		
+		/**
+		 * Returns whether or not records may contain a time stamp.
 		 * 
 		 * @return Whether or not records may contain a time stamp.
 		 */
 		public boolean getWithTimestamp() {
-			return (withTimestamp == null) ? true : withTimestamp;
+			return withTimestamp;
 		}
 		
 		/**
-		 * Returns whether or not records may contain a location. If this was
-		 * not specified in the XML, then the default is true.
+		 * Returns whether or not records may contain a location.
 		 * 
 		 * @return Whether or not records may contain a location.
 		 */
 		public boolean getWithLocation() {
-			return (withLocation == null) ? true : withLocation;
+			return withLocation;
 		}
 
 		/**
@@ -626,6 +670,10 @@ public class Observer {
 			}
 
 			MetaData.Builder metaDataBuilder = new MetaData.Builder();
+			
+			if(currStream.getWithId()) {
+				metaDataBuilder.setId(metaDataNode);
+			}
 			
 			if(currStream.getWithTimestamp()) {
 				metaDataBuilder.setTimestamp(metaDataNode);

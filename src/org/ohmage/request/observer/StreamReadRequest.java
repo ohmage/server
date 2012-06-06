@@ -575,6 +575,11 @@ public class StreamReadRequest extends UserRequest {
 				if(metaData != null) {
 					generator.writeObjectFieldStart("metadata");
 					
+					String id = metaData.getId();
+					if(id != null) {
+						generator.writeStringField("id", id);
+					}
+					
 					DateTime timestamp = metaData.getTimestamp();
 					if(timestamp != null) {
 						generator.writeStringField(

@@ -267,6 +267,7 @@ public class MobilityUploadRequest extends Request {
 							jsonPoint.put("stream_version", 2012050700);
 							
 							JSONObject metadata = new JSONObject();
+							metadata.put("id", point.getId().toString());
 							metadata.put("time", point.getTime());
 							metadata.put("timezone", point.getTimezone().getID());
 							

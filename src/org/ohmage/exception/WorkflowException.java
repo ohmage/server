@@ -180,7 +180,7 @@ public abstract class WorkflowException extends Exception {
 	 */
 	public void logException(final Logger logger) {
 		if(annotator == null) {
-			logger.info(toString());
+			logger.info(toString(), this);
 		}
 		else {
 			logger.error(toString(), this);

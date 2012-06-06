@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,6 +23,7 @@ import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IObserverQueries;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
@@ -140,11 +142,12 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"version, " +
 					"name, " +
 					"description, " +
+					"with_id, " +
 					"with_timestamp, " +
 					"with_location, " +
 					"stream_schema, " +
 					"observer_id)" +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			
 			for(Stream stream : observer.getObservers().values()) {
 				try {
@@ -155,6 +158,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 							stream.getVersion(),
 							stream.getName(),
 							stream.getDescription(),
+							stream.getWithId(),
 							stream.getWithTimestamp(),
 							stream.getWithLocation(),
 							stream.getSchema().toString(),
@@ -251,6 +255,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"os.version, " +
 				"os.name, " +
 				"os.description, " +
+				"os.with_id, " +
 				"os.with_timestamp, " +
 				"os.with_location, " +
 				"os.stream_schema " +
@@ -281,6 +286,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 									rs.getLong("version"), 
 									rs.getString("name"), 
 									rs.getString("description"), 
+									rs.getBoolean("with_id"),
 									rs.getBoolean("with_timestamp"), 
 									rs.getBoolean("with_location"), 
 									rs.getString("stream_schema"));
@@ -382,6 +388,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"os.version, " +
 				"os.name, " +
 				"os.description, " +
+				"os.with_id, " +
 				"os.with_timestamp, " +
 				"os.with_location, " +
 				"os.stream_schema " +
@@ -412,6 +419,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 									rs.getLong("version"), 
 									rs.getString("name"), 
 									rs.getString("description"), 
+									rs.getBoolean("with_id"),
 									rs.getBoolean("with_timestamp"), 
 									rs.getBoolean("with_location"), 
 									rs.getString("stream_schema"));
@@ -450,6 +458,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			"INSERT INTO observer_stream_data (" +
 				"stream_id, " +
 				"user_id, " +
+				"uid, " +
 				"time, " +
 				"time_offset, " +
 				"time_zone, " +
@@ -470,16 +479,18 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"?, " +
 				"?, " +
 				"?, " +
+				"?, " +
 				"?)";
 		
 		List<Object[]> args = new ArrayList<Object[]>(data.size());
 		for(DataStream currData : data) {
 			MetaData metaData = currData.getMetaData();
+			String id = null;
 			DateTime timestamp = null;
 			Location location = null;
 			if(metaData != null) {
+				id = metaData.getId();
 				timestamp = metaData.getTimestamp();
-				
 				location = metaData.getLocation();
 			}
 			
@@ -488,6 +499,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					new Object[] {
 						currData.getStream().getId(),
 						username,
+						id,
 						(timestamp == null) ? null : timestamp.getMillis(),
 						(timestamp == null) ? null : timestamp.getZone().getOffset(null),
 						(timestamp == null) ? null : timestamp.getZone().getID(),
@@ -509,7 +521,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Creating a request audit.");
+		def.setName("Inserting stream data.");
 		
 		try {
 			// Begin the transaction.
@@ -564,6 +576,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		StringBuilder builder = 
 			new StringBuilder(
 				"SELECT " +
+					"osd.uid, " +
 					"osd.time, " +
 					"osd.time_zone, " +
 					"osd.location_timestamp, " +
@@ -633,6 +646,11 @@ public class ObserverQueries extends Query implements IObserverQueries {
 							MetaData.Builder metaDataBuilder =
 								new MetaData.Builder();
 							
+							String id = rs.getString("uid");
+							if(id != null) {
+								metaDataBuilder.setId(id);
+							}
+							
 							Long time = rs.getLong("osd.time");
 							if(time != null) {
 								metaDataBuilder.setTimestamp(
@@ -693,7 +711,66 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					});
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(e);
+			throw new DataAccessException(
+				"Error executing SQL '" + 
+					builder.toString() + 
+					"' with parameters: " +
+					parameters,
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getDuplicateIds(java.lang.String, java.lang.String, java.util.Collection)
+	 */
+	@Override
+	public Collection<String> getDuplicateIds(
+			final String username,
+			final String streamId,
+			final Collection<String> idsToCheck)
+			throws DataAccessException {
+		
+		int numIds = idsToCheck.size();
+		if(numIds == 0) {
+			return Collections.emptyList();
+		}
+		
+		StringBuilder sqlBuilder =
+			new StringBuilder(
+				"SELECT osd.uid " +
+				"FROM " +
+					"user u, " +
+					"observer_stream os, " +
+					"observer_stream_data osd " +
+				"WHERE u.username = ? " +
+				"AND os.stream_id = ? " +
+				"AND u.id = osd.user_id " +
+				"AND os.id = osd.stream_id " +
+				"AND osd.uid IN ");
+		
+		sqlBuilder.append(StringUtils.generateStatementPList(numIds));
+		
+		Collection<Object> parameters = 
+			new ArrayList<Object>(idsToCheck.size() + 2);
+		parameters.add(username);
+		parameters.add(streamId);
+		parameters.addAll(idsToCheck);
+		
+		try {
+			return
+				getJdbcTemplate().query(
+					sqlBuilder.toString(),
+					parameters.toArray(),
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" + 
+					sqlBuilder.toString() +
+					"' with parameters: " +
+					parameters,
+				e);
 		}
 	}
 }
