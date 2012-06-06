@@ -155,7 +155,6 @@ public final class UserServices {
 		return instance;
 	}
 
-	
 	/**
 	 * Creates a new user.
 	 * 
@@ -389,6 +388,38 @@ public final class UserServices {
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
 		} 
+	}
+	
+	/**
+	 * Verifies that self-registration is allowed.
+	 * 
+	 * @throws ServiceException Self-registration is not allowed, or the 
+	 * 							self-registration flag is missing or invalid.
+	 */
+	public void verifySelfRegistrationAllowed() throws ServiceException {
+		try {
+			Boolean selfRegistrationAllowed =
+				StringUtils.decodeBoolean(
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION));
+				
+			if(selfRegistrationAllowed == null) {
+				throw new ServiceException(
+					"The self-registration flag is not a valid boolean: " +
+						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION);	
+			}
+			else if(! selfRegistrationAllowed) {
+				throw new ServiceException(
+					ErrorCode.SERVER_SELF_REGISTRATION_NOT_ALLOWED,
+					"Self-registration is not allowed.");
+			}
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+				"Could not retrieve the 'known' key: " +
+					PreferenceCache.KEY_ALLOW_SELF_REGISTRATION,
+				e);
+		}
 	}
 	
 	/**

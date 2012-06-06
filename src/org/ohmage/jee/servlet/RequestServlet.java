@@ -43,16 +43,11 @@ import org.ohmage.service.AuditServices;
  * 
  * @author John Jenkins
  */
-// Note: maxFileSize refers to PUTs whereas maxRequestSize refers to the max 
-// size of a multipart/form-data POST which doesn't differentiate between the
-// different parameters. Therefore, there is no way through this call to limit
-// individual file uploads via POST.
 @MultipartConfig(
 		location="/opt/ohmage/as/temp/", 
-		// Irrelevant as it is used for PUTs.
-		maxFileSize=1024*1024*5, 
-		// Max POST size. 300 MB for a video plus 25 MB for the images plus 5
-		// MB for the survey response content.
+		maxFileSize=1024*1024*300, 
+		// 300 MB for a video plus 25 MB for the images plus 5 MB for the 
+		// survey response content.
 		maxRequestSize=1024*1024*300 + 1024*1024*25 + 1024*1024*5,
 		// Let's start caching if the request is greater than that for the 
 		// images plus the survey response content.
