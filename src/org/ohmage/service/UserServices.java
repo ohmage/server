@@ -87,7 +87,7 @@ public final class UserServices {
 	
 	private static final String ACTIVATION_FUNCTION = "#activate";
 	
-	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 4;
+	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 24;
 	
 	final static char[] CHARS_TEMPORARY_PASSWORD = 
 			new char[] { 
