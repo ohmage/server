@@ -16,6 +16,7 @@
 package org.ohmage.request.auth;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -60,6 +61,31 @@ public class AuthTokenRequest extends UserRequest {
 	public static final String KEY_AUTH_TOKEN = "token";
 	
 	/**
+	 * Creates a new authentication token request with a preset map of 
+	 * parameters.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param parameters The map of parameters to use.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 */
+	public AuthTokenRequest(
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters)
+			throws IOException, InvalidRequestException {
+		
+		super(httpRequest, false, null, parameters);
+		
+		if(! isFailed()) {
+			LOGGER.info("Building an authentication token request.");
+		}
+	}
+	
+	/**
 	 * A request for an authentication token.
 	 * 
 	 * @param httpRequest The HTTP request containing the parameters.
@@ -70,7 +96,7 @@ public class AuthTokenRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public AuthTokenRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, true);
+		super(httpRequest, true, null, null);
 		
 		LOGGER.info("Building an authentication token request.");
 	}

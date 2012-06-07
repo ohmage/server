@@ -79,7 +79,7 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	 */
 	public SurveyResponseRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		// Handle user-password or token-based authentication
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 
 		String tCampaignId = null;
 		Set<String> tUsernames = null;

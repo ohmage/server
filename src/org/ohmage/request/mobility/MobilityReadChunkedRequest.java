@@ -115,7 +115,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityReadChunkedRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		LOGGER.info("Creating a Mobility read chunked request.");
 		

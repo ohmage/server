@@ -52,7 +52,7 @@ public class StreamUploadRequest extends UserRequest {
 			final String data)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, TokenLocation.PARAMETER, false, parameters);
+		super(httpRequest, false, TokenLocation.PARAMETER, parameters);
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;
@@ -102,7 +102,7 @@ public class StreamUploadRequest extends UserRequest {
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, TokenLocation.PARAMETER, false);
+		super(httpRequest, false, TokenLocation.PARAMETER, null);
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;

@@ -100,7 +100,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityAggregateReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		DateTime tStartDate = null;
 		DateTime tEndDate = null;

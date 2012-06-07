@@ -99,7 +99,7 @@ public class MobilityDatesReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityDatesReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		DateTime tStartDate = new DateTime(0);
 		DateTime tEndDate = new DateTime();

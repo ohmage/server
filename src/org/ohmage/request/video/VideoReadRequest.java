@@ -46,7 +46,7 @@ public class VideoReadRequest extends UserRequest {
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		UUID tVideoId = null;
 		

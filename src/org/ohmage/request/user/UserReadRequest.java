@@ -138,7 +138,7 @@ public class UserReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER);
+		super(httpRequest, null, TokenLocation.EITHER, null);
 
 		Collection<String> tUsernames = null;
 		Collection<String> tUsernameTokens = null;

@@ -51,7 +51,7 @@ public class UserActivationRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserActivationRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		String tRegistrationId = null;
 		

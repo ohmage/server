@@ -165,6 +165,11 @@ public class StreamReadRequest extends UserRequest {
 	 * 
 	 * @param numToReturn The number of entries to return. Optional. Default is
 	 * 					  {@value #MAX_NUMBER_TO_RETURN}.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
 	 */
 	public StreamReadRequest(
 			final HttpServletRequest httpRequest, 
@@ -177,9 +182,10 @@ public class StreamReadRequest extends UserRequest {
 			final DateTime endDate,
 			final String columns,
 			final Long numToSkip,
-			final Long numToReturn) {
+			final Long numToReturn)
+			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, TokenLocation.EITHER, false, parameters);
+		super(httpRequest, false, TokenLocation.EITHER, parameters);
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;
@@ -262,7 +268,7 @@ public class StreamReadRequest extends UserRequest {
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;

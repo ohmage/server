@@ -97,7 +97,7 @@ public class ImageReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public ImageReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		UUID tImageId = null;
 		Image.Size tSize = Image.Size.ORIGINAL;

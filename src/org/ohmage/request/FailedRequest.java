@@ -41,7 +41,7 @@ public class FailedRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public FailedRequest() throws IOException, InvalidRequestException {
-		super(null);
+		super(null, null);
 		
 		setFailed();
 	}

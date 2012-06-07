@@ -180,7 +180,7 @@ public class MobilityUploadRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityUploadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		LOGGER.info("Creating a Mobility upload request.");
 		

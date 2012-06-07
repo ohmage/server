@@ -135,7 +135,7 @@ public class MobilityReadRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		LOGGER.info("Creating a Mobility read request.");
 		

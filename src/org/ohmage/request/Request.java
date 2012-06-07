@@ -132,42 +132,43 @@ public abstract class Request {
 	private final String requesterInetAddr; 
 	
 	/**
-	 * Default constructor. Creates a new, generic annotator for this object.
+	 * Initializes this request.
 	 * 
 	 * @param httpRequest An HttpServletRequest that was used to create this 
 	 * 					  request. This may be null if no such request exists.
 	 * 
+	 * @param parameters The parameters for this request. If this is null, the
+	 * 					 parameters are decoded from the HTTP request. 
+	 * 					 Otherwise, the parameters in this map are used.
+	 * 
 	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed. This is only applicable in the
+	 * 								   event of the HTTP parameters being 
 	 * 								   parsed.
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
 	protected Request(
-			final HttpServletRequest httpRequest)
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters)
 			throws IOException, InvalidRequestException {
 		
 		annotator = new Annotator();
 		failed = false;
 
-		parameters = getParameters(httpRequest);
-		
-		if(httpRequest != null) {
-			requesterInetAddr = httpRequest.getRemoteAddr();
+		if(parameters == null) {
+			this.parameters = getParameters(httpRequest);
 		}
 		else {
+			this.parameters = parameters;
+		}
+		
+		if(httpRequest == null) {
 			requesterInetAddr = null;
 		}
-	}
-	
-	protected Request(
-			final Map<String, String[]> parameters,
-			final String requestInetAddr) {
-		
-		annotator = new Annotator();
-		failed = false;
-		
-		this.parameters = new HashMap<String, String[]>(parameters);
-		this.requesterInetAddr = requestInetAddr;
+		else {
+			requesterInetAddr = httpRequest.getRemoteAddr();
+		}
 	}
 	
 	/**

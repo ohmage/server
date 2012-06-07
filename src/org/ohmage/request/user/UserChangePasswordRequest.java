@@ -78,7 +78,7 @@ public class UserChangePasswordRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserChangePasswordRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, true);
+		super(httpRequest, true, null, null);
 		
 		String tNewPassword = null;
 		String tUsername = null;

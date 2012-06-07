@@ -97,7 +97,7 @@ public class MobilityReadCsvRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityReadCsvRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		DateTime tStartDate = null;
 		DateTime tEndDate = null;

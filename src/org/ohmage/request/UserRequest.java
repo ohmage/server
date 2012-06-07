@@ -57,158 +57,39 @@ public abstract class UserRequest extends Request {
 	private final String client;
 	
 	/**
-	 * Creates a Request from a username and password in the request.
-	 * 
-	 * @param httpRequest The HttpServletRequest with the username, password,
-	 * 					  and client parameters.
-	 * 
-	 * @param hashPassword Whether or not to hash the user's password when 
-	 * 					   authenticating the user.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) 
-			throws IOException, InvalidRequestException {
-		
-		super(httpRequest);
-
-		User tUser = null;
-		String tClient = null;
-		
-		if(! isFailed()) {
-			LOGGER.info("Creating a user request.");
-			
-			try {
-				tUser = validateUser(hashPassword);
-				tClient = validateClient();
-			}
-			catch(ValidationException e) {
-				e.failRequest(this);
-				e.logException(LOGGER);
-			}
-		}
-		
-		user = tUser;
-		client = tClient;
-	}
-	
-	/**
-	 * Creates a Request from an authentication token.
-	 * 
-	 * @param httpRequest The HttpServletRequest that contains the token and 
-	 * 					  client parameters.
-	 * 
-	 * @param tokenLocation This indicates where the token must be located.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	public UserRequest(
-			final HttpServletRequest httpRequest, 
-			final TokenLocation tokenLocation) 
-			throws IOException, InvalidRequestException {
-		
-		super(httpRequest);
-		
-		User tUser = null;
-		String tClient = null;
-		
-		if(! isFailed()) {
-			LOGGER.info("Creating a user request.");
-			
-			try {
-				tUser = validateToken(httpRequest, tokenLocation);
-				tClient = validateClient();
-			}
-			catch(ValidationException e) {
-				e.failRequest(this);
-				e.logException(LOGGER);
-			}
-		}
-		
-		user = tUser;
-		client = tClient;
-	}
-	
-	/**
-	 * Creates a Request from either a username and password or from an
-	 * authentication token. It will default to using the username and 
-	 * password; however, if one is missing it will fall back to using the 
-	 * token.
-	 * 
-	 * @param httpRequest The Request that contains username and password 
-	 * 					  parameters or an authentication token parameter. 
-	 * 					  Either way, it must contain a client parameter.
-	 * 
-	 * @param tokenLocation This indicates where the token must be located.
-	 * 
-	 * @param hashPassword If using a username and password, this indicates
-	 * 					   whether or not to hash the user's password when 
-	 * 					   authenticating them.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	public UserRequest(
-			final HttpServletRequest httpRequest,
-			final TokenLocation tokenLocation, 
-			final boolean hashPassword)
-			throws IOException, InvalidRequestException {
-		
-		super(httpRequest);
-		
-		User tUser = null;
-		String tClient = null;
-		
-		if(! isFailed()) {
-			LOGGER.info("Creating a user request.");
-			
-			try {
-				try {
-					tUser = validateUser(hashPassword);
-				}
-				catch(ValidationException e) {
-					tUser = validateToken(httpRequest, tokenLocation);
-				}
-				
-				tClient = validateClient();
-			}
-			catch(ValidationException e) {
-				e.failRequest(this);
-				e.logException(LOGGER);
-			}
-		}
-		
-		user = tUser;
-		client = tClient;
-	}
-	
-	/**
-	 * Creates a user request but does not decode the request for the 
-	 * parameters. Instead it relys on the parameters given.
+	 * Creates a user request based on the information in the HTTP request. All
+	 * parameters except the HTTP request are optional and dictate where to 
+	 * search for the authentication information.
 	 * 
 	 * @param httpRequest The HTTP request.
 	 * 
-	 * @param tokenLocation Where to look for the token.
+	 * @param hashPassword Whether or not to hash the password in the request.
+	 * 					   If this is null, the request will not use the 
+	 * 					   username and password for authentication.
 	 * 
-	 * @param hashPassword Whether or not to hash the user's password.
+	 * @param tokenLocation Where to search for the authentication token. If
+	 * 						this is null, the request will not use the 
+	 * 						authentication token for authentication.
 	 * 
-	 * @param parameters The parameters already read from the request.
+	 * @param parameters A preset map of parameters. If this is null, the 
+	 * 					 parameters are decoded from the HTTP request. 
+	 * 					 Otherwise, these parameters are used.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed. This is only applicable in the
+	 * 								   event of the HTTP parameters being 
+	 * 								   parsed.
 	 */
 	public UserRequest(
 			final HttpServletRequest httpRequest,
+			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
-			final boolean hashPassword,
-			final Map<String, String[]> parameters) {
+			final Map<String, String[]> parameters) 
+			throws IOException, InvalidRequestException {
 		
-		super(parameters, httpRequest.getRemoteAddr());
+		super(httpRequest, parameters);
 		
 		User tUser = null;
 		String tClient = null;
@@ -217,14 +98,21 @@ public abstract class UserRequest extends Request {
 			LOGGER.info("Creating a user request.");
 			
 			try {
-				try {
-					tUser = validateUser(hashPassword);
-				}
-				catch(ValidationException e) {
-					tUser = validateToken(httpRequest, tokenLocation);
+				if(hashPassword != null) { 
+					tUser = retrieveUser(hashPassword);
 				}
 				
-				tClient = validateClient();
+				if((tokenLocation != null) && (tUser == null)) {
+					tUser = retrieveToken(httpRequest, tokenLocation);
+				}
+				
+				if(tUser == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"Authentication credentials were not provided.");
+				}
+				
+				tClient = retrieveClient();
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -431,51 +319,42 @@ public abstract class UserRequest extends Request {
 	 *************************************************************************/
 	
 	/**
-	 * Validates that a user's credentials exist in the request.
+	 * Retrieves the user's credentials from the request and creates a User
+	 * object or returns null if the credentials didn't exist.
 	 * 
 	 * @param hashPassword Whether or not to hash the user's password.
 	 * 
-	 * @return The user.
+	 * @return A User object generated from the username and password or null
+	 * 		   if insufficient information was given. 
 	 * 
-	 * @throws ValidationException The user's credentials don't exist.
+	 * @throws ValidationException The user's credentials were given but were
+	 * 							   invalid.
 	 */
-	private final User validateUser(
+	private final User retrieveUser(
 			final boolean hashPassword) 
 			throws ValidationException {
 		
 		// Attempt to retrieve all usernames passed to the server.
 		String[] usernames = getParameterValues(InputKeys.USER);
 		
-		// If it is missing, fail the request.
-		if(usernames.length == 0) {
-			throw new ValidationException(
-				ErrorCode.AUTHENTICATION_FAILED,
-				"The user is missing.");
-		}
 		// If there is more than one, fail the request.
-		else if(usernames.length > 1) {
+		if(usernames.length > 1) {
 			throw new ValidationException(
 				ErrorCode.AUTHENTICATION_FAILED, 
 				"More than one user was given.");
 		}
-		else {
+		else if(usernames.length == 1) {
 			// If exactly one username is found, attempt to retrieve all 
 			// paswords sent to the server.
 			String[] passwords = getParameterValues(InputKeys.PASSWORD);
 			
-			// If it is missing, fail the request.
-			if(passwords.length == 0) {
-				throw new ValidationException(
-					ErrorCode.AUTHENTICATION_FAILED, 
-					"The password is missing.");
-			}
 			// If there are more than one, fail the request.
-			else if(passwords.length > 1) {
+			if(passwords.length > 1) {
 				throw new ValidationException(
 					ErrorCode.AUTHENTICATION_FAILED, 
 					"More than one password was given.");
 			}
-			else {
+			else if(passwords.length == 1) {
 				// Attempt to create the new User object for this request.
 				try {
 					return new User(usernames[0], passwords[0], hashPassword);
@@ -483,25 +362,30 @@ public abstract class UserRequest extends Request {
 				catch(DomainException e) {
 					throw new ValidationException(
 						ErrorCode.AUTHENTICATION_FAILED, 
-						"The user and/or password are invalid.");
+						"The user and/or password are invalid.",
+						e);
 				}
 			}
 		}
+		
+		return null;
 	}
 	
 	/**
-	 * Validates that a token exists and that it references an existing user.
+	 * Checks if a token exists in any of the places specified. If so, it will
+	 * attempt to retrieve the user associated with it and thrown an exception
+	 * if no such user exists. If not, it will return null.
 	 * 
 	 * @param httpRequest The HTTP request.
 	 * 
 	 * @param tokenLocation Where to look for the token.
 	 * 
-	 * @return The user based on the token found.
+	 * @return The user based on the token found or null if no tokens were
+	 * 		   supplied.
 	 * 
-	 * @throws ValidationException No token was found or it didn't reference
-	 * 							   an existing token.
+	 * @throws ValidationException The token doesn't exist.
 	 */
-	private final User validateToken(
+	private final User retrieveToken(
 			final HttpServletRequest httpRequest,
 			final TokenLocation tokenLocation) 
 			throws ValidationException {
@@ -527,16 +411,12 @@ public abstract class UserRequest extends Request {
 					httpRequest.getCookies(), 
 					InputKeys.AUTH_TOKEN);
 			
-			// If there are no authentication token cookies and the
-			// authentication token cannot be retrieved from another location,
-			// fail the request.
-			if((cookies.size() == 0) && 
-				(! tokenLocation.equals(TokenLocation.EITHER))) {
-				
+			// If there are multiple authentication token cookies, fail the
+			// request.
+			 if(cookies.size() > 1) {
 				throw new ValidationException(
 					ErrorCode.AUTHENTICATION_FAILED, 
-					"The authentication token is missing as a cookie: " + 
-						InputKeys.AUTH_TOKEN);
+					"Multiple authentication token cookies were given.");
 			}
 			else if(cookies.size() == 1) {
 				// Attempt to retrieve the user.
@@ -552,46 +432,38 @@ public abstract class UserRequest extends Request {
 				
 				return user;
 			}
-			// If there are multiple authentication token cookies, fail the
-			// request.
-			else if(cookies.size() > 1) {
+		}
+		
+		// Check if it is allowed to be a parameter.
+		if(TokenLocation.PARAMETER.equals(tokenLocation) ||
+			TokenLocation.EITHER.equals(tokenLocation)) {
+			
+			// Retrieve all of the authentication tokens that were parameters.
+			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
+	
+			if(tokens.length > 1){
 				throw new ValidationException(
 					ErrorCode.AUTHENTICATION_FAILED, 
-					"Multiple authentication token cookies were given.");
+					"Multiple authentication token parameters were found.");
+			}
+			else if(tokens.length == 1) {
+				// Attempt to retrieve the user.
+				User user = UserBin.getUser(tokens[0]);
+				
+				// If the bin doesn't know about the user, set the request as 
+				// failed.
+				if(user == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED, 
+						"The token is unknown.");
+				}
+				
+				return user;
 			}
 		}
 		
-		// At this point, it must have been either as a parameter or either and
-		// no cookies were found. If it was anything else, we would have 
-		// returned or thrown an exception.
-		// Retrieve all of the authentication tokens that were parameters.
-		String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
-		
-		if(tokens.length == 0) {
-			throw new ValidationException(
-				ErrorCode.AUTHENTICATION_FAILED, 
-				"The authentication token is missing as a parameter: " + 
-					InputKeys.AUTH_TOKEN);
-		}
-		else if(tokens.length > 1){
-			throw new ValidationException(
-				ErrorCode.AUTHENTICATION_FAILED, 
-				"Multiple authentication token parameters were found.");
-		}
-		else {
-			// Attempt to retrieve the user.
-			User user = UserBin.getUser(tokens[0]);
-			
-			// If the bin doesn't know about the user, set the request as 
-			// failed.
-			if(user == null) {
-				throw new ValidationException(
-					ErrorCode.AUTHENTICATION_FAILED, 
-					"The token is unknown.");
-			}
-			
-			return user;
-		}
+		// If it didn't exist as a parameter or as a cookie, return null.
+		return null;
 	}
 	
 	/**
@@ -603,7 +475,7 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @throws ValidationException The client value was invalid.
 	 */
-	private final String validateClient() throws ValidationException {
+	private final String retrieveClient() throws ValidationException {
 		
 		// Get the list of clients.
 		String[] clients = getParameterValues(InputKeys.CLIENT);

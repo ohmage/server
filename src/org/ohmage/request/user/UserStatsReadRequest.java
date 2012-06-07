@@ -123,7 +123,7 @@ public class UserStatsReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserStatsReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		LOGGER.info("Creating a user stats read request.");
 		

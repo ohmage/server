@@ -34,7 +34,7 @@ public class UserPasswordResetRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserPasswordResetRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		String tUsername = null;
 		String tEmailAddress = null;
