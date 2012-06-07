@@ -25,6 +25,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.avro.generic.GenericArray;
+import org.apache.avro.generic.GenericContainer;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatterBuilder;
@@ -32,6 +36,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint.ClassifierData.ClassifierDataColumnKey;
 import org.ohmage.domain.MobilityPoint.SensorData.AccelData;
@@ -615,6 +620,48 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			private final Double z;
 			
 			/**
+			 * Creates an AccelData object from a generic record.
+			 * 
+			 * @param accelDataRecord The generic record.
+			 * 
+			 * @throws DomainException The record is missing data.
+			 */
+			private AccelData(
+					final GenericRecord accelDataRecord)
+					throws DomainException {
+
+				Object xObject = 
+					accelDataRecord.get(AccelDataColumnKey.X.toString(false));
+				if(xObject instanceof Number) {
+					x = ((Number) xObject).doubleValue();
+				}
+				else {
+					throw new DomainException(
+						"The x-value is not a number.");
+				}
+
+				Object yObject = 
+					accelDataRecord.get(AccelDataColumnKey.Y.toString(false));
+				if(yObject instanceof Number) {
+					y = ((Number) yObject).doubleValue();
+				}
+				else {
+					throw new DomainException(
+						"The y-value is not a number.");
+				}
+
+				Object zObject = 
+					accelDataRecord.get(AccelDataColumnKey.Z.toString(false));
+				if(zObject instanceof Number) {
+					z = ((Number) zObject).doubleValue();
+				}
+				else {
+					throw new DomainException(
+						"The z-value is not a number.");
+				}
+			}
+			
+			/**
 			 * Processes an acceleration data point into an AccelData object.
 			 * 
 			 * @param accelData The JSON data point to process.
@@ -1043,7 +1090,78 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			private final Long time;
 			private final DateTimeZone timezone;
 			private final Map<String, Double> scan;
-			//private final WifiScan wifiScan;
+			
+			/**
+			 * Creates a WifiData object from this generic record.
+			 * 
+			 * @param wifiDataRecord The generic record.
+			 * 
+			 * @throws DomainException The record was missing some data.
+			 */
+			private WifiData(
+					final GenericRecord wifiDataRecord)
+					throws DomainException {
+				
+				// Write the time.
+				Object timeObject = wifiDataRecord.get("time");
+				if(timeObject instanceof Number) {
+					time = ((Number) timeObject).longValue();
+				}
+				else {
+					throw new DomainException("The time is not a number.");
+				}
+				
+				// Write the time zone.
+				Object timezoneObject = wifiDataRecord.get("timezone");
+				if(timezoneObject instanceof Utf8) {
+					timezone = 
+						DateTimeZone.forID(((Utf8) timezoneObject).toString()); 
+				}
+				else {
+					throw new DomainException(
+						"The time zone is not a string.");
+				}
+				
+				// Write the scan.
+				Object scanObject = wifiDataRecord.get("scan");
+				if(scanObject instanceof GenericArray) {
+					@SuppressWarnings("unchecked")
+					GenericArray<GenericRecord> scanArray =
+						(GenericArray<GenericRecord>) scanObject;
+					scan = new HashMap<String, Double>(scanArray.size());
+					
+					for(GenericRecord scanRecord : scanArray) {
+						String ssid;
+						Object ssidObject = scanRecord.get("ssid");
+						if(ssidObject instanceof Utf8) {
+							ssid = ((Utf8) ssidObject).toString();
+						}
+						else {
+							throw new DomainException(
+								"The SSID is not a string.");
+						}
+						
+						double strength;
+						Object strengthObject = 
+							scanRecord.get("strength");
+						if(strengthObject instanceof Number) {
+							strength = ((Number) strengthObject).doubleValue();
+						}
+						else {
+							throw new DomainException(
+								"The strength is not a number.");
+						}
+						
+						if(scan.put(ssid, strength) != null) {
+							throw new DomainException(
+								"Duplicate SSIDs found in the same scan.");
+						}
+					}
+				}
+				else {
+					throw new DomainException("The scan is not an array.");
+				}
+			}
 			
 			/**
 			 * Creates a WifiData point with a timestamp and all of the scan
@@ -1570,17 +1688,17 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					ErrorCode.MOBILITY_INVALID_MODE, 
 					"The mode is null.");
 			}
-			if((speed == null) && Mode.ERROR.equals(mode)) {
+			if((speed == null) && (! Mode.ERROR.equals(mode))) {
 				throw new DomainException(
 					ErrorCode.MOBILITY_INVALID_SPEED,
 					"The speed is null and the mode is not 'ERROR'.");
 			}
-			if((accelData == null) && Mode.ERROR.equals(mode)) {
+			if((accelData == null) && (! Mode.ERROR.equals(mode))) {
 				throw new DomainException(
 					ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
 					"The accelerometer data is null and the mode is not 'ERROR'.");
 			}
-			if((wifiData == null) && Mode.ERROR.equals(mode)) {
+			if((wifiData == null) && (! Mode.ERROR.equals(mode))) {
 				throw new DomainException(
 					ErrorCode.MOBILITY_INVALID_WIFI_DATA,
 					"The WiFi data is null and the mode is not 'ERROR'.");
@@ -1654,12 +1772,15 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					}
 					else {
 						throw new DomainException(
-								ErrorCode.MOBILITY_INVALID_SPEED, 
+								ErrorCode.MOBILITY_INVALID_SPEED,
 								"The speed is missing or invalid: " +
 									SensorDataColumnKey.SPEED.toString(false), 
 								notShort);
 					}
 				}
+			}
+			if(tSpeed.isInfinite() || tSpeed.isNaN()) {
+				tSpeed = -1.0;
 			}
 			speed = tSpeed;
 
@@ -1755,6 +1876,66 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				tWifiData = new WifiData(wifiDataJson, mode);
 			}
 			wifiData = tWifiData;
+		}
+		
+		/**
+		 * Creates a new SensorData object from a data record.
+		 * 
+		 * @param mode The sensor data's mode.
+		 * 
+		 * @param dataRecord The data record.
+		 * 
+		 * @throws DomainException A parameter was null or the data record was
+		 * 						   malformed.
+		 */
+		private SensorData(
+				final Mode mode,
+				final GenericRecord dataRecord)
+				throws DomainException {
+			
+			if(mode == null) {
+				throw new DomainException("The mode is null.");
+			}
+			if(dataRecord == null) {
+				throw new DomainException("The data record is null.");
+			}
+			
+			this.mode = mode;
+			
+			Object speedObject = 
+				dataRecord.get(SensorDataColumnKey.SPEED.toString(false));
+			if(speedObject instanceof Number) {
+				speed = ((Number) speedObject).doubleValue();
+			}
+			else {
+				throw new DomainException("The speed is not a number.");
+			}
+			
+			Object accelDataObject = 
+				dataRecord.get(
+					SensorDataColumnKey.ACCELEROMETER_DATA.toString(false));
+			if(accelDataObject instanceof GenericArray) {
+				@SuppressWarnings("unchecked")
+				GenericArray<GenericRecord> accelDataArray = 
+					(GenericArray<GenericRecord>) accelDataObject;
+				accelData = new ArrayList<AccelData>(accelDataArray.size());
+
+				for(GenericRecord accelRecord : accelDataArray) {
+					accelData.add(new AccelData(accelRecord));
+				}
+			}
+			else {
+				throw new DomainException(
+					"The accelerometer data is not an array.");
+			}
+			
+			Object wifiDataObject = dataRecord.get("wifi_data");
+			if(wifiDataObject instanceof GenericRecord) {
+				wifiData = new WifiData((GenericRecord) wifiDataObject);
+			}
+			else {
+				throw new DomainException("The WiFi data is not an object.");
+			}
 		}
 
 		/**
@@ -2475,6 +2656,95 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		}
 	}
 	private ClassifierData classifierData;
+	
+	/**
+	 * Creates a MobilityPoint object from a data stream.
+	 * 
+	 * @param dataStream The data stream of data.
+	 * 
+	 * @param subType The sub-type of the record.
+	 * 
+	 * @param privacyState The privacy state of the record.
+	 * 
+	 * @throws DomainException The point was invalid.
+	 */
+	public MobilityPoint(
+			final DataStream dataStream,
+			final SubType subType,
+			final PrivacyState privacyState)
+			throws DomainException {
+		
+		if(dataStream == null) {
+			throw new DomainException("The data stream is null.");
+		}
+		if(subType == null) {
+			throw new DomainException("The sub-type is null.");
+		}
+		if(privacyState == null) {
+			throw new DomainException("The privacy state is null.");
+		}
+
+		MetaData metaData = dataStream.getMetaData();
+		if(metaData == null) {
+			throw new DomainException("The meta-data is missing.");
+		}
+		
+		String idString = metaData.getId();
+		if(idString == null) {
+			throw new DomainException("The ID is missing.");
+		}
+		id = UUID.fromString(idString);
+		
+		DateTime timestamp = metaData.getTimestamp();
+		if(timestamp == null) {
+			throw new DomainException("The timestamp is missing.");
+		}
+		
+		time = timestamp.getMillis();
+		timezone = timestamp.getZone();
+
+		location = metaData.getLocation();
+		if(location == null) {
+			locationStatus = LocationStatus.UNAVAILABLE;
+		}
+		else {
+			locationStatus = LocationStatus.VALID;
+		}
+		
+		this.privacyState = privacyState;
+		this.subType = subType;
+		
+		GenericContainer data = dataStream.getData();
+		if(data instanceof GenericRecord) {
+			GenericRecord dataRecord = (GenericRecord) data;
+			
+			Object modeObject = 
+				dataRecord.get(MobilityColumnKey.MODE.toString(false));
+			if(modeObject instanceof Utf8) {
+				mode = 
+					Mode.valueOf(((Utf8) modeObject).toString().toUpperCase());
+			}
+			else {
+				throw new DomainException("The mode is not a string.");
+			}
+			
+			if(SubType.MODE_ONLY.equals(subType)) {
+				sensorData = null;
+			}
+			else if(SubType.SENSOR_DATA.equals(subType)) {
+				sensorData = new SensorData(mode, dataRecord);
+			}
+			else {
+				throw new DomainException(
+					"A sub-type was added, but not fully implemented.");
+			}
+		}
+		else {
+			throw new DomainException("The record is malformed.");
+		}
+		
+		classifierData = null;
+	}
 	
 	/**
 	 * Creates a Mobility object that represents all of the information in the 

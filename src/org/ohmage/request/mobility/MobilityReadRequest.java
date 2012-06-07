@@ -16,42 +16,41 @@
 package org.ohmage.request.mobility;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericContainer;
 import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.util.Utf8;
 import org.apache.log4j.Logger;
-import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.ColumnKey;
 import org.ohmage.domain.DataStream;
-import org.ohmage.domain.DataStream.MetaData;
-import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
+import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
-import org.ohmage.domain.MobilityPoint.SensorData.SensorDataColumnKey;
-import org.ohmage.domain.MobilityPoint.SensorData.WifiData.WifiDataColumnKey;
+import org.ohmage.domain.MobilityPoint.SubType;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.observer.StreamReadRequest;
+import org.ohmage.service.MobilityServices;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.MobilityValidators;
 
 /**
@@ -126,6 +125,9 @@ public class MobilityReadRequest extends Request {
 	private final StreamReadRequest regularReadRequest;
 	private final StreamReadRequest extendedReadRequest;
 	
+	private final Collection<ColumnKey> columns;
+	private final List<MobilityPoint> points;
+	
 	/**
 	 * Creates a Mobility read request.
 	 * 
@@ -144,6 +146,8 @@ public class MobilityReadRequest extends Request {
 		
 		StreamReadRequest tRegularReadRequest = null;
 		StreamReadRequest tExtendedReadRequest = null;
+		
+		Collection<ColumnKey> tColumns = null;
 		
 		if(! isFailed()) {
 			try {
@@ -183,7 +187,7 @@ public class MobilityReadRequest extends Request {
 									InputKeys.DATE);
 				}
 				
-				Collection<ColumnKey> tColumns = null;
+				tColumns = null;
 				t = getParameterValues(InputKeys.MOBILITY_WITH_SENSOR_DATA);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -213,7 +217,6 @@ public class MobilityReadRequest extends Request {
 										true);
 						}
 						else {
-						//if(! tColumns.equals(DEFAULT_COLUMNS)) {
 							throw new ValidationException(
 									ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
 									"Both '" +
@@ -224,60 +227,11 @@ public class MobilityReadRequest extends Request {
 						}
 					}
 				}
-				
 				if(tColumns == null) {
 					tColumns = DEFAULT_COLUMNS;
 				}
 				
-				// Create the columns set.
-				Set<String> columnsSet = new HashSet<String>();
-				for(ColumnKey columnKey : tColumns) {
-					// Always consume a MobilityColumnKey.
-					if(columnKey instanceof MobilityColumnKey) {
-						// Only if it is the mode, then I will add it.
-						if(MobilityColumnKey.MODE.equals(columnKey)) {
-							columnsSet.add(
-								((MobilityColumnKey) columnKey).toString(false));
-						}
-					}
-					// We need to strip the "sensor_data" from the 
-					// SensorDataColumnKeys.
-					else if(columnKey instanceof SensorDataColumnKey) {
-						columnsSet.add(
-							((SensorDataColumnKey) columnKey).toString(false));
-					}
-					// If it is the SSID or STRENGTH of a WiFi scan, then we 
-					// need to inject the "scan" between "wifi_data" and the
-					// actual value.
-					else if(WifiDataColumnKey.SSID.equals(columnKey) ||
-							WifiDataColumnKey.STRENGTH.equals(columnKey)) {
-						
-						columnsSet.add(
-							WifiDataColumnKey.NAMESPACE +
-							WifiDataColumnKey.NAMESPACE_DIVIDOR + 
-							WifiDataColumnKey.SCAN.toString(false) +
-							WifiDataColumnKey.NAMESPACE_DIVIDOR +
-							((WifiDataColumnKey) columnKey).toString(false));
-					}
-					else {
-						columnsSet.add(columnKey.toString());
-					}
-				}
-				
-				// Convert the columns set into a string.
-				StringBuilder columnsBuilder = new StringBuilder();
-				boolean firstPass = true;
-				for(String column : columnsSet) {
-					if(firstPass) {
-						firstPass = false;
-					}
-					else {
-						columnsBuilder.append(',');
-					}
-					
-					columnsBuilder.append(column);
-				}
-				
+				// Always get all of the columns.
 				tRegularReadRequest = 
 					new StreamReadRequest(
 						httpRequest,
@@ -288,7 +242,7 @@ public class MobilityReadRequest extends Request {
 						2012050700,
 						date,
 						date.plusDays(1),
-						columnsBuilder.toString(),
+						null,
 						null,
 						null);
 				
@@ -302,7 +256,7 @@ public class MobilityReadRequest extends Request {
 						2012050700,
 						date,
 						date.plusDays(1),
-						columnsBuilder.toString(),
+						null,
 						null,
 						null);
 			}
@@ -314,6 +268,9 @@ public class MobilityReadRequest extends Request {
 		
 		regularReadRequest = tRegularReadRequest;
 		extendedReadRequest = tExtendedReadRequest;
+		
+		columns = tColumns;
+		points = new ArrayList<MobilityPoint>();
 	}
 
 	/**
@@ -328,8 +285,65 @@ public class MobilityReadRequest extends Request {
 		
 		LOGGER.info("Servicing the Mobility read request.");
 		
-		regularReadRequest.service();
-		extendedReadRequest.service();
+		try {
+			// Service the read requests.
+			regularReadRequest.service();
+			if(regularReadRequest.isFailed()) {
+				return;
+			}
+			extendedReadRequest.service();
+			if(extendedReadRequest.isFailed()) {
+				return;
+			}
+			
+			LOGGER.info("Aggregating the resulting points.");
+			Collection<DataStream> regularResults = 
+				regularReadRequest.getResults();
+			for(DataStream dataStream : regularResults) {
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.MODE_ONLY,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
+				}
+			}
+
+			Collection<DataStream> extendedResults = 
+				extendedReadRequest.getResults();
+			for(DataStream dataStream : extendedResults) {
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.SENSOR_DATA,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
+				}
+			}
+			
+			LOGGER.info("Sorting the aggregated points.");
+			Collections.sort(points);
+			
+			// Run them through the classifier.
+			LOGGER.info("Classifying the points.");
+			MobilityServices.instance().classifyData(
+				regularReadRequest.getUser().getUsername(),
+				points);
+		}
+		catch(ServiceException e) {
+			e.failRequest(this);
+			e.logException(LOGGER);
+		}
 	}
 
 	/**
@@ -349,6 +363,26 @@ public class MobilityReadRequest extends Request {
 			extendedReadRequest.respond(httpRequest, httpResponse);
 		}
 		
+		JSONObject resultObject = new JSONObject();
+		try {
+			JSONArray resultArray = new JSONArray();
+			for(MobilityPoint mobilityPoint : points) {
+				resultArray.put(mobilityPoint.toJson(true, columns));
+			}
+			resultObject.put(JSON_KEY_DATA, resultArray);
+		}
+		catch(JSONException e) {
+			LOGGER.error("Error creating the JSONObject.", e);
+			setFailed();
+		}
+		catch(DomainException e) {
+			LOGGER.error("Error creating the JSONObject.", e);
+			setFailed();
+		}
+
+		super.respond(httpRequest, httpResponse, resultObject);
+		
+		/*
 		// Expire the response, but this may be a bad idea.
 		expireResponse(httpResponse);
 		
@@ -470,8 +504,13 @@ public class MobilityReadRequest extends Request {
 				if(data instanceof GenericRecord) {
 					GenericRecord dataRecord = (GenericRecord) data;
 					
-					String mode = dataRecord.get("mode").toString();
-					generator.writeStringField("m", mode);
+					Object mode = dataRecord.get("mode");
+					if(mode instanceof Utf8) {
+						generator.writeStringField("m", mode.toString());
+					}
+					else if(mode != null) {
+						LOGGER.error("The mode is not a string.");
+					}
 				}
 				else {
 					LOGGER.error("The record is malformed.");
@@ -545,8 +584,13 @@ public class MobilityReadRequest extends Request {
 				if(data instanceof GenericRecord) {
 					GenericRecord dataRecord = (GenericRecord) data;
 					
-					String mode = dataRecord.get("mode").toString();
-					generator.writeStringField("m", mode);
+					Object mode = dataRecord.get("mode");
+					if(mode instanceof Utf8) {
+						generator.writeStringField("m", mode.toString());
+					}
+					else if(mode != null) {
+						LOGGER.error("The mode is not a string.");
+					}
 					
 					// Write the sensor data.
 					writeSensorData(generator, dataRecord);
@@ -555,7 +599,7 @@ public class MobilityReadRequest extends Request {
 					writeClassificationData(generator, dataRecord);
 				}
 				else {
-					LOGGER.error("The record is malformed.");
+					LOGGER.info("The record is malformed.");
 				}
 				
 				// End this point's object.
@@ -591,6 +635,7 @@ public class MobilityReadRequest extends Request {
 				LOGGER.warn("Could not close the generator.", e);
 			}
 		}
+		*/
 	}
 	
 	/**
@@ -616,7 +661,7 @@ public class MobilityReadRequest extends Request {
 			if(speed instanceof Number) {
 				writeNumber(generator, "sp", (Number) speed);
 			}
-			else {
+			else if(speed != null) {
 				LOGGER.error("The speed is not a number.");
 			}
 			
@@ -636,7 +681,7 @@ public class MobilityReadRequest extends Request {
 							if(x instanceof Number) {
 								writeNumber(generator, "x", (Number) x);
 							}
-							else {
+							else if(x != null) {
 								LOGGER.error("The x-value is not a number.");
 							}
 
@@ -644,7 +689,7 @@ public class MobilityReadRequest extends Request {
 							if(y instanceof Number) {
 								writeNumber(generator, "y", (Number) y);
 							}
-							else {
+							else if(y != null) {
 								LOGGER.error("The y-value is not a number.");
 							}
 
@@ -652,7 +697,7 @@ public class MobilityReadRequest extends Request {
 							if(z instanceof Number) {
 								writeNumber(generator, "z", (Number) z);
 							}
-							else {
+							else if(z != null) {
 								LOGGER.error("The z-value is not a number.");
 							}
 						}
@@ -665,7 +710,7 @@ public class MobilityReadRequest extends Request {
 					generator.writeEndArray();
 				}
 			}
-			else {
+			else if(accelData != null) {
 				LOGGER.error("The accelerometer data is not an array.");
 			}
 			
@@ -680,14 +725,21 @@ public class MobilityReadRequest extends Request {
 					if(time instanceof Number) {
 						writeNumber(generator, "t", (Number) time);
 					}
-					else {
+					else if(time != null) {
 						LOGGER.error("The time is not a number.");
 					}
 					
 					// Write the time zone.
-					String timeZone = 
-						wifiDataRecord.get("timezone").toString();
-					generator.writeStringField("tz", timeZone);
+					Object timezone = wifiDataRecord.get("timezone");
+					if(timezone instanceof Utf8) {
+						generator.writeStringField(
+							"tz", 
+							timezone.toString());
+					}
+					else if(timezone != null) {
+						LOGGER.error(
+							"The time zone is not a string.");
+					}
 					
 					// Write the scan.
 					Object scan = wifiDataRecord.get("scan");
@@ -702,9 +754,16 @@ public class MobilityReadRequest extends Request {
 								generator.writeStartObject();
 								
 								try {
-									String ssid = 
-										scanRecord.get("ssid").toString();
-									generator.writeStringField("ss", ssid);
+									Object ssid = scanRecord.get("ssid");
+									if(ssid instanceof Utf8) {
+										generator.writeStringField(
+											"ss", 
+											ssid.toString());
+									}
+									else if(ssid != null) {
+										LOGGER.error(
+											"The SSID is not a string.");
+									}
 									
 									Object strength = 
 										scanRecord.get("strength");
@@ -714,7 +773,7 @@ public class MobilityReadRequest extends Request {
 											"st", 
 											(Number) strength);
 									}
-									else {
+									else if(strength != null) {
 										LOGGER.error(
 											"The strength is not a number.");
 									}
@@ -728,7 +787,7 @@ public class MobilityReadRequest extends Request {
 							generator.writeEndArray();
 						}
 					}
-					else {
+					else if(scan != null) {
 						LOGGER.error("The scan is not an array.");
 					}
 				}
@@ -736,7 +795,7 @@ public class MobilityReadRequest extends Request {
 					generator.writeEndObject();
 				}
 			}
-			else {
+			else if(wifiData != null) {
 				LOGGER.error("The WiFi data is not an object.");
 			}
 		}
