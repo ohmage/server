@@ -46,3 +46,69 @@ UPDATE preference SET p_value = '/opt/ohmage/userdata/images'
 -- Add the new video directory.
 INSERT INTO preference VALUES
     ('video_directory', '/opt/ohmage/userdata/videos');
+    
+-- Create the observer tables.
+CREATE TABLE observer (
+	id int unsigned NOT NULL AUTO_INCREMENT,
+    user_id int unsigned NOT NULL,
+	observer_id varchar(255) NOT NULL,
+	version long NOT NULL,
+	name varchar(256) NOT NULL,
+	description text NOT NULL,
+	version_string varchar(32) NOT NULL,
+	PRIMARY KEY (id),
+	UNIQUE KEY observer_id (observer_id),
+	KEY observer_key_observer_id (observer_id),
+	KEY observer_key_user_id (user_id),
+	CONSTRAINT observer_foreign_key_user_id 
+	   FOREIGN KEY (user_id) 
+	   REFERENCES user (id) 
+	   ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE observer_stream (
+	id int unsigned NOT NULL AUTO_INCREMENT,
+    observer_id int unsigned NOT NULL,
+	stream_id varchar(255) NOT NULL,
+	version long NOT NULL,
+	name varchar(256) NOT NULL,
+	description text NOT NULL,
+	with_id boolean DEFAULT NULL,
+	with_timestamp boolean DEFAULT NULL,
+	with_location boolean DEFAULT NULL,
+	stream_schema text NOT NULL,
+	PRIMARY KEY (id),
+	KEY observer_stream_key_stream_id (stream_id),
+	KEY observer_stream_key_observer_id (observer_id),
+	CONSTRAINT observer_stream_foreign_key_observer_id 
+	   FOREIGN KEY (observer_id) 
+	   REFERENCES observer (id) 
+	   ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE observer_stream_data (
+  id int unsigned NOT NULL AUTO_INCREMENT,
+  user_id int unsigned NOT NULL,
+  stream_id int unsigned NOT NULL,
+  uid varchar(255) DEFAULT NULL,
+  time long DEFAULT NULL,
+  time_offset long DEFAULT NULL,
+  time_zone varchar(32) DEFAULT NULL,
+  location_timestamp varchar(64) DEFAULT NULL,
+  location_latitude double DEFAULT NULL,
+  location_longitude double DEFAULT NULL,
+  location_accuracy double DEFAULT NULL,
+  location_provider varchar(255) DEFAULT NULL,
+  data blob,
+  PRIMARY KEY (id),
+  KEY observer_stream_data_key_stream_id (stream_id),
+  KEY observer_stream_data_key_user_id (user_id),
+  CONSTRAINT observer_stream_data_foreign_key_user_id 
+    FOREIGN KEY (user_id) 
+    REFERENCES user (id) 
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT observer_stream_data_foreign_key_stream_id 
+    FOREIGN KEY (stream_id) 
+    REFERENCES observer_stream (id) 
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
