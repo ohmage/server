@@ -110,7 +110,7 @@ public class ClassUpdateRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public ClassUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		String tempClassId = null;
 		String tempClassName = null;

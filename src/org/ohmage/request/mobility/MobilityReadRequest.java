@@ -26,27 +26,27 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.ColumnKey;
+import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
-import org.ohmage.exception.CacheMissException;
+import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.UserRequest;
+import org.ohmage.request.Request;
+import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.MobilityServices;
-import org.ohmage.service.UserClassServices;
-import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.MobilityValidators;
-import org.ohmage.validator.UserValidators;
 
 /**
  * Reads the Mobility information about a user during a single day.<br />
@@ -93,7 +93,7 @@ import org.ohmage.validator.UserValidators;
  * 
  * @author John Jenkins
  */
-public class MobilityReadRequest extends UserRequest {
+public class MobilityReadRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(MobilityReadRequest.class);
 	
 	private static final Collection<ColumnKey> DEFAULT_COLUMNS;
@@ -117,11 +117,11 @@ public class MobilityReadRequest extends UserRequest {
 		DEFAULT_COLUMNS = Collections.unmodifiableCollection(columnKeys);
 	}
 	
-	private final DateTime date;
-	private final String username;
-	private final Collection<ColumnKey> columns;
+	private final StreamReadRequest regularReadRequest;
+	private final StreamReadRequest extendedReadRequest;
 	
-	private List<MobilityPoint> result;
+	private final Collection<ColumnKey> columns;
+	private final List<MobilityPoint> points;
 	
 	/**
 	 * Creates a Mobility read request.
@@ -135,18 +135,20 @@ public class MobilityReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, null);
 		
 		LOGGER.info("Creating a Mobility read request.");
 		
-		DateTime tDate = null;
-		String tUsername = null;
-		Collection<ColumnKey> tColumns = DEFAULT_COLUMNS;
+		StreamReadRequest tRegularReadRequest = null;
+		StreamReadRequest tExtendedReadRequest = null;
+		
+		Collection<ColumnKey> tColumns = null;
 		
 		if(! isFailed()) {
 			try {
 				String[] t;
 				
+				DateTime date;
 				t = getParameterValues(InputKeys.DATE);
 				if(t.length == 0) {
 					throw new ValidationException(
@@ -154,13 +156,23 @@ public class MobilityReadRequest extends UserRequest {
 							"The date value is missing: " + InputKeys.DATE);
 				}
 				else if(t.length == 1) {
-					tDate = MobilityValidators.validateDate(t[0]);
+					date = MobilityValidators.validateDate(t[0]);
 					
-					if(tDate == null) {
+					if(date == null) {
 						throw new ValidationException(
 								ErrorCode.SERVER_INVALID_DATE, 
 								"The date value is missing: " + 
 										InputKeys.DATE);
+					}
+					else {
+						date = 
+							new DateTime(
+								date.getYear(), 
+								date.getMonthOfYear(), 
+								date.getDayOfMonth(),
+								0, 
+								0,
+								DateTimeZone.UTC);
 					}
 				}
 				else {
@@ -170,17 +182,7 @@ public class MobilityReadRequest extends UserRequest {
 									InputKeys.DATE);
 				}
 				
-				t = getParameterValues(InputKeys.USERNAME);
-				if(t.length > 1) {
-					throw new ValidationException(
-							ErrorCode.USER_INVALID_USERNAME, 
-							"Multiple usernames to query were given: " + 
-									InputKeys.USERNAME);
-				}
-				else if(t.length == 1) {
-					tUsername = UserValidators.validateUsername(t[0]);
-				}
-				
+				tColumns = null;
 				t = getParameterValues(InputKeys.MOBILITY_WITH_SENSOR_DATA);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -203,7 +205,13 @@ public class MobilityReadRequest extends UserRequest {
 				}
 				else if(t.length == 1) {
 					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
-						if(! tColumns.equals(DEFAULT_COLUMNS)) {
+						if(tColumns == null) {
+							tColumns = 
+								MobilityValidators.validateColumns(
+										t[0],
+										true);
+						}
+						else {
 							throw new ValidationException(
 									ErrorCode.MOBILITY_INVALID_COLUMN_LIST,
 									"Both '" +
@@ -212,14 +220,40 @@ public class MobilityReadRequest extends UserRequest {
 										InputKeys.COLUMN_LIST +
 										"' were present. Only one may be present.");
 						}
-						else {
-							tColumns = 
-									MobilityValidators.validateColumns(
-											t[0],
-											true);
-						}
 					}
 				}
+				if(tColumns == null) {
+					tColumns = DEFAULT_COLUMNS;
+				}
+				
+				// Always get all of the columns.
+				tRegularReadRequest = 
+					new StreamReadRequest(
+						httpRequest,
+						getParameterMap(),
+						"edu.ucla.cens.Mobility",
+						null,
+						"regular",
+						2012050700,
+						date,
+						date.plusDays(1),
+						null,
+						null,
+						null);
+				
+				tExtendedReadRequest = 
+					new StreamReadRequest(
+						httpRequest,
+						getParameterMap(),
+						"edu.ucla.cens.Mobility",
+						null,
+						"extended",
+						2012050700,
+						date,
+						date.plusDays(1),
+						null,
+						null,
+						null);
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -227,11 +261,11 @@ public class MobilityReadRequest extends UserRequest {
 			}
 		}
 		
-		date = tDate;
-		username = tUsername;
-		columns = tColumns;
+		regularReadRequest = tRegularReadRequest;
+		extendedReadRequest = tExtendedReadRequest;
 		
-		result = Collections.emptyList();
+		columns = tColumns;
+		points = new ArrayList<MobilityPoint>();
 	}
 
 	/**
@@ -239,70 +273,67 @@ public class MobilityReadRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the Mobility read request.");
-		
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
+		// If any of the sub-requests have failed, then return.
+		if(regularReadRequest.isFailed() || extendedReadRequest.isFailed()) {
 			return;
 		}
 		
+		LOGGER.info("Servicing the Mobility read request.");
+		
 		try {
-			if((username != null) && (! username.equals(getUser().getUsername()))) {
-				LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
-				boolean isPlausible;
-				try {
-					isPlausible = 
-							StringUtils.decodeBoolean(
-									PreferenceCache.instance().lookup(
-											PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(e);
-				}
-				
-				try {
-					LOGGER.info("Checking if the user is an admin.");
-					UserServices.instance().verifyUserIsAdmin(
-							getUser().getUsername());
-				}
-				catch(ServiceException notAdmin) {
-					LOGGER.info("The user is not an admin.");
-					if(isPlausible) {
-						LOGGER.info("Checking if the requester is allowed to read Mobility points about the user.");
-						UserClassServices
-							.instance()
-							.userIsPrivilegedInAnotherUserClass(
-									getUser().getUsername(), 
-									username);
-					}
-					else {
-						throw new ServiceException(
-								ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
-								"A user is not allowed to query Mobility information about another user.");
-					}
-				}
-				
-				UserServices.instance().checkUserExistance(username, true);
+			// Service the read requests.
+			regularReadRequest.service();
+			if(regularReadRequest.isFailed()) {
+				return;
+			}
+			extendedReadRequest.service();
+			if(extendedReadRequest.isFailed()) {
+				return;
 			}
 			
-			DateTime startDate = 
-					new DateTime(
-						date.getYear(), 
-						date.getMonthOfYear(), 
-						date.getDayOfMonth(),
-						0, 
-						0);
+			LOGGER.info("Aggregating the resulting points.");
+			Collection<DataStream> regularResults = 
+				regularReadRequest.getResults();
+			for(DataStream dataStream : regularResults) {
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.MODE_ONLY,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
+				}
+			}
+
+			Collection<DataStream> extendedResults = 
+				extendedReadRequest.getResults();
+			for(DataStream dataStream : extendedResults) {
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.SENSOR_DATA,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
+				}
+			}
 			
-			DateTime endDate = startDate.plusDays(1);
+			LOGGER.info("Sorting the aggregated points.");
+			Collections.sort(points);
 			
-			LOGGER.info("Gathering the Mobility points.");
-			result = MobilityServices.instance().retrieveMobilityData(
-					(username == null) ? getUser().getUsername() : username,
-					startDate, 
-					endDate, 
-					null, 
-					null, 
-					null);
-			LOGGER.info("Found " + result.size() + " results.");
+			// Run them through the classifier.
+			LOGGER.info("Classifying the points.");
+			MobilityServices.instance().classifyData(
+				regularReadRequest.getUser().getUsername(),
+				points);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -317,26 +348,33 @@ public class MobilityReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the Mobiltiy read request.");
 
-		JSONArray resultJson = new JSONArray();
-		
-		for(MobilityPoint mobilityPoint : result) {
-			try {
-				resultJson.put(mobilityPoint.toJson(true, columns));
-			}
-			catch(JSONException e) {
-				LOGGER.error("Error creating the JSONObject.", e);
-				setFailed();
-				resultJson = null;
-				break;
-			}
-			catch(DomainException e) {
-				LOGGER.error("Error creating the JSONObject.", e);
-				setFailed();
-				resultJson = null;
-				break;
-			}
+		if(isFailed()) {
+			super.respond(httpRequest, httpResponse, null);
 		}
-			
-		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);
+		else if(regularReadRequest.isFailed()) {
+			regularReadRequest.respond(httpRequest, httpResponse);
+		}
+		else if(extendedReadRequest.isFailed()) {
+			extendedReadRequest.respond(httpRequest, httpResponse);
+		}
+		
+		JSONObject resultObject = new JSONObject();
+		try {
+			JSONArray resultArray = new JSONArray();
+			for(MobilityPoint mobilityPoint : points) {
+				resultArray.put(mobilityPoint.toJson(true, columns));
+			}
+			resultObject.put(JSON_KEY_DATA, resultArray);
+		}
+		catch(JSONException e) {
+			LOGGER.error("Error creating the JSONObject.", e);
+			setFailed();
+		}
+		catch(DomainException e) {
+			LOGGER.error("Error creating the JSONObject.", e);
+			setFailed();
+		}
+
+		super.respond(httpRequest, httpResponse, resultObject);
 	}
 }

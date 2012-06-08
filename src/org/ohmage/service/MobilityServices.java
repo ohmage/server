@@ -148,6 +148,9 @@ public final class MobilityServices {
 		String previousWifiMode = null;
 		List<WifiScan> previousWifiScans = new LinkedList<WifiScan>();
 		
+		// This is a bit more involved now that we are doing everything through
+		// the observers.
+		/*
 		if(mobilityPoints.size() > 0) {
 			try {
 				MobilityPoint firstPoint = mobilityPoints.get(0);
@@ -181,6 +184,7 @@ public final class MobilityServices {
 				throw new ServiceException(e);
 			}
 		}
+		*/
 
 		// For each of the Mobility points,
 		for(MobilityPoint mobilityPoint : mobilityPoints) {

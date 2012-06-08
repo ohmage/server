@@ -79,7 +79,7 @@ public class UserRegistrationRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserRegistrationRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		String tUsername = null;
 		String tPassword = null;

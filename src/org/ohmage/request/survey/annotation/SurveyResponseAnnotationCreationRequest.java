@@ -104,7 +104,7 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public SurveyResponseAnnotationCreationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		LOGGER.info("Creating a survey annotation creation request.");
 		

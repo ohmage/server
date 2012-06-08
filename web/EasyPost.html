@@ -175,6 +175,27 @@
 								            </div>
 								        </div>
 								    </div>
+								    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseOmhAuth">
+                                                <i class="icon-plus"></i> OMH Authentication
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhAuth" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="/app/omh/auth" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Username</label>
+                                                    <input type="text" name="user">
+                                                    <label><span class="label label-info">required</span> Password</label>
+                                                    <input type="text" name="password">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 							        <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseLogout">
@@ -1899,6 +1920,79 @@
     						    </div>
     					    </div>
    					    </div>
+   					    
+   					    <div class="accordion-group">
+                            <div class="accordion-heading">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseObserver">
+                                    <button class="btn btn-primary"><i class="icon-plus"></i> Observer APIs</button>
+                                </a>
+                            </div>
+                            <div id="collapseObserver" class="accordion-body collapse" style="height: 0px; ">
+                                
+                                <div class="accordion" id="accordion-observer">
+                                
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseObserverCreate">
+                                                <i class="icon-plus"></i> Create Observer
+                                            </a>
+                                        </div>
+                                        <div id="collapseObserverCreate" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/observer/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Auth Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Observer XML</label>
+                                                    <input type="file" name="observer_definition">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseDataStreamRead">
+                                                <i class="icon-plus"></i> Data Stream Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseDataStreamRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/observer/read" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Auth Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Observer ID</label>
+                                                    <input type="text" name="observer_id">
+                                                    <label>Observer Version</label>
+                                                    <input type="text" name="observer_version">
+                                                    <label><span class="label label-info">required</span> Stream ID</label>
+                                                    <input type="text" name="stream_id">
+                                                    <label><span class="label label-info">required</span> Stream Version</label>
+                                                    <input type="text" name="stream_version">
+                                                    <label>Start Date</label>
+                                                    <input type="text" name="start_date">
+                                                    <label>End Date</label>
+                                                    <input type="text" name="end_date">
+                                                    <label>Column list</label>
+                                                    <input type="text" name="column_list">
+                                                    <label>Number to Skip</label>
+                                                    <input type="text" name="num_to_skip">
+                                                    <label>Number to Return</label>
+                                                    <input type="text" name="num_to_return">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
    					    
 			    	</div> <!--  end top-level accordion -->
 

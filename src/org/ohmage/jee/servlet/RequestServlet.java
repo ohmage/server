@@ -298,22 +298,14 @@ public class RequestServlet extends HttpServlet {
 	 */
 	@Override
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		if(RequestBuilder.API_CONFIG_READ.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_IMAGE_READ.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_DOCUMENT_READ_CONTENTS.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(httpRequest.getRequestURI().startsWith("/app/viz/")) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_USER_ACTIVATE.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_REGISTRATION_READ.equals(httpRequest.getRequestURI())) {
+		if(RequestBuilder.API_CONFIG_READ.equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.API_IMAGE_READ.equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.API_DOCUMENT_READ_CONTENTS.equals(httpRequest.getRequestURI()) ||
+			httpRequest.getRequestURI().startsWith("/app/viz/") ||
+			RequestBuilder.API_USER_ACTIVATE.equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.API_REGISTRATION_READ.equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.API_OBSERVER_READ.equals(httpRequest.getRequestURI())) {
+			
 			processRequest(httpRequest, httpResponse);
 		}
 		else {

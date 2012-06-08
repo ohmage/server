@@ -211,7 +211,7 @@ public class CampaignReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public CampaignReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		Campaign.OutputFormat tOutputFormat = null;
 		

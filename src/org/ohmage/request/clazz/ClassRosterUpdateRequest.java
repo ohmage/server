@@ -101,7 +101,7 @@ public class ClassRosterUpdateRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public ClassRosterUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		LOGGER.info("Create a class roster update request.");
 		

@@ -52,6 +52,10 @@ import org.ohmage.request.mobility.MobilityReadCsvRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUpdateRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
+import org.ohmage.request.observer.ObserverCreationRequest;
+import org.ohmage.request.observer.StreamReadRequest;
+import org.ohmage.request.observer.StreamUploadRequest;
+import org.ohmage.request.omh.OmhAuthenticateRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -191,6 +195,7 @@ public final class RequestBuilder {
 	public static final String API_USER_AUTH = API_ROOT + "/user/auth";
 	public static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
 	public static final String API_USER_LOGOUT = API_ROOT + "/user/logout";
+	public static final String API_OMH_AUTH = API_ROOT + "/omh/auth";
 	
 	// Campaign
 	public static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
@@ -230,6 +235,11 @@ public final class RequestBuilder {
 	public static final String API_MOBILITY_DATES_READ = API_ROOT + "/mobility/dates/read";
 	public static final String API_MOBILITY_READ_CSV = API_ROOT + "/mobility/read/csv";
 	public static final String API_MOBILITY_UPDATE = API_ROOT + "/mobility/update";
+	
+	// Observer
+	public static final String API_OBSERVER_CREATE = API_ROOT + "/observer/create";
+	public static final String API_OBSERVER_UPLOAD = API_ROOT + "/observer/upload";
+	public static final String API_OBSERVER_READ = API_ROOT + "/observer/read";
 	
 	// Survey
 	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
@@ -302,6 +312,9 @@ public final class RequestBuilder {
 		}
 		else if(API_USER_LOGOUT.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
+		}
+		else if(API_OMH_AUTH.equals(requestUri)) {
+			return new OmhAuthenticateRequest(httpRequest);
 		}
 		// Annotation
 		else if(API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(requestUri)) {
@@ -409,7 +422,17 @@ public final class RequestBuilder {
 		else if(API_MOBILITY_UPDATE.equals(requestUri)) {
 			return new MobilityUpdateRequest(httpRequest);
 		}
-		//Survey
+		// Observer
+		else if(API_OBSERVER_CREATE.equals(requestUri)) {
+			return new ObserverCreationRequest(httpRequest);
+		}
+		else if(API_OBSERVER_UPLOAD.equals(requestUri)) {
+			return new StreamUploadRequest(httpRequest);
+		}
+		else if(API_OBSERVER_READ.equals(requestUri)) {
+			return new StreamReadRequest(httpRequest);
+		}
+		// Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
 		}
@@ -516,6 +539,7 @@ public final class RequestBuilder {
 				API_USER_AUTH.equals(uri) ||
 				API_USER_AUTH_TOKEN.equals(uri) ||
 				API_USER_LOGOUT.equals(uri) ||
+				API_OMH_AUTH.equals(uri) ||
 				// Audit
 				API_AUDIT_READ.equals(uri) ||
 				// Campaign
@@ -549,6 +573,10 @@ public final class RequestBuilder {
 				API_MOBILITY_DATES_READ.equals(uri) ||
 				API_MOBILITY_READ_CSV.equals(uri) ||
 				API_MOBILITY_UPDATE.equals(uri) ||
+				// Observer
+				API_OBSERVER_CREATE.equals(uri) ||
+				API_OBSERVER_UPLOAD.equals(uri) ||
+				API_OBSERVER_READ.equals(uri) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
 				API_SURVEY_RESPONSE_READ.equals(uri) ||

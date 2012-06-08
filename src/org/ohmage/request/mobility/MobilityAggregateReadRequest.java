@@ -1,6 +1,9 @@
 package org.ohmage.request.mobility;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -15,22 +18,19 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.PreferenceCache;
-import org.ohmage.domain.MobilityAggregatePoint;
+import org.ohmage.domain.DataStream;
 import org.ohmage.domain.MobilityPoint;
-import org.ohmage.exception.CacheMissException;
+import org.ohmage.domain.MobilityPoint.SubType;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.MobilityServices;
-import org.ohmage.service.UserClassServices;
-import org.ohmage.service.UserServices;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.MobilityValidators;
-import org.ohmage.validator.UserValidators;
 
 /**
  * Gathers the Mobility information between the given dates and aggregates the
@@ -83,11 +83,14 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			Logger.getLogger(MobilityAggregateReadRequest.class);
 	
 	private final DateTime startDate;
-	private final DateTime endDate;
+	//private final DateTime endDate;
 	private final Long duration;
-	private final String username;
+	//private final String username;
 	
-	private List<MobilityAggregatePoint> points;
+	private final StreamReadRequest regularReadRequest;
+	private final StreamReadRequest extendedReadRequest;
+	
+	private List<MobilityPoint> points;
 	
 	/**
 	 * Creates a new Mobility aggregate read request.
@@ -99,13 +102,19 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public MobilityAggregateReadRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+	public MobilityAggregateReadRequest(
+			final HttpServletRequest httpRequest)
+			throws IOException, InvalidRequestException {
+		
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		DateTime tStartDate = null;
-		DateTime tEndDate = null;
+		//DateTime tEndDate = null;
 		Long tDuration = null;
-		String tUsername = null;
+		//String tUsername = null;
+		
+		StreamReadRequest tRegularReadRequest = null;
+		StreamReadRequest tExtendedReadRequest = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a Mobility aggregate read request.");
@@ -131,6 +140,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				}
 				
 				// Get the end date.
+				DateTime endDate = null;
 				t = getParameterValues(InputKeys.END_DATE);
 				if(t.length == 0) {
 					throw new ValidationException(
@@ -139,9 +149,9 @@ public class MobilityAggregateReadRequest extends UserRequest {
 									InputKeys.END_DATE);
 				}
 				else if(t.length == 1) {
-					tEndDate = MobilityValidators.validateDate(t[0]);
+					endDate = MobilityValidators.validateDate(t[0]);
 				}
-				if(tEndDate == null) {
+				if(endDate == null) {
 					throw new ValidationException(
 							ErrorCode.SERVER_INVALID_DATE, 
 							"Multiple end dates were given: " + 
@@ -167,6 +177,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 								InputKeys.MOBILITY_AGGREGATE_DURATION);
 				}
 				
+				/*
 				// Get the user.
 				t = getParameterValues(InputKeys.USERNAME);
 				if(t.length > 1) {
@@ -178,6 +189,36 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
+				*/
+				
+				// Always get all of the columns.
+				tRegularReadRequest = 
+					new StreamReadRequest(
+						httpRequest,
+						getParameterMap(),
+						"edu.ucla.cens.Mobility",
+						null,
+						"regular",
+						2012050700,
+						tStartDate,
+						endDate,
+						null,
+						null,
+						null);
+				
+				tExtendedReadRequest = 
+					new StreamReadRequest(
+						httpRequest,
+						getParameterMap(),
+						"edu.ucla.cens.Mobility",
+						null,
+						"extended",
+						2012050700,
+						tStartDate,
+						endDate,
+						null,
+						null,
+						null);
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -186,9 +227,14 @@ public class MobilityAggregateReadRequest extends UserRequest {
 		}
 		
 		startDate = tStartDate;
-		endDate = tEndDate;
+		//endDate = tEndDate;
 		duration = tDuration;
-		username = tUsername;
+		//username = tUsername;
+		
+		regularReadRequest = tRegularReadRequest;
+		extendedReadRequest = tExtendedReadRequest;
+		
+		points = new ArrayList<MobilityPoint>(); 
 	}
 
 	/*
@@ -197,6 +243,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
+		/*
 		LOGGER.info("Servicing the Mobility aggregate read request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
@@ -253,6 +300,114 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			e.failRequest(this);
 			e.logException(LOGGER);
 		}
+		*/
+		
+		// If any of the sub-requests have failed, then return.
+		if(regularReadRequest.isFailed() || extendedReadRequest.isFailed()) {
+			return;
+		}
+		
+		LOGGER.info("Servicing the Mobility read request.");
+		
+		try {
+			/*
+			if((username != null) && (! username.equals(getUser().getUsername()))) {
+				LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
+				boolean isPlausible;
+				try {
+					isPlausible = 
+							StringUtils.decodeBoolean(
+									PreferenceCache.instance().lookup(
+											PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
+				}
+				catch(CacheMissException e) {
+					throw new ServiceException(e);
+				}
+				
+				try {
+					LOGGER.info("Checking if the user is an admin.");
+					UserServices.instance().verifyUserIsAdmin(
+							getUser().getUsername());
+				}
+				catch(ServiceException notAdmin) {
+					LOGGER.info("The user is not an admin.");
+					if(isPlausible) {
+						LOGGER.info("Checking if the requester is allowed to read Mobility points about the user.");
+						UserClassServices
+							.instance()
+							.userIsPrivilegedInAnotherUserClass(
+									getUser().getUsername(), 
+									username);
+					}
+					else {
+						throw new ServiceException(
+								ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
+								"A user is not allowed to query Mobility information about another user.");
+					}
+				}
+				
+				UserServices.instance().checkUserExistance(username, true);
+			}
+			*/
+			
+			// Service the read requests.
+			regularReadRequest.service();
+			if(regularReadRequest.isFailed()) {
+				return;
+			}
+			extendedReadRequest.service();
+			if(extendedReadRequest.isFailed()) {
+				return;
+			}
+			
+			LOGGER.info("Aggregating the resulting points.");
+			Collection<DataStream> regularResults = 
+				regularReadRequest.getResults();
+			for(DataStream dataStream : regularResults) {
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.MODE_ONLY,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
+				}
+			}
+
+			Collection<DataStream> extendedResults = 
+				extendedReadRequest.getResults();
+			for(DataStream dataStream : extendedResults) {
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.SENSOR_DATA,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
+				}
+			}
+			
+			LOGGER.info("Sorting the aggregated points.");
+			Collections.sort(points);
+			
+			// Run them through the classifier.
+			LOGGER.info("Classifying the points.");
+			MobilityServices.instance().classifyData(
+				regularReadRequest.getUser().getUsername(),
+				points);
+		}
+		catch(ServiceException e) {
+			e.failRequest(this);
+			e.logException(LOGGER);
+		}
 	}
 
 	/*
@@ -276,11 +431,11 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				
 				// Bucket the data based on its duration. The first bucket begins at 
 				// the start date not at the earliest point.
-				Map<Long, List<MobilityAggregatePoint>> buckets = 
-						new HashMap<Long, List<MobilityAggregatePoint>>();
-				for(MobilityAggregatePoint mobilityPoint : points) {
+				Map<Long, List<MobilityPoint>> buckets = 
+						new HashMap<Long, List<MobilityPoint>>();
+				for(MobilityPoint mobilityPoint : points) {
 					// Get the point's date and time.
-					DateTime pointDateTime = mobilityPoint.getDateTime();
+					DateTime pointDateTime = mobilityPoint.getDate();
 					
 					// Calculate this points "day value".
 					int year = pointDateTime.getYear() - 1;
@@ -297,10 +452,10 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					bucketNum /= duration;
 					
 					// Add this point to its appropriate bucket.
-					List<MobilityAggregatePoint> bucket = 
+					List<MobilityPoint> bucket = 
 						buckets.get(bucketNum);
 					if(bucket == null) {
-						bucket = new LinkedList<MobilityAggregatePoint>();
+						bucket = new LinkedList<MobilityPoint>();
 						buckets.put(bucketNum, bucket);
 					}
 					bucket.add(mobilityPoint);
@@ -311,7 +466,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				// Parse each bucket.
 				for(Long bucketNum : buckets.keySet()) {
 					// Get the buckets.
-					List<MobilityAggregatePoint> mobilityPoints = 
+					List<MobilityPoint> mobilityPoints = 
 							buckets.get(bucketNum);
 					
 					// Create a map to hold the mode to duration times.
@@ -336,8 +491,8 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					
 					// Go from point to point looking backwards to determine 
 					// how much time should be added to this mode.
-					MobilityAggregatePoint previousPoint = null;
-					for(MobilityAggregatePoint mobilityPoint : mobilityPoints) {
+					MobilityPoint previousPoint = null;
+					for(MobilityPoint mobilityPoint : mobilityPoints) {
 						// Get this point's mode.
 						MobilityPoint.Mode mode = mobilityPoint.getMode();
 						
@@ -368,8 +523,8 @@ public class MobilityAggregateReadRequest extends UserRequest {
 						}
 						else {
 							long difference = 
-									mobilityPoint.getDateTime().getMillis() - 
-									previousPoint.getDateTime().getMillis();
+									mobilityPoint.getDate().getMillis() - 
+									previousPoint.getDate().getMillis();
 							
 							additionalDuration = 
 								(difference <= 3600000) ? difference : 60000;

@@ -1425,6 +1425,10 @@ public class OhmageApi {
 			parameters.put(InputKeys.DATE, TimeUtils.getIso8601DateString(date, false));
 		}
 		
+		parameters.put(
+			InputKeys.COLUMN_LIST, 
+			"mobility:id,mobility:time,mobility:timestamp,mobility:timezone,mobility:location,mobility:subtype,mobility:sensor_data,mobility:mode");
+		
 		JSONArray response;
 		try {
 			response = new JSONArray(
@@ -1456,12 +1460,14 @@ public class OhmageApi {
 			// All Mobility points from the server are "mode_only", but that is
 			// not included in the response. We add it here for the 
 			// constructor's benefit.
+			/*
 			try {
-				currResult.put(MobilityColumnKey.SUB_TYPE.toString(false), MobilityPoint.SubType.MODE_ONLY);
+				currResult.put(MobilityColumnKey.SUB_TYPE.toString(false), MobilityPoint.SubType.SENSOR_DATA.toString());
 			}
 			catch(JSONException e) {
 				throw new ApiException("Error adding the subtype to the response.", e);
 			}
+			*/
 			
 			try {
 				results.add(new MobilityPoint(currResult, MobilityPoint.PrivacyState.PRIVATE));

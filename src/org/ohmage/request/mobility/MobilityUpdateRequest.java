@@ -38,7 +38,7 @@ public class MobilityUpdateRequest extends UserRequest {
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, TokenLocation.PARAMETER, false);
+		super(httpRequest, false, TokenLocation.PARAMETER, null);
 		
 		UUID tMobilityId = null; 
 		MobilityPoint.PrivacyState tPrivacyState = null;

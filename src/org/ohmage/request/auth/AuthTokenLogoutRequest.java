@@ -58,7 +58,7 @@ public class AuthTokenLogoutRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public AuthTokenLogoutRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER);
+		super(httpRequest, null, TokenLocation.EITHER, null);
 		
 		LOGGER.info("Creating a logout request.");
 	}

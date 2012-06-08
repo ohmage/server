@@ -51,7 +51,7 @@ public class ConfigReadRequest extends Request {
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		result = null;
 	}

@@ -131,7 +131,7 @@ public class SurveyUploadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public SurveyUploadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, false);
+		super(httpRequest, false, null, null);
 		
 		LOGGER.info("Creating a survey upload request.");
 

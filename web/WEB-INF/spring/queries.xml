@@ -102,6 +102,12 @@
     </constructor-arg>
   </bean>
 
+  <bean name="observerQueries" class="org.ohmage.query.impl.ObserverQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+
   <bean name="promptResponseQueries" class="org.ohmage.query.impl.PromptResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />
