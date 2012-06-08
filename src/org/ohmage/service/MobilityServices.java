@@ -244,6 +244,13 @@ public final class MobilityServices {
 					}
 				}
 				
+				System.out.println(
+					samples + ";" + 
+					currSensorData.getSpeed() + ";" +
+					wifiScan.toString() + ";" +
+					previousWifiScans + ";" +
+					previousWifiMode);
+				
 				// Classify the data.
 				Classification classification =
 						classifier.classify(

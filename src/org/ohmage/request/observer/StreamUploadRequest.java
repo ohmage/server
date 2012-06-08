@@ -197,6 +197,13 @@ public class StreamUploadRequest extends UserRequest {
 			Collection<DataStream> dataStreams =
 				ObserverServices.instance().validateData(observer, data);
 			
+			try {
+				data.close();
+			}
+			catch(IOException e) {
+				LOGGER.info("Error closing the data.", e);
+			}
+			
 			LOGGER.info("Pruning out the duplicates from previous uploads.");
 			ObserverServices.instance().removeDuplicates(
 				getUser().getUsername(), 

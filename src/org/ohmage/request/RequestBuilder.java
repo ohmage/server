@@ -55,6 +55,7 @@ import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.observer.ObserverCreationRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
+import org.ohmage.request.omh.OmhAuthenticateRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -194,6 +195,7 @@ public final class RequestBuilder {
 	public static final String API_USER_AUTH = API_ROOT + "/user/auth";
 	public static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
 	public static final String API_USER_LOGOUT = API_ROOT + "/user/logout";
+	public static final String API_OMH_AUTH = API_ROOT + "/omh/auth";
 	
 	// Campaign
 	public static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
@@ -311,6 +313,9 @@ public final class RequestBuilder {
 		else if(API_USER_LOGOUT.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
 		}
+		else if(API_OMH_AUTH.equals(requestUri)) {
+			return new OmhAuthenticateRequest(httpRequest);
+		}
 		// Annotation
 		else if(API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(requestUri)) {
 			return new PromptResponseAnnotationCreationRequest(httpRequest);
@@ -427,7 +432,7 @@ public final class RequestBuilder {
 		else if(API_OBSERVER_READ.equals(requestUri)) {
 			return new StreamReadRequest(httpRequest);
 		}
-		//Survey
+		// Survey
 		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
 		}
@@ -534,6 +539,7 @@ public final class RequestBuilder {
 				API_USER_AUTH.equals(uri) ||
 				API_USER_AUTH_TOKEN.equals(uri) ||
 				API_USER_LOGOUT.equals(uri) ||
+				API_OMH_AUTH.equals(uri) ||
 				// Audit
 				API_AUDIT_READ.equals(uri) ||
 				// Campaign

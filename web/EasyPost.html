@@ -175,6 +175,27 @@
 								            </div>
 								        </div>
 								    </div>
+								    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseOmhAuth">
+                                                <i class="icon-plus"></i> OMH Authentication
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhAuth" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="/app/omh/auth" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Username</label>
+                                                    <input type="text" name="user">
+                                                    <label><span class="label label-info">required</span> Password</label>
+                                                    <input type="text" name="password">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 							        <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseLogout">

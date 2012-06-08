@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
@@ -39,6 +40,12 @@ import org.ohmage.validator.ObserverValidators;
 public class StreamReadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(StreamReadRequest.class);
+	
+	/**
+	 * The single factory instance for the writer.
+	 */
+	private static final JsonFactory JSON_FACTORY = 
+		(new JsonFactory()).configure(Feature.AUTO_CLOSE_TARGET, true);
 	
 	/**
 	 * The maximum number of records that can be returned.
@@ -518,8 +525,7 @@ public class StreamReadRequest extends UserRequest {
 		// Create the generator that will stream to the requester.
 		JsonGenerator generator;
 		try {
-			generator =
-				(new JsonFactory()).createJsonGenerator(outputStream);
+			generator = JSON_FACTORY.createJsonGenerator(outputStream);
 		}
 		catch(IOException generatorException) {
 			LOGGER.error(
