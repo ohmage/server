@@ -432,6 +432,16 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					}
 				);
 		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			else {
+				throw new DataAccessException(
+					"Multiple streams have the same ID: " + streamId,
+					e);
+			}
+		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 				"Error executing SQL '" +
