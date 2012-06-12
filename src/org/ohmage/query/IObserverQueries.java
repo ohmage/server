@@ -38,11 +38,26 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
+	 * Retrieves the ID of the creator of the observer or null if no such 
+	 * observer exists.
+	 * 
+	 * @param observerId The observers unique identifier.
+	 * 
+	 * @return The owner of this observer.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public String getOwner(
+		final String observerId)
+		throws DataAccessException;
+	
+	/**
 	 * Retrieves the observer.
 	 * 
 	 * @param id The observer's unique identifier.
 	 * 
-	 * @param version The observer's version.
+	 * @param version The observer's version. If this is null, the latest 
+	 * 				  version is returned.
 	 * 
 	 * @return The Observer or null if no observer with that ID/version exists.
 	 * 
@@ -50,7 +65,7 @@ public interface IObserverQueries {
 	 */
 	public Observer getObserver(
 		final String id, 
-		final long version) 
+		final Long version) 
 		throws DataAccessException;
 	
 	/**
@@ -74,6 +89,30 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
+	 * Compares a list of IDs to the existing IDs for a user for a stream and
+	 * returns the collection of IDs that match.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @param streamId The stream's unique identifier.
+	 * 
+	 * @param idsToCheck The collection of IDs to compare against.
+	 * 
+	 * @return The collection of IDs that are already stored for this user for
+	 * 		   this stream and were in the supplied list.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Collection<String> getDuplicateIds(
+		final String username,
+		final String observerId,
+		final String streamId,
+		final Collection<String> idsToCheck)
+		throws DataAccessException;
+	
+	/**
 	 * Stores the data stream data.
 	 * 
 	 * @param username The user who is uploading the data.
@@ -84,6 +123,7 @@ public interface IObserverQueries {
 	 */
 	public void storeData(
 		final String username,
+		final Observer observer,
 		final Collection<DataStream> data)
 		throws DataAccessException;
 
@@ -95,6 +135,8 @@ public interface IObserverQueries {
 	 * 
 	 * @param username The username of the user to which the data must belong.
 	 * 				   Required.
+	 * 
+	 * @param observerId The observer's unique identifier. Optional.
 	 * 
 	 * @param observerVersion The observer's version. Optional.
 	 * 
@@ -119,26 +161,5 @@ public interface IObserverQueries {
 		final DateTime endDate,
 		final long numToSkip,
 		final long numToReturn) 
-		throws DataAccessException;
-	
-	/**
-	 * Compares a list of IDs to the existing IDs for a user for a stream and
-	 * returns the collection of IDs that match.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param streamId The stream's unique identifier.
-	 * 
-	 * @param idsToCheck The collection of IDs to compare against.
-	 * 
-	 * @return The collection of IDs that are already stored for this user for
-	 * 		   this stream and were in the supplied list.
-	 * 
-	 * @throws DataAccessException There was an error.
-	 */
-	public Collection<String> getDuplicateIds(
-		final String username,
-		final String streamId,
-		final Collection<String> idsToCheck)
 		throws DataAccessException;
 }

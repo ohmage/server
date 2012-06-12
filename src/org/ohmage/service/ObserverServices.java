@@ -111,6 +111,90 @@ public class ObserverServices {
 	}
 	
 	/**
+	 * Verifies that a user is allowed to update an observer.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @throws ServiceException The user is not allowed to update the observer
+	 * 							or there was an error.
+	 */
+	public void verifyUserCanUpdateObserver(
+			final String username,
+			final String observerId)
+			throws ServiceException {
+		
+		try {
+			String owner = observerQueries.getOwner(observerId);
+			// If there is no owner, that is because the stream doesn't exist.
+			if(owner == null) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INSUFFICIENT_PERMISSIONS,
+					"An observer with the given ID does not exist.");
+			}
+			// If the requester is not the owner, then they do not have 
+			// permission to update it.
+			// If we open up the ACLs to allow others to update the observer,
+			// this check would be altered and this is where those ACLs would
+			// be applied.
+			else if(! owner.equals(username)) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INSUFFICIENT_PERMISSIONS,
+					"The requester is not the owner of the observer.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a new observer conforms to the requirements of the 
+	 * existing observer.
+	 * 
+	 * @param observer The observer that must, at the very least, have an
+	 * 				   increased version number and may contain other fixes.
+	 * 
+	 * @throws ServiceException The observer is invalid as a new observer or
+	 * 							there was an error.
+	 */
+	public void verifyNewObserverIsValid(
+			final Observer observer)
+			throws ServiceException {
+		
+		if(observer == null) {
+			throw new ServiceException(
+				"The observer is null.");
+		}
+		
+		/*
+		try {
+			// Get the current observer.
+			Observer currentObserver = getObserver(observer.getId(), null);
+		
+			// Compare the observer versions. If the new version is less than or
+			// equal to the existing version, then this is not a valid update 
+			// attempt.
+			if(observer.getVersion() <= currentObserver.getVersion()) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INVALID_VERSION,
+					"The new observer's version must increase: " +
+						observer.getVersion());
+			}
+			
+			// Compare each of the streams.
+			for(Stream stream : observer.getStreams().values()) {
+				
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		*/
+	}
+	
+	/**
 	 * Retrieves the observer.
 	 * 
 	 * @param observerId The observer's unique identifier.
@@ -121,7 +205,7 @@ public class ObserverServices {
 	 */
 	public Observer getObserver(
 			final String observerId,
-			final long observerVersion) 
+			final Long observerVersion) 
 			throws ServiceException {
 		
 		try {
@@ -131,7 +215,9 @@ public class ObserverServices {
 			if(result == null) {
 				throw new ServiceException(
 					ErrorCode.OBSERVER_INVALID_ID,
-					"An observer with that version does not exist.");
+					"No such observer exists: " + 
+						"ID: " + observerId + 
+						"Version: " + observerVersion);
 			}
 			
 			return result;
@@ -231,12 +317,15 @@ public class ObserverServices {
 	 *  
 	 * @param username The username of the user that will own these points.
 	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
 	 * @param data The data that has been uploaded.
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
 	public void removeDuplicates(
 			final String username,
+			final String observerId,
 			final Collection<DataStream> data)
 			throws ServiceException {
 		
@@ -271,6 +360,7 @@ public class ObserverServices {
 				duplicateIds.addAll( 
 					observerQueries.getDuplicateIds(
 						username,
+						observerId,
 						streamId,
 						uploadIds.get(streamId)));
 			}
@@ -300,17 +390,20 @@ public class ObserverServices {
 	 * 
 	 * @param username The user who is uploading the data.
 	 * 
+	 * @param observer The observer to which the data belong.
+	 * 
 	 * @param data The data to be stored.
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
 	public void storeData(
 			final String username,
+			final Observer observer,
 			final Collection<DataStream> data) 
 			throws ServiceException {
 		
 		try {
-			observerQueries.storeData(username, data);
+			observerQueries.storeData(username, observer, data);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -326,8 +419,7 @@ public class ObserverServices {
 	 * @param username The username of the user to which the data must belong.
 	 * 				   Required.
 	 * 
-	 * @param observerId The observer's unique identifier. Required if the 
-	 * 					 observer's version is given.
+	 * @param observerId The observer's unique identifier. Required.
 	 * 
 	 * @param observerVersion The observer's version. Optional.
 	 * 

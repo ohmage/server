@@ -207,11 +207,13 @@ public class StreamUploadRequest extends UserRequest {
 			LOGGER.info("Pruning out the duplicates from previous uploads.");
 			ObserverServices.instance().removeDuplicates(
 				getUser().getUsername(), 
+				observerId,
 				dataStreams);
 			
 			LOGGER.info("Storing the uploaded data.");
 			ObserverServices.instance().storeData(
 				getUser().getUsername(), 
+				observer,
 				dataStreams);
 		}
 		catch(ServiceException e) {
