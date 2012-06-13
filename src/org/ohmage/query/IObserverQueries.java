@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.DataStream;
@@ -69,6 +70,19 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
+	 * Returns the greatest version number for an observer.
+	 * 
+	 * @param id The observer's unique identifier.
+	 * 
+	 * @return The greatest observer version.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Long getGreatestObserverVersion(
+		final String id) 
+		throws DataAccessException;
+	
+	/**
 	 * Retrieves the stream.
 	 * 
 	 * @param observerId The observer's unique identifier.
@@ -85,7 +99,23 @@ public interface IObserverQueries {
 	public Observer.Stream getStream(
 		final String observerId,
 		final String streamId, 
-		final long streamVersion) 
+		final Long streamVersion) 
+		throws DataAccessException;
+	
+	/**
+	 * Returns the greatest version number for a stream.
+	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @param streamId The stream's unique identifier.
+	 * 
+	 * @return The greatest stream identifier.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Long getGreatestStreamVersion(
+		final String observerId,
+		final String streamId)
 		throws DataAccessException;
 	
 	/**
@@ -161,5 +191,23 @@ public interface IObserverQueries {
 		final DateTime endDate,
 		final long numToSkip,
 		final long numToReturn) 
+		throws DataAccessException;
+	
+	/**
+	 * Updates an observer.
+	 * 
+	 * @param username The username of the user that is updating the observer.
+	 * 
+	 * @param observer The new observer.
+	 * 
+	 * @param unchangedStreamIds The IDs of the streams in the new observer 
+	 * 							 whose version didn't change and their version.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void updateObserver(
+		final String username,
+		final Observer observer,
+		final Map<String, Long> unchangedStreamIds)
 		throws DataAccessException;
 }

@@ -159,7 +159,7 @@ public class ObserverServices {
 	 * @throws ServiceException The observer is invalid as a new observer or
 	 * 							there was an error.
 	 */
-	public void verifyNewObserverIsValid(
+	public Map<String, Long> verifyNewObserverIsValid(
 			final Observer observer)
 			throws ServiceException {
 		
@@ -168,30 +168,63 @@ public class ObserverServices {
 				"The observer is null.");
 		}
 		
-		/*
 		try {
-			// Get the current observer.
-			Observer currentObserver = getObserver(observer.getId(), null);
-		
-			// Compare the observer versions. If the new version is less than or
-			// equal to the existing version, then this is not a valid update 
-			// attempt.
-			if(observer.getVersion() <= currentObserver.getVersion()) {
+			// Compare the observer versions. If the new version is less than
+			// or equal to the existing version, then this is not a valid 
+			// update attempt.
+			String observerId = observer.getId();
+			if(observer.getVersion() <= 
+				observerQueries.getGreatestObserverVersion(observerId)) {
+				
 				throw new ServiceException(
 					ErrorCode.OBSERVER_INVALID_VERSION,
 					"The new observer's version must increase: " +
 						observer.getVersion());
 			}
 			
+			// The set of stream IDs whose version did not increase. 
+			Map<String, Long> result = new HashMap<String, Long>();
+			
 			// Compare each of the streams.
 			for(Stream stream : observer.getStreams().values()) {
+				// Get the stream's version.
+				Long streamVersion =
+					observerQueries.getGreatestStreamVersion(
+						observer.getId(), 
+						stream.getId());
 				
+				// Get the new stream's version.
+				long newStreamVersion = stream.getVersion();
+				
+				// If the stream didn't exist before, it is fine.
+				if(streamVersion == null) {
+					continue;
+				}
+				// If the new stream's version is less than the existing 
+				// stream's version, that is an error.
+				else if(newStreamVersion < streamVersion) {
+					throw new ServiceException(
+						ErrorCode.OBSERVER_INVALID_STREAM_VERSION,
+						"The version of this stream, '" +
+							stream.getId() +
+							"', is less than the existing stream's version, '" +
+							streamVersion +
+							"': " + stream.getVersion());
+				}
+				// If the version didn't change, we add it to the set of stream
+				// IDs.
+				else if(newStreamVersion == streamVersion) {
+					result.put(stream.getId(), streamVersion);
+				}
+				// Otherwise, the stream ID increased, in which case a new 
+				// stream entry will be created.
 			}
+			
+			return result;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
 		}
-		*/
 	}
 	
 	/**
@@ -244,7 +277,7 @@ public class ObserverServices {
 	public Observer.Stream getStream(
 			final String observerId,
 			final String streamId,
-			final long streamVersion)
+			final Long streamVersion)
 			throws ServiceException {
 		
 		try {
@@ -457,6 +490,35 @@ public class ObserverServices {
 					endDate,
 					numToSkip,
 					numToReturn);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Updates an observer.
+	 * 
+	 * @param username The username of the user that is updating the observer.
+	 * 
+	 * @param observer The new observer.
+	 * 
+	 * @param unchangedStreamIds The IDs of the streams in the new observer 
+	 * 							 whose version didn't change and their version.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public void updateObserver(
+			final String username,
+			final Observer observer,
+			final Map<String, Long> unchangedStreamIds)
+			throws ServiceException {
+
+		try {
+			observerQueries.updateObserver(
+				username,
+				observer,
+				unchangedStreamIds);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

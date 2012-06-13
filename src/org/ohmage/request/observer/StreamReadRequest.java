@@ -141,6 +141,10 @@ public class StreamReadRequest extends UserRequest {
 	private final long numToSkip;
 	private final long numToReturn;
 	
+	// The stream created during the servicing of the request.
+	private Observer.Stream stream;
+	
+	// The collection results from this request.
 	private final Collection<DataStream> results;
 	
 	/**
@@ -457,7 +461,7 @@ public class StreamReadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Retrieving the stream definition.");
-			Observer.Stream stream = 
+			stream = 
 				ObserverServices.instance().getStream(
 					observerId, 
 					streamId, 
@@ -614,7 +618,7 @@ public class StreamReadRequest extends UserRequest {
 				
 				// Write the data.
 				handleGeneric(
-					generator, 
+					generator,
 					dataStream.getData(), 
 					columnsRoot, 
 					"data");
@@ -664,6 +668,8 @@ public class StreamReadRequest extends UserRequest {
 	 * 
 	 * @param generator The output stream to feed the object into.
 	 * 
+	 * @param encoder The encoder to convert Avro data to JSON data.
+	 * 
 	 * @param generic The object to be fed out.
 	 * 
 	 * @param columns The columns to restrict the output. If this is null, all
@@ -684,7 +690,7 @@ public class StreamReadRequest extends UserRequest {
 		// If it's an array, then process it as such.
 		if(generic instanceof GenericData.Array) {
 			handleArray(
-				generator, 
+				generator,
 				(GenericData.Array<GenericContainer>) generic,
 				columns,
 				fieldName);
@@ -692,12 +698,25 @@ public class StreamReadRequest extends UserRequest {
 		// If it's an object, then process it as such.
 		else if(generic instanceof GenericData.Record) {
 			handleObject(
-				generator, 
+				generator,
 				(GenericData.Record) generic, 
 				columns,
 				fieldName);
 		}
-		// If it's a string, then we need to code around their string type.
+		// If it's another Avro-specific type, then encode it.
+		else if(generic instanceof GenericData.EnumSymbol) {
+			GenericData.EnumSymbol genericEnum = 
+				(GenericData.EnumSymbol) generic;
+			
+			if(fieldName == null) {
+				generator.writeString(genericEnum.toString());
+			}
+			else {
+				generator.writeStringField(fieldName, genericEnum.toString());
+			}
+		}
+		// If it's an Avro string, then we need to code around their string 
+		// type.
 		else if(generic instanceof Utf8) {
 			String value = ((Utf8) generic).toString();
 			
@@ -724,6 +743,8 @@ public class StreamReadRequest extends UserRequest {
 	 * based on the given columns.
 	 * 
 	 * @param generator The output stream to feed the array into.
+	 * 
+	 * @param encoder The encoder to convert Avro data to JSON data.
 	 * 
 	 * @param array The array to be fed out.
 	 * 
@@ -752,7 +773,11 @@ public class StreamReadRequest extends UserRequest {
 		// Iterate over the elements and add them to the result.
 		int numElements = array.size();
 		for(int i = 0; i < numElements; i++) {
-			handleGeneric(generator, array.get(i), currColumn, null);
+			handleGeneric(
+				generator,
+				array.get(i), 
+				currColumn, 
+				null);
 		}
 		
 		// End the array.
@@ -764,6 +789,8 @@ public class StreamReadRequest extends UserRequest {
 	 * based on the given columns.
 	 * 
 	 * @param generator The output stream to feed the object into.
+	 * 
+	 * @param encoder The encoder to convert Avro data to JSON data.
 	 * 
 	 * @param object The object to be fed out.
 	 * 
@@ -808,7 +835,7 @@ public class StreamReadRequest extends UserRequest {
 				
 				if(currObject != null) {
 					handleGeneric(
-						generator, 
+						generator,
 						currObject, 
 						currColumn.getChild(key),
 						key);

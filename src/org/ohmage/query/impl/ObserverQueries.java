@@ -7,8 +7,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -295,7 +297,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		}
 		
 		String sql = 
-			"SELECT u.username " +
+			"SELECT DISTINCT(u.username) " +
 			"FROM user u, observer o " +
 			"WHERE u.id = o.user_id " +
 			"AND o.observer_id = ?";
@@ -483,6 +485,34 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			throw new DataAccessException(e);
 		}
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getGreatestObserverVersion(java.lang.String)
+	 */
+	@Override
+	public Long getGreatestObserverVersion(
+			final String id)
+			throws DataAccessException {
+		
+		String sql = 
+			"SELECT MAX(version) AS max_version " +
+			"FROM observer " +
+			"WHERE observer_id = ?";
+		
+		try {
+			return
+				getJdbcTemplate().queryForLong(sql, new Object[] { id });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					sql + 
+					"' with parameter: " +
+					id,
+				e);
+		}
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -492,7 +522,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 	public Stream getStream(
 			final String observerId,
 			final String streamId,
-			final long streamVersion) 
+			final Long streamVersion) 
 			throws DataAccessException {
 		
 		if(observerId == null) {
@@ -502,28 +532,42 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			return null;
 		}
 		
-		String streamSql = 
-			"SELECT " +
-				"os.stream_id, " +
-				"os.version, " +
-				"os.name, " +
-				"os.description, " +
-				"os.with_id, " +
-				"os.with_timestamp, " +
-				"os.with_location, " +
-				"os.stream_schema " +
-			"FROM observer o, observer_stream os, observer_stream_link osl " +
-			"WHERE o.observer_id = ? " +
-			"AND o.id = osl.observer_id " +
-			"AND osl.observer_stream_id = os.id " +
-			"AND os.stream_id = ? " +
-			"AND os.version = ?";
+		StringBuilder streamSqlBuilder = 
+			new StringBuilder(
+				"SELECT " +
+					"os.stream_id, " +
+					"os.version, " +
+					"os.name, " +
+					"os.description, " +
+					"os.with_id, " +
+					"os.with_timestamp, " +
+					"os.with_location, " +
+					"os.stream_schema " +
+				"FROM " +
+					"observer o, " +
+					"observer_stream os, " +
+					"observer_stream_link osl " +
+				"WHERE o.observer_id = ? " +
+				"AND o.id = osl.observer_id " +
+				"AND osl.observer_stream_id = os.id " +
+				"AND os.stream_id = ? ");
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(observerId);
+		parameters.add(streamId);
+		
+		if(streamVersion == null) {
+			streamSqlBuilder.append("ORDER BY os.version LIMIT 1");
+		}
+		else {
+			streamSqlBuilder.append("AND os.version = ?");
+			parameters.add(streamVersion);
+		}
 		
 		try {
 			return 
 				getJdbcTemplate().queryForObject(
-					streamSql, 
-					new Object[] { observerId, streamId, streamVersion },
+					streamSqlBuilder.toString(), 
+					parameters.toArray(),
 					new RowMapper<Observer.Stream>() {
 						/**
 						 * Maps the row of data to a new stream.
@@ -571,11 +615,44 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 				"Error executing SQL '" +
-					streamSql + 
+					streamSqlBuilder.toString() + 
 					"' with parameters: " +
+					parameters,
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getGreatestObserverVersion(java.lang.String)
+	 */
+	@Override
+	public Long getGreatestStreamVersion(
+			final String observerId,
+			final String streamId)
+			throws DataAccessException {
+		
+		String sql = 
+			"SELECT MAX(os.version) AS max_version " +
+			"FROM observer o, observer_stream os, observer_stream_link osl " +
+			"WHERE o.observer_id = ? " +
+			"AND os.stream_id = ? " +
+			"AND o.id = osl.observer_id " +
+			"AND osl.observer_stream_id = os.id";
+		
+		try {
+			return
+				getJdbcTemplate().queryForLong(
+					sql, 
+					new Object[] { observerId, streamId });
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					sql + 
+					"' with parameter: " +
 					observerId + ", " +
-					streamId + ", " +
-					streamVersion,
+					streamId,
 				e);
 		}
 	}
@@ -928,6 +1005,220 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					builder.toString() + 
 					"' with parameters: " +
 					parameters,
+				e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#updateObserver(java.lang.String, org.ohmage.domain.Observer, java.util.Collection)
+	 */
+	@Override
+	public void updateObserver(
+			final String username,
+			final Observer observer,
+			final Map<String, Long> unchangedStreamIds)
+			throws DataAccessException {
+		
+		if(username == null) {
+			throw new DataAccessException("The username is null.");
+		}
+		if(observer == null) {
+			throw new DataAccessException("The observer is null.");
+		}
+		if(unchangedStreamIds == null) {
+			throw new DataAccessException(
+				"The collection of unchanged IDs is null.");
+		}
+
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating an observer.");
+
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager =
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Observer creation SQL.
+			final String observerSql =
+				"INSERT INTO observer (" +
+						"observer_id, " +
+						"version, " +
+						"name, " +
+						"description, " +
+						"version_string, " +
+						"user_id) " +
+					"VALUES (?, ?, ?, ?, ?, " +
+						"(SELECT id FROM user WHERE username = ?))";
+
+			// Observer creation statement with parameters.
+			PreparedStatementCreator observerCreator =
+				new PreparedStatementCreator() {
+
+					@Override
+					public PreparedStatement createPreparedStatement(
+							final Connection connection)
+							throws SQLException {
+						
+						PreparedStatement ps =
+							connection.prepareStatement(
+								observerSql,
+								new String[] { "id" });
+						
+						ps.setString(1, observer.getId());
+						ps.setLong(2, observer.getVersion());
+						ps.setString(3, observer.getName());
+						ps.setString(4, observer.getDescription());
+						ps.setString(5, observer.getVersionString());
+						ps.setString(6, username);
+						
+						return ps;
+					}
+
+				};
+				
+			// The auto-generated key for the observer.
+			KeyHolder observerKeyHolder = new GeneratedKeyHolder();
+			
+			// Create the observer.
+			try {
+				getJdbcTemplate().update(observerCreator, observerKeyHolder);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + 
+						observerSql + 
+						"' with parameters: " +
+						observer.getId() + ", " +
+						observer.getVersion() + ", " +
+						observer.getName() + ", " +
+						observer.getDescription() + ", " +
+						observer.getVersionString(),
+					e);
+			}
+			
+			// Get the observer ID.
+			long observerDbId = observerKeyHolder.getKey().longValue();
+			
+			// Create the map of stream IDs to their versions. The initial part
+			// of the map will be based on the pre-existing streams.
+			Map<String, Long> streamIdAndVersions = 
+				new HashMap<String, Long>(unchangedStreamIds);
+			
+			// Stream creation SQL.
+			final String streamSql =
+				"INSERT INTO observer_stream (" +
+					"stream_id, " +
+					"version, " +
+					"name, " +
+					"description, " +
+					"with_id, " +
+					"with_timestamp, " +
+					"with_location, " +
+					"stream_schema)" +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			
+			// For each stream, insert it and link it to the observer.
+			List<Object[]> streamArgs = 
+				new ArrayList<Object[]>(unchangedStreamIds.size());
+			for(final Stream stream : observer.getStreams().values()) {
+				// Get the stream's ID.
+				String streamId = stream.getId();
+				
+				// If the stream already exists in the map of stream IDs and
+				// versions, then skip it.
+				if(streamIdAndVersions.containsKey(streamId)) {
+					continue;
+				}
+				// Otherwise, add it to the map and then add it to the 
+				// database.
+				else {
+					streamIdAndVersions.put(streamId, stream.getVersion());
+				}
+				
+				Object[] currArgs = new Object[8];
+				
+				currArgs[0] = streamId;
+				currArgs[1] = stream.getVersion();
+				currArgs[2] = stream.getName();
+				currArgs[3] = stream.getDescription();
+				currArgs[4] = stream.getWithId();
+				currArgs[5] = stream.getWithTimestamp();
+				currArgs[6] = stream.getWithLocation();
+				currArgs[7] = stream.getSchema().toString();
+				
+				streamArgs.add(currArgs);
+			}
+			
+			// Create the streams.
+			try {
+				getJdbcTemplate().batchUpdate(streamSql, streamArgs);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + streamSql + "'.",
+					e);
+			}
+			
+			// Observer-stream link SQL.
+			final String observerStreamSql =
+				"INSERT INTO observer_stream_link(" +
+					"observer_id, " +
+					"observer_stream_id" +
+				") " +
+				"VALUES (" +
+					"?, " +
+					"(" +
+						"SELECT id " +
+						"FROM observer_stream os " +
+						"WHERE os.stream_id = ? " +
+						"AND os.version = ?" +
+					")" +
+				")";
+			
+			// Add all of the streams that need to be associated to a list of
+			// arguments.
+			List<Object[]> args = 
+				new ArrayList<Object[]>(streamIdAndVersions.size());
+			for(String streamId : streamIdAndVersions.keySet()) {
+				Object[] currArgs = new Object[3];
+				
+				currArgs[0] = observerDbId;
+				currArgs[1] = streamId;
+				currArgs[2] = streamIdAndVersions.get(streamId);
+				
+				args.add(currArgs);
+			}
+			
+			// Associate the streams with the new observer in a batch.
+			try {
+				getJdbcTemplate().batchUpdate(observerStreamSql, args);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + observerStreamSql +"'.", 
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error while committing the transaction.",
+					e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException(
+				"Error while attempting to rollback the transaction.",
 				e);
 		}
 	}

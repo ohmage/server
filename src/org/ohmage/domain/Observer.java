@@ -303,7 +303,9 @@ public class Observer {
 								", schema"));
 			}
 			catch(SchemaParseException e) {
-				throw new DomainException("The schema was invalid.", e);
+				throw new DomainException(
+					"The schema was invalid: " + e.getMessage(),
+					e);
 			}
 		}
 
