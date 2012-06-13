@@ -556,12 +556,14 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		parameters.add(streamId);
 		
 		if(streamVersion == null) {
-			streamSqlBuilder.append("ORDER BY os.version LIMIT 1");
+			streamSqlBuilder.append("ORDER BY os.version LIMIT 1 ");
 		}
 		else {
-			streamSqlBuilder.append("AND os.version = ?");
+			streamSqlBuilder.append("AND os.version = ? ");
 			parameters.add(streamVersion);
 		}
+		
+		streamSqlBuilder.append("GROUP BY os.stream_id, os.version");
 		
 		try {
 			return 
