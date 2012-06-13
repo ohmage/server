@@ -53,6 +53,7 @@ import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUpdateRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.observer.ObserverCreationRequest;
+import org.ohmage.request.observer.ObserverUpdateRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.omh.OmhAuthenticateRequest;
@@ -238,8 +239,9 @@ public final class RequestBuilder {
 	
 	// Observer
 	public static final String API_OBSERVER_CREATE = API_ROOT + "/observer/create";
-	public static final String API_OBSERVER_UPLOAD = API_ROOT + "/observer/upload";
-	public static final String API_OBSERVER_READ = API_ROOT + "/observer/read";
+	public static final String API_OBSERVER_UPDATE = API_ROOT + "/observer/update";
+	public static final String API_STREAM_UPLOAD = API_ROOT + "/stream/upload";
+	public static final String API_STREAM_READ = API_ROOT + "/stream/read";
 	
 	// Survey
 	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
@@ -426,10 +428,13 @@ public final class RequestBuilder {
 		else if(API_OBSERVER_CREATE.equals(requestUri)) {
 			return new ObserverCreationRequest(httpRequest);
 		}
-		else if(API_OBSERVER_UPLOAD.equals(requestUri)) {
+		else if(API_OBSERVER_UPDATE.equals(requestUri)) {
+			return new ObserverUpdateRequest(httpRequest);
+		}
+		else if(API_STREAM_UPLOAD.equals(requestUri)) {
 			return new StreamUploadRequest(httpRequest);
 		}
-		else if(API_OBSERVER_READ.equals(requestUri)) {
+		else if(API_STREAM_READ.equals(requestUri)) {
 			return new StreamReadRequest(httpRequest);
 		}
 		// Survey
@@ -575,8 +580,9 @@ public final class RequestBuilder {
 				API_MOBILITY_UPDATE.equals(uri) ||
 				// Observer
 				API_OBSERVER_CREATE.equals(uri) ||
-				API_OBSERVER_UPLOAD.equals(uri) ||
-				API_OBSERVER_READ.equals(uri) ||
+				API_OBSERVER_UPDATE.equals(uri) ||
+				API_STREAM_UPLOAD.equals(uri) ||
+				API_STREAM_READ.equals(uri) ||
 				// Survey
 				API_SURVEY_UPLOAD.equals(uri) ||
 				API_SURVEY_RESPONSE_READ.equals(uri) ||

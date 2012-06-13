@@ -242,16 +242,22 @@ public class MobilityUploadRequest extends Request {
 							invalidPointsJson.add(pointJson);
 							continue;
 						}
-						
-						if(MobilityPoint.Mode.ERROR.equals(point.getMode())) {
-							LOGGER.info("Skipping the error point.");
-							continue;
-						}
+
 						validIds.add(point.getId().toString());
 						
 						try {
 							JSONObject jsonPoint = new JSONObject();
-							if(MobilityPoint.SubType.MODE_ONLY.equals(point.getSubType())) {
+							if(MobilityPoint.Mode.ERROR.equals(point.getMode())) {
+								jsonPoint.put("stream_id", "error");
+								
+								// Create the error object.
+								JSONObject errorObject = new JSONObject();
+								errorObject.put("mode", MobilityPoint.Mode.ERROR.toString().toLowerCase());
+								
+								jsonPoint.put("data", errorObject);
+								jsonPoint.put("stream_version", 2012061300);
+							}
+							else if(MobilityPoint.SubType.MODE_ONLY.equals(point.getSubType())) {
 								jsonPoint.put("stream_id", "mode_only");
 								
 								// Create the mode object.
@@ -259,6 +265,7 @@ public class MobilityUploadRequest extends Request {
 								modeObject.put("mode", point.getMode().toString());
 								
 								jsonPoint.put("data", modeObject);
+								jsonPoint.put("stream_version", 2012050700);
 							}
 							else {
 								jsonPoint.put("stream_id", "extended");
@@ -276,8 +283,8 @@ public class MobilityUploadRequest extends Request {
 										e);
 								}
 								jsonPoint.put("data", mobilityJson.getJSONObject("sensor_data"));
+								jsonPoint.put("stream_version", 2012050700);
 							}
-							jsonPoint.put("stream_version", 2012050700);
 							
 							JSONObject metadata = new JSONObject();
 							metadata.put("id", point.getId().toString());
@@ -315,7 +322,7 @@ public class MobilityUploadRequest extends Request {
 							httpRequest,
 							getParameterMap(),
 							"edu.ucla.cens.Mobility",
-							2012050700,
+							2012061300,
 							resultDataArray.toString());
 				}
 			}

@@ -374,12 +374,19 @@ public abstract class SurveyResponseRequest extends UserRequest {
 							surveyResponseList
 						);
 			
+			int numPromptResponses = 0;
+			for(SurveyResponse surveyResponse : surveyResponseList) {
+				numPromptResponses += surveyResponse.getResponses().size();
+			}
+			
 			LOGGER.info(
 					"Found " + 
 						surveyResponseList.size() + 
 						" results after filtering and paging a total of " + 
 						surveyResponseCount + 
-						" applicable responses.");
+						" applicable responses, which contains " +
+						numPromptResponses +
+						" prompt responses.");
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

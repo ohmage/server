@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.DataStream;
@@ -38,11 +39,26 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
+	 * Retrieves the ID of the creator of the observer or null if no such 
+	 * observer exists.
+	 * 
+	 * @param observerId The observers unique identifier.
+	 * 
+	 * @return The owner of this observer.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public String getOwner(
+		final String observerId)
+		throws DataAccessException;
+	
+	/**
 	 * Retrieves the observer.
 	 * 
 	 * @param id The observer's unique identifier.
 	 * 
-	 * @param version The observer's version.
+	 * @param version The observer's version. If this is null, the latest 
+	 * 				  version is returned.
 	 * 
 	 * @return The Observer or null if no observer with that ID/version exists.
 	 * 
@@ -50,7 +66,20 @@ public interface IObserverQueries {
 	 */
 	public Observer getObserver(
 		final String id, 
-		final long version) 
+		final Long version) 
+		throws DataAccessException;
+	
+	/**
+	 * Returns the greatest version number for an observer.
+	 * 
+	 * @param id The observer's unique identifier.
+	 * 
+	 * @return The greatest observer version.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Long getGreatestObserverVersion(
+		final String id) 
 		throws DataAccessException;
 	
 	/**
@@ -70,7 +99,47 @@ public interface IObserverQueries {
 	public Observer.Stream getStream(
 		final String observerId,
 		final String streamId, 
-		final long streamVersion) 
+		final Long streamVersion) 
+		throws DataAccessException;
+	
+	/**
+	 * Returns the greatest version number for a stream.
+	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @param streamId The stream's unique identifier.
+	 * 
+	 * @return The greatest stream identifier.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Long getGreatestStreamVersion(
+		final String observerId,
+		final String streamId)
+		throws DataAccessException;
+	
+	/**
+	 * Compares a list of IDs to the existing IDs for a user for a stream and
+	 * returns the collection of IDs that match.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @param streamId The stream's unique identifier.
+	 * 
+	 * @param idsToCheck The collection of IDs to compare against.
+	 * 
+	 * @return The collection of IDs that are already stored for this user for
+	 * 		   this stream and were in the supplied list.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Collection<String> getDuplicateIds(
+		final String username,
+		final String observerId,
+		final String streamId,
+		final Collection<String> idsToCheck)
 		throws DataAccessException;
 	
 	/**
@@ -84,6 +153,7 @@ public interface IObserverQueries {
 	 */
 	public void storeData(
 		final String username,
+		final Observer observer,
 		final Collection<DataStream> data)
 		throws DataAccessException;
 
@@ -95,6 +165,8 @@ public interface IObserverQueries {
 	 * 
 	 * @param username The username of the user to which the data must belong.
 	 * 				   Required.
+	 * 
+	 * @param observerId The observer's unique identifier. Optional.
 	 * 
 	 * @param observerVersion The observer's version. Optional.
 	 * 
@@ -122,23 +194,20 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
-	 * Compares a list of IDs to the existing IDs for a user for a stream and
-	 * returns the collection of IDs that match.
+	 * Updates an observer.
 	 * 
-	 * @param username The user's username.
+	 * @param username The username of the user that is updating the observer.
 	 * 
-	 * @param streamId The stream's unique identifier.
+	 * @param observer The new observer.
 	 * 
-	 * @param idsToCheck The collection of IDs to compare against.
-	 * 
-	 * @return The collection of IDs that are already stored for this user for
-	 * 		   this stream and were in the supplied list.
+	 * @param unchangedStreamIds The IDs of the streams in the new observer 
+	 * 							 whose version didn't change and their version.
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public Collection<String> getDuplicateIds(
+	public void updateObserver(
 		final String username,
-		final String streamId,
-		final Collection<String> idsToCheck)
+		final Observer observer,
+		final Map<String, Long> unchangedStreamIds)
 		throws DataAccessException;
 }

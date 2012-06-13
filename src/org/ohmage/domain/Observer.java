@@ -5,10 +5,10 @@ import java.io.StringReader;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import nu.xom.Builder;
 import nu.xom.Document;
 import nu.xom.Node;
 import nu.xom.Nodes;
@@ -36,6 +36,13 @@ import org.w3c.dom.DOMException;
 public class Observer {
 	private static final Pattern PATTERN_ID_VALIDATOR = 
 		Pattern.compile("([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}");
+
+	private final String id;
+	private final long version;
+
+	private final String name;
+	private final String description;
+	private final String versionString;
 
 	/**
 	 * This class represents the definition of a single stream of data. This
@@ -296,7 +303,9 @@ public class Observer {
 								", schema"));
 			}
 			catch(SchemaParseException e) {
-				throw new DomainException("The schema was invalid.", e);
+				throw new DomainException(
+					"The schema was invalid: " + e.getMessage(),
+					e);
 			}
 		}
 
@@ -403,14 +412,72 @@ public class Observer {
 		}
 	}
 	private final Map<String, Stream> streams;
+	
+	public static class Builder {
+		private String id = null;
+		private Long version = null;
 
-	private final String id;
-	private final long version;
-
-	private final String name;
-	private final String description;
-	private final String versionString;
-
+		private String name = null;
+		private String description = null;
+		private String versionString = null;
+		
+		private Collection<Stream> streams = new LinkedList<Stream>();
+		
+		public Builder() {};
+		
+		public Builder setId(final String id) {
+			this.id = id;
+			
+			return this;
+		}
+		
+		public Builder setVersion(final long version) {
+			this.version = version;
+			
+			return this;
+		}
+		
+		public Builder setName(final String name) {
+			this.name = name;
+			
+			return this;
+		}
+		
+		public Builder setDescription(final String description) {
+			this.description = description;
+			
+			return this;
+		}
+		
+		public Builder setVersionString(final String versionString) {
+			this.versionString = versionString;
+			
+			return this;
+		}
+		
+		public Builder addStream(final Stream stream) {
+			streams.add(stream);
+			
+			return this;
+		}
+		
+		public Builder addStreams(final Collection<Stream> streams) {
+			this.streams.addAll(streams);
+			
+			return this;
+		}
+		
+		public Observer build() throws DomainException {
+			return new Observer(
+				id, 
+				version, 
+				name, 
+				description, 
+				versionString,
+				streams);
+		}
+	}
+	
 	/**
 	 * Creates a new observer.
 	 * 
@@ -486,7 +553,7 @@ public class Observer {
 		Node root;
 		try {
 			Document document = 
-				(new Builder()).build(new StringReader(xml));
+				(new nu.xom.Builder()).build(new StringReader(xml));
 			
 			Nodes roots = document.query("/observer");
 			if(roots.size() > 1) {
@@ -608,7 +675,7 @@ public class Observer {
 	 * 
 	 * @return The streams.
 	 */
-	public Map<String, Stream> getObservers() {
+	public Map<String, Stream> getStreams() {
 		return Collections.unmodifiableMap(streams);
 	}
 	

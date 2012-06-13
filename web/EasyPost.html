@@ -1955,15 +1955,35 @@
                                     
                                     <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseObserverUpdate">
+                                                <i class="icon-plus"></i> Update Observer
+                                            </a>
+                                        </div>
+                                        <div id="collapseObserverUpdate" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="/app/observer/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Auth Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Observer XML</label>
+                                                    <input type="file" name="observer_definition">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
                                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseDataStreamRead">
                                                 <i class="icon-plus"></i> Data Stream Read
                                             </a>
                                         </div>
                                         <div id="collapseDataStreamRead" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/observer/read" enctype="multipart/form-data" method="post" class="well" target="outputframe">
-                                                    <label><span class="label label-info">required</span> Auth Token</label>
-                                                    <input type="text" name="auth_token">
+                                                <form action="/app/stream/read" enctype="multipart/form-data" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Client</label>
                                                     <input type="text" name="client" value="ohmageEasyPost">
                                                     <label><span class="label label-info">required</span> Observer ID</label>
