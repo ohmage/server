@@ -304,6 +304,9 @@ public class RequestServlet extends HttpServlet {
 		else if(RequestBuilder.API_IMAGE_READ.equals(httpRequest.getRequestURI())) {
 			processRequest(httpRequest, httpResponse);
 		}
+		else if(RequestBuilder.API_IMAGE_BATCH_ZIP_READ.equals(httpRequest.getRequestURI())) {
+			processRequest(httpRequest, httpResponse);
+		}
 		else if(RequestBuilder.API_DOCUMENT_READ_CONTENTS.equals(httpRequest.getRequestURI())) {
 			processRequest(httpRequest, httpResponse);
 		}
