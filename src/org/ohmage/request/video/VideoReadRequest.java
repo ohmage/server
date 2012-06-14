@@ -131,7 +131,10 @@ public class VideoReadRequest extends UserRequest {
 		}
 		catch(IOException e) {
 			LOGGER.error("Could not connect to the image.", e);
-			this.setFailed();
+			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Video not found.");
+			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			super.respond(httpRequest, httpResponse, null);
+			return;
 		}
 		
 		try {

@@ -207,7 +207,10 @@ public class ImageReadRequest extends UserRequest {
 		}
 		catch(DomainException e) {
 			LOGGER.error("Could not connect to the image.", e);
-			this.setFailed();
+			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Image not found.");
+			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			super.respond(httpRequest, httpResponse, null);
+			return;
 		}
 		
 		// If the request hasn't failed, attempt to write the file to the
