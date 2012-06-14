@@ -4,7 +4,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
@@ -13,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
+import org.ohmage.domain.Video;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -30,7 +30,7 @@ public class VideoReadRequest extends UserRequest {
 	
 	private final UUID videoId;
 	
-	private URL videoUrl;
+	private Video video;
 	
 	/**
 	 * Creates a video read request.
@@ -78,7 +78,7 @@ public class VideoReadRequest extends UserRequest {
 		}
 		
 		videoId = tVideoId;
-		videoUrl = null;
+		video = null;
 	}
 	
 	/*
@@ -100,7 +100,7 @@ public class VideoReadRequest extends UserRequest {
 				videoId);
 			
 			LOGGER.info("Connecting to the video stream.");
-			videoUrl = UserVideoServices.instance().getVideoUrl(videoId);
+			video = UserVideoServices.instance().getVideo(videoId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -124,17 +124,8 @@ public class VideoReadRequest extends UserRequest {
 		
 		// Open the connection to the image if it is not null.
 		InputStream videoStream = null;
-		try {
-			if((! isFailed()) && videoUrl != null) {
-				videoStream = videoUrl.openStream();
-			}
-		}
-		catch(IOException e) {
-			LOGGER.error("Could not connect to the image.", e);
-			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Video not found.");
-			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			super.respond(httpRequest, httpResponse, null);
-			return;
+		if((! isFailed()) && video != null) {
+			videoStream = video.getContentStream();
 		}
 		
 		try {
@@ -142,19 +133,12 @@ public class VideoReadRequest extends UserRequest {
 				super.respond(httpRequest, httpResponse, null);
 			}
 			else {
-				// FIXME: This isn't necessarily the case. We might want to do
-				// some sort of image inspection to figure out what this should
-				// be.
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + videoId.toString());
+					"attachment; filename=" + video.getFilename());
 				httpResponse.setHeader(
 					"Content-Length", 
-					new Long(
-						videoUrl
-							.openConnection()
-							.getContentLength()
-						).toString());
+					new Long(video.getSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {

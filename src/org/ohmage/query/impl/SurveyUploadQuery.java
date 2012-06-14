@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -46,6 +47,7 @@ import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.VideoDirectoryCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
@@ -162,7 +164,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
 			final Map<String, BufferedImage> bufferedImageMap,
-			final Map<String, byte[]> videoContentsMap)
+			final Map<String, Video> videoContentsMap)
 			throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
@@ -455,7 +457,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final Collection<Response> promptUploadList,
 			final Integer repeatableSetIteration,
             final Map<String, BufferedImage> bufferedImageMap,
-            final Map<String, byte[]> videoContentsMap, 
+            final Map<String, Video> videoContentsMap, 
             final DataSourceTransactionManager transactionManager,
             final TransactionStatus status) 
 			throws DataAccessException {
@@ -613,19 +615,26 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						// Get the current video directory.
 						File currVideoDirectory = 
 							VideoDirectoryCache.getDirectory();
+
+						// Get the video ID.
+						String responseValueString = responseValue.toString();
+						
+						// Get the video object.
+						Video video = 
+							videoContentsMap.get(responseValueString);
 						
 						// Get the file.
-						String responseValueString = responseValue.toString();
 						File videoFile = 
 							new File(
 								currVideoDirectory.getAbsolutePath() +
 								"/" +
-								responseValueString);
+								responseValueString +
+								"." +
+								video.getType());
 						
 						// Get the video contents.
-						byte[] output = 
-							videoContentsMap.get(responseValueString);
-						if(output == null) {
+						InputStream content = video.getContentStream();
+						if(content == null) {
 							transactionManager.rollback(status);
 							throw new DataAccessException(
 								"The video contents did not exist in the map.");
@@ -633,7 +642,13 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						
 						// Write the video contents to disk.
 						FileOutputStream fos = new FileOutputStream(videoFile);
-						fos.write(output);
+						
+						// Write the content to the output stream.
+						int bytesRead;
+						byte[] buffer = new byte[4096];
+						while((bytesRead = content.read(buffer)) != -1) {
+							fos.write(buffer, 0, bytesRead);
+						}
 
 						// Store the file reference in the video list.
 						videoList.add(videoFile);

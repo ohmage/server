@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.InvalidRequestException;
@@ -115,7 +116,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final DateTime campaignCreationTimestamp;
 	private List<JSONObject> jsonData;
 	private final Map<String, BufferedImage> imageContentsMap;
-	private final Map<String, byte[]> videoContentsMap;
+	private final Map<String, Video> videoContentsMap;
 	
 	private Collection<UUID> surveyResponseIds;
 	
@@ -139,7 +140,7 @@ public class SurveyUploadRequest extends UserRequest {
 		DateTime tCampaignCreationTimestamp = null;
 		List<JSONObject> tJsonData = null;
 		Map<String, BufferedImage> tImageContentsMap = null;
-		Map<String, byte[]> tVideoContentsMap = null;
+		Map<String, Video> tVideoContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -210,7 +211,7 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				// Retrieve and validate images and videos.
 				List<String> imageIds = new ArrayList<String>();
-				tVideoContentsMap = new HashMap<String, byte[]>();
+				tVideoContentsMap = new HashMap<String, Video>();
 				Collection<Part> parts = null;
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
@@ -224,10 +225,13 @@ public class SurveyUploadRequest extends UserRequest {
 							if(contentType.startsWith("image")) {
 								imageIds.add(name);
 							}
-							else if(contentType.startsWith("video")) {
+							else if(contentType.startsWith("video/")) {
 								tVideoContentsMap.put(
 									name, 
-									getMultipartValue(httpRequest, name));
+									new Video(
+										UUID.fromString(name),
+										contentType.split("/")[1],
+										getMultipartValue(httpRequest, name)));
 							}
 						}
 						catch (IllegalArgumentException e) {

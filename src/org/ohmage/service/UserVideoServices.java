@@ -5,9 +5,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.ICampaignVideoQueries;
@@ -177,15 +179,15 @@ public class UserVideoServices {
 	}
 	
 	/**
-	 * Returns the URL for the video.
+	 * Returns a Video object representing the video.
 	 * 
 	 * @param videoId The video's unique identifier.
 	 * 
-	 * @return The URL for the video.
+	 * @return A Video object.
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public URL getVideoUrl(final UUID videoId) throws ServiceException {
+	public Video getVideo(final UUID videoId) throws ServiceException {
 		try {
 			URL result = videoQueries.getVideoUrl(videoId);
 			
@@ -193,7 +195,10 @@ public class UserVideoServices {
 				throw new ServiceException("The video does not exist.");
 			}
 			
-			return result;
+			return new Video(videoId, result.toString());
+		}
+		catch(DomainException e) {
+			throw new ServiceException(e);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

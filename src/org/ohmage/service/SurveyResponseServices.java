@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -131,7 +132,7 @@ public final class SurveyResponseServices {
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<String, BufferedImage> bufferedImageMap,
-            final Map<String, byte[]> videoContentsMap) 
+            final Map<String, Video> videoContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -210,7 +211,7 @@ public final class SurveyResponseServices {
 	 */
 	public void verifyVideosExistForVideoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, byte[]> videos) 
+			final Map<String, Video> videos) 
 			throws ServiceException {
 		
 		for(SurveyResponse surveyResponse : surveyResponses) {

@@ -19,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
 
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 
@@ -46,6 +47,6 @@ public interface ISurveyUploadQuery {
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
 			final Map<String, BufferedImage> bufferedImageMap,
-			final Map<String, byte[]> videoContentsMap)
+			final Map<String, Video> videoContentsMap)
 			throws DataAccessException;
 }
