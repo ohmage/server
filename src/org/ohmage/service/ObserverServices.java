@@ -408,7 +408,7 @@ public class ObserverServices {
 					String id = dataStreamMetaData.getId();
 				
 					if((id != null) && (duplicateIds.contains(id))) {
-						data.remove(dataStream);
+						dataIter.remove();
 					}
 				}
 			}
