@@ -226,7 +226,7 @@ public class ImageBatchZipReadRequest extends SurveyResponseRequest {
 			
 			// Next, we create a new entry in the ZIP file for this image.
 			try {
-				zipStream.putNextEntry(new ZipEntry(imageId.toString()));
+				zipStream.putNextEntry(new ZipEntry(imageId.toString() + ".png"));
 			}
 			catch(IOException e) {
 				LOGGER.error(
