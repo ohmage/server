@@ -3061,7 +3061,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			accessPoints.add(new AccessPoint(ssid, scan.get(ssid)));
 		}
 		
-		return new WifiScan(time, accessPoints);
+		return new WifiScan(sensorData.wifiData.time, accessPoints);
 	}
 	
 	/**

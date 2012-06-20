@@ -1536,7 +1536,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 							}
 							else if(response instanceof MultiChoicePromptResponse) {
 								@SuppressWarnings("unchecked")
-								Collection<Integer> keys = (Collection<Integer>) responseObject;
+								Collection<Integer> keys = (Collection <Integer>) responseObject;
 								
 								List<Object> labels = new ArrayList<Object>(keys.size());
 								List<Object> values = new ArrayList<Object>(keys.size());
