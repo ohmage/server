@@ -129,7 +129,7 @@ public final class AuditReporter {
 				}
 				
 				// If the request is known, note it and continue processing.
-				if(RequestBuilder.knownUri(uri)) {
+				if(RequestBuilder.getInstance().knownUri(uri)) {
 					numberOfValidRequests++;
 					
 					// Calculate the time it took to process the request.
@@ -153,8 +153,8 @@ public final class AuditReporter {
 						numberOfSuccessfulValidRequests++;
 						
 						// Check if it's a class read request.
-						if(RequestBuilder.API_CLASS_READ.equals(uri) ||
-								RequestBuilder.API_CLASS_ROSTER_READ.equals(uri)) {
+						if(RequestBuilder.getInstance().getApiClassRead().equals(uri) ||
+								RequestBuilder.getInstance().getApiClassRosterRead().equals(uri)) {
 							// Get the class ID parameter if it exists.
 							Collection<String> classIdCollection = audit.getExtras(InputKeys.CLASS_URN);
 							if(classIdCollection != null) {
@@ -170,7 +170,7 @@ public final class AuditReporter {
 							}
 						}
 						// Check if it's a campaign read request.
-						else if(RequestBuilder.API_CAMPAIGN_READ.equals(uri)) {
+						else if(RequestBuilder.getInstance().getApiCampaignRead().equals(uri)) {
 							Collection<String> campaignIdCollection = audit.getExtras(InputKeys.CAMPAIGN_URN);
 							if(campaignIdCollection != null) {
 								for(String campaignId : campaignIdCollection) {

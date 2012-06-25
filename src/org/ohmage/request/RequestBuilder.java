@@ -16,8 +16,8 @@
 package org.ohmage.request;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -89,6 +89,7 @@ import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateRequest;
 import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateTimeseriesRequest;
 import org.ohmage.request.visualization.VizTwoDDensityRequest;
 import org.ohmage.request.visualization.VizUserTimeseriesRequest;
+import org.springframework.web.context.ServletContextAware;
 
 /**
  * Request builder from an HTTP request.
@@ -96,188 +97,238 @@ import org.ohmage.request.visualization.VizUserTimeseriesRequest;
  * @author John Jenkins
  * @author Joshua Selsky
  */
-public final class RequestBuilder {
-	private static final Logger LOGGER = Logger.getLogger(RequestBuilder.class);
-
-	/**
-	 * Default constructor. Made private because this class should never be
-	 * instantiated. Instead, the static builder method should be called.
-	 */
-	private RequestBuilder() {}
+public final class RequestBuilder implements ServletContextAware {
+	private static final Logger LOGGER = 
+		Logger.getLogger(RequestBuilder.class);
 	
-	/**
-	 * This enum was initially intended to be a central location to hold the 
-	 * information required to build a new Request. An enum was used instead of
-	 * a class because I was hoping to use the built-in functionality for 
-	 * looking up enums to minimize the code for building Requests. However, 
-	 * this has been more difficult than originally perceived and is being put 
-	 * on the back burner for the time being. It also drastically limits what 
-	 * the constructor for each Request can consist of, forcing all requests to 
-	 * having the same constructor format.
-	 * 
-	 * @author John Jenkins
-	 */
-	public static enum RequestEnum {
-		AUTHENTICATE_REQUEST (AuthRequest.class),
-		AUTHENTICATION_TOKEN_REQUEST (AuthTokenRequest.class);
-		
-		private final Class<? extends Request> requestClass;
-		
-		/**
-		 * Correlates a Request subclass with this RequestEnum.
-		 * 
-		 * @param requestClass The Request subclass that should be created when
-		 * 					   this class is run.
-		 */
-		private RequestEnum(final Class<? extends Request> requestClass) {
-			if(requestClass == null) {
-				throw new IllegalStateException("The request's class cannot be null.");
-			}
-			
-			this.requestClass = requestClass;
-		}
-		
-		/**
-		 * Creates a new Request based on how this enum object.
-		 * 
-		 * @param httpRequest The HttpServletRequest with the matching URI.
-		 * 
-		 * @return A Request object based on this enum.
-		 */
-		public Request getRequest(final HttpServletRequest httpRequest) {
-			try {
-				return requestClass.getConstructor(HttpServletRequest.class).newInstance(httpRequest);
-			}
-			catch(NoSuchMethodException e) {
-				LOGGER.error("The HttpServletRequest constructor is missing for the Request: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("The HttpServletRequest constructor is missing for the Request: " + requestClass.getCanonicalName(), e);
-			}
-			catch(SecurityException e) {
-				LOGGER.error("The SecurityManager is preventing us from accessing the constructor via reflection: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("The SecurityManager is preventing us from accessing the constructor via reflection: " + requestClass.getCanonicalName(), e);
-			}
-			catch(InvocationTargetException e) {
-				LOGGER.error("The constructor threw an exception: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("The constructor threw an exception: " + requestClass.getCanonicalName(), e);
-			}
-			catch(IllegalAccessException e) {
-				LOGGER.error("The constructor enforces Java language access control and is preventing instantiation: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("The constructor enforces Java language access control and is preventing instantiation: " + requestClass.getCanonicalName(), e);
-			}
-			catch(InstantiationException e) {
-				LOGGER.error("Attempting to instantiate an abstract class: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("Attempting to instantiate an abstract class: " + requestClass.getCanonicalName(), e);
-			}
-			catch(ExceptionInInitializerError e) {
-				LOGGER.error("The initialization failed: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("The initialization failed: " + requestClass.getCanonicalName(), e);
-			}
-			catch(IllegalArgumentException e) {
-				LOGGER.error("The parameter's type doesn't match the desired type: " + requestClass.getCanonicalName());
-				throw new IllegalStateException("The parameter's type doesn't match the desired type: " + requestClass.getCanonicalName(), e);
-			}
-		}
-	}
-	
-	public static final String API_ROOT = "/app";
+	// Root
+	private String apiRoot;
 	
 	// Annotation
-	public static final String API_ANNOTATION_PROMPT_RESPONSE_CREATE = API_ROOT + "/annotation/prompt_response/create";
-	public static final String API_ANNOTATION_PROMPT_RESPONSE_READ = API_ROOT + "/annotation/prompt_response/read";
-	public static final String API_ANNOTATION_SURVEY_RESPONSE_CREATE = API_ROOT + "/annotation/survey_response/create";
-	public static final String API_ANNOTATION_SURVEY_RESPONSE_READ = API_ROOT + "/annotation/survey_response/read";
-	public static final String API_ANNOTATION_UDPATE = API_ROOT + "/annotation/update";
-	public static final String API_ANNOTATION_DELETE = API_ROOT + "/annotation/delete";
+	private String apiAnnotationPromptResponseCreate;
+	private String apiAnnotationPromptResponseRead;
+	private String apiAnnotationSurveyResponseCreate;
+	private String apiAnnotationSurveyResponseRead;
+	private String apiAnnotationUpdate;
+	private String apiAnnotationDelete;
 	
 	// Audit
-	public static final String API_AUDIT_READ = API_ROOT + "/audit/read";
+	private String apiAuditRead;
 	
 	// Authentication
-	public static final String API_USER_AUTH = API_ROOT + "/user/auth";
-	public static final String API_USER_AUTH_TOKEN = API_ROOT + "/user/auth_token";
-	public static final String API_USER_LOGOUT = API_ROOT + "/user/logout";
-	public static final String API_OMH_AUTH = API_ROOT + "/omh/auth";
+	private String apiUserAuth;
+	private String apiUserAuthToken;
+	private String apiUserLogout;
+	private String apiOmhAuth;
 	
 	// Campaign
-	public static final String API_CAMPAIGN_CREATE = API_ROOT + "/campaign/create";
-	public static final String API_CAMPAIGN_READ = API_ROOT + "/campaign/read";
-	public static final String API_CAMPAIGN_SEARCH = API_ROOT + "/campaign/search";
-	public static final String API_CAMPAIGN_UPDATE = API_ROOT + "/campaign/update";
-	public static final String API_CAMPAIGN_DELETE = API_ROOT + "/campaign/delete";
+	private String apiCampaignCreate;
+	private String apiCampaignRead;
+	private String apiCampaignSearch;
+	private String apiCampaignUpdate;
+	private String apiCampaignDelete;
 	
 	// Class
-	public static final String API_CLASS_CREATE = API_ROOT + "/class/create";
-	public static final String API_CLASS_READ = API_ROOT + "/class/read";
-	public static final String API_CLASS_ROSTER_READ = API_ROOT + "/class/roster/read";
-	public static final String API_CLASS_SEARCH = API_ROOT + "/class/search";
-	public static final String API_CLASS_UPDATE = API_ROOT + "/class/update";
-	public static final String API_CLASS_ROSTER_UPDATE = API_ROOT + "/class/roster/update";
-	public static final String API_CLASS_DELETE = API_ROOT + "/class/delete";
+	private String apiClassCreate;
+	private String apiClassRead;
+	private String apiClassRosterRead;
+	private String apiClassSearch;
+	private String apiClassUpdate;
+	private String apiClassRosterUpdate;
+	private String apiClassDelete;
 	
 	// Config
-	public static final String API_CONFIG_READ = API_ROOT + "/config/read";
+	private String apiConfigRead;
 	
 	// Document
-	public static final String API_DOCUMENT_CREATE = API_ROOT + "/document/create";
-	public static final String API_DOCUMENT_READ = API_ROOT + "/document/read";
-	public static final String API_DOCUMENT_READ_CONTENTS = API_ROOT + "/document/read/contents";
-	public static final String API_DOCUMENT_UPDATE = API_ROOT + "/document/update";
-	public static final String API_DOCUMENT_DELETE = API_ROOT + "/document/delete";
+	private String apiDocumentCreate;
+	private String apiDocumentRead;
+	private String apiDocumentReadContents;
+	private String apiDocumentUpdate;
+	private String apiDocumentDelete;
 
 	// Image
-	public static final String API_IMAGE_READ = API_ROOT + "/image/read";
-	public static final String API_IMAGE_BATCH_ZIP_READ = API_ROOT + "/image/batch/zip/read";
+	private String apiImageRead;
+	private String apiImageBatchZipRead;
 	
 	// Mobility
-	public static final String API_MOBILITY_UPLOAD = API_ROOT + "/mobility/upload";
-	public static final String API_MOBILITY_READ = API_ROOT + "/mobility/read";
-	public static final String API_MOBILITY_READ_CHUNKED = API_ROOT + "/mobility/read/chunked";
-	public static final String API_MOBILITY_AGGREGATE_READ = API_ROOT + "/mobility/aggregate/read";
-	public static final String API_MOBILITY_DATES_READ = API_ROOT + "/mobility/dates/read";
-	public static final String API_MOBILITY_READ_CSV = API_ROOT + "/mobility/read/csv";
-	public static final String API_MOBILITY_UPDATE = API_ROOT + "/mobility/update";
+	private String apiMobilityUpload;
+	private String apiMobilityRead;
+	private String apiMobilityReadChunked;
+	private String apiMobilityAggregateRead;
+	private String apiMobilityDatesRead;
+	private String apiMobilityReadCsv;
+	private String apiMobilityUpdate;
 	
 	// Observer
-	public static final String API_OBSERVER_CREATE = API_ROOT + "/observer/create";
-	public static final String API_OBSERVER_UPDATE = API_ROOT + "/observer/update";
-	public static final String API_STREAM_UPLOAD = API_ROOT + "/stream/upload";
-	public static final String API_STREAM_READ = API_ROOT + "/stream/read";
+	private String apiObserverCreate;
+	private String apiObserverUpdate;
+	private String apiStreamUpload;
+	private String apiStreamRead;
 	
 	// Survey
-	public static final String API_SURVEY_UPLOAD = API_ROOT + "/survey/upload";
-	public static final String API_SURVEY_RESPONSE_DELETE = API_ROOT + "/survey_response/delete";
-	public static final String API_SURVEY_RESPONSE_READ = API_ROOT + "/survey_response/read";
-	public static final String API_SURVEY_RESPONSE_UPDATE = API_ROOT + "/survey_response/update";
-	public static final String API_SURVEY_RESPONSE_FUNCTION_READ = API_ROOT + "/survey_response/function/read";
+	private String apiSurveyUpload;
+	private String apiSurveyResponseDelete;
+	private String apiSurveyResponseRead;
+	private String apiSurveyResponseUpdate;
+	private String apiSurveyResponseFunctionRead;
 	
 	// User
-	public static final String API_USER_CREATE = API_ROOT + "/user/create";
-	public static final String API_USER_REGISTER = API_ROOT + "/user/register";
-	public static final String API_USER_ACTIVATE = API_ROOT + "/user/activate";
-	public static final String API_USER_PASSWORD_RESET = API_ROOT + "/user/reset_password";
-	public static final String API_USER_READ = API_ROOT + "/user/read";
-	public static final String API_USER_INFO_READ = API_ROOT + "/user_info/read";
-	public static final String API_USER_STATS_READ = API_ROOT + "/user_stats/read";
-	public static final String API_USER_SEARCH = API_ROOT + "/user/search";
-	public static final String API_USER_UPDATE = API_ROOT + "/user/update";
-	public static final String API_USER_CHANGE_PASSWORD = API_ROOT + "/user/change_password";
-	public static final String API_USER_DELETE = API_ROOT + "/user/delete";
+	private String apiUserCreate;
+	private String apiUserRegister;
+	private String apiUserActivate;
+	private String apiUserPasswordReset;
+	private String apiUserRead;
+	private String apiUserInfoRead;
+	private String apiUserStatsRead;
+	private String apiUserSearch;
+	private String apiUserUpdate;
+	private String apiUserChangePassword;
+	private String apiUserDelete;
 	
 	// Registration
-	public static final String API_REGISTRATION_READ = API_ROOT + "/registration/read";
+	private String apiRegistrationRead;
 	
-	public static final String API_VIDEO_READ = API_ROOT + "/video/read";
+	// Video
+	private String apiVideoRead;
 	
 	// Visualization
-	public static final String API_VISUALIZATION = API_ROOT + "/viz";
-	public static final String API_VISUALIZATION_SURVEY_RESPONSE_COUNT = API_VISUALIZATION + "/survey_response_count/read";
-	public static final String API_VISUALIZATION_PROMPT_DISTRIBUTION = API_VISUALIZATION + "/prompt_distribution/read";
-	public static final String API_VISUALIZATION_PROMPT_TIMESERIES = API_VISUALIZATION + "/prompt_timeseries/read";
-	public static final String API_VISUALIZATION_USER_TIMESERIES = API_VISUALIZATION + "/user_timeseries/read";
-	public static final String API_VISUALIZATION_SCATTER_PLOT = API_VISUALIZATION + "/scatter_plot/read";
-	public static final String API_VISUALIZATION_2D_DENSITY = API_VISUALIZATION + "/2d_density/read";
-	public static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY = API_VISUALIZATION + "/survey_responses_privacy_state/read";
-	public static final String API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES = API_VISUALIZATION + "/survey_responses_privacy_state_time/read";
+	private String apiVisualization;
+	private String apiVisualizationSurveyResponseCount;
+	private String apiVisualizationPromptDistribution;
+	private String apiVisualizationPromptTimeseries;
+	private String apiVisualizationUserTimeseries;
+	private String apiVisualizationScatterPlot;
+	private String apiVisualization2dDensity;
+	private String apiVisualizationSurveyResponsePrivacy;
+	private String apiVisualizationSurveyResponsePrivacyTimeseries;
+	
+	private static RequestBuilder singleton;
+
+	/**
+	 * Default constructor. Made private because Spring uses reflection to 
+	 * instantiate classes. The {@link #getInstance()} should be used to get a
+	 * reference to this object.
+	 */
+	public RequestBuilder() {}
+	
+	/**
+	 * Returns the single reference to this class.
+	 * 
+	 * @return The single reference to this class.
+	 */
+	public static RequestBuilder getInstance() {
+		return singleton;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.springframework.web.context.ServletContextAware#setServletContext(javax.servlet.ServletContext)
+	 */
+	@Override
+	public void setServletContext(final ServletContext servletContext) {
+		singleton = this;
+		
+		apiRoot = servletContext.getContextPath();
+		
+		// Annotation
+		apiAnnotationPromptResponseCreate = apiRoot + "/annotation/prompt_response/create";
+		apiAnnotationPromptResponseRead = apiRoot + "/annotation/prompt_response/read";
+		apiAnnotationSurveyResponseCreate = apiRoot + "/annotation/survey_response/create";
+		apiAnnotationSurveyResponseRead = apiRoot + "/annotation/survey_response/read";
+		apiAnnotationUpdate = apiRoot + "/annotation/update";
+		apiAnnotationDelete = apiRoot + "/annotation/delete";
+		
+		// Audit
+		apiAuditRead = apiRoot + "/audit/read";
+		
+		// Authentication
+		apiUserAuth = apiRoot + "/user/auth";
+		apiUserAuthToken = apiRoot + "/user/auth_token";
+		apiUserLogout = apiRoot + "/user/logout";
+		apiOmhAuth = apiRoot + "/omh/auth";
+		
+		// Campaign
+		apiCampaignCreate = apiRoot + "/campaign/create";
+		apiCampaignRead = apiRoot + "/campaign/read";
+		apiCampaignSearch = apiRoot + "/campaign/search";
+		apiCampaignUpdate = apiRoot + "/campaign/update";
+		apiCampaignDelete = apiRoot + "/campaign/delete";
+		
+		// Class
+		apiClassCreate = apiRoot + "/class/create";
+		apiClassRead = apiRoot + "/class/read";
+		apiClassRosterRead = apiRoot + "/class/roster/read";
+		apiClassSearch = apiRoot + "/class/search";
+		apiClassUpdate = apiRoot + "/class/update";
+		apiClassRosterUpdate = apiRoot + "/class/roster/update";
+		apiClassDelete = apiRoot + "/class/delete";
+		
+		// Config
+		apiConfigRead = apiRoot + "/config/read";
+		
+		// Document
+		apiDocumentCreate = apiRoot + "/document/create";
+		apiDocumentRead = apiRoot + "/document/read";
+		apiDocumentReadContents = apiRoot + "/document/read/contents";
+		apiDocumentUpdate = apiRoot + "/document/update";
+		apiDocumentDelete = apiRoot + "/document/delete";
+
+		// Image
+		apiImageRead = apiRoot + "/image/read";
+		apiImageBatchZipRead = apiRoot + "/image/batch/zip/read";
+		
+		// Mobility
+		apiMobilityUpload = apiRoot + "/mobility/upload";
+		apiMobilityRead = apiRoot + "/mobility/read";
+		apiMobilityReadChunked = apiRoot + "/mobility/read/chunked";
+		apiMobilityAggregateRead = apiRoot + "/mobility/aggregate/read";
+		apiMobilityDatesRead = apiRoot + "/mobility/dates/read";
+		apiMobilityReadCsv = apiRoot + "/mobility/read/csv";
+		apiMobilityUpdate = apiRoot + "/mobility/update";
+		
+		// Observer
+		apiObserverCreate = apiRoot + "/observer/create";
+		apiObserverUpdate = apiRoot + "/observer/update";
+		apiStreamUpload = apiRoot + "/stream/upload";
+		apiStreamRead = apiRoot + "/stream/read";
+		
+		// Survey
+		apiSurveyUpload = apiRoot + "/survey/upload";
+		apiSurveyResponseDelete = apiRoot + "/survey_response/delete";
+		apiSurveyResponseRead = apiRoot + "/survey_response/read";
+		apiSurveyResponseUpdate = apiRoot + "/survey_response/update";
+		apiSurveyResponseFunctionRead = apiRoot + "/survey_response/function/read";
+		
+		// User
+		apiUserCreate = apiRoot + "/user/create";
+		apiUserRegister = apiRoot + "/user/register";
+		apiUserActivate = apiRoot + "/user/activate";
+		apiUserPasswordReset = apiRoot + "/user/reset_password";
+		apiUserRead = apiRoot + "/user/read";
+		apiUserInfoRead = apiRoot + "/user_info/read";
+		apiUserStatsRead = apiRoot + "/user_stats/read";
+		apiUserSearch = apiRoot + "/user/search";
+		apiUserUpdate = apiRoot + "/user/update";
+		apiUserChangePassword = apiRoot + "/user/change_password";
+		apiUserDelete = apiRoot + "/user/delete";
+
+		// Registration
+		apiRegistrationRead = apiRoot + "/registration/read";
+
+		apiVideoRead = apiRoot + "/video/read";
+
+		// Visualization
+		apiVisualization = apiRoot + "/viz";
+		apiVisualizationSurveyResponseCount = apiVisualization + "/survey_response_count/read";
+		apiVisualizationPromptDistribution = apiVisualization + "/prompt_distribution/read";
+		apiVisualizationPromptTimeseries = apiVisualization + "/prompt_timeseries/read";
+		apiVisualizationUserTimeseries = apiVisualization + "/user_timeseries/read";
+		apiVisualizationScatterPlot = apiVisualization + "/scatter_plot/read";
+		apiVisualization2dDensity = apiVisualization + "/2d_density/read";
+		apiVisualizationSurveyResponsePrivacy = apiVisualization + "/survey_responses_privacy_state/read";
+		apiVisualizationSurveyResponsePrivacyTimeseries = apiVisualization + "/survey_responses_privacy_state_time/read";
+	}
 	
 	/**
 	 * Builds a new request based on the request's URI. This will always return
@@ -293,7 +344,7 @@ public final class RequestBuilder {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public static Request buildRequest(
+	public Request buildRequest(
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
@@ -302,221 +353,221 @@ public final class RequestBuilder {
 		LOGGER.debug(requestUri);
 		
 		// Config
-		if(API_CONFIG_READ.equals(requestUri)) {
+		if(apiConfigRead.equals(requestUri)) {
 			return new ConfigReadRequest(httpRequest);
 		}
 		// Authentication
-		else if(API_USER_AUTH.equals(requestUri)) {
+		else if(apiUserAuth.equals(requestUri)) {
 			return new AuthRequest(httpRequest);
 		}
-		else if(API_USER_AUTH_TOKEN.equals(requestUri)) {
+		else if(apiUserAuthToken.equals(requestUri)) {
 			return new AuthTokenRequest(httpRequest);
 		}
-		else if(API_USER_LOGOUT.equals(requestUri)) {
+		else if(apiUserLogout.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
 		}
-		else if(API_OMH_AUTH.equals(requestUri)) {
+		else if(apiOmhAuth.equals(requestUri)) {
 			return new OmhAuthenticateRequest(httpRequest);
 		}
 		// Annotation
-		else if(API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(requestUri)) {
+		else if(apiAnnotationPromptResponseCreate.equals(requestUri)) {
 			return new PromptResponseAnnotationCreationRequest(httpRequest);
 		}
-		else if(API_ANNOTATION_PROMPT_RESPONSE_READ.equals(requestUri)) {
+		else if(apiAnnotationPromptResponseRead.equals(requestUri)) {
 			return new PromptResponseAnnotationReadRequest(httpRequest);
 		}
-		else if(API_ANNOTATION_SURVEY_RESPONSE_CREATE.equals(requestUri)) {
+		else if(apiAnnotationSurveyResponseCreate.equals(requestUri)) {
 			return new SurveyResponseAnnotationCreationRequest(httpRequest);
 		}
-		else if(API_ANNOTATION_SURVEY_RESPONSE_READ.equals(requestUri)) {
+		else if(apiAnnotationSurveyResponseRead.equals(requestUri)) {
 			return new SurveyResponseAnnotationReadRequest(httpRequest);
 		}
-		else if(API_ANNOTATION_UDPATE.equals(requestUri)) {
+		else if(apiAnnotationUpdate.equals(requestUri)) {
 			return new AnnotationUpdateRequest(httpRequest);
 		}
-		else if(API_ANNOTATION_DELETE.equals(requestUri)) {
+		else if(apiAnnotationDelete.equals(requestUri)) {
 			return new AnnotationDeleteRequest(httpRequest);
 		}		
 		// Audit
-		else if(API_AUDIT_READ.equals(requestUri)) {
+		else if(apiAuditRead.equals(requestUri)) {
 			return new AuditReadRequest(httpRequest);
 		}
 		// Campaign
-		else if(API_CAMPAIGN_CREATE.equals(requestUri)) {
+		else if(apiCampaignCreate.equals(requestUri)) {
 			return new CampaignCreationRequest(httpRequest);
 		}
-		else if(API_CAMPAIGN_READ.equals(requestUri)) {
+		else if(apiCampaignRead.equals(requestUri)) {
 			return new CampaignReadRequest(httpRequest);
 		}
-		else if(API_CAMPAIGN_SEARCH.equals(requestUri)) {
+		else if(apiCampaignSearch.equals(requestUri)) {
 			return new CampaignSearchRequest(httpRequest);
 		}
-		else if(API_CAMPAIGN_UPDATE.equals(requestUri)) {
+		else if(apiCampaignUpdate.equals(requestUri)) {
 			return new CampaignUpdateRequest(httpRequest);
 		}
-		else if(API_CAMPAIGN_DELETE.equals(requestUri)) {
+		else if(apiCampaignDelete.equals(requestUri)) {
 			return new CampaignDeletionRequest(httpRequest);
 		}
 		// Class
-		else if(API_CLASS_CREATE.equals(requestUri)) {
+		else if(apiClassCreate.equals(requestUri)) {
 			return new ClassCreationRequest(httpRequest);
 		}
-		else if(API_CLASS_READ.equals(requestUri)) {
+		else if(apiClassRead.equals(requestUri)) {
 			return new ClassReadRequest(httpRequest);
 		}
-		else if(API_CLASS_ROSTER_READ.equals(requestUri)) {
+		else if(apiClassRosterRead.equals(requestUri)) {
 			return new ClassRosterReadRequest(httpRequest);
 		}
-		else if(API_CLASS_SEARCH.equals(requestUri)) {
+		else if(apiClassSearch.equals(requestUri)) {
 			return new ClassSearchRequest(httpRequest);
 		}
-		else if(API_CLASS_UPDATE.equals(requestUri)) {
+		else if(apiClassUpdate.equals(requestUri)) {
 			return new ClassUpdateRequest(httpRequest);
 		}
-		else if(API_CLASS_ROSTER_UPDATE.equals(requestUri)) {
+		else if(apiClassRosterUpdate.equals(requestUri)) {
 			return new ClassRosterUpdateRequest(httpRequest);
 		}
-		else if(API_CLASS_DELETE.equals(requestUri)) {
+		else if(apiClassDelete.equals(requestUri)) {
 			return new ClassDeletionRequest(httpRequest);
 		}
 		// Document
-		else if(API_DOCUMENT_CREATE.equals(requestUri)) {
+		else if(apiDocumentCreate.equals(requestUri)) {
 			return new DocumentCreationRequest(httpRequest);
 		}
-		else if(API_DOCUMENT_READ.equals(requestUri)) {
+		else if(apiDocumentRead.equals(requestUri)) {
 			return new DocumentReadRequest(httpRequest);
 		}
-		else if(API_DOCUMENT_READ_CONTENTS.equals(requestUri)) {
+		else if(apiDocumentReadContents.equals(requestUri)) {
 			return new DocumentReadContentsRequest(httpRequest);
 		}
-		else if(API_DOCUMENT_UPDATE.equals(requestUri)) {
+		else if(apiDocumentUpdate.equals(requestUri)) {
 			return new DocumentUpdateRequest(httpRequest);
 		}
-		else if(API_DOCUMENT_DELETE.equals(requestUri)) {
+		else if(apiDocumentDelete.equals(requestUri)) {
 			return new DocumentDeletionRequest(httpRequest);
 		}
 		// Image
-		else if(API_IMAGE_READ.equals(requestUri)) {
+		else if(apiImageRead.equals(requestUri)) {
 			return new ImageReadRequest(httpRequest);
 		}
-		else if(API_IMAGE_BATCH_ZIP_READ.equals(requestUri)) {
+		else if(apiImageBatchZipRead.equals(requestUri)) {
 			return new ImageBatchZipReadRequest(httpRequest);
 		}
 		// Mobility
-		else if(API_MOBILITY_UPLOAD.equals(requestUri)) {
+		else if(apiMobilityUpload.equals(requestUri)) {
 			return new MobilityUploadRequest(httpRequest);
 		}
-		else if(API_MOBILITY_READ.equals(requestUri)) {
+		else if(apiMobilityRead.equals(requestUri)) {
 			return new MobilityReadRequest(httpRequest);
 		}
-		else if(API_MOBILITY_READ_CHUNKED.equals(requestUri)) {
+		else if(apiMobilityReadChunked.equals(requestUri)) {
 			return new MobilityReadChunkedRequest(httpRequest);
 		}
-		else if(API_MOBILITY_AGGREGATE_READ.equals(requestUri)) {
+		else if(apiMobilityAggregateRead.equals(requestUri)) {
 			return new MobilityAggregateReadRequest(httpRequest);
 		}
-		else if(API_MOBILITY_DATES_READ.equals(requestUri)) {
+		else if(apiMobilityDatesRead.equals(requestUri)) {
 			return new MobilityDatesReadRequest(httpRequest);
 		}
-		else if(API_MOBILITY_READ_CSV.equals(requestUri)) {
+		else if(apiMobilityReadCsv.equals(requestUri)) {
 			return new MobilityReadCsvRequest(httpRequest);
 		}
-		else if(API_MOBILITY_UPDATE.equals(requestUri)) {
+		else if(apiMobilityUpdate.equals(requestUri)) {
 			return new MobilityUpdateRequest(httpRequest);
 		}
 		// Observer
-		else if(API_OBSERVER_CREATE.equals(requestUri)) {
+		else if(apiObserverCreate.equals(requestUri)) {
 			return new ObserverCreationRequest(httpRequest);
 		}
-		else if(API_OBSERVER_UPDATE.equals(requestUri)) {
+		else if(apiObserverUpdate.equals(requestUri)) {
 			return new ObserverUpdateRequest(httpRequest);
 		}
-		else if(API_STREAM_UPLOAD.equals(requestUri)) {
+		else if(apiStreamUpload.equals(requestUri)) {
 			return new StreamUploadRequest(httpRequest);
 		}
-		else if(API_STREAM_READ.equals(requestUri)) {
+		else if(apiStreamRead.equals(requestUri)) {
 			return new StreamReadRequest(httpRequest);
 		}
 		// Survey
-		else if(API_SURVEY_UPLOAD.equals(requestUri)) {
+		else if(apiSurveyUpload.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
 		}
-		else if(API_SURVEY_RESPONSE_READ.equals(requestUri)) {
+		else if(apiSurveyResponseRead.equals(requestUri)) {
 			return new SurveyResponseReadRequest(httpRequest);
 		}
-		else if(API_SURVEY_RESPONSE_UPDATE.equals(requestUri)) {
+		else if(apiSurveyResponseUpdate.equals(requestUri)) {
 			return new SurveyResponseUpdateRequest(httpRequest);
 		}
-		else if(API_SURVEY_RESPONSE_DELETE.equals(requestUri)) {
+		else if(apiSurveyResponseDelete.equals(requestUri)) {
 			return new SurveyResponseDeleteRequest(httpRequest);
 		}
-		else if(API_SURVEY_RESPONSE_FUNCTION_READ.equals(requestUri)) {
+		else if(apiSurveyResponseFunctionRead.equals(requestUri)) {
 			return new SurveyResponseFunctionReadRequest(httpRequest);
 		}
 		// User
-		else if(API_USER_CREATE.equals(requestUri)) {
+		else if(apiUserCreate.equals(requestUri)) {
 			return new UserCreationRequest(httpRequest);
 		}
-		else if(API_USER_REGISTER.equals(requestUri)) {
+		else if(apiUserRegister.equals(requestUri)) {
 			return new UserRegistrationRequest(httpRequest);
 		}
-		else if(API_USER_ACTIVATE.equals(requestUri)) {
+		else if(apiUserActivate.equals(requestUri)) {
 			return new UserActivationRequest(httpRequest);
 		}
-		else if(API_USER_PASSWORD_RESET.equals(requestUri)) {
+		else if(apiUserPasswordReset.equals(requestUri)) {
 			return new UserPasswordResetRequest(httpRequest);
 		}
-		else if(API_USER_READ.equals(requestUri)) {
+		else if(apiUserRead.equals(requestUri)) {
 			return new UserReadRequest(httpRequest);
 		}
-		else if(API_USER_INFO_READ.equals(requestUri)) {
+		else if(apiUserInfoRead.equals(requestUri)) {
 			return new UserInfoReadRequest(httpRequest);
 		}
-		else if(API_USER_STATS_READ.equals(requestUri)) {
+		else if(apiUserStatsRead.equals(requestUri)) {
 			return new UserStatsReadRequest(httpRequest);
 		}
-		else if(API_USER_SEARCH.equals(requestUri)) {
+		else if(apiUserSearch.equals(requestUri)) {
 			return new UserSearchRequest(httpRequest);
 		}
-		else if(API_USER_UPDATE.equals(requestUri)) {
+		else if(apiUserUpdate.equals(requestUri)) {
 			return new UserUpdateRequest(httpRequest);
 		}
-		else if(API_USER_CHANGE_PASSWORD.equals(requestUri)) {
+		else if(apiUserChangePassword.equals(requestUri)) {
 			return new UserChangePasswordRequest(httpRequest);
 		}
-		else if(API_USER_DELETE.equals(requestUri)) {
+		else if(apiUserDelete.equals(requestUri)) {
 			return new UserDeletionRequest(httpRequest);
 		}
 		// Registration
-		else if(API_REGISTRATION_READ.equals(requestUri)) {
+		else if(apiRegistrationRead.equals(requestUri)) {
 			return new RegistrationReadRequest(httpRequest);
 		}
-		else if(API_VIDEO_READ.equals(requestUri)) {
+		else if(apiVideoRead.equals(requestUri)) {
 			return new VideoReadRequest(httpRequest);
 		}
 		// Visualization
-		else if(API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(requestUri)) {
+		else if(apiVisualizationSurveyResponseCount.equals(requestUri)) {
 			return new VizSurveyResponseCountRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(requestUri)) {
+		else if(apiVisualizationPromptDistribution.equals(requestUri)) {
 			return new VizPromptDistributionRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_PROMPT_TIMESERIES.equals(requestUri)) {
+		else if(apiVisualizationPromptTimeseries.equals(requestUri)) {
 			return new VizPromptTimeseriesRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_USER_TIMESERIES.equals(requestUri)) {
+		else if(apiVisualizationUserTimeseries.equals(requestUri)) {
 			return new VizUserTimeseriesRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_SCATTER_PLOT.equals(requestUri)) {
+		else if(apiVisualizationScatterPlot.equals(requestUri)) {
 			return new VizScatterPlotRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_2D_DENSITY.equals(requestUri)) {
+		else if(apiVisualization2dDensity.equals(requestUri)) {
 			return new VizTwoDDensityRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY.equals(requestUri)) {
+		else if(apiVisualizationSurveyResponsePrivacy.equals(requestUri)) {
 			return new VizSurveyResponsePrivacyStateRequest(httpRequest);
 		}
-		else if(API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES.equals(requestUri)) {
+		else if(apiVisualizationSurveyResponsePrivacyTimeseries.equals(requestUri)) {
 			return new VizSurveyResponsePrivacyStateTimeseriesRequest(httpRequest);
 		}
 		
@@ -531,93 +582,723 @@ public final class RequestBuilder {
 	 * 
 	 * @return Returns true if the URI is known; false, otherwise.
 	 */
-	public static boolean knownUri(String uri) {
+	public boolean knownUri(String uri) {
 		if(
 				// Config
-				API_CONFIG_READ.equals(uri) ||
+				apiConfigRead.equals(uri) ||
 				// Annotation
-				API_ANNOTATION_PROMPT_RESPONSE_CREATE.equals(uri) ||
-				API_ANNOTATION_PROMPT_RESPONSE_READ.equals(uri) ||
-				API_ANNOTATION_SURVEY_RESPONSE_CREATE.equals(uri) ||
-				API_ANNOTATION_SURVEY_RESPONSE_READ.equals(uri) ||
+				apiAnnotationPromptResponseCreate.equals(uri) ||
+				apiAnnotationPromptResponseRead.equals(uri) ||
+				apiAnnotationSurveyResponseCreate.equals(uri) ||
+				apiAnnotationSurveyResponseRead.equals(uri) ||
 				// Authentication
-				API_USER_AUTH.equals(uri) ||
-				API_USER_AUTH_TOKEN.equals(uri) ||
-				API_USER_LOGOUT.equals(uri) ||
-				API_OMH_AUTH.equals(uri) ||
+				apiUserAuth.equals(uri) ||
+				apiUserAuthToken.equals(uri) ||
+				apiUserLogout.equals(uri) ||
+				apiOmhAuth.equals(uri) ||
 				// Audit
-				API_AUDIT_READ.equals(uri) ||
+				apiAuditRead.equals(uri) ||
 				// Campaign
-				API_CAMPAIGN_CREATE.equals(uri) ||
-				API_CAMPAIGN_READ.equals(uri) ||
-				API_CAMPAIGN_SEARCH.equals(uri) ||
-				API_CAMPAIGN_UPDATE.equals(uri) ||
-				API_CAMPAIGN_DELETE.equals(uri) ||
+				apiCampaignCreate.equals(uri) ||
+				apiCampaignRead.equals(uri) ||
+				apiCampaignSearch.equals(uri) ||
+				apiCampaignUpdate.equals(uri) ||
+				apiCampaignDelete.equals(uri) ||
 				// Class
-				API_CLASS_CREATE.equals(uri) ||
-				API_CLASS_READ.equals(uri) ||
-				API_CLASS_ROSTER_READ.equals(uri) ||
-				API_CLASS_SEARCH.equals(uri) ||
-				API_CLASS_UPDATE.equals(uri) ||
-				API_CLASS_ROSTER_UPDATE.equals(uri) ||
-				API_CLASS_DELETE.equals(uri) ||
+				apiClassCreate.equals(uri) ||
+				apiClassRead.equals(uri) ||
+				apiClassRosterRead.equals(uri) ||
+				apiClassSearch.equals(uri) ||
+				apiClassUpdate.equals(uri) ||
+				apiClassRosterUpdate.equals(uri) ||
+				apiClassDelete.equals(uri) ||
 				// Document
-				API_DOCUMENT_CREATE.equals(uri) ||
-				API_DOCUMENT_READ.equals(uri) ||
-				API_DOCUMENT_READ_CONTENTS.equals(uri) ||
-				API_DOCUMENT_UPDATE.equals(uri) ||
-				API_DOCUMENT_DELETE.equals(uri) ||
+				apiDocumentCreate.equals(uri) ||
+				apiDocumentRead.equals(uri) ||
+				apiDocumentReadContents.equals(uri) ||
+				apiDocumentUpdate.equals(uri) ||
+				apiDocumentDelete.equals(uri) ||
 				// Image
-				API_IMAGE_READ.equals(uri) ||
-				API_IMAGE_BATCH_ZIP_READ.equals(uri) ||
+				apiImageRead.equals(uri) ||
+				apiImageBatchZipRead.equals(uri) ||
 				// Mobility
-				API_MOBILITY_UPLOAD.equals(uri) ||
-				API_MOBILITY_READ.equals(uri) ||
-				API_MOBILITY_READ_CHUNKED.equals(uri) ||
-				API_MOBILITY_AGGREGATE_READ.equals(uri) ||
-				API_MOBILITY_DATES_READ.equals(uri) ||
-				API_MOBILITY_READ_CSV.equals(uri) ||
-				API_MOBILITY_UPDATE.equals(uri) ||
+				apiMobilityUpload.equals(uri) ||
+				apiMobilityRead.equals(uri) ||
+				apiMobilityReadChunked.equals(uri) ||
+				apiMobilityAggregateRead.equals(uri) ||
+				apiMobilityDatesRead.equals(uri) ||
+				apiMobilityReadCsv.equals(uri) ||
+				apiMobilityUpdate.equals(uri) ||
 				// Observer
-				API_OBSERVER_CREATE.equals(uri) ||
-				API_OBSERVER_UPDATE.equals(uri) ||
-				API_STREAM_UPLOAD.equals(uri) ||
-				API_STREAM_READ.equals(uri) ||
+				apiObserverCreate.equals(uri) ||
+				apiObserverUpdate.equals(uri) ||
+				apiStreamUpload.equals(uri) ||
+				apiStreamRead.equals(uri) ||
 				// Survey
-				API_SURVEY_UPLOAD.equals(uri) ||
-				API_SURVEY_RESPONSE_READ.equals(uri) ||
-				API_SURVEY_RESPONSE_UPDATE.equals(uri) ||
-				API_SURVEY_RESPONSE_DELETE.equals(uri) ||
-				API_SURVEY_RESPONSE_FUNCTION_READ.equals(uri) ||
+				apiSurveyUpload.equals(uri) ||
+				apiSurveyResponseRead.equals(uri) ||
+				apiSurveyResponseUpdate.equals(uri) ||
+				apiSurveyResponseDelete.equals(uri) ||
+				apiSurveyResponseFunctionRead.equals(uri) ||
 				// User
-				API_USER_CREATE.equals(uri) ||
-				API_USER_REGISTER.equals(uri) ||
-				API_USER_ACTIVATE.equals(uri) ||
-				API_USER_PASSWORD_RESET.equals(uri) ||
-				API_USER_READ.equals(uri) ||
-				API_USER_INFO_READ.equals(uri) ||
-				API_USER_STATS_READ.equals(uri) ||
-				API_USER_SEARCH.equals(uri) ||
-				API_USER_UPDATE.equals(uri) ||
-				API_USER_CHANGE_PASSWORD.equals(uri) ||
-				API_USER_DELETE.equals(uri) ||
+				apiUserCreate.equals(uri) ||
+				apiUserRegister.equals(uri) ||
+				apiUserActivate.equals(uri) ||
+				apiUserPasswordReset.equals(uri) ||
+				apiUserRead.equals(uri) ||
+				apiUserInfoRead.equals(uri) ||
+				apiUserStatsRead.equals(uri) ||
+				apiUserSearch.equals(uri) ||
+				apiUserUpdate.equals(uri) ||
+				apiUserChangePassword.equals(uri) ||
+				apiUserDelete.equals(uri) ||
 				// Registration
-				API_REGISTRATION_READ.equals(uri) ||
+				apiRegistrationRead.equals(uri) ||
 				// Video
-				API_VIDEO_READ.equals(uri) ||
+				apiVideoRead.equals(uri) ||
 				// Visualization
-				API_VISUALIZATION_SURVEY_RESPONSE_COUNT.equals(uri) ||
-				API_VISUALIZATION_PROMPT_DISTRIBUTION.equals(uri) ||
-				API_VISUALIZATION_PROMPT_TIMESERIES.equals(uri) ||
-				API_VISUALIZATION_USER_TIMESERIES.equals(uri) ||
-				API_VISUALIZATION_SCATTER_PLOT.equals(uri) ||
-				API_VISUALIZATION_2D_DENSITY.equals(uri) ||
-				API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY.equals(uri) ||
-				API_VISUALIZATION_SURVEY_RESPONSE_PRIVACY_TIMESERIES.equals(uri)) {
+				apiVisualizationSurveyResponseCount.equals(uri) ||
+				apiVisualizationPromptDistribution.equals(uri) ||
+				apiVisualizationPromptTimeseries.equals(uri) ||
+				apiVisualizationUserTimeseries.equals(uri) ||
+				apiVisualizationScatterPlot.equals(uri) ||
+				apiVisualization2dDensity.equals(uri) ||
+				apiVisualizationSurveyResponsePrivacy.equals(uri) ||
+				apiVisualizationSurveyResponsePrivacyTimeseries.equals(uri)) {
 			return true;
 		}
 		
 		// The URI is unknown.
 		return false;
+	}
+
+	/**
+	 * Returns the root of this web application.
+	 * 
+	 * @return The root of this web application.
+	 */
+	public String getRoot() {
+		return apiRoot;
+	}
+
+	/**
+	 * Returns apiAnnotationPromptResponseCreate.
+	 *
+	 * @return The apiAnnotationPromptResponseCreate.
+	 */
+	public String getApiAnnotationPromptResponseCreate() {
+		return apiAnnotationPromptResponseCreate;
+	}
+
+	/**
+	 * Returns apiAnnotationPromptResponseRead.
+	 *
+	 * @return The apiAnnotationPromptResponseRead.
+	 */
+	public String getApiAnnotationPromptResponseRead() {
+		return apiAnnotationPromptResponseRead;
+	}
+
+	/**
+	 * Returns apiAnnotationSurveyResponseCreate.
+	 *
+	 * @return The apiAnnotationSurveyResponseCreate.
+	 */
+	public String getApiAnnotationSurveyResponseCreate() {
+		return apiAnnotationSurveyResponseCreate;
+	}
+
+	/**
+	 * Returns apiAnnotationSurveyResponseRead.
+	 *
+	 * @return The apiAnnotationSurveyResponseRead.
+	 */
+	public String getApiAnnotationSurveyResponseRead() {
+		return apiAnnotationSurveyResponseRead;
+	}
+
+	/**
+	 * Returns apiAnnotationUpdate.
+	 *
+	 * @return The apiAnnotationUpdate.
+	 */
+	public String getApiAnnotationUpdate() {
+		return apiAnnotationUpdate;
+	}
+
+	/**
+	 * Returns apiAnnotationDelete.
+	 *
+	 * @return The apiAnnotationDelete.
+	 */
+	public String getApiAnnotationDelete() {
+		return apiAnnotationDelete;
+	}
+
+	/**
+	 * Returns apiAuditRead.
+	 *
+	 * @return The apiAuditRead.
+	 */
+	public String getApiAuditRead() {
+		return apiAuditRead;
+	}
+
+	/**
+	 * Returns apiUserAuth.
+	 *
+	 * @return The apiUserAuth.
+	 */
+	public String getApiUserAuth() {
+		return apiUserAuth;
+	}
+
+	/**
+	 * Returns apiUserAuthToken.
+	 *
+	 * @return The apiUserAuthToken.
+	 */
+	public String getApiUserAuthToken() {
+		return apiUserAuthToken;
+	}
+
+	/**
+	 * Returns apiUserLogout.
+	 *
+	 * @return The apiUserLogout.
+	 */
+	public String getApiUserLogout() {
+		return apiUserLogout;
+	}
+
+	/**
+	 * Returns apiOmhAuth.
+	 *
+	 * @return The apiOmhAuth.
+	 */
+	public String getApiOmhAuth() {
+		return apiOmhAuth;
+	}
+
+	/**
+	 * Returns apiCampaignCreate.
+	 *
+	 * @return The apiCampaignCreate.
+	 */
+	public String getApiCampaignCreate() {
+		return apiCampaignCreate;
+	}
+
+	/**
+	 * Returns apiCampaignRead.
+	 *
+	 * @return The apiCampaignRead.
+	 */
+	public String getApiCampaignRead() {
+		return apiCampaignRead;
+	}
+
+	/**
+	 * Returns apiCampaignSearch.
+	 *
+	 * @return The apiCampaignSearch.
+	 */
+	public String getApiCampaignSearch() {
+		return apiCampaignSearch;
+	}
+
+	/**
+	 * Returns apiCampaignUpdate.
+	 *
+	 * @return The apiCampaignUpdate.
+	 */
+	public String getApiCampaignUpdate() {
+		return apiCampaignUpdate;
+	}
+
+	/**
+	 * Returns apiCampaignDelete.
+	 *
+	 * @return The apiCampaignDelete.
+	 */
+	public String getApiCampaignDelete() {
+		return apiCampaignDelete;
+	}
+
+	/**
+	 * Returns apiClassCreate.
+	 *
+	 * @return The apiClassCreate.
+	 */
+	public String getApiClassCreate() {
+		return apiClassCreate;
+	}
+
+	/**
+	 * Returns apiClassRead.
+	 *
+	 * @return The apiClassRead.
+	 */
+	public String getApiClassRead() {
+		return apiClassRead;
+	}
+
+	/**
+	 * Returns apiClassRosterRead.
+	 *
+	 * @return The apiClassRosterRead.
+	 */
+	public String getApiClassRosterRead() {
+		return apiClassRosterRead;
+	}
+
+	/**
+	 * Returns apiClassSearch.
+	 *
+	 * @return The apiClassSearch.
+	 */
+	public String getApiClassSearch() {
+		return apiClassSearch;
+	}
+
+	/**
+	 * Returns apiClassUpdate.
+	 *
+	 * @return The apiClassUpdate.
+	 */
+	public String getApiClassUpdate() {
+		return apiClassUpdate;
+	}
+
+	/**
+	 * Returns apiClassRosterUpdate.
+	 *
+	 * @return The apiClassRosterUpdate.
+	 */
+	public String getApiClassRosterUpdate() {
+		return apiClassRosterUpdate;
+	}
+
+	/**
+	 * Returns apiClassDelete.
+	 *
+	 * @return The apiClassDelete.
+	 */
+	public String getApiClassDelete() {
+		return apiClassDelete;
+	}
+
+	/**
+	 * Returns apiConfigRead.
+	 *
+	 * @return The apiConfigRead.
+	 */
+	public String getApiConfigRead() {
+		return apiConfigRead;
+	}
+
+	/**
+	 * Returns apiDocumentCreate.
+	 *
+	 * @return The apiDocumentCreate.
+	 */
+	public String getApiDocumentCreate() {
+		return apiDocumentCreate;
+	}
+
+	/**
+	 * Returns apiDocumentRead.
+	 *
+	 * @return The apiDocumentRead.
+	 */
+	public String getApiDocumentRead() {
+		return apiDocumentRead;
+	}
+
+	/**
+	 * Returns apiDocumentReadContents.
+	 *
+	 * @return The apiDocumentReadContents.
+	 */
+	public String getApiDocumentReadContents() {
+		return apiDocumentReadContents;
+	}
+
+	/**
+	 * Returns apiDocumentUpdate.
+	 *
+	 * @return The apiDocumentUpdate.
+	 */
+	public String getApiDocumentUpdate() {
+		return apiDocumentUpdate;
+	}
+
+	/**
+	 * Returns apiDocumentDelete.
+	 *
+	 * @return The apiDocumentDelete.
+	 */
+	public String getApiDocumentDelete() {
+		return apiDocumentDelete;
+	}
+
+	/**
+	 * Returns apiImageRead.
+	 *
+	 * @return The apiImageRead.
+	 */
+	public String getApiImageRead() {
+		return apiImageRead;
+	}
+
+	/**
+	 * Returns apiImageBatchZipRead.
+	 *
+	 * @return The apiImageBatchZipRead.
+	 */
+	public String getApiImageBatchZipRead() {
+		return apiImageBatchZipRead;
+	}
+
+	/**
+	 * Returns apiMobilityUpload.
+	 *
+	 * @return The apiMobilityUpload.
+	 */
+	public String getApiMobilityUpload() {
+		return apiMobilityUpload;
+	}
+
+	/**
+	 * Returns apiMobilityRead.
+	 *
+	 * @return The apiMobilityRead.
+	 */
+	public String getApiMobilityRead() {
+		return apiMobilityRead;
+	}
+
+	/**
+	 * Returns apiMobilityReadChunked.
+	 *
+	 * @return The apiMobilityReadChunked.
+	 */
+	public String getApiMobilityReadChunked() {
+		return apiMobilityReadChunked;
+	}
+
+	/**
+	 * Returns apiMobilityAggregateRead.
+	 *
+	 * @return The apiMobilityAggregateRead.
+	 */
+	public String getApiMobilityAggregateRead() {
+		return apiMobilityAggregateRead;
+	}
+
+	/**
+	 * Returns apiMobilityDatesRead.
+	 *
+	 * @return The apiMobilityDatesRead.
+	 */
+	public String getApiMobilityDatesRead() {
+		return apiMobilityDatesRead;
+	}
+
+	/**
+	 * Returns apiMobilityReadCsv.
+	 *
+	 * @return The apiMobilityReadCsv.
+	 */
+	public String getApiMobilityReadCsv() {
+		return apiMobilityReadCsv;
+	}
+
+	/**
+	 * Returns apiMobilityUpdate.
+	 *
+	 * @return The apiMobilityUpdate.
+	 */
+	public String getApiMobilityUpdate() {
+		return apiMobilityUpdate;
+	}
+
+	/**
+	 * Returns apiObserverCreate.
+	 *
+	 * @return The apiObserverCreate.
+	 */
+	public String getApiObserverCreate() {
+		return apiObserverCreate;
+	}
+
+	/**
+	 * Returns apiObserverUpdate.
+	 *
+	 * @return The apiObserverUpdate.
+	 */
+	public String getApiObserverUpdate() {
+		return apiObserverUpdate;
+	}
+
+	/**
+	 * Returns apiStreamUpload.
+	 *
+	 * @return The apiStreamUpload.
+	 */
+	public String getApiStreamUpload() {
+		return apiStreamUpload;
+	}
+
+	/**
+	 * Returns apiStreamRead.
+	 *
+	 * @return The apiStreamRead.
+	 */
+	public String getApiStreamRead() {
+		return apiStreamRead;
+	}
+
+	/**
+	 * Returns apiSurveyUpload.
+	 *
+	 * @return The apiSurveyUpload.
+	 */
+	public String getApiSurveyUpload() {
+		return apiSurveyUpload;
+	}
+
+	/**
+	 * Returns apiSurveyResponseDelete.
+	 *
+	 * @return The apiSurveyResponseDelete.
+	 */
+	public String getApiSurveyResponseDelete() {
+		return apiSurveyResponseDelete;
+	}
+
+	/**
+	 * Returns apiSurveyResponseRead.
+	 *
+	 * @return The apiSurveyResponseRead.
+	 */
+	public String getApiSurveyResponseRead() {
+		return apiSurveyResponseRead;
+	}
+
+	/**
+	 * Returns apiSurveyResponseUpdate.
+	 *
+	 * @return The apiSurveyResponseUpdate.
+	 */
+	public String getApiSurveyResponseUpdate() {
+		return apiSurveyResponseUpdate;
+	}
+
+	/**
+	 * Returns apiSurveyResponseFunctionRead.
+	 *
+	 * @return The apiSurveyResponseFunctionRead.
+	 */
+	public String getApiSurveyResponseFunctionRead() {
+		return apiSurveyResponseFunctionRead;
+	}
+
+	/**
+	 * Returns apiUserCreate.
+	 *
+	 * @return The apiUserCreate.
+	 */
+	public String getApiUserCreate() {
+		return apiUserCreate;
+	}
+
+	/**
+	 * Returns apiUserRegister.
+	 *
+	 * @return The apiUserRegister.
+	 */
+	public String getApiUserRegister() {
+		return apiUserRegister;
+	}
+
+	/**
+	 * Returns apiUserActivate.
+	 *
+	 * @return The apiUserActivate.
+	 */
+	public String getApiUserActivate() {
+		return apiUserActivate;
+	}
+
+	/**
+	 * Returns apiUserPasswordReset.
+	 *
+	 * @return The apiUserPasswordReset.
+	 */
+	public String getApiUserPasswordReset() {
+		return apiUserPasswordReset;
+	}
+
+	/**
+	 * Returns apiUserRead.
+	 *
+	 * @return The apiUserRead.
+	 */
+	public String getApiUserRead() {
+		return apiUserRead;
+	}
+
+	/**
+	 * Returns apiUserInfoRead.
+	 *
+	 * @return The apiUserInfoRead.
+	 */
+	public String getApiUserInfoRead() {
+		return apiUserInfoRead;
+	}
+
+	/**
+	 * Returns apiUserStatsRead.
+	 *
+	 * @return The apiUserStatsRead.
+	 */
+	public String getApiUserStatsRead() {
+		return apiUserStatsRead;
+	}
+
+	/**
+	 * Returns apiUserSearch.
+	 *
+	 * @return The apiUserSearch.
+	 */
+	public String getApiUserSearch() {
+		return apiUserSearch;
+	}
+
+	/**
+	 * Returns apiUserUpdate.
+	 *
+	 * @return The apiUserUpdate.
+	 */
+	public String getApiUserUpdate() {
+		return apiUserUpdate;
+	}
+
+	/**
+	 * Returns apiUserChangePassword.
+	 *
+	 * @return The apiUserChangePassword.
+	 */
+	public String getApiUserChangePassword() {
+		return apiUserChangePassword;
+	}
+
+	/**
+	 * Returns apiUserDelete.
+	 *
+	 * @return The apiUserDelete.
+	 */
+	public String getApiUserDelete() {
+		return apiUserDelete;
+	}
+
+	/**
+	 * Returns apiRegistrationRead.
+	 *
+	 * @return The apiRegistrationRead.
+	 */
+	public String getApiRegistrationRead() {
+		return apiRegistrationRead;
+	}
+
+	/**
+	 * Returns apiVideoRead.
+	 *
+	 * @return The apiVideoRead.
+	 */
+	public String getApiVideoRead() {
+		return apiVideoRead;
+	}
+
+	/**
+	 * Returns apiVisualization.
+	 *
+	 * @return The apiVisualization.
+	 */
+	public String getApiVisualization() {
+		return apiVisualization;
+	}
+
+	/**
+	 * Returns apiVisualizationSurveyResponseCount.
+	 *
+	 * @return The apiVisualizationSurveyResponseCount.
+	 */
+	public String getApiVisualizationSurveyResponseCount() {
+		return apiVisualizationSurveyResponseCount;
+	}
+
+	/**
+	 * Returns apiVisualizationPromptDistribution.
+	 *
+	 * @return The apiVisualizationPromptDistribution.
+	 */
+	public String getApiVisualizationPromptDistribution() {
+		return apiVisualizationPromptDistribution;
+	}
+
+	/**
+	 * Returns apiVisualizationPromptTimeseries.
+	 *
+	 * @return The apiVisualizationPromptTimeseries.
+	 */
+	public String getApiVisualizationPromptTimeseries() {
+		return apiVisualizationPromptTimeseries;
+	}
+
+	/**
+	 * Returns apiVisualizationUserTimeseries.
+	 *
+	 * @return The apiVisualizationUserTimeseries.
+	 */
+	public String getApiVisualizationUserTimeseries() {
+		return apiVisualizationUserTimeseries;
+	}
+
+	/**
+	 * Returns apiVisualizationScatterPlot.
+	 *
+	 * @return The apiVisualizationScatterPlot.
+	 */
+	public String getApiVisualizationScatterPlot() {
+		return apiVisualizationScatterPlot;
+	}
+
+	/**
+	 * Returns apiVisualization2dDensity.
+	 *
+	 * @return The apiVisualization2dDensity.
+	 */
+	public String getApiVisualization2dDensity() {
+		return apiVisualization2dDensity;
+	}
+
+	/**
+	 * Returns apiVisualizationSurveyResponsePrivacy.
+	 *
+	 * @return The apiVisualizationSurveyResponsePrivacy.
+	 */
+	public String getApiVisualizationSurveyResponsePrivacy() {
+		return apiVisualizationSurveyResponsePrivacy;
+	}
+
+	/**
+	 * Returns apiVisualizationSurveyResponsePrivacyTimeseries.
+	 *
+	 * @return The apiVisualizationSurveyResponsePrivacyTimeseries.
+	 */
+	public String getApiVisualizationSurveyResponsePrivacyTimeseries() {
+		return apiVisualizationSurveyResponsePrivacyTimeseries;
 	}
 }

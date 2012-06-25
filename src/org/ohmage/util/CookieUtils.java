@@ -21,6 +21,8 @@ import java.util.List;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import org.ohmage.request.RequestBuilder;
+
 /**
  * Utilities to help get or set information from and to cookies.
  * 
@@ -102,7 +104,7 @@ public final class CookieUtils {
 		Cookie authTokenCookie = new Cookie(name, value);
 		authTokenCookie.setHttpOnly(true);
 		authTokenCookie.setMaxAge(lifetimeInSeconds);
-		authTokenCookie.setPath("/app");
+		authTokenCookie.setPath(RequestBuilder.getInstance().getRoot());
 		httpResponse.addCookie(authTokenCookie);
 	}
 }

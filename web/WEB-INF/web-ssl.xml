@@ -13,7 +13,7 @@
     <filter-class>org.ohmage.jee.filter.OhmageCORSFilter</filter-class>
     <init-param>
       <param-name>disallowedURIs</param-name>
-      <param-value>/app/user/auth,/app/user/auth_token</param-value>
+      <param-value>/user/auth,/user/auth_token</param-value>
     </init-param>
   </filter>
   <filter-mapping>

@@ -42,7 +42,7 @@
             function getReCaptchaKey()
             {
                 try {
-                    $.post("/app/config/read", checkServerConfiguration);
+                    $.post("config/read", checkServerConfiguration);
                 }
                 catch(e) {
                     alert("Couldn't read server configuration: " + e);
@@ -53,7 +53,7 @@
                 var dataObject = eval('(' + data + ')');
                 if(dataObject["data"]["self_registration_allowed"]) {
                     try {
-                        $.post("/app/registration/read", createReCaptcha);
+                        $.post("registration/read", createReCaptcha);
                     }
                     catch(e) {
                         alert("Couldn't read registration configuration: " + e);
@@ -92,7 +92,7 @@
         
             <div class="row-fluid">
             	
-            	<img src="/app/ohmage-logo.png">
+            	<img src="ohmage-logo.png">
             	
             </div>
         
@@ -118,7 +118,7 @@
 								    	</div>
 								    	<div id="collapseServerConfiguration" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								    	        <form id="serverConfiguration" action="/app/config/read" method="post" class="well" target="outputframe">
+								    	        <form id="serverConfiguration" action="config/read" method="post" class="well" target="outputframe">
 								                    <input type="submit" class="btn" value="Submit">
 								                </form>
 								            </div>
@@ -132,7 +132,7 @@
 								    	</div>
 								    	<div id="collapseRegistrationConfiguration" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner">
-								                <form id="registrationConfiguration" action="/app/registration/read" method="post" class="well" target="outputframe">
+								                <form id="registrationConfiguration" action="registration/read" method="post" class="well" target="outputframe">
 								                     <input type="submit" class="btn" value="Submit">
 								                </form>
 								            </div>
@@ -162,7 +162,7 @@
 								    	</div>
 								    	<div id="collapseTokenBasedAuth" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"   >
-								                <form action="/app/user/auth_token" method="post" class="well" target="outputframe">
+								                <form action="user/auth_token" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Username</label>
 								                    <input type="text" name="user">
 								                    <label><span class="label label-info">required</span> Password</label>
@@ -183,7 +183,7 @@
                                         </div>
                                         <div id="collapseOmhAuth" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"   >
-                                                <form action="/app/omh/auth" method="post" class="well" target="outputframe">
+                                                <form action="omh/auth" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Username</label>
                                                     <input type="text" name="user">
                                                     <label><span class="label label-info">required</span> Password</label>
@@ -204,7 +204,7 @@
 								    	</div>
 								    	<div id="collapseLogout" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/logout" method="post" class="well" target="outputframe">
+								                <form action="user/logout" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
@@ -221,7 +221,7 @@
 								    	</div>
 								    	<div id="collapseChangePassword" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/change_password" method="post" class="well" target="outputframe">
+								                <form action="user/change_password" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Username</label>
 								                    <input type="text" name="user">
 								                    <label><span class="label label-info">required</span> Password</label>
@@ -261,7 +261,7 @@
 						    			</div>
 						    			<div id="collapseAuditRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/audit/read" method="post" class="well" target="outputframe">
+								                <form action="audit/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label><span class="label label-info">required</span> Token</label>
@@ -311,7 +311,7 @@
 								    	</div>
 								    	<div id="collapseSelfRegistration" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form id="frmRegistration" action="/app/user/register" method="post" class="well" target="outputframe">
+								                <form id="frmRegistration" action="user/register" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Username</label>
 								                    <input type="text" name="username">
 								                    <label><span class="label label-info">required</span> Password</label>
@@ -337,7 +337,7 @@
                                         </div>
                                         <div id="collapsePasswordReset" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form id="frmRegistration" action="/app/user/reset_password" method="post" class="well" target="outputframe">
+                                                <form id="frmRegistration" action="user/reset_password" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Username</label>
                                                     <input type="text" name="username">
                                                     <label><span class="label label-info">required</span> Email Address</label>
@@ -372,7 +372,7 @@
 								    	</div>
 								    	<div id="collapseUserCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/create" method="post" class="well" target="outputframe">
+								                <form action="user/create" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Username</label>
@@ -403,7 +403,7 @@
 								    	</div>
 								    	<div id="collapseUserRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/read" method="post" class="well" target="outputframe">
+								                <form action="user/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>User List</label>
@@ -450,7 +450,7 @@
 								    	</div>
 								    	<div id="collapseUserSearch" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/search" method="post" class="well" target="outputframe">
+								                <form action="user/search" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>Username</label>
@@ -492,7 +492,7 @@
 								    	</div>
 								    	<div id="collapseUserInfoRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user_info/read" method="post" class="well" target="outputframe">
+								                <form action="user_info/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <br>
@@ -509,7 +509,7 @@
 								    	</div>
 								    	<div id="collapseUserStatsRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user_stats/read" method="post" class="well" target="outputframe">
+								                <form action="user_stats/read" method="post" class="well" target="outputframe">
 								                     <label><span class="label label-info">required</span> Campaign ID</label>
 								                     <input type="text" name="campaign_urn">
 								                     <label><span class="label label-info">required</span> Username</label>
@@ -530,7 +530,7 @@
 								    	</div>
 								    	<div id="collapseUserUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/update" method="post" class="well" target="outputframe">
+								                <form action="user/update" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Username</label>
@@ -571,7 +571,7 @@
 								    	</div>
 								    	<div id="collapseUserDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/user/delete" method="post" class="well" target="outputframe">
+								                <form action="user/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> User List</label>
@@ -605,7 +605,7 @@
 								    	</div>
 								    	<div id="collapseCampaignCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/campaign/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                <form action="campaign/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Running State</label>
@@ -634,7 +634,7 @@
 								    	</div>
 								    	<div id="collapseCampaignRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/campaign/read" method="post" class="well" target="outputframe">
+								                <form action="campaign/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Output Format</label>
 								                    <input type="text" name="output_format">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -671,7 +671,7 @@
 								    	</div>
 								    	<div id="collapseCampaignUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/campaign/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                <form action="campaign/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Campaign ID</label>
@@ -706,7 +706,7 @@
 								    	</div>
 								    	<div id="collapseCampaignDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/campaign/delete" method="post" class="well" target="outputframe">
+								                <form action="campaign/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Campaign ID</label>
@@ -742,7 +742,7 @@
 								    	</div>
 								    	<div id="collapseClassCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                 <form action="/app/class/create" method="post" class="well" target="outputframe">
+								                 <form action="class/create" method="post" class="well" target="outputframe">
 								                     <label><span class="label label-info">required</span> Token</label>
 								                     <input type="text" name="auth_token">
 								                     <label><span class="label label-info">required</span> Class ID</label>
@@ -767,7 +767,7 @@
 								    	</div>
 								    	<div id="collapseClassRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/class/read" method="post" class="well" target="outputframe">
+								                <form action="class/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label><span class="label label-info">required</span> Class List</label>
@@ -794,7 +794,7 @@
 								    	</div>
 								    	<div id="collapseClassSearch" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/class/search" method="post" class="well" target="outputframe">
+								                <form action="class/search" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>Class ID</label>
@@ -820,7 +820,7 @@
 								    	</div>
 								    	<div id="collapseClassRosterRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/class/roster/read" method="post" class="well" target="outputframe">
+								                <form action="class/roster/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Class List</label>
 								                    <input type="text" name="class_urn_list">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -839,7 +839,7 @@
 								    	</div>
 								    	<div id="collapseClassUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/class/update" method="post" class="well" target="outputframe">
+								                <form action="class/update" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Class ID</label>
@@ -870,7 +870,7 @@
 								    	</div>
 								    	<div id="collapseClassRosterUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/class/roster/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                <form action="class/roster/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Roster</label>
@@ -891,7 +891,7 @@
 								    	</div>
 								    	<div id="collapseClassDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/class/delete" method="post" class="well" target="outputframe">
+								                <form action="class/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Class ID</label>
@@ -926,7 +926,7 @@
 								    	</div>
 								    	<div id="collapseDocumentCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/document/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                <form action="document/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Name</label>
@@ -956,7 +956,7 @@
 								    	</div>
 								    	<div id="collapseDocumentRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/document/read" method="post" class="well" target="outputframe">
+								                <form action="document/read" method="post" class="well" target="outputframe">
 								                	<label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label><span class="label label-info">required</span> Personal Documents</label>
@@ -983,7 +983,7 @@
 								    	</div>
 								    	<div id="collapseDocumentReadContents" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/document/read/contents" method="post" class="well" target="outputframe">
+								                <form action="document/read/contents" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Document ID</label>
 								                    <input type="text" name="document_id">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1002,7 +1002,7 @@
 								    	</div>
 								    	<div id="collapseDocumentUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/document/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+								                <form action="document/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Document ID</label>
@@ -1043,7 +1043,7 @@
 								    	</div>
 								    	<div id="collapseDocumentDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/document/delete" method="post" class="well" target="outputframe">
+								                <form action="document/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Document ID</label>
@@ -1077,7 +1077,7 @@
 								    	</div>
 								    	<div id="collapseSurveyUpload" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/survey/upload" method="post" class="well" target="outputframe">
+								                <form action="survey/upload" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> User</label>
 								                    <input type="text" name="user">
 								                    <label><span class="label label-info">required</span> Password</label>
@@ -1106,7 +1106,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponseRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/survey_response/read" method="post" class="well" target="outputframe">
+								                <form action="survey_response/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label><span class="label label-info">required</span> Column List</label>
@@ -1157,7 +1157,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponseUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/survey_response/update" method="post" class="well" target="outputframe">
+								                <form action="survey_response/update" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Campaign ID</label>
@@ -1182,7 +1182,7 @@
                                         </div>
                                         <div id="collapseImageRead" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/image/read" method="post" class="well" target="outputframe">
+                                                <form action="image/read" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Client</label>
                                                     <input type="text" name="client" value="ohmageEasyPost">
                                                     <label><span class="label label-info">required</span> Image ID</label>
@@ -1207,7 +1207,7 @@
                                         </div>
                                         <div id="collapseVideoRead" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/video/read" method="post" class="well" target="outputframe">
+                                                <form action="video/read" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Client</label>
                                                     <input type="text" name="client" value="ohmageEasyPost">
                                                     <label><span class="label label-info">required</span> Video ID</label>
@@ -1226,7 +1226,7 @@
                                         </div>
                                         <div id="collapseImageBatchZipRead" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/image/batch/zip/read" method="post" class="well" target="outputframe">
+                                                <form action="image/batch/zip/read" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Campaign ID</label>
                                                     <input type="text" name="campaign_urn">
                                                     <label><span class="label label-info">required</span> User List</label>
@@ -1259,7 +1259,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponseFunctionRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/survey_response/function/read" method="post" class="well" target="outputframe">
+								                <form action="survey_response/function/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Campaign ID</label>
 								                    <input type="text" name="campaign_urn">
 								                    <label><span class="label label-info">required</span> Function ID</label>
@@ -1282,7 +1282,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponseDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/survey_response/delete" method="post" class="well" target="outputframe">
+								                <form action="survey_response/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Campaign ID</label>
@@ -1319,7 +1319,7 @@
 								    	</div>
 								    	<div id="collapseMobilityUpload" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/mobility/upload" method="post" class="well" target="outputframe">
+								                <form action="mobility/upload" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> User</label>
 								                    <input type="text" name="user">
 								                    <label><span class="label label-info">required</span> Password</label>
@@ -1342,7 +1342,7 @@
 								    	</div>
 								    	<div id="collapseMobilityDatesRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/mobility/dates/read" method="post" class="well" target="outputframe">
+								                <form action="mobility/dates/read" method="post" class="well" target="outputframe">
 								                    <label>Start Date</label>
 								                    <input type="text" name="start_date">
 								                    <label>End Date</label>
@@ -1365,7 +1365,7 @@
 								    	</div>
 								    	<div id="collapseMobilityRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/mobility/read" method="post" class="well" target="outputframe">
+								                <form action="mobility/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Date</label>
 								                    <input type="text" name="date">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1390,7 +1390,7 @@
 								    	</div>
 								    	<div id="collapseMobilityReadCsv" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/mobility/read/csv" method="post" class="well" target="outputframe">
+								                <form action="mobility/read/csv" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label>Start Date</label>
@@ -1415,7 +1415,7 @@
 								    	</div>
 								    	<div id="collapseMobilityReadChunked" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/mobility/read/chunked" method="post" class="well" target="outputframe">
+								                <form action="mobility/read/chunked" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Start Date</label>
 								                    <input type="text" name="start_date">
 								                    <label><span class="label label-info">required</span> End Date</label>
@@ -1438,7 +1438,7 @@
                                         </div>
                                         <div id="collapseMobilityUpdate" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/mobility/update" method="post" class="well" target="outputframe">
+                                                <form action="mobility/update" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Token</label>
                                                     <input type="text" name="auth_token">
                                                     <label><span class="label label-info">required</span> Client</label>
@@ -1461,7 +1461,7 @@
                                         </div>
                                         <div id="collapseMobilityAggregateRead" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/mobility/aggregate/read" method="post" class="well" target="outputframe">
+                                                <form action="mobility/aggregate/read" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Start Date</label>
                                                     <input type="text" name="start_date">
                                                     <label><span class="label label-info">required</span> End Date</label>
@@ -1501,7 +1501,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponseCountViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/survey_response_count/read" method="post" class="well" target="outputframe">
+								                <form action="viz/survey_response_count/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1532,7 +1532,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponsePrivacyStateViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/survey_responses_privacy_state/read" method="post" class="well" target="outputframe">
+								                <form action="viz/survey_responses_privacy_state/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1561,7 +1561,7 @@
 								    	</div>
 								    	<div id="collapseSurveyResponsePrivacyStateTimeViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/survey_responses_privacy_state_time/read" method="post" class="well" target="outputframe">
+								                <form action="viz/survey_responses_privacy_state_time/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1592,7 +1592,7 @@
 								    	</div>
 								    	<div id="collapseUserTimeSeriesViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/user_timeseries/read" method="post" class="well" target="outputframe">
+								                <form action="viz/user_timeseries/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1625,7 +1625,7 @@
 								    	</div>
 								    	<div id="collapsePromptTimeSeriesViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/prompt_timeseries/read" method="post" class="well" target="outputframe">
+								                <form action="viz/prompt_timeseries/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1658,7 +1658,7 @@
 								    	</div>
 								    	<div id="collapsePromptDistributionViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/prompt_distribution/read" method="post" class="well" target="outputframe">
+								                <form action="viz/prompt_distribution/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1689,7 +1689,7 @@
 								    	</div>
 								    	<div id="collapseScatterPlotViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/scatter_plot/read" method="post" class="well" target="outputframe">
+								                <form action="viz/scatter_plot/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1722,7 +1722,7 @@
 								    	</div>
 								    	<div id="collapse2DDensityViz" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/viz/2d_density/read" method="post" class="well" target="outputframe">
+								                <form action="viz/2d_density/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Width</label>
 								                    <input type="text" name="width">
 								                    <label><span class="label label-info">required</span> Height</label>
@@ -1770,7 +1770,7 @@
 								    	</div>
 								    	<div id="collapseAnnotationSurveyResponseCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/annotation/survey_response/create" method="post" class="well" target="outputframe">
+								                <form action="annotation/survey_response/create" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1797,7 +1797,7 @@
 								    	</div>
 								    	<div id="collapseAnnotationSurveyResponseRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/annotation/survey_response/read" method="post" class="well" target="outputframe">
+								                <form action="annotation/survey_response/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1818,7 +1818,7 @@
 								    	</div>
 								    	<div id="collapseAnnotationPromptResponseCreate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/annotation/prompt_response/create" method="post" class="well" target="outputframe">
+								                <form action="annotation/prompt_response/create" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1851,7 +1851,7 @@
 								    	</div>
 								    	<div id="collapseAnnotationPromptResponseRead" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/annotation/prompt_response/read" method="post" class="well" target="outputframe">
+								                <form action="annotation/prompt_response/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1878,7 +1878,7 @@
 								    	</div>
 								    	<div id="collapseAnnotationUpdate" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/annotation/update" method="post" class="well" target="outputframe">
+								                <form action="annotation/update" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1904,7 +1904,7 @@
 								    	</div>
 								    	<div id="collapseAnnotationDelete" class="accordion-body collapse" style="height: 0px; ">
 								    	    <div class="accordion-inner pad-inner"  >
-								                <form action="/app/annotation/delete" method="post" class="well" target="outputframe">
+								                <form action="annotation/delete" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Auth Token</label>
 								                    <input type="text" name="auth_token">
 								                    <label><span class="label label-info">required</span> Client</label>
@@ -1939,7 +1939,7 @@
                                         </div>
                                         <div id="collapseObserverCreate" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/observer/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                <form action="observer/create" enctype="multipart/form-data" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Auth Token</label>
                                                     <input type="text" name="auth_token">
                                                     <label><span class="label label-info">required</span> Client</label>
@@ -1961,7 +1961,7 @@
                                         </div>
                                         <div id="collapseObserverUpdate" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/observer/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                <form action="observer/update" enctype="multipart/form-data" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Auth Token</label>
                                                     <input type="text" name="auth_token">
                                                     <label><span class="label label-info">required</span> Client</label>
@@ -1983,7 +1983,7 @@
                                         </div>
                                         <div id="collapseDataStreamRead" class="accordion-body collapse" style="height: 0px; ">
                                             <div class="accordion-inner pad-inner"  >
-                                                <form action="/app/stream/read" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                <form action="stream/read" enctype="multipart/form-data" method="post" class="well" target="outputframe">
                                                     <label><span class="label label-info">required</span> Client</label>
                                                     <input type="text" name="client" value="ohmageEasyPost">
                                                     <label><span class="label label-info">required</span> Observer ID</label>

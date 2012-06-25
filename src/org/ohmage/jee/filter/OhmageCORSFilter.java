@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.exception.CacheMissException;
+import org.ohmage.request.RequestBuilder;
 import org.ohmage.util.StringUtils;
 
 import com.thetransactioncompany.cors.CORSFilter;
@@ -85,7 +86,7 @@ public class OhmageCORSFilter extends CORSFilter {
 					disallowedURIs = new ArrayList<String>();
 					
 					for(String uri : uris) {
-						disallowedURIs.add(uri);
+						disallowedURIs.add(RequestBuilder.getInstance().getRoot() + uri);
 					}
 					
 					break;

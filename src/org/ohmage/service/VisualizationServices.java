@@ -32,6 +32,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.request.RequestBuilder;
 
 /**
  * This class contains the services for visualization requests.
@@ -39,8 +40,6 @@ import org.ohmage.exception.ServiceException;
  * @author John Jenkins
  */
 public class VisualizationServices {
-	private static final String APPLICATION_PATH = "/app";
-	
 	/**
 	 * The token parameter key for the visualization server.
 	 */
@@ -210,7 +209,7 @@ public class VisualizationServices {
 						e);
 			}
 			parameterBuilder
-				.append(URLEncoder.encode(APPLICATION_PATH, ENCODING))
+				.append(URLEncoder.encode(RequestBuilder.getInstance().getRoot(), ENCODING))
 				.append("'");
 			
 			// Add the required parameters.

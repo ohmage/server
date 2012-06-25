@@ -298,13 +298,13 @@ public class RequestServlet extends HttpServlet {
 	 */
 	@Override
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		if(RequestBuilder.API_CONFIG_READ.equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.API_IMAGE_READ.equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.API_DOCUMENT_READ_CONTENTS.equals(httpRequest.getRequestURI()) ||
-			httpRequest.getRequestURI().startsWith("/app/viz/") ||
-			RequestBuilder.API_USER_ACTIVATE.equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.API_REGISTRATION_READ.equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.API_STREAM_READ.equals(httpRequest.getRequestURI())) {
+		if(RequestBuilder.getInstance().getApiConfigRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiImageRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiDocumentReadContents().equals(httpRequest.getRequestURI()) ||
+			httpRequest.getRequestURI().startsWith(RequestBuilder.getInstance().getApiVisualization()) ||
+			RequestBuilder.getInstance().getApiUserActivate().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiRegistrationRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiStreamRead().equals(httpRequest.getRequestURI())) {
 			
 			processRequest(httpRequest, httpResponse);
 		}
@@ -356,7 +356,7 @@ public class RequestServlet extends HttpServlet {
 			final HttpServletResponse httpResponse) {
 		
 		try {
-			Request request = RequestBuilder.buildRequest(httpRequest);
+			Request request = RequestBuilder.getInstance().buildRequest(httpRequest);
 	
 			if(! request.isFailed()) {
 				request.service();
