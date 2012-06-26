@@ -17,6 +17,28 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
 
+/**
+ * <p>Updates an existing observer in the system.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OBSERVER_DEFINITION}</td>
+ *     <td>The definition of the observer as an XML document.</td>
+ *     <td>true</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class ObserverUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(ObserverUpdateRequest.class);

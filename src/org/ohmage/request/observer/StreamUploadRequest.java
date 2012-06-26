@@ -20,6 +20,45 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
 
+/**
+ * <p>Creates a new observer in the system.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OBSERVER_ID}</td>
+ *     <td>The unique identifier that the data points belong to.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OBSERVER_VERSION}</td>
+ *     <td>The version of the observer to which the data applies.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#DATA}</td>
+ *     <td>The data to upload. This should be a JSON array of JSON objects. 
+ *       each object may contain a "metadata" key and must contain "data",
+ *       "stream_id", and "stream_version" keys. The "metadata" value must be a
+ *       JSON object that may contain the allowed meta-data fields as defined 
+ *       in the observer's definition. The "stream_id"'s value is the ID of the
+ *       stream as defined by this observer. The "stream_version"'s value is 
+ *       the numeric value of the stream as defined by this observer. The 
+ *       "data" value must conform to the schema from the definition.</td>
+ *     <td>true</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class StreamUploadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(StreamUploadRequest.class);

@@ -37,6 +37,79 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
 
+/**
+ * <p>Reads uploaded data for a stream.</p>
+ * <table border="1">
+ *   <tr>
+ *     <td>Parameter Name</td>
+ *     <td>Description</td>
+ *     <td>Required</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#CLIENT}</td>
+ *     <td>A string describing the client that is making this request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OBSERVER_ID}</td>
+ *     <td>The unique ID for the observer that contains the stream.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#OBSERVER_VERSION}</td>
+ *     <td>The version of the observer to limit the results to only those that
+ *       were generated with this version of the observer.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#STREAM_ID}</td>
+ *     <td>The unique ID for the stream.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#STREAM_VERSION}</td>
+ *     <td>A specific version of the stream.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#START_DATE}</td>
+ *     <td>An ISO-8601 date-time-zone that limits the results to only those on
+ *       or after this date.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#END_DATE}</td>
+ *     <td>An ISO-8601 date-time-zone that limits the results to only those on
+ *       or before this date.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#COLUMN_LIST}</td>
+ *     <td>The list of columns to return from the data. The columns are 
+ *       formatted as such: 
+ *       "<tt>&lt;RootID&gt;:&lt;SubID&gt;:&lt;SubSubID&gt;...</tt>",
+ *       so, for example, if the data was formatted with a two top level keys,
+ *       "r1" and "r2", and "r1" had two sub-keys, "s1" and "s2", a user could
+ *       retrieve only "r2" and "s2" with the following column list, 
+ *       "<tt>r2,r1:s2</tt>".</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_SKIP}</td>
+ *     <td>The number of data points that match the given query that should be
+ *       skipped. This is used to facilitate paging.</td>
+ *     <td>false</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#NUM_TO_RETURN}</td>
+ *     <td>The number of data points that match the given query that should be
+ *       returned after skipping. This is used to facilitate paging.</td>
+ *     <td>false</td>
+ *   </tr>
+ * </table>
+ * 
+ * @author John Jenkins
+ */
 public class StreamReadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(StreamReadRequest.class);
