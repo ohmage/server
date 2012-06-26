@@ -130,3 +130,7 @@ CREATE TABLE observer_stream_data (
     REFERENCES observer_stream_link (id) 
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Add the new preference key.
+INSERT INTO preference 
+    VALUES ('audit_log_location', '/opt/ohmage/logs/audits/');

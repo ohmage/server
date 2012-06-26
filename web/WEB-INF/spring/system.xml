@@ -16,8 +16,6 @@
     <property name="propertiesArray">
       <list>
         <ref bean="dbProps" />
-        <ref bean="systemProps" />
-        <ref bean="auditProps" />
       </list>
     </property>
   </bean>
@@ -27,14 +25,6 @@
     <entry key="db.jdbcurl" value="jdbc:mysql://localhost:3306/ohmage"/>
     <entry key="db.username" value="ohmage"/>
     <entry key="db.password" value="&amp;!sickly"/>
-  </util:map>
-
-  <util:map id="systemProps">
-    <entry key="system.imageDir" value="/opt/ohmage/userdata/images" />
-  </util:map>
-  
-  <util:map id="auditProps">
-    <entry key="audit.location" value="/opt/ohmage/as/logs/audits" />
   </util:map>
 
 </beans>

@@ -44,7 +44,7 @@ import org.ohmage.service.AuditServices;
  * @author John Jenkins
  */
 @MultipartConfig(
-		location="/opt/ohmage/as/temp/", 
+		// 300 MB is the maximum allowed file size for videos.
 		maxFileSize=1024*1024*300, 
 		// 300 MB for a video plus 25 MB for the images plus 5 MB for the 
 		// survey response content.

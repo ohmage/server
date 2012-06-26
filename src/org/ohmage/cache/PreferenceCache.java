@@ -119,6 +119,9 @@ public final class PreferenceCache extends KeyValueCache {
 	
 	// CORS leniency mode
 	public static final String KEY_CORS_LENIENT_MODE = "cors-lenient-mode";
+	
+	// Audit Log Location
+	public static final String KEY_AUDIT_LOG_LOCATION = "audit_log_location";
 		
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
