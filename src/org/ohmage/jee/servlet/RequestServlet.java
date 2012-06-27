@@ -300,6 +300,7 @@ public class RequestServlet extends HttpServlet {
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		if(RequestBuilder.getInstance().getApiConfigRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiImageRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiImageBatchZipRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiDocumentReadContents().equals(httpRequest.getRequestURI()) ||
 			httpRequest.getRequestURI().startsWith(RequestBuilder.getInstance().getApiVisualization()) ||
 			RequestBuilder.getInstance().getApiUserActivate().equals(httpRequest.getRequestURI()) ||

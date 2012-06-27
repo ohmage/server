@@ -243,7 +243,7 @@ public final class MobilityServices {
 						break;
 					}
 				}
-				
+
 				// Classify the data.
 				Classification classification =
 						classifier.classify(
