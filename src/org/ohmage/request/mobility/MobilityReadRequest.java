@@ -31,6 +31,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.ColumnKey;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.DataStream.MetaData;
@@ -38,6 +39,7 @@ import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.domain.MobilityPoint.SubType;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -47,8 +49,11 @@ import org.ohmage.request.Request;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.MobilityServices;
+import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.MobilityValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * Reads the Mobility information about a user during a single day.<br />
@@ -119,6 +124,7 @@ public class MobilityReadRequest extends Request {
 		DEFAULT_COLUMNS = Collections.unmodifiableCollection(columnKeys);
 	}
 	
+	private final String username;
 	private final DateTime startDate;
 	
 	private final StreamReadRequest regularReadRequest;
@@ -143,6 +149,7 @@ public class MobilityReadRequest extends Request {
 		
 		LOGGER.info("Creating a Mobility read request.");
 		
+		String tUsername = null;
 		DateTime tStartDate = null;
 		
 		StreamReadRequest tRegularReadRequest = null;
@@ -231,6 +238,18 @@ public class MobilityReadRequest extends Request {
 					tColumns = DEFAULT_COLUMNS;
 				}
 				
+				// Get the user.
+				t = getParameterValues(InputKeys.USERNAME);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME, 
+							"Multiple usernames to query were given: " + 
+									InputKeys.USERNAME);
+				}
+				else if(t.length == 1) {
+					tUsername = UserValidators.validateUsername(t[0]);
+				}
+				
 				// Always get all of the columns.
 				try {
 					tRegularReadRequest = 
@@ -239,6 +258,7 @@ public class MobilityReadRequest extends Request {
 							getParameterMap(),
 							false,
 							TokenLocation.EITHER,
+							tUsername,
 							"edu.ucla.cens.Mobility",
 							null,
 							"regular",
@@ -255,6 +275,7 @@ public class MobilityReadRequest extends Request {
 							getParameterMap(),
 							false,
 							TokenLocation.EITHER,
+							tUsername,
 							"edu.ucla.cens.Mobility",
 							null,
 							"extended",
@@ -277,6 +298,7 @@ public class MobilityReadRequest extends Request {
 			}
 		}
 		
+		username = tUsername;
 		startDate = tStartDate;
 		
 		regularReadRequest = tRegularReadRequest;
@@ -299,6 +321,45 @@ public class MobilityReadRequest extends Request {
 		LOGGER.info("Servicing the Mobility read request.");
 		
 		try {
+			if((username != null) && (! username.equals(regularReadRequest.getUser().getUsername()))) {
+				try {
+					LOGGER.info("Checking if the user is an admin.");
+					UserServices.instance().verifyUserIsAdmin(
+						regularReadRequest.getUser().getUsername());
+				}
+				catch(ServiceException notAdmin) {
+					LOGGER.info("The user is not an admin.");
+
+					LOGGER.info(
+						"Checking if reading Mobility points about another user is even allowed.");
+					boolean isPlausible;
+					try {
+						isPlausible = 
+							StringUtils.decodeBoolean(
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
+					}
+					catch(CacheMissException e) {
+						throw new ServiceException(e);
+					}
+					
+					if(isPlausible) {
+						LOGGER.info(
+							"Checking if the requester is allowed to read Mobility points about the user.");
+						UserClassServices
+							.instance()
+							.userIsPrivilegedInAnotherUserClass(
+								regularReadRequest.getUser().getUsername(), 
+								username);
+					}
+					else {
+						throw new ServiceException(
+							ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
+							"A user is not allowed to query Mobility information about another user.");
+					}
+				}
+			}
+			
 			// Service the read requests.
 			regularReadRequest.service();
 			if(regularReadRequest.isFailed()) {

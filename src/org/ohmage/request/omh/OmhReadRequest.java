@@ -217,6 +217,7 @@ public class OmhReadRequest extends Request {
 						parameters,
 						true,
 						TokenLocation.EITHER,
+						null,
 						observerId,
 						null,
 						streamId,

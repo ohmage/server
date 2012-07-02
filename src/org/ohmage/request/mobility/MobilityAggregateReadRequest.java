@@ -18,9 +18,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.SubType;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -29,8 +31,12 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.MobilityServices;
+import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.MobilityValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * Gathers the Mobility information between the given dates and aggregates the
@@ -85,7 +91,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	private final DateTime startDate;
 	//private final DateTime endDate;
 	private final Long duration;
-	//private final String username;
+	private final String username;
 	
 	private final StreamReadRequest regularReadRequest;
 	private final StreamReadRequest extendedReadRequest;
@@ -107,11 +113,11 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, false, TokenLocation.EITHER, null);
-		
+
 		DateTime tStartDate = null;
 		//DateTime tEndDate = null;
 		Long tDuration = null;
-		//String tUsername = null;
+		String tUsername = null;
 		
 		StreamReadRequest tRegularReadRequest = null;
 		StreamReadRequest tExtendedReadRequest = null;
@@ -177,7 +183,6 @@ public class MobilityAggregateReadRequest extends UserRequest {
 								InputKeys.MOBILITY_AGGREGATE_DURATION);
 				}
 				
-				/*
 				// Get the user.
 				t = getParameterValues(InputKeys.USERNAME);
 				if(t.length > 1) {
@@ -189,7 +194,6 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
-				*/
 				
 				// Always get all of the columns.
 				try {
@@ -199,6 +203,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							getParameterMap(),
 							false,
 							TokenLocation.EITHER,
+							tUsername,
 							"edu.ucla.cens.Mobility",
 							null,
 							"regular",
@@ -215,6 +220,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							getParameterMap(),
 							false,
 							TokenLocation.EITHER,
+							tUsername,
 							"edu.ucla.cens.Mobility",
 							null,
 							"extended",
@@ -240,7 +246,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 		startDate = tStartDate;
 		//endDate = tEndDate;
 		duration = tDuration;
-		//username = tUsername;
+		username = tUsername;
 		
 		regularReadRequest = tRegularReadRequest;
 		extendedReadRequest = tExtendedReadRequest;
@@ -254,65 +260,6 @@ public class MobilityAggregateReadRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		/*
-		LOGGER.info("Servicing the Mobility aggregate read request.");
-		
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
-			return;
-		}
-		
-		try {
-			if((username != null) && (! username.equals(getUser().getUsername()))) {
-				LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
-				boolean isPlausible;
-				try {
-					isPlausible = 
-							StringUtils.decodeBoolean(
-									PreferenceCache.instance().lookup(
-											PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(e);
-				}
-				
-				try {
-					LOGGER.info("Checking if the user is an admin.");
-					UserServices.instance().verifyUserIsAdmin(
-							getUser().getUsername());
-				}
-				catch(ServiceException notAdmin) {
-					LOGGER.info("The user is not an admin.");
-					if(isPlausible) {
-						LOGGER.info("Checking if the requester is allowed to read Mobility points about the user.");
-						UserClassServices
-							.instance()
-							.userIsPrivilegedInAnotherUserClass(
-									getUser().getUsername(), 
-									username);
-					}
-					else {
-						throw new ServiceException(
-								ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
-								"A user is not allowed to query Mobility information about another user.");
-					}
-				}
-				
-				UserServices.instance().checkUserExistance(username, true);
-			}
-			
-			LOGGER.info("Gathering the Mobility points.");
-			points = MobilityServices.instance().retrieveMobilityAggregateData(
-					(username == null) ? getUser().getUsername() : username,
-					startDate, 
-					endDate);
-			LOGGER.info("Found " + points.size() + " results.");
-		}
-		catch(ServiceException e) {
-			e.failRequest(this);
-			e.logException(LOGGER);
-		}
-		*/
-		
 		// If any of the sub-requests have failed, then return.
 		if(regularReadRequest.isFailed() || extendedReadRequest.isFailed()) {
 			return;
@@ -321,20 +268,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 		LOGGER.info("Servicing the Mobility read request.");
 		
 		try {
-			/*
 			if((username != null) && (! username.equals(getUser().getUsername()))) {
-				LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
-				boolean isPlausible;
-				try {
-					isPlausible = 
-							StringUtils.decodeBoolean(
-									PreferenceCache.instance().lookup(
-											PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
-				}
-				catch(CacheMissException e) {
-					throw new ServiceException(e);
-				}
-				
 				try {
 					LOGGER.info("Checking if the user is an admin.");
 					UserServices.instance().verifyUserIsAdmin(
@@ -342,6 +276,19 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				}
 				catch(ServiceException notAdmin) {
 					LOGGER.info("The user is not an admin.");
+
+					LOGGER.info("Checking if reading Mobility points about another user is even allowed.");
+					boolean isPlausible;
+					try {
+						isPlausible = 
+								StringUtils.decodeBoolean(
+										PreferenceCache.instance().lookup(
+												PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
+					}
+					catch(CacheMissException e) {
+						throw new ServiceException(e);
+					}
+					
 					if(isPlausible) {
 						LOGGER.info("Checking if the requester is allowed to read Mobility points about the user.");
 						UserClassServices
@@ -356,10 +303,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 								"A user is not allowed to query Mobility information about another user.");
 					}
 				}
-				
-				UserServices.instance().checkUserExistance(username, true);
 			}
-			*/
 			
 			// Service the read requests.
 			regularReadRequest.service();

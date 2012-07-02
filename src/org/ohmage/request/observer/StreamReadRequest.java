@@ -40,6 +40,7 @@ import org.ohmage.request.RequestBuilder;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Reads uploaded data for a stream.</p>
@@ -267,7 +268,10 @@ public class StreamReadRequest extends UserRequest {
 		}
 	}
 	
-	// Part of the URI.
+	// The username of the user whose data is being read.
+	private final String username;
+	
+	// Required.
 	private final String observerId;
 	
 	// Optional.
@@ -342,6 +346,7 @@ public class StreamReadRequest extends UserRequest {
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
+			final String username,
 			final String observerId,
 			final Long observerVersion,
 			final String streamId,
@@ -362,6 +367,7 @@ public class StreamReadRequest extends UserRequest {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
 		
+		this.username = username;
 		this.observerId = observerId;
 		this.observerVersion = observerVersion;
 		this.streamId = streamId;
@@ -391,6 +397,7 @@ public class StreamReadRequest extends UserRequest {
 		
 		super(httpRequest, false, TokenLocation.EITHER, null);
 		
+		String tUsername = null;
 		String tObserverId = null;
 		Long tObserverVersion = null;
 		String tStreamId = null;
@@ -406,6 +413,17 @@ public class StreamReadRequest extends UserRequest {
 			String[] t;
 			
 			try {
+				t = getParameterValues(InputKeys.USERNAME);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.USER_INVALID_USERNAME,
+						"Multiple usernames were given: " +
+							InputKeys.USERNAME);
+				}
+				else if(t.length == 1) {
+					tUsername = UserValidators.validateUsername(t[0]);
+				}
+				
 				t = getParameterValues(InputKeys.OBSERVER_ID);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -534,6 +552,7 @@ public class StreamReadRequest extends UserRequest {
 			}
 		}
 		
+		username = tUsername;
 		observerId = tObserverId;
 		observerVersion = tObserverVersion;
 		streamId = tStreamId;
@@ -587,7 +606,7 @@ public class StreamReadRequest extends UserRequest {
 			results.addAll(
 				ObserverServices.instance().getStreamData(
 					stream,
-					getUser().getUsername(),
+					(username == null) ? getUser().getUsername() : username,
 					observerId,
 					observerVersion,
 					startDate,
