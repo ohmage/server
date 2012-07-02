@@ -204,6 +204,16 @@ public final class InputKeys {
 	public static final String STREAM_VERSION = "stream_version";
 	public static final String STREAM_IDS_WITH_VERSION = "stream_ids_with_version";
 	
+	// OMH Constants
+	public static final String OMH_REQUESTER = "requester";
+	public static final String OMH_PAYLOAD_ID = "payload_id";
+	public static final String OMH_START_TIMESTAMP = "t_start";
+	public static final String OMH_END_TIMESTAMP = "t_end";
+	public static final String OMH_COLUMN_LIST = "column_list";
+	public static final String OMH_SUMMARIZE = "summarize";
+	public static final String OMH_NUM_TO_SKIP = "num_to_skip";
+	public static final String OMH_NUM_TO_RETURN = "num_to_return";
+	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";
 	public static final String ENTITY_ROLE_SEPARATOR = ";";

@@ -57,6 +57,7 @@ import org.ohmage.request.observer.ObserverUpdateRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.omh.OmhAuthenticateRequest;
+import org.ohmage.request.omh.OmhReadRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -119,7 +120,6 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserAuth;
 	private String apiUserAuthToken;
 	private String apiUserLogout;
-	private String apiOmhAuth;
 	
 	// Campaign
 	private String apiCampaignCreate;
@@ -165,6 +165,10 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiObserverUpdate;
 	private String apiStreamUpload;
 	private String apiStreamRead;
+	
+	// OMH
+	private String apiOmhAuth;
+	private String apiOmhRead;
 	
 	// Survey
 	private String apiSurveyUpload;
@@ -246,7 +250,6 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserAuth = apiRoot + "/user/auth";
 		apiUserAuthToken = apiRoot + "/user/auth_token";
 		apiUserLogout = apiRoot + "/user/logout";
-		apiOmhAuth = apiRoot + "/omh/auth";
 		
 		// Campaign
 		apiCampaignCreate = apiRoot + "/campaign/create";
@@ -293,6 +296,10 @@ public final class RequestBuilder implements ServletContextAware {
 		apiStreamUpload = apiRoot + "/stream/upload";
 		apiStreamRead = apiRoot + "/stream/read";
 		
+		// OMH
+		apiOmhAuth = apiRoot + "/omh/v1.0/auth";
+		apiOmhRead = apiRoot + "/omh/v1.0/read";
+		
 		// Survey
 		apiSurveyUpload = apiRoot + "/survey/upload";
 		apiSurveyResponseDelete = apiRoot + "/survey_response/delete";
@@ -316,6 +323,7 @@ public final class RequestBuilder implements ServletContextAware {
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
 
+		// Video
 		apiVideoRead = apiRoot + "/video/read";
 
 		// Visualization
@@ -365,9 +373,6 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		else if(apiUserLogout.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
-		}
-		else if(apiOmhAuth.equals(requestUri)) {
-			return new OmhAuthenticateRequest(httpRequest);
 		}
 		// Annotation
 		else if(apiAnnotationPromptResponseCreate.equals(requestUri)) {
@@ -488,6 +493,13 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiStreamRead.equals(requestUri)) {
 			return new StreamReadRequest(httpRequest);
 		}
+		// OMH
+		else if(apiOmhAuth.equals(requestUri)) {
+			return new OmhAuthenticateRequest(httpRequest);
+		}
+		else if(apiOmhRead.equals(requestUri)) {
+			return new OmhReadRequest(httpRequest);
+		}
 		// Survey
 		else if(apiSurveyUpload.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
@@ -595,7 +607,6 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserAuth.equals(uri) ||
 				apiUserAuthToken.equals(uri) ||
 				apiUserLogout.equals(uri) ||
-				apiOmhAuth.equals(uri) ||
 				// Audit
 				apiAuditRead.equals(uri) ||
 				// Campaign
@@ -634,6 +645,9 @@ public final class RequestBuilder implements ServletContextAware {
 				apiObserverUpdate.equals(uri) ||
 				apiStreamUpload.equals(uri) ||
 				apiStreamRead.equals(uri) ||
+				// OMH
+				apiOmhAuth.equals(uri) ||
+				apiOmhRead.equals(uri) ||
 				// Survey
 				apiSurveyUpload.equals(uri) ||
 				apiSurveyResponseRead.equals(uri) ||
@@ -778,6 +792,15 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiOmhAuth() {
 		return apiOmhAuth;
+	}
+	
+	/**
+	 * Returns the URI for OMH's read API.
+	 * 
+	 * @return The URI for OMH's read API.
+	 */
+	public String getApiOmhRead() {
+		return apiOmhRead;
 	}
 
 	/**

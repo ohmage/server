@@ -175,27 +175,6 @@
 								            </div>
 								        </div>
 								    </div>
-								    <div class="accordion-group">
-                                        <div class="accordion-heading pad-inner">
-                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseOmhAuth">
-                                                <i class="icon-plus"></i> OMH Authentication
-                                            </a>
-                                        </div>
-                                        <div id="collapseOmhAuth" class="accordion-body collapse" style="height: 0px; ">
-                                            <div class="accordion-inner pad-inner"   >
-                                                <form action="omh/auth" method="post" class="well" target="outputframe">
-                                                    <label><span class="label label-info">required</span> Username</label>
-                                                    <input type="text" name="user">
-                                                    <label><span class="label label-info">required</span> Password</label>
-                                                    <input type="text" name="password">
-                                                    <label><span class="label label-info">required</span> Requester</label>
-                                                    <input type="text" name="requester" value="ohmageEasyPost">
-                                                    <br>
-                                                    <input class="btn" type="submit" value="Submit">
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
 							        <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseLogout">
@@ -2006,6 +1985,73 @@
                                                     <input type="text" name="num_to_return">
                                                     <br>
                                                     <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="accordion-group">
+                            <div class="accordion-heading">
+                                <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion_top" href="#collapseOmh">
+                                    <button class="btn btn-primary"><i class="icon-plus"></i> Open mHealth APIs</button>
+                                </a>
+                            </div>
+                            <div id="collapseOmh" class="accordion-body collapse" style="height: 0px; ">
+                                
+                                <div class="accordion" id="accordion-omh">
+                        
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhAuth">
+                                                <i class="icon-plus"></i> OMH Authentication
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhAuth" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="omh/v1.0/auth" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Username</label>
+                                                    <input type="text" name="user">
+                                                    <label><span class="label label-info">required</span> Password</label>
+                                                    <input type="text" name="password">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhRead">
+                                                <i class="icon-plus"></i> OMH Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="omh/v1.0/read" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Authentication Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Payload ID</label>
+                                                    <input type="text" name="payload_id">
+                                                    <label>Start Date</label>
+                                                    <input type="text" name="t_start">
+                                                    <label>End Date</label>
+                                                    <input type="text" name="t_end">
+                                                    <label>Column List</label>
+                                                    <input type="text" name="column_list">
+                                                    <label>Number of Results to Skip</label>
+                                                    <input type="text" name="num_to_skip">
+                                                    <label>Number of Results to Return</label>
+                                                    <input type="text" name="num_to_return">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
                                                 </form>
                                             </div>
                                         </div>

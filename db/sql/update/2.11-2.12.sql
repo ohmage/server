@@ -133,4 +133,5 @@ CREATE TABLE observer_stream_data (
 
 -- Add the new preference key.
 INSERT INTO preference 
-    VALUES ('audit_log_location', '/opt/ohmage/logs/audits/');
+    VALUES ('audit_log_location', '/opt/ohmage/logs/audits/'),
+           ('fully_qualified_domain_name', 'http://localhost/');

@@ -16,6 +16,7 @@ import org.codehaus.jackson.JsonGenerator.Feature;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.auth.AuthTokenRequest;
 
@@ -55,7 +56,9 @@ public class OmhAuthenticateRequest extends Request {
 			// Convert the 'requester' parameter to the 'client' parameter.
 			Map<String, String[]> parameters = 
 				new HashMap<String, String[]>(this.getParameters());
-			parameters.put("client", parameters.get("requester"));
+			parameters.put(
+				InputKeys.CLIENT, 
+				parameters.get(InputKeys.OMH_REQUESTER));
 			tAuthTokenRequest = new AuthTokenRequest(httpRequest, parameters);
 		}
 		

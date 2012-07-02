@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonNode;
@@ -464,11 +465,12 @@ public class ObserverServices {
 	 * 
 	 * @param numToReturn The number of data points to return. Optional.
 	 * 
-	 * @return A collection of data points that match the query.
+	 * @return A list of data points in chronological order that match the 
+	 * 		   query.
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Collection<DataStream> getStreamData(
+	public List<DataStream> getStreamData(
 			final Stream stream,
 			final String username,
 			final String observerId,

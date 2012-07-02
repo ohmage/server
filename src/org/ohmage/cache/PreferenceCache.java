@@ -122,6 +122,9 @@ public final class PreferenceCache extends KeyValueCache {
 	
 	// Audit Log Location
 	public static final String KEY_AUDIT_LOG_LOCATION = "audit_log_location";
+	
+	public static final String KEY_FULLY_QUALIFIED_DOMAIN_NAME = 
+		"fully_qualified_domain_name";
 		
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;

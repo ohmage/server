@@ -1,6 +1,7 @@
 package org.ohmage.query;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.joda.time.DateTime;
@@ -182,7 +183,7 @@ public interface IObserverQueries {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Collection<DataStream> readData(
+	public List<DataStream> readData(
 		final Stream stream,
 		final String username,
 		final String observerId,

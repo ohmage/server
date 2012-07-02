@@ -46,7 +46,7 @@ import org.ohmage.util.StringUtils;
 public abstract class UserRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(UserRequest.class);
 	
-	protected static enum TokenLocation { COOKIE, PARAMETER, EITHER };
+	public static enum TokenLocation { COOKIE, PARAMETER, EITHER };
 	protected static enum AllowNewAccount { NEW_ACCOUNT_ALLOWED, NEW_ACCOUNT_DISALLOWED };
 	
 	protected static final long MILLIS_IN_A_SECOND = 1000;

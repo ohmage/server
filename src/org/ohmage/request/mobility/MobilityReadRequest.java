@@ -43,6 +43,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
+import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.MobilityServices;
 import org.ohmage.util.StringUtils;
@@ -227,33 +228,44 @@ public class MobilityReadRequest extends Request {
 				}
 				
 				// Always get all of the columns.
-				tRegularReadRequest = 
-					new StreamReadRequest(
-						httpRequest,
-						getParameterMap(),
-						"edu.ucla.cens.Mobility",
-						null,
-						"regular",
-						2012050700,
-						date,
-						date.plusDays(1),
-						null,
-						null,
-						null);
-				
-				tExtendedReadRequest = 
-					new StreamReadRequest(
-						httpRequest,
-						getParameterMap(),
-						"edu.ucla.cens.Mobility",
-						null,
-						"extended",
-						2012050700,
-						date,
-						date.plusDays(1),
-						null,
-						null,
-						null);
+				try {
+					tRegularReadRequest = 
+						new StreamReadRequest(
+							httpRequest,
+							getParameterMap(),
+							false,
+							TokenLocation.EITHER,
+							"edu.ucla.cens.Mobility",
+							null,
+							"regular",
+							2012050700,
+							date,
+							date.plusDays(1),
+							null,
+							null,
+							null);
+					
+					tExtendedReadRequest = 
+						new StreamReadRequest(
+							httpRequest,
+							getParameterMap(),
+							false,
+							TokenLocation.EITHER,
+							"edu.ucla.cens.Mobility",
+							null,
+							"extended",
+							2012050700,
+							date,
+							date.plusDays(1),
+							null,
+							null,
+							null);
+				}
+				catch(IllegalArgumentException e) {
+					throw new ValidationException(
+						"There was an error creating the request.",
+						e);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);

@@ -10,4 +10,5 @@ INSERT INTO preference(p_key, p_value) VALUES
     ('recaptcha_private_key', ''),
     ('public_class_id', 'urn:class:public'),
     ('video_directory', '/opt/ohmage/userdata/videos'),
-    ('audit_log_location', '/opt/ohmage/logs/audits/');
+    ('audit_log_location', '/opt/ohmage/logs/audits/'),
+    ('fully_qualified_domain_name', 'http://localhost/');

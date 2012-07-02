@@ -192,33 +192,44 @@ public class MobilityAggregateReadRequest extends UserRequest {
 				*/
 				
 				// Always get all of the columns.
-				tRegularReadRequest = 
-					new StreamReadRequest(
-						httpRequest,
-						getParameterMap(),
-						"edu.ucla.cens.Mobility",
-						null,
-						"regular",
-						2012050700,
-						tStartDate,
-						endDate,
-						null,
-						null,
-						null);
-				
-				tExtendedReadRequest = 
-					new StreamReadRequest(
-						httpRequest,
-						getParameterMap(),
-						"edu.ucla.cens.Mobility",
-						null,
-						"extended",
-						2012050700,
-						tStartDate,
-						endDate,
-						null,
-						null,
-						null);
+				try {
+					tRegularReadRequest = 
+						new StreamReadRequest(
+							httpRequest,
+							getParameterMap(),
+							false,
+							TokenLocation.EITHER,
+							"edu.ucla.cens.Mobility",
+							null,
+							"regular",
+							2012050700,
+							tStartDate,
+							endDate,
+							null,
+							null,
+							null);
+					
+					tExtendedReadRequest = 
+						new StreamReadRequest(
+							httpRequest,
+							getParameterMap(),
+							false,
+							TokenLocation.EITHER,
+							"edu.ucla.cens.Mobility",
+							null,
+							"extended",
+							2012050700,
+							tStartDate,
+							endDate,
+							null,
+							null,
+							null);
+				}
+				catch(IllegalArgumentException e) {
+					throw new ValidationException(
+						"There was an error creating the request.",
+						e);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);

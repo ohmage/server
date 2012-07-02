@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -24,15 +25,18 @@ import org.codehaus.jackson.JsonProcessingException;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.Observer;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.RequestBuilder;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
@@ -193,6 +197,74 @@ public class StreamReadRequest extends UserRequest {
 		public boolean isLeaf() {
 			return children.size() == 0;
 		}
+		
+		/**
+		 * Creates a string that is a list of all of the descendants of this
+		 * node. For example, if this node had one leaf child, "leaf", and
+		 * another child, "other", and "other" had one leaf child, "otherLeaf",
+		 * the result of this function would be a string with two nodes:
+		 * "leaf,other:otherLeaf".
+		 * 
+		 * @return The comma-separated string representation of the list of the
+		 * 		   descendants of this node, each prepended with their parent's
+		 * 		   name separated by a colon.
+		 * 
+		 * @throws IllegalStateException This is a leaf node which has no 
+		 * 								 descendants.
+		 */
+		public String toListString() {
+			StringBuilder result = new StringBuilder();
+			
+			boolean firstPass = true;
+			for(String node : toList()) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					result.append(',');
+				}
+				
+				result.append(node);
+			}
+			
+			return result.toString();
+		}
+		
+		/**
+		 * Creates a list of column nodes for each of this node's descendants.
+		 * For example, if this node had one leaf child, "leaf", and another 
+		 * child, "other", and "other" had one leaf child, "otherLeaf", the 
+		 * result of this function would be a list with two nodes: "leaf" and 
+		 * "other:otherLeaf".
+		 * 
+		 * @return The list of children and their children where the grand
+		 * 		   children and beyond are prepended with the child's name.  
+		 * 
+		 * @throws IllegalStateException This is a leaf node which has no 
+		 * 								 children.
+		 */
+		private List<String> toList() {
+			if(isLeaf()) {
+				throw new IllegalStateException(
+					"This is a leaf node, which doesn't have a column list.");
+			}
+			
+			List<String> result = new LinkedList<String>();
+			for(T child : children.keySet()) {
+				ColumnNode<T> childNode = children.get(child);
+				
+				if(childNode.isLeaf()) {
+					result.add(child.toString());
+				}
+				else {
+					List<String> subChildren = childNode.toList();
+					for(String subChild : subChildren) {
+						result.add(child.toString() + ":" + subChild);
+					}
+				}
+			}
+			return result;
+		}
 	}
 	
 	// Part of the URI.
@@ -218,7 +290,7 @@ public class StreamReadRequest extends UserRequest {
 	private Observer.Stream stream;
 	
 	// The collection results from this request.
-	private final Collection<DataStream> results;
+	private final List<DataStream> results;
 	
 	/**
 	 * Creates a stream read request from the given parameters.
@@ -227,6 +299,13 @@ public class StreamReadRequest extends UserRequest {
 	 * 
 	 * @param parameters The parameters from the HTTP request that have already
 	 * 					 been decoded.
+	 * 
+	 * @param hashPassword Whether or not to hash the user's password. If it is
+	 * 					   null, username/password combinations will not be
+	 * 					   allowed.
+	 * 
+	 * @param tokenLocation Where to look for the token. If it is null, the 
+	 * 						token for authentication will not be allowed.
 	 * 
 	 * @param observerId The observer's unique identifier. Required.
 	 * 
@@ -254,86 +333,44 @@ public class StreamReadRequest extends UserRequest {
 	 * 								   parsed.
 	 * 
 	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws IllegalArgumentException Thrown if a required parameter is 
+	 * 									missing.
 	 */
 	public StreamReadRequest(
 			final HttpServletRequest httpRequest, 
 			final Map<String, String[]> parameters,
+			final Boolean hashPassword,
+			final TokenLocation tokenLocation,
 			final String observerId,
 			final Long observerVersion,
 			final String streamId,
 			final long streamVersion,
 			final DateTime startDate,
 			final DateTime endDate,
-			final String columns,
+			final ColumnNode<String> columns,
 			final Long numToSkip,
 			final Long numToReturn)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, false, TokenLocation.EITHER, parameters);
+		super(httpRequest, hashPassword, tokenLocation, parameters);
 		
-		String tObserverId = null;
-		Long tObserverVersion = null;
-		String tStreamId = null;
-		Long tStreamVersion = null;
-		DateTime tStartDate = null;
-		DateTime tEndDate = null;
-		ColumnNode<String> tColumnsRoot = null;
-		long tNumToSkip = 0;
-		long tNumToReturn = MAX_NUMBER_TO_RETURN;
-		
-		if(! isFailed()) {
-			LOGGER.info("Creating a stream read request.");
-			
-			if(observerId == null) {
-				setFailed(
-					ErrorCode.OBSERVER_INVALID_ID,
-					"The observer ID is missing.");
-			}
-			if(streamId == null) {
-				setFailed(
-					ErrorCode.OBSERVER_INVALID_STREAM_ID,
-					"The stream ID is missing.");
-			}
-			
-			try {
-				tObserverId = ObserverValidators.validateObserverId(observerId);
-				tObserverVersion = observerVersion;
-				tStreamId = ObserverValidators.validateStreamId(streamId);
-				tStreamVersion = streamVersion;
-				tStartDate = startDate;
-				
-				LOGGER.debug("Start Date: " + tStartDate);
-				
-				tEndDate = endDate;
-				
-				LOGGER.info("End Date: " + tEndDate);
-				
-				tColumnsRoot = ObserverValidators.validateColumnList(columns);
-
-				if((numToSkip != null) && (numToSkip > 0)) {
-					tNumToSkip = numToSkip;
-				}
-				if((numToReturn != null) && (
-					(numToReturn < 0) || (numToReturn > MAX_NUMBER_TO_RETURN))) {
-					
-					tNumToReturn = MAX_NUMBER_TO_RETURN;
-				}
-			}
-			catch(ValidationException e) {
-				e.failRequest(this);
-				e.logException(LOGGER);
-			}
+		if(observerId == null) {
+			throw new IllegalArgumentException("The observer ID is null.");
+		}
+		else if(streamId == null) {
+			throw new IllegalArgumentException("The stream ID is null.");
 		}
 		
-		this.observerId = tObserverId;
-		this.observerVersion = tObserverVersion;
-		this.streamId = tStreamId;
-		this.streamVersion = tStreamVersion;
-		this.startDate = tStartDate;
-		this.endDate = tEndDate;
-		this.columnsRoot = tColumnsRoot;
-		this.numToSkip = tNumToSkip;
-		this.numToReturn = tNumToReturn;
+		this.observerId = observerId;
+		this.observerVersion = observerVersion;
+		this.streamId = streamId;
+		this.streamVersion = streamVersion;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.columnsRoot = columns;
+		this.numToSkip = numToSkip;
+		this.numToReturn = numToReturn;
 		
 		results = new LinkedList<DataStream>();
 	}
@@ -649,8 +686,73 @@ public class StreamReadRequest extends UserRequest {
 			
 			// Add the meta-data.
 			generator.writeObjectFieldStart("metadata");
+			
+			// Add the count to the meta-data.
 			generator.writeNumberField("count", results.size());
-			// TODO: Add the "prev" and "next" fields.
+
+			// Get the URL that will be the base for the "previous" and "next"
+			// URLs.
+			StringBuilder prevAndNextUrlBuilder = buildNextAndPrevUrl();
+			
+			// If the number of entries skipped was non-zero, add a previous
+			// pointer.
+			if(numToSkip != 0) {
+				// Create a copy of the existing string builder.
+				StringBuilder prevUrl = 
+					new StringBuilder(prevAndNextUrlBuilder);
+				
+				// Calculate the number of results to skip and return for the
+				// "previous" URL.
+				long prevNumToSkip = numToSkip - numToReturn - 1;
+				boolean returnNumToSkipAsNumToReturn = false;
+				if(prevNumToSkip < 0) {
+					returnNumToSkipAsNumToReturn = true;
+					prevNumToSkip = 0;
+				}
+				
+				// Add the number of results to skip and return.
+				prevUrl
+					.append('&')
+					.append(InputKeys.NUM_TO_SKIP)
+					.append('=')
+					.append(prevNumToSkip);
+				prevUrl
+					.append('&')
+					.append(InputKeys.NUM_TO_RETURN)
+					.append('=')
+					.append((returnNumToSkipAsNumToReturn) ? numToSkip - 1 : numToReturn);
+				
+				// Add the "previous" URL to the meta-data.
+				generator.writeStringField("previous", prevUrl.toString());
+			}
+			
+			// Generate and add the "next" URL if the number of results is 
+			// to the number requested. The only reason it would be less is if
+			// there weren't that many to return. If there were more than that
+			if(numToReturn == results.size()) {
+				StringBuilder nextUrl = prevAndNextUrlBuilder;
+				
+				// Calculate the number to skip.
+				long nextNumToSkip = numToSkip + numToReturn;
+				
+				// Add the number of results to skip and return to the "next"
+				// URL.
+				nextUrl
+					.append('&')
+					.append(InputKeys.NUM_TO_SKIP)
+					.append('=')
+					.append(nextNumToSkip);
+				nextUrl
+					.append('&')
+					.append(InputKeys.NUM_TO_RETURN)
+					.append('=')
+					.append(numToReturn);
+				
+				// Add the "next" URL to the meta-data.
+				generator.writeStringField("next", nextUrl.toString());
+			}
+			
+			// End the meta-data.
 			generator.writeEndObject();
 			
 			// Add a "data" key that is an array of the results.
@@ -711,8 +813,8 @@ public class StreamReadRequest extends UserRequest {
 			return;
 		}
 		catch(IOException e) {
-			LOGGER.error(
-				"The response could no longer be writtent to the response",
+			LOGGER.info(
+				"The response could no longer be written to the response",
 				e);
 			httpResponse.setStatus(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -730,9 +832,124 @@ public class StreamReadRequest extends UserRequest {
 				generator.close();
 			}
 			catch(IOException e) {
-				LOGGER.warn("Could not close the generator.", e);
+				LOGGER.info("Could not close the generator.", e);
 			}
 		}
+	}
+	
+	/**
+	 * Generates a URL for the "previous" and "next" URLs in the result's 
+	 * meta-data. This includes all of the given parameters except the number 
+	 * of results to skip and return. These should be computed and added before
+	 * adding this URL to the result's meta-data.
+	 * 
+	 * @return The URL for the "previous" and "next" URLs without the number of
+	 * 		   results to skip or return.
+	 */
+	private StringBuilder buildNextAndPrevUrl() {
+		StringBuilder result = new StringBuilder();
+		
+		// Get the server's fully qualified domain name.
+		String fqdn;
+		try {
+			fqdn =
+				PreferenceCache.instance().lookup(
+					PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME);
+		}
+		catch(CacheMissException e) {
+			LOGGER.warn(
+				"Error retrieving the system's fully qualified domain name.",
+				e);
+			return null;
+		}
+		// Trim any tailing '/'s.
+		while(fqdn.endsWith("/")) {
+			fqdn = fqdn.substring(0, fqdn.length() - 1);
+		}
+		
+		// Add the fully qualified domain name.
+		result.append(fqdn);
+		
+		// Add the stream/read URI.
+		result.append(RequestBuilder.getInstance().getApiStreamRead());
+		
+		// Add the parameters.
+		result.append('?');
+		
+		// If the token was provided as a parameter, add it as a 
+		// parameter. If it was not, we don't want to start echoing 
+		// back passwords, so we will make it a requirement that the 
+		// caller re-supply the password.
+		String token = getUser().getToken();
+		if(token != null) {
+			result
+				.append(InputKeys.AUTH_TOKEN)
+				.append('=')
+				.append(token)
+				// This is so that the next component doesn't have to
+				// worry about checking if this exists or not.
+				.append('&');
+		}
+		
+		// Add the client value.
+		result.append(InputKeys.CLIENT).append('=').append(getClient());
+		
+		// Add the observer ID.
+		result
+			.append('&')
+			.append(InputKeys.OBSERVER_ID)
+			.append('=')
+			.append(observerId);
+		
+		// Add the observer version if it was given.
+		if(observerVersion != null) {
+			result
+				.append('&')
+				.append(InputKeys.OBSERVER_VERSION)
+				.append('=')
+				.append(observerVersion);
+		}
+		
+		// Add the stream ID and version.
+		result
+			.append('&')
+			.append(InputKeys.STREAM_ID)
+			.append('=')
+			.append(streamId);
+		result
+			.append('&')
+			.append(InputKeys.STREAM_VERSION)
+			.append('=')
+			.append(streamVersion);
+		
+		// Add the start date if it was given.
+		if(startDate != null) {
+			result
+				.append('&')
+				.append(InputKeys.START_DATE)
+				.append('=')
+				.append(ISODateTimeFormat.dateTime().print(startDate));
+		}
+
+		// Add the end date if it was given.
+		if(endDate != null) {
+			result
+				.append('&')
+				.append(InputKeys.END_DATE)
+				.append('=')
+				.append(ISODateTimeFormat.dateTime().print(endDate));
+		}
+		
+		// Add the columns list if it was given.
+		if(! columnsRoot.isLeaf()) {
+			result
+				.append('&')
+				.append(InputKeys.COLUMN_LIST)
+				.append('=')
+				.append(columnsRoot.toListString());
+		}
+		
+		return result;
 	}
 	
 	/**
