@@ -33,6 +33,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.ColumnKey;
 import org.ohmage.domain.DataStream;
+import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
@@ -118,6 +119,8 @@ public class MobilityReadRequest extends Request {
 		DEFAULT_COLUMNS = Collections.unmodifiableCollection(columnKeys);
 	}
 	
+	private final DateTime startDate;
+	
 	private final StreamReadRequest regularReadRequest;
 	private final StreamReadRequest extendedReadRequest;
 	
@@ -140,6 +143,8 @@ public class MobilityReadRequest extends Request {
 		
 		LOGGER.info("Creating a Mobility read request.");
 		
+		DateTime tStartDate = null;
+		
 		StreamReadRequest tRegularReadRequest = null;
 		StreamReadRequest tExtendedReadRequest = null;
 		
@@ -149,7 +154,6 @@ public class MobilityReadRequest extends Request {
 			try {
 				String[] t;
 				
-				DateTime date;
 				t = getParameterValues(InputKeys.DATE);
 				if(t.length == 0) {
 					throw new ValidationException(
@@ -157,20 +161,20 @@ public class MobilityReadRequest extends Request {
 							"The date value is missing: " + InputKeys.DATE);
 				}
 				else if(t.length == 1) {
-					date = MobilityValidators.validateDate(t[0]);
+					tStartDate = MobilityValidators.validateDate(t[0]);
 					
-					if(date == null) {
+					if(tStartDate == null) {
 						throw new ValidationException(
 								ErrorCode.SERVER_INVALID_DATE, 
 								"The date value is missing: " + 
 										InputKeys.DATE);
 					}
 					else {
-						date = 
+						tStartDate = 
 							new DateTime(
-								date.getYear(), 
-								date.getMonthOfYear(), 
-								date.getDayOfMonth(),
+								tStartDate.getYear(), 
+								tStartDate.getMonthOfYear(), 
+								tStartDate.getDayOfMonth(),
 								0, 
 								0,
 								DateTimeZone.UTC);
@@ -239,11 +243,11 @@ public class MobilityReadRequest extends Request {
 							null,
 							"regular",
 							2012050700,
-							date,
-							date.plusDays(1),
+							tStartDate.minusMinutes(10),
+							tStartDate.plusDays(1),
 							null,
-							null,
-							null);
+							0,
+							StreamReadRequest.MAX_NUMBER_TO_RETURN);
 					
 					tExtendedReadRequest = 
 						new StreamReadRequest(
@@ -255,11 +259,11 @@ public class MobilityReadRequest extends Request {
 							null,
 							"extended",
 							2012050700,
-							date,
-							date.plusDays(1),
+							tStartDate.minusMinutes(10),
+							tStartDate.plusDays(1),
 							null,
-							null,
-							null);
+							0,
+							StreamReadRequest.MAX_NUMBER_TO_RETURN);
 				}
 				catch(IllegalArgumentException e) {
 					throw new ValidationException(
@@ -272,6 +276,8 @@ public class MobilityReadRequest extends Request {
 				e.logException(LOGGER);
 			}
 		}
+		
+		startDate = tStartDate;
 		
 		regularReadRequest = tRegularReadRequest;
 		extendedReadRequest = tExtendedReadRequest;
@@ -307,34 +313,66 @@ public class MobilityReadRequest extends Request {
 			Collection<DataStream> regularResults = 
 				regularReadRequest.getResults();
 			for(DataStream dataStream : regularResults) {
-				try {
-					points.add(
-						new MobilityPoint(
-							dataStream, 
-							SubType.MODE_ONLY,
-							MobilityPoint.PrivacyState.PRIVATE));
+				MetaData metaData = dataStream.getMetaData();
+				if(metaData == null) {
+					LOGGER.info("A Mobility point is missing meta-data.");
+					continue;
 				}
-				catch(DomainException e) {
-					throw new ServiceException(
-						"One of the points was invalid.",
-						e);
+				
+				DateTime timestamp = metaData.getTimestamp();
+				if(timestamp == null) {
+					LOGGER.info(
+						"A Mobility point is missing a timestamp: " +
+							metaData.getId());
+					continue;
+				}
+				
+				if(! timestamp.isBefore(startDate)) {
+					try {
+						points.add(
+							new MobilityPoint(
+								dataStream, 
+								SubType.MODE_ONLY,
+								MobilityPoint.PrivacyState.PRIVATE));
+					}
+					catch(DomainException e) {
+						throw new ServiceException(
+							"One of the points was invalid.",
+							e);
+					}
 				}
 			}
 
 			Collection<DataStream> extendedResults = 
 				extendedReadRequest.getResults();
 			for(DataStream dataStream : extendedResults) {
-				try {
-					points.add(
-						new MobilityPoint(
-							dataStream, 
-							SubType.SENSOR_DATA,
-							MobilityPoint.PrivacyState.PRIVATE));
+				MetaData metaData = dataStream.getMetaData();
+				if(metaData == null) {
+					LOGGER.info("A Mobility point is missing meta-data.");
+					continue;
 				}
-				catch(DomainException e) {
-					throw new ServiceException(
-						"One of the points was invalid.",
-						e);
+				
+				DateTime timestamp = metaData.getTimestamp();
+				if(timestamp == null) {
+					LOGGER.info(
+						"A Mobility point is missing a timestamp: " +
+							metaData.getId());
+					continue;
+				}
+				
+				if(! timestamp.isBefore(startDate)) {
+					try {
+						points.add(
+							new MobilityPoint(
+								dataStream, 
+								SubType.SENSOR_DATA,
+								MobilityPoint.PrivacyState.PRIVATE));
+					}
+					catch(DomainException e) {
+						throw new ServiceException(
+							"One of the points was invalid.",
+							e);
+					}
 				}
 			}
 			

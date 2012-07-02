@@ -349,8 +349,8 @@ public class StreamReadRequest extends UserRequest {
 			final DateTime startDate,
 			final DateTime endDate,
 			final ColumnNode<String> columns,
-			final Long numToSkip,
-			final Long numToReturn)
+			final long numToSkip,
+			final long numToReturn)
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, hashPassword, tokenLocation, parameters);
