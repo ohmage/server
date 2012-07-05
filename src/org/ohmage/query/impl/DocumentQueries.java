@@ -371,7 +371,11 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
-				newFile.delete();
+				if(newFile.delete()) {
+					LOGGER.warn(
+						"Could not delete the file that was just created: " +
+							newFile.toString());
+				}
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_DOCUMENT + "' with parameters: " +
 						uuid + ", " + name + ", " + description + ", " + extension + ", " + url + ", " + fileLength + ", " + privacyState, e);
@@ -388,7 +392,11 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
-				newFile.delete();
+				if(newFile.delete()) {
+					LOGGER.warn(
+						"Could not delete the file that was just created: " +
+							newFile.toString());
+				}
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_DOCUMENT_USER_CREATOR + "' with parameters: " +
 						uuid + ", " + creatorUsername, e);
@@ -406,7 +414,11 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
-				newFile.delete();
+				if(newFile.delete()) {
+					LOGGER.warn(
+						"Could not delete the file that was just created: " +
+							newFile.toString());
+				}
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_ROLE + "' with parameters: " +
 						uuid + ", " + creatorUsername + ", " + Document.Role.OWNER, e);
@@ -427,7 +439,11 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 							);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
-						newFile.delete();
+						if(newFile.delete()) {
+							LOGGER.warn(
+								"Could not delete the file that was just created: " +
+									newFile.toString());
+						}
 						transactionManager.rollback(status);
 						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN_ROLE + "' with parameters: " + 
 								uuid + ", " + campaignId + ", " + campaignRoleMap.get(campaignId), e);
@@ -450,7 +466,11 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 							);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
-						newFile.delete();
+						if(newFile.delete()) {
+							LOGGER.warn(
+								"Could not delete the file that was just created: " +
+									newFile.toString());
+						}
 						transactionManager.rollback(status);
 						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CLASS_ROLE + "' with parameters: " + 
 								uuid + ", " + classId + ", " + classRoleMap.get(classId), e);
