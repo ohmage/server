@@ -348,7 +348,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Creating a new class.");
+		def.setName("Creating a new document.");
 		
 		try {
 			// Begin the transaction.
