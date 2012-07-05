@@ -120,6 +120,16 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
+	 * Returns a map of observer IDs to all versions of all of their streams.
+	 * 
+	 * @return The map of observer IDs to their streams.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Map<String, Collection<Stream>> getObserverIdToStreamsMap()
+		throws DataAccessException;
+	
+	/**
 	 * Compares a list of IDs to the existing IDs for a user for a stream and
 	 * returns the collection of IDs that match.
 	 * 

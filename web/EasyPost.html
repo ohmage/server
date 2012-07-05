@@ -2024,6 +2024,28 @@
                                             </div>
                                         </div>
                                     </div>
+                        
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhCatalog">
+                                                <i class="icon-plus"></i> OMH Catalog
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhCatalog" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="omh/v1.0/catalog" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Authentication Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <label>Payload ID</label>
+                                                    <input type="text" name="payload_id">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                     
                                     <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">

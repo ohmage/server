@@ -57,6 +57,7 @@ import org.ohmage.request.observer.ObserverUpdateRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.omh.OmhAuthenticateRequest;
+import org.ohmage.request.omh.OmhCatalogRequest;
 import org.ohmage.request.omh.OmhReadRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
@@ -168,6 +169,7 @@ public final class RequestBuilder implements ServletContextAware {
 	
 	// OMH
 	private String apiOmhAuth;
+	private String apiOmhCatalog;
 	private String apiOmhRead;
 	
 	// Survey
@@ -298,6 +300,7 @@ public final class RequestBuilder implements ServletContextAware {
 		
 		// OMH
 		apiOmhAuth = apiRoot + "/omh/v1.0/auth";
+		apiOmhCatalog = apiRoot + "/omh/v1.0/catalog";
 		apiOmhRead = apiRoot + "/omh/v1.0/read";
 		
 		// Survey
@@ -497,6 +500,9 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiOmhAuth.equals(requestUri)) {
 			return new OmhAuthenticateRequest(httpRequest);
 		}
+		else if(apiOmhCatalog.equals(requestUri)) {
+			return new OmhCatalogRequest(httpRequest);
+		}
 		else if(apiOmhRead.equals(requestUri)) {
 			return new OmhReadRequest(httpRequest);
 		}
@@ -647,6 +653,7 @@ public final class RequestBuilder implements ServletContextAware {
 				apiStreamRead.equals(uri) ||
 				// OMH
 				apiOmhAuth.equals(uri) ||
+				apiOmhCatalog.equals(uri) ||
 				apiOmhRead.equals(uri) ||
 				// Survey
 				apiSurveyUpload.equals(uri) ||
@@ -792,6 +799,15 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiOmhAuth() {
 		return apiOmhAuth;
+	}
+	
+	/**
+	 * Returns the URI for OMH's catalog API.
+	 * 
+	 * @return The URI for OMH's catalog API.
+	 */
+	public String getApiOmhCatalog() {
+		return apiOmhCatalog;
 	}
 	
 	/**

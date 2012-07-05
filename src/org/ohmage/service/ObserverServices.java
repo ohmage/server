@@ -291,6 +291,24 @@ public class ObserverServices {
 	}
 	
 	/**
+	 * Retrieves a map of observer IDs to all versions of all of their streams.
+	 * 
+	 * @return The map of observer IDs to their streams.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Map<String, Collection<Stream>> getObserverIdToStreamsMap() 
+			throws ServiceException {
+		
+		try {
+			return observerQueries.getObserverIdToStreamsMap();
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Validates that the uploaded data is valid by comparing it to its stream
 	 * schema and creating DataStream objects.
 	 * 

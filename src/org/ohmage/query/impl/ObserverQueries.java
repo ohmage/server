@@ -661,6 +661,88 @@ public class ObserverQueries extends Query implements IObserverQueries {
 
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getObserverIdToStreamsMap()
+	 */
+	@Override
+	public Map<String, Collection<Stream>> getObserverIdToStreamsMap()
+			throws DataAccessException {
+		
+		final Map<String, Collection<Stream>> result = 
+			new HashMap<String, Collection<Stream>>();
+		
+		final String sql =
+			"SELECT " +
+				"o.observer_id, " +
+				"os.stream_id, " +
+				"os.version, " +
+				"os.name, " +
+				"os.description, " +
+				"os.with_id, " +
+				"os.with_timestamp, " +
+				"os.with_location, " +
+				"os.stream_schema " +
+			"FROM observer o, observer_stream os, observer_stream_link osl " +
+			"WHERE o.id = osl.observer_id " +
+			"AND os.id = osl.observer_stream_id " +
+			"GROUP BY os.stream_id, os.version";
+		
+		try {
+			getJdbcTemplate().query(
+				sql,
+				new RowMapper<Object>() {
+					/**
+					 * Adds each of the streams to their corresponding list.
+					 */
+					@Override
+					public Object mapRow(
+							final ResultSet rs, 
+							final int rowNum)
+							throws SQLException {
+
+						String observerId = rs.getString("observer_id");
+						
+						Stream stream;
+						try {
+							stream = 
+								new Observer.Stream(
+									rs.getString("stream_id"), 
+									rs.getLong("version"), 
+									rs.getString("name"), 
+									rs.getString("description"), 
+									rs.getBoolean("with_id"),
+									rs.getBoolean("with_timestamp"), 
+									rs.getBoolean("with_location"), 
+									rs.getString("stream_schema"));
+						}
+						catch(DomainException e) {
+							throw new SQLException(e);
+						}
+						
+						Collection<Stream> streams = result.get(observerId);
+						if(streams == null) {
+							streams = new LinkedList<Stream>();
+							result.put(observerId, streams);
+						}
+						streams.add(stream);
+						
+						return null;
+					}
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					sql +
+					"'.",
+				e);
+		}
+		
+		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.IObserverQueries#getDuplicateIds(java.lang.String, java.lang.String, java.util.Collection)
 	 */
 	@Override

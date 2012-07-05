@@ -125,6 +125,86 @@ public abstract class UserRequest extends Request {
 	}
 	
 	/**
+	 * This is a slight variation on 
+	 * {@link #UserRequest(HttpServletRequest, Boolean, TokenLocation, Map)} 
+	 * for OMH requests. There is a slight discrepancy between what they call
+	 * their 'client' parameter; this is fixed by this call which explicitly
+	 * requests the client value rather than pulling it from the request.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param hashPassword Whether or not to hash the password in the request.
+	 * 					   If this is null, the request will not use the 
+	 * 					   username and password for authentication.
+	 * 
+	 * @param tokenLocation Where to search for the authentication token. If
+	 * 						this is null, the request will not use the 
+	 * 						authentication token for authentication.
+	 * 
+	 * @param parameters A preset map of parameters. If this is null, the 
+	 * 					 parameters are decoded from the HTTP request. 
+	 * 					 Otherwise, these parameters are used.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed. This is only applicable in the
+	 * 								   event of the HTTP parameters being 
+	 * 								   parsed.
+	 */
+	public UserRequest(
+			final HttpServletRequest httpRequest,
+			final Boolean hashPassword,
+			final TokenLocation tokenLocation,
+			final Map<String, String[]> parameters,
+			final String client) 
+			throws IOException, InvalidRequestException {
+		
+		super(httpRequest, parameters);
+		
+		User tUser = null;
+		String tClient = null;
+		
+		if(! isFailed()) {
+			LOGGER.info("Creating a user request.");
+			
+			try {
+				if(hashPassword != null) { 
+					tUser = retrieveUser(hashPassword);
+				}
+				
+				if((tokenLocation != null) && (tUser == null)) {
+					tUser = retrieveToken(httpRequest, tokenLocation);
+				}
+				
+				if(tUser == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"Authentication credentials were not provided.");
+				}
+				
+				try {
+					tClient = validateClient(client);
+					NDC.push(tClient);
+				}
+				catch(ValidationException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_REQUESTER,
+						"The requester value was invalid.",
+						e);
+				}
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
+			}
+		}
+		
+		user = tUser;
+		this.client = tClient;
+	}
+	
+	/**
 	 * Returns the user in the request.
 	 * 
 	 * @return The user in the request.
