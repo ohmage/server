@@ -1700,9 +1700,20 @@ public class UserQueries extends Query implements IUserQueries {
 			// If we are deleting the user's personal information, then we 
 			// won't add new or update existing personal information.
 			if(deletePersonalInfo) {
-				getJdbcTemplate().update(
-						SQL_DELETE_USER_PERSONAL, 
-						new Object[] { username });
+				try {
+					getJdbcTemplate().update(
+							SQL_DELETE_USER_PERSONAL, 
+							new Object[] { username });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+						"Error executing SQL '" + 
+							SQL_DELETE_USER_PERSONAL + 
+							"' with parameter: " +
+							username,
+						e);
+				}
 			}
 			else {
 				if(userHasPersonalInfo(username)) {
