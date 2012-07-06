@@ -563,6 +563,7 @@ CREATE TABLE annotation_annotation (
 -- --------------------------------------------------------------------
 -- An observer's definition.
 -- --------------------------------------------------------------------
+-- Create the observer tables.
 CREATE TABLE observer (
     id int unsigned NOT NULL AUTO_INCREMENT,
     user_id int unsigned NOT NULL,
@@ -607,7 +608,7 @@ CREATE TABLE observer_stream (
 -- versions of its observer.
 -- --------------------------------------------------------------------
 CREATE TABLE observer_stream_link (
-  id int(10) unsigned NOT NULL,
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
   observer_id int(10) unsigned NOT NULL,
   observer_stream_id int(10) unsigned NOT NULL,
   PRIMARY KEY (id),
@@ -635,8 +636,9 @@ CREATE TABLE observer_stream_data (
   user_id int unsigned NOT NULL,
   observer_stream_link_id int unsigned NOT NULL,
   uid varchar(255) DEFAULT NULL,
-  time long DEFAULT NULL,
-  time_offset long DEFAULT NULL,
+  time bigint DEFAULT NULL,
+  time_offset bigint DEFAULT NULL,
+  time_adjusted bigint DEFAULT NULL,
   time_zone varchar(32) DEFAULT NULL,
   location_timestamp varchar(64) DEFAULT NULL,
   location_latitude double DEFAULT NULL,
@@ -648,6 +650,7 @@ CREATE TABLE observer_stream_data (
   PRIMARY KEY (id),
   KEY observer_stream_data_key_observer_stream_link_id (observer_stream_link_id),
   KEY observer_stream_data_key_user_id (user_id),
+  INDEX observer_stream_data_index_time_adjusted (time_adjusted),
   CONSTRAINT observer_stream_data_foreign_key_user_id 
     FOREIGN KEY (user_id) 
     REFERENCES user (id) 
