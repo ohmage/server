@@ -406,6 +406,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								MobilityClassifier.getVersion());
 					}
 					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
 						throw new DataAccessException(
 								"Error executing SQL '" + 
 										SQL_INSERT_EXTENDED + 
@@ -425,6 +426,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				// submitting duplicates. We probably want to, at the very 
 				// least make a warning message and at most fail the request.
 				if(! isDuplicate(e)) {
+					transactionManager.rollback(status);
 					throw new DataAccessException(
 							"Error executing SQL '" + SQL_INSERT + "' with parameters: " +
 								mobilityPoint.getId().toString() + ", " +
@@ -440,6 +442,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 				}
 			}
 			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
 				throw new DataAccessException(
 						"Error executing SQL '" + SQL_INSERT + "' with parameters: " +
 							mobilityPoint.getId().toString() + ", " +

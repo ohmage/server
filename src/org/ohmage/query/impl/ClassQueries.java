@@ -710,7 +710,7 @@ public class ClassQueries extends Query implements IClassQueries {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Creating a new class.");
+		def.setName("Updating a class.");
 		
 		try {
 			// Begin the transaction.
@@ -1036,7 +1036,7 @@ public class ClassQueries extends Query implements IClassQueries {
 	public void deleteClass(String classId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Deleting a new class.");
+		def.setName("Deleting a class.");
 		
 		try {
 			// Begin the transaction.
