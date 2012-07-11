@@ -40,7 +40,6 @@ import org.ohmage.request.RequestBuilder;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
-import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Reads uploaded data for a stream.</p>
@@ -413,6 +412,9 @@ public class StreamReadRequest extends UserRequest {
 			String[] t;
 			
 			try {
+				// FIXME: Removing this parameter until proper ACLs can be 
+				// established.
+				/*
 				t = getParameterValues(InputKeys.USERNAME);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -423,6 +425,7 @@ public class StreamReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
+				*/
 				
 				t = getParameterValues(InputKeys.OBSERVER_ID);
 				if(t.length > 1) {
