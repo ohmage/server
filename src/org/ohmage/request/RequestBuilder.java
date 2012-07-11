@@ -53,12 +53,15 @@ import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.mobility.MobilityUpdateRequest;
 import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.observer.ObserverCreationRequest;
+import org.ohmage.request.observer.ObserverReadRequest;
 import org.ohmage.request.observer.ObserverUpdateRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.omh.OmhAuthenticateRequest;
 import org.ohmage.request.omh.OmhCatalogRequest;
 import org.ohmage.request.omh.OmhReadRequest;
+import org.ohmage.request.omh.OmhRegistryCreateRequest;
+import org.ohmage.request.omh.OmhRegistryUpdateRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -163,12 +166,15 @@ public final class RequestBuilder implements ServletContextAware {
 	
 	// Observer
 	private String apiObserverCreate;
+	private String apiObserverRead;
 	private String apiObserverUpdate;
 	private String apiStreamUpload;
 	private String apiStreamRead;
 	
 	// OMH
 	private String apiOmhAuth;
+	private String apiOmhRegistryCreate;
+	private String apiOmhRegistryUpdate;
 	private String apiOmhCatalog;
 	private String apiOmhRead;
 	
@@ -294,12 +300,15 @@ public final class RequestBuilder implements ServletContextAware {
 		
 		// Observer
 		apiObserverCreate = apiRoot + "/observer/create";
+		apiObserverRead = apiRoot + "/observer/read";
 		apiObserverUpdate = apiRoot + "/observer/update";
 		apiStreamUpload = apiRoot + "/stream/upload";
 		apiStreamRead = apiRoot + "/stream/read";
 		
 		// OMH
 		apiOmhAuth = apiRoot + "/omh/v1.0/auth";
+		apiOmhRegistryCreate = apiRoot + "/omh/v1.0/registry/create";
+		apiOmhRegistryUpdate = apiRoot + "/omh/v1.0/registry/update";
 		apiOmhCatalog = apiRoot + "/omh/v1.0/catalog";
 		apiOmhRead = apiRoot + "/omh/v1.0/read";
 		
@@ -487,6 +496,9 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiObserverCreate.equals(requestUri)) {
 			return new ObserverCreationRequest(httpRequest);
 		}
+		else if(apiObserverRead.equals(requestUri)) {
+			return new ObserverReadRequest(httpRequest);
+		}
 		else if(apiObserverUpdate.equals(requestUri)) {
 			return new ObserverUpdateRequest(httpRequest);
 		}
@@ -499,6 +511,12 @@ public final class RequestBuilder implements ServletContextAware {
 		// OMH
 		else if(apiOmhAuth.equals(requestUri)) {
 			return new OmhAuthenticateRequest(httpRequest);
+		}
+		else if(apiOmhRegistryCreate.equals(requestUri)) {
+			return new OmhRegistryCreateRequest(httpRequest);
+		}
+		else if(apiOmhRegistryUpdate.equals(requestUri)) {
+			return new OmhRegistryUpdateRequest(httpRequest);
 		}
 		else if(apiOmhCatalog.equals(requestUri)) {
 			return new OmhCatalogRequest(httpRequest);
@@ -648,11 +666,14 @@ public final class RequestBuilder implements ServletContextAware {
 				apiMobilityUpdate.equals(uri) ||
 				// Observer
 				apiObserverCreate.equals(uri) ||
+				apiObserverRead.equals(uri) ||
 				apiObserverUpdate.equals(uri) ||
 				apiStreamUpload.equals(uri) ||
 				apiStreamRead.equals(uri) ||
 				// OMH
 				apiOmhAuth.equals(uri) ||
+				apiOmhRegistryCreate.equals(uri) ||
+				apiOmhRegistryUpdate.equals(uri) ||
 				apiOmhCatalog.equals(uri) ||
 				apiOmhRead.equals(uri) ||
 				// Survey

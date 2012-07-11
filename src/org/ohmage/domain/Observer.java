@@ -20,7 +20,12 @@ import nu.xom.XPathException;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Parser;
 import org.apache.avro.SchemaParseException;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.MappingJsonFactory;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.exception.DomainException;
@@ -34,8 +39,23 @@ import org.w3c.dom.DOMException;
  * @author John Jenkins
  */
 public class Observer {
+	/**
+	 * The pattern for allowed IDs.
+	 */
 	private static final Pattern PATTERN_ID_VALIDATOR = 
 		Pattern.compile("([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}");
+	
+	/**
+	 * The JSON factory for creating parsers and generators.
+	 */
+	private static final JsonFactory JSON_FACTORY = new MappingJsonFactory();
+	
+	private static final String KEY_JSON_ID = "id";
+	private static final String KEY_JSON_VERSION = "version";
+	private static final String KEY_JSON_NAME = "name";
+	private static final String KEY_JSON_DESCRIPTION = "description";
+	private static final String KEY_JSON_VERSION_STRING = "versionString";
+	private static final String KEY_JSON_STREAMS = "streams";
 
 	private final String id;
 	private final long version;
@@ -53,6 +73,15 @@ public class Observer {
 	public static class Stream {
 		private static final Pattern PATTERN_ID_VALIDATOR = 
 			Pattern.compile("[a-zA-Z0-9_]{1,255}");
+
+		private static final String KEY_JSON_ID = "id";
+		private static final String KEY_JSON_VERSION = "version";
+		private static final String KEY_JSON_NAME = "name";
+		private static final String KEY_JSON_DESCRIPTION = "description";
+		private static final String KEY_JSON_WITH_ID = "with_id";
+		private static final String KEY_JSON_WITH_TIMESTAMP = "with_timestamp";
+		private static final String KEY_JSON_WITH_LOCATION = "with_location";
+		private static final String KEY_JSON_SCHEMA = "schema";
 		
 		private final String id;
 		private final long version;
@@ -382,6 +411,64 @@ public class Observer {
 		}
 		
 		/**
+		 * Writes this stream to the JSON generator.
+		 * 
+		 * @param generator The JSON generator to write the output to. This 
+		 * 					should already be setup and ready to go.
+		 * 
+		 * @throws JsonProcessingException There was a problem with the 
+		 * 								   generator that prevented data from 
+		 * 								   being written.
+		 * 
+		 * @throws IOException There was a problem writing to the generator.
+		 */
+		public void toJson(
+				final JsonGenerator generator)
+				throws JsonGenerationException, IOException {
+			
+			// Write the start of this observer's object.
+			generator.writeStartObject();
+			
+			try {
+				// Add the ID.
+				generator.writeStringField(KEY_JSON_ID, id);
+				
+				// Add the version.
+				generator.writeNumberField(KEY_JSON_VERSION, version);
+				
+				// Add the name.
+				generator.writeStringField(KEY_JSON_NAME, name);
+				
+				// Add the description.
+				generator.writeStringField(KEY_JSON_DESCRIPTION, description);
+
+				// Add the "with ID" boolean.
+				generator.writeBooleanField(KEY_JSON_WITH_ID, withId);
+				
+				// Add the "with timestamp" boolean.
+				generator.writeBooleanField(
+					KEY_JSON_WITH_TIMESTAMP, 
+					withTimestamp);
+				
+				// Add the "with location" boolean.
+				generator.writeBooleanField(
+					KEY_JSON_WITH_LOCATION, 
+					withLocation);
+				
+				// Add the schema.
+				generator.writeObjectField(
+					KEY_JSON_SCHEMA, 
+					JSON_FACTORY
+						.createJsonParser(schema.toString())
+						.readValueAsTree());
+			}
+			finally {
+				// Close this observer's object.
+				generator.writeEndObject();
+			}
+		}
+		
+		/**
 		 * Sanitizes the stream ID and returns it.
 		 * 
 		 * @param id The ID to be sanitized.
@@ -413,6 +500,11 @@ public class Observer {
 	}
 	private final Map<String, Stream> streams;
 	
+	/**
+	 * Builder for creating new observers.
+	 *
+	 * @author John Jenkins
+	 */
 	public static class Builder {
 		private String id = null;
 		private Long version = null;
@@ -423,50 +515,114 @@ public class Observer {
 		
 		private Collection<Stream> streams = new LinkedList<Stream>();
 		
+		/**
+		 * Default constructor. Creates an empty observer.
+		 */
 		public Builder() {};
 		
+		/**
+		 * Sets the ID.
+		 * 
+		 * @param id The ID.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder setId(final String id) {
 			this.id = id;
 			
 			return this;
 		}
 		
+		/**
+		 * Sets the version.
+		 * 
+		 * @param version The version.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder setVersion(final long version) {
 			this.version = version;
 			
 			return this;
 		}
 		
+		/**
+		 * Sets the name.
+		 * 
+		 * @param name The name.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder setName(final String name) {
 			this.name = name;
 			
 			return this;
 		}
 		
+		/**
+		 * Sets the description.
+		 * 
+		 * @param description The description.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder setDescription(final String description) {
 			this.description = description;
 			
 			return this;
 		}
 		
+		/**
+		 * Sets the version string.
+		 * 
+		 * @param versionString The version string.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder setVersionString(final String versionString) {
 			this.versionString = versionString;
 			
 			return this;
 		}
 		
+		/**
+		 * Adds a single stream to the collection of streams. Stream order is
+		 * not important or preserved.
+		 * 
+		 * @param stream The stream to associate with this observer.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder addStream(final Stream stream) {
 			streams.add(stream);
 			
 			return this;
 		}
 		
+		/**
+		 * Adds all of the streams to the collection of streams. Stream order 
+		 * is not important or preserved.
+		 * 
+		 * @param streams The collection of streams to associate with this
+		 * 				  observer.
+		 * 
+		 * @return This builder, to allow for chaining.
+		 */
 		public Builder addStreams(final Collection<Stream> streams) {
 			this.streams.addAll(streams);
 			
 			return this;
 		}
 		
+		/**
+		 * Attempts to create the observer.
+		 * 
+		 * @return The observer based on the values set.
+		 * 
+		 * @throws DomainException Either, not all of the required values were
+		 * 						   given, or one or more of the values were
+		 * 						   invalid.
+		 */
 		public Observer build() throws DomainException {
 			return new Observer(
 				id, 
@@ -767,6 +923,57 @@ public class Observer {
 				dataNode.toString());
 		
 		return result;
+	}
+	
+	/**
+	 * Writes this observer to the JSON generator.
+	 * 
+	 * @param generator The JSON generator to write the output to. This should
+	 * 					already be setup and ready to go.
+	 * 
+	 * @throws JsonProcessingException There was a problem with the generator
+	 * 								   that prevented data from being written.
+	 * 
+	 * @throws IOException There was a problem writing to the generator.
+	 */
+	public void toJson(
+			final JsonGenerator generator)
+			throws JsonProcessingException, IOException {
+		
+		// Write the start of this observer's object.
+		generator.writeStartObject();
+		
+		try {
+			// Add the ID.
+			generator.writeStringField(KEY_JSON_ID, id);
+			
+			// Add the version.
+			generator.writeNumberField(KEY_JSON_VERSION, version);
+			
+			// Add the name.
+			generator.writeStringField(KEY_JSON_NAME, name);
+			
+			// Add the description.
+			generator.writeStringField(KEY_JSON_DESCRIPTION, description);
+			
+			// Add the version string.
+			generator.writeStringField(KEY_JSON_VERSION_STRING, versionString);
+			
+			// Add the observer's streams.
+			generator.writeArrayFieldStart(KEY_JSON_STREAMS);
+			try {
+				for(Stream stream : streams.values()) {
+					stream.toJson(generator);
+				}
+			}
+			finally {
+				generator.writeEndArray();
+			}
+		}
+		finally {
+			// Close this observer's object.
+			generator.writeEndObject();
+		}
 	}
 
 	/**

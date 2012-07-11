@@ -1934,6 +1934,34 @@
                                     
                                     <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseObserverRead">
+                                                <i class="icon-plus"></i> Read Observer
+                                            </a>
+                                        </div>
+                                        <div id="collapseObserverRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="observer/read" enctype="multipart/form-data" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Auth Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label>Observer ID</label>
+                                                    <input type="text" name="observer_id">
+                                                    <label>Observer Version</label>
+                                                    <input type="text" name="observer_version">
+                                                    <label>Number to Skip</label>
+                                                    <input type="text" name="num_to_skip">
+                                                    <label>Number to Return</label>
+                                                    <input type="text" name="num_to_return">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
                                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-observer" href="#collapseObserverUpdate">
                                                 <i class="icon-plus"></i> Update Observer
                                             </a>
@@ -2018,6 +2046,50 @@
                                                     <input type="text" name="password">
                                                     <label><span class="label label-info">required</span> Requester</label>
                                                     <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhRegistryCreate">
+                                                <i class="icon-plus"></i> Registry Create
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhRegistryCreate" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="omh/v1.0/registry/create" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Authentication Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <label>Payload ID</label>
+                                                    <input type="text" name="payload_id">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhRegistryUpdate">
+                                                <i class="icon-plus"></i> Registry Update
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhRegistryUpdate" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="omh/v1.0/registry/update" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Authentication Token</label>
+                                                    <input type="text" name="auth_token">
+                                                    <label><span class="label label-info">required</span> Requester</label>
+                                                    <input type="text" name="requester" value="ohmageEasyPost">
+                                                    <label>Payload ID</label>
+                                                    <input type="text" name="payload_id">
                                                     <br>
                                                     <input class="btn" type="submit" value="Submit">
                                                 </form>

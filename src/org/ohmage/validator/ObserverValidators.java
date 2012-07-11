@@ -15,7 +15,6 @@ import org.ohmage.domain.Observer;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.util.StringUtils;
 
@@ -410,11 +409,12 @@ public class ObserverValidators {
 	 * 							   allowed maximum.
 	 */
 	public static final long validateNumToReturn(
-			final String value)
+			final String value,
+			final long limit)
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
-			return StreamReadRequest.MAX_NUMBER_TO_RETURN;
+			return limit;
 		}
 		
 		try {
@@ -425,11 +425,11 @@ public class ObserverValidators {
 					ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
 					"The number to return must be positive: " + result);
 			}
-			else if(result > StreamReadRequest.MAX_NUMBER_TO_RETURN) {
+			else if(result > limit) {
 				throw new ValidationException(
 					ErrorCode.SERVER_INVALID_NUM_TO_RETURN,
 					"The number to return is greater than the allowed maximum (" +
-						StreamReadRequest.MAX_NUMBER_TO_RETURN +
+						limit +
 						"): " +
 						result);
 			}

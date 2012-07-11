@@ -207,6 +207,7 @@ public final class InputKeys {
 	// OMH Constants
 	public static final String OMH_REQUESTER = "requester";
 	public static final String OMH_PAYLOAD_ID = "payload_id";
+	public static final String OMH_PAYLOAD_VERSION = "payload_version";
 	public static final String OMH_START_TIMESTAMP = "t_start";
 	public static final String OMH_END_TIMESTAMP = "t_end";
 	public static final String OMH_COLUMN_LIST = "column_list";

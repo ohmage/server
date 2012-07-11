@@ -262,6 +262,40 @@ public class ObserverServices {
 	}
 	
 	/**
+	 * Gathers all observers that match the given criteria. If all parameters
+	 * are null, then all parameters visible to the user are returned.
+	 * 
+	 * @param id Limits the results to only those with this ID. Optional.
+	 * 
+	 * @param version Limits the results to only those with this version. 
+	 * 				  Optional.
+	 * 
+	 * @param numToSkip The number of observers to skip for paging.
+	 * 
+	 * @param numToReturn The number of observers to return for paging.
+	 * 
+	 * @return The collection of observers limited by the parameters.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Collection<Observer> getObservers(
+			final String id,
+			final Long version,
+			final long numToSkip,
+			final long numToReturn) 
+			throws ServiceException {
+		
+		try {
+			return 
+				observerQueries
+					.getObservers(id, version, numToSkip, numToReturn);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Retrieves the stream.
 	 * 
 	 * @param observerId The observer's unique identifier.

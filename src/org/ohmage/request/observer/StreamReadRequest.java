@@ -543,7 +543,8 @@ public class StreamReadRequest extends UserRequest {
 				}
 				else if(t.length == 1) {
 					tNumToReturn = 
-						ObserverValidators.validateNumToReturn(t[0]);
+						ObserverValidators
+							.validateNumToReturn(t[0], MAX_NUMBER_TO_RETURN);
 				}
 			}
 			catch(ValidationException e) {
@@ -589,6 +590,9 @@ public class StreamReadRequest extends UserRequest {
 		}
 		
 		try {
+			// FIXME: Needs to add ACLs or disable users reading other users'
+			// data ASAP.
+			
 			LOGGER.info("Retrieving the stream definition.");
 			stream = 
 				ObserverServices.instance().getStream(

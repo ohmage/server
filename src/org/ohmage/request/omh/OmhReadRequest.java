@@ -208,7 +208,11 @@ public class OmhReadRequest extends Request {
 							InputKeys.OMH_NUM_TO_RETURN);
 				}
 				else if(t.length == 1) {
-					numToReturn = ObserverValidators.validateNumToReturn(t[0]);
+					numToReturn = 
+						ObserverValidators
+							.validateNumToReturn(
+								t[0], 
+								StreamReadRequest.MAX_NUMBER_TO_RETURN);
 				}
 				
 				tStreamReadRequest = 

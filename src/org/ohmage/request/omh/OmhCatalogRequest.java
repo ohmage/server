@@ -283,6 +283,7 @@ public class OmhCatalogRequest extends UserRequest {
 					// Build the payload definition. Include strict or optional
 					// in each column's definition.
 					
+					
 					// Set this as not being summarizable. This would be an
 					// interesting and potentially useful feature, but it would
 					// require more work on the observer side first.

@@ -488,6 +488,187 @@ public class ObserverQueries extends Query implements IObserverQueries {
 	
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getObservers(java.lang.String, java.lang.Long, long, long)
+	 */
+	public List<Observer> getObservers(
+			final String id,
+			final Long version,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException {
+		
+		// Build the SQL that will get all of the observers visible to the 
+		// requesting user.
+		StringBuilder observerSql =
+			new StringBuilder(
+				"SELECT " +
+					"id, " +
+					"observer_id, " +
+					"version, " +
+					"name, " +
+					"description, " +
+					"version_string " +
+				"FROM observer o");
+
+		List<String> whereClauses = new LinkedList<String>();
+		List<Object> parameters = new LinkedList<Object>();
+		
+		// Add the ID if it is present.
+		if(id != null) {
+			whereClauses.add("o.observer_id = ?");
+			parameters.add(id);
+		}
+		
+		// Add the version if present.
+		if(version != null) {
+			whereClauses.add("o.version = ?");
+			parameters.add(version);
+		}
+		
+		// Add the WHERE clauses to the query.
+		boolean firstPass = true;
+		for(String whereClause : whereClauses) {
+			if(firstPass) {
+				observerSql.append(" WHERE ");
+				firstPass = false;
+			}
+			else {
+				observerSql.append(" AND ");
+			}
+			
+			observerSql.append(whereClause);
+		}
+		
+		observerSql.append(" ORDER BY o.observer_id, o.version");
+		
+		observerSql.append(" LIMIT ?, ?");
+		parameters.add(numToSkip);
+		parameters.add(numToReturn);
+		
+		final Map<Long, Observer.Builder> observerBuilders = 
+			new HashMap<Long, Observer.Builder>();
+		try {
+			getJdbcTemplate().query(
+				observerSql.toString(),
+				parameters.toArray(),
+				new RowMapper<Object> () {
+					/**
+					 * Maps the row of data to a new observer builder.
+					 */
+					@Override
+					public Object mapRow(
+							final ResultSet rs, 
+							final int rowNum)
+							throws SQLException {
+					
+						Observer.Builder observerBuilder = 
+							new Observer.Builder();
+						
+						observerBuilder
+							.setId(rs.getString("observer_id"))
+							.setVersion(rs.getLong("version"))
+							.setName(rs.getString("name"))
+							.setDescription(rs.getString("description"))
+							.setVersionString(
+								rs.getString("version_string"));
+	
+						observerBuilders.put(
+							rs.getLong("id"), 
+							observerBuilder);
+						
+						return null;
+					}
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					observerSql +
+					"' with parameters: " +
+					parameters,
+				e);
+		}
+		
+		final String streamSql = 
+			"SELECT " +
+				"os.stream_id, " +
+				"os.version, " +
+				"os.name, " +
+				"os.description, " +
+				"os.with_id, " +
+				"os.with_timestamp, " +
+				"os.with_location, " +
+				"os.stream_schema " +
+			"FROM observer_stream os, observer_stream_link osl " +
+			"WHERE osl.observer_id = ? " +
+			"AND osl.observer_stream_id = os.id";
+		
+		for(Long dbId : observerBuilders.keySet()) {
+			try {
+				observerBuilders
+				.get(dbId)
+				.addStreams(
+					getJdbcTemplate().query(
+						streamSql, 
+						new Object[] { dbId },
+						new RowMapper<Observer.Stream>() {
+							/**
+							 * Maps the row of data to a new stream.
+							 */
+							@Override
+							public Stream mapRow(
+									final ResultSet rs, 
+									final int rowNum)
+									throws SQLException {
+								
+								try {
+									return new Observer.Stream(
+										rs.getString("stream_id"), 
+										rs.getLong("version"), 
+										rs.getString("name"), 
+										rs.getString("description"), 
+										rs.getBoolean("with_id"),
+										rs.getBoolean("with_timestamp"), 
+										rs.getBoolean("with_location"), 
+										rs.getString("stream_schema"));
+								}
+								catch(DomainException e) {
+									throw new SQLException(e);
+								}
+							}
+						}
+					)
+				);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				throw new DataAccessException(
+					"Error executing SQL '" +
+						streamSql +
+						"' with parameter: " +
+						dbId,
+					e);
+			}
+		}
+		
+		ArrayList<Observer> result = 
+			new ArrayList<Observer>(observerBuilders.size());
+		for(Observer.Builder observerBuilder : observerBuilders.values()) {
+			try {
+				result.add(observerBuilder.build());
+			}
+			catch(DomainException e) {
+				throw new DataAccessException(
+					"There was a problem building an observer.",
+					e);
+			}
+		}
+		
+		return result;
+	}
+	
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.IObserverQueries#getGreatestObserverVersion(java.lang.String)
 	 */
 	@Override
