@@ -388,19 +388,17 @@ public class MobilityReadRequest extends Request {
 					continue;
 				}
 				
-				if(! timestamp.isBefore(startDate)) {
-					try {
-						points.add(
-							new MobilityPoint(
-								dataStream, 
-								SubType.MODE_ONLY,
-								MobilityPoint.PrivacyState.PRIVATE));
-					}
-					catch(DomainException e) {
-						throw new ServiceException(
-							"One of the points was invalid.",
-							e);
-					}
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.MODE_ONLY,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
 				}
 			}
 
@@ -421,19 +419,17 @@ public class MobilityReadRequest extends Request {
 					continue;
 				}
 				
-				if(! timestamp.isBefore(startDate)) {
-					try {
-						points.add(
-							new MobilityPoint(
-								dataStream, 
-								SubType.SENSOR_DATA,
-								MobilityPoint.PrivacyState.PRIVATE));
-					}
-					catch(DomainException e) {
-						throw new ServiceException(
-							"One of the points was invalid.",
-							e);
-					}
+				try {
+					points.add(
+						new MobilityPoint(
+							dataStream, 
+							SubType.SENSOR_DATA,
+							MobilityPoint.PrivacyState.PRIVATE));
+				}
+				catch(DomainException e) {
+					throw new ServiceException(
+						"One of the points was invalid.",
+						e);
 				}
 			}
 			
@@ -472,8 +468,11 @@ public class MobilityReadRequest extends Request {
 		JSONObject resultObject = new JSONObject();
 		try {
 			JSONArray resultArray = new JSONArray();
+			long startDateMillis = startDate.getMillis();
 			for(MobilityPoint mobilityPoint : points) {
-				resultArray.put(mobilityPoint.toJson(true, columns));
+				if((mobilityPoint.getTime() + mobilityPoint.getTimezone().getOffset(mobilityPoint.getTime()))>= startDateMillis) {
+					resultArray.put(mobilityPoint.toJson(true, columns));
+				}
 			}
 			resultObject.put(JSON_KEY_DATA, resultArray);
 		}
