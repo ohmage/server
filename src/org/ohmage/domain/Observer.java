@@ -35,7 +35,8 @@ import org.w3c.dom.DOMException;
  */
 public class Observer {
 	private static final Pattern PATTERN_ID_VALIDATOR = 
-		Pattern.compile("([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}");
+		Pattern.compile("([a-zA-Z]{1}[\\w]*(\\.[a-zA-Z]{1}[\\w]*)+)?");
+	private static final long MAX_OBSERVER_ID_LENGTH = 255;
 
 	private final String id;
 	private final long version;
@@ -52,7 +53,7 @@ public class Observer {
 	 */
 	public static class Stream {
 		private static final Pattern PATTERN_ID_VALIDATOR = 
-			Pattern.compile("[a-zA-Z0-9_]{1,255}");
+			Pattern.compile("[a-zA-Z]{1}[\\w_]{0,254}");
 		
 		private final String id;
 		private final long version;
@@ -793,11 +794,19 @@ public class Observer {
 		if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
 			throw new DomainException(
 				ErrorCode.OBSERVER_INVALID_ID,
-				"The observer is invalid. " +
+				"The observer ID is invalid. " +
 					"It must consist of only alphanumeric values, " +
+					"begin with a letter, " +
 					"include at least one '.', " +
-					"cannot end in a '.', " +
-					"and cannot be longer than 255 characters: " +
+					"and cannot end in a '.': " +
+					trimmedId);
+		}
+		else if(trimmedId.length() > MAX_OBSERVER_ID_LENGTH) {
+			throw new DomainException(
+				ErrorCode.OBSERVER_INVALID_ID,
+				"The observer ID cannot be more than " +
+					MAX_OBSERVER_ID_LENGTH +
+					" long: " +
 					trimmedId);
 		}
 

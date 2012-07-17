@@ -820,6 +820,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"uid, " +
 				"time, " +
 				"time_offset, " +
+				"time_adjusted, " +
 				"time_zone, " +
 				"location_timestamp, " +
 				"location_latitude, " +
@@ -851,6 +852,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"?, " +
 				"?, " +
 				"?, " +
+				"?, " +
 				"?)";
 		
 		List<Object[]> args = new ArrayList<Object[]>(data.size());
@@ -865,6 +867,14 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				location = metaData.getLocation();
 			}
 			
+			Long time = (timestamp == null) ? null : timestamp.getMillis();
+			Integer timeOffset = 
+				(timestamp == null) ? null : timestamp.getZone().getOffset(null);
+			Long timeAdjusted =
+				(timestamp == null) ? null : time + timeOffset;
+			String timeZoneId = 
+				(timestamp == null) ? null : timestamp.getZone().getID();
+			
 			try {
 				args.add(
 					new Object[] {
@@ -874,9 +884,10 @@ public class ObserverQueries extends Query implements IObserverQueries {
 						currData.getStream().getId(),
 						currData.getStream().getVersion(),
 						id,
-						(timestamp == null) ? null : timestamp.getMillis(),
-						(timestamp == null) ? null : timestamp.getZone().getOffset(null),
-						(timestamp == null) ? null : timestamp.getZone().getID(),
+						time,
+						timeOffset,
+						timeAdjusted,
+						timeZoneId,
 						(location == null) ? null : (new DateTime(location.getTime(), location.getTimeZone())).toString(),
 						(location == null) ? null : location.getLatitude(),
 						(location == null) ? null : location.getLongitude(),
@@ -985,12 +996,12 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		}
 		
 		if(startDate != null) {
-			builder.append(" AND (osd.time + osd.time_offset) >= ?");
+			builder.append(" AND osd.time_adjusted >= ?");
 			parameters.add(startDate.getMillis());
 		}
 		
 		if(endDate != null) {
-			builder.append(" AND (osd.time + osd.time_offset) <= ?");
+			builder.append(" AND osd.time_adjusted <= ?");
 			parameters.add(endDate.getMillis());
 		}
 		
