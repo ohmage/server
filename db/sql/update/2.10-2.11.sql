@@ -44,6 +44,7 @@ ALTER TABLE preference MODIFY p_value TEXT NOT NULL;
 INSERT INTO preference VALUES 
     ('recaptcha_public_key', ''),
     ('recaptcha_private_key', ''),
+    ('privileged_user_in_class_can_view_others_mobility', 'false'),
     ('self_registration_allowed', 'false'),
     ('terms_of_service', 'We will collect as much data as is required by our system and that you offer to our system, no more, no less. We will keep the data as secure as possible, but you recognize that unforeseeable incidents may happen that cause data to be lost or stolen. We make every effort to keep our systems as secure as possible.
 
