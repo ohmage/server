@@ -3,7 +3,9 @@ package org.ohmage.request.observer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +22,7 @@ import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.UserRequest;
+import org.ohmage.request.Request;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
 
@@ -52,7 +54,7 @@ import org.ohmage.validator.ObserverValidators;
  * 
  * @author John Jenkins
  */
-public class ObserverReadRequest extends UserRequest {
+public class ObserverReadRequest extends Request {
 	private static final Logger LOGGER =
 		Logger.getLogger(ObserverReadRequest.class);
 
@@ -73,7 +75,61 @@ public class ObserverReadRequest extends UserRequest {
 	private final long numToSkip;
 	private final long numToReturn;
 	
-	private final Collection<Observer> observers;
+	private final Collection<Observer> observers = new LinkedList<Observer>();
+	
+	/**
+	 * Creates an observer read request.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param parameters The parameters that have already been decoded from the
+	 * 					 HTTP request.
+	 * 
+	 * @param observerId Limits the results to only those observers with this
+	 * 					 ID. Optional.
+	 * 
+	 * @param observerVersion Limits the results to only those observers with
+	 * 						  this version. Optional.
+	 *  
+	 * @param numToSkip The number of observers to skip. The default is 0.
+	 * 
+	 * @param numToReturn The number of observers to return. The default is the
+	 * 					  maximum for this request, 
+	 * 					  {@value #MAX_NUMBER_TO_RETURN}.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws IllegalArgumentException Thrown if a required parameter is 
+	 * 									missing.
+	 */
+	public ObserverReadRequest(
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters,
+			final String observerId,
+			final Long observerVersion,
+			final Long numToSkip,
+			final Long numToReturn)
+			throws IOException, InvalidRequestException {
+		
+		super(httpRequest, parameters);
+		
+		this.observerId = observerId;
+		this.observerVersion = observerVersion;
+		
+		if(numToSkip == null) {
+			this.numToSkip = 0;
+		}
+		else {
+			this.numToSkip = numToSkip;
+		}
+		
+		if((numToReturn == null) || (numToReturn > MAX_NUMBER_TO_RETURN)) {
+			this.numToReturn = MAX_NUMBER_TO_RETURN;
+		}
+		else {
+			this.numToReturn = numToReturn;
+		}
+	}
 	
 	/**
 	 * Creates an observer read request.
@@ -91,7 +147,7 @@ public class ObserverReadRequest extends UserRequest {
 			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, false, TokenLocation.EITHER, null);
+		super(httpRequest, null);
 		
 		String tObserverId = null;
 		Long tObserverVersion = null;
@@ -160,8 +216,16 @@ public class ObserverReadRequest extends UserRequest {
 		
 		numToSkip = tNumToSkip;
 		numToReturn = tNumToReturn;
-		
-		observers = new LinkedList<Observer>();
+	}
+	
+	/**
+	 * Returns an unmodifiable copy of the results. If {@link #service()} has
+	 * not been called on this request, this will be an empty list.
+	 * 
+	 * @return The list of results generated thus far.
+	 */
+	public Collection<Observer> getResults() {
+		return Collections.unmodifiableCollection(observers);
 	}
 	
 	/*
@@ -171,10 +235,6 @@ public class ObserverReadRequest extends UserRequest {
 	@Override
 	public void service() {
 		LOGGER.info("Servicing an observer read request.");
-		
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
-			return;
-		}
 		
 		try {
 			// Get all observers visible to the requesting user based on the
@@ -211,9 +271,6 @@ public class ObserverReadRequest extends UserRequest {
 			super.respond(httpRequest, httpResponse, null);
 			return;
 		}
-		
-		// Refresh the token cookie.
-		refreshTokenCookie(httpResponse);
 		
 		// Expire the response, but this may be a bad idea.
 		expireResponse(httpResponse);

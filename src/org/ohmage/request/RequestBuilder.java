@@ -61,6 +61,7 @@ import org.ohmage.request.omh.OmhAuthenticateRequest;
 import org.ohmage.request.omh.OmhCatalogRequest;
 import org.ohmage.request.omh.OmhReadRequest;
 import org.ohmage.request.omh.OmhRegistryCreateRequest;
+import org.ohmage.request.omh.OmhRegistryReadRequest;
 import org.ohmage.request.omh.OmhRegistryUpdateRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
@@ -174,6 +175,7 @@ public final class RequestBuilder implements ServletContextAware {
 	// OMH
 	private String apiOmhAuth;
 	private String apiOmhRegistryCreate;
+	private String apiOmhRegistryRead;
 	private String apiOmhRegistryUpdate;
 	private String apiOmhCatalog;
 	private String apiOmhRead;
@@ -308,6 +310,7 @@ public final class RequestBuilder implements ServletContextAware {
 		// OMH
 		apiOmhAuth = apiRoot + "/omh/v1.0/auth";
 		apiOmhRegistryCreate = apiRoot + "/omh/v1.0/registry/create";
+		apiOmhRegistryRead = apiRoot + "/omh/v1.0/registry/read";
 		apiOmhRegistryUpdate = apiRoot + "/omh/v1.0/registry/update";
 		apiOmhCatalog = apiRoot + "/omh/v1.0/catalog";
 		apiOmhRead = apiRoot + "/omh/v1.0/read";
@@ -515,6 +518,9 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiOmhRegistryCreate.equals(requestUri)) {
 			return new OmhRegistryCreateRequest(httpRequest);
 		}
+		else if(apiOmhRegistryRead.equals(requestUri)) {
+			return new OmhRegistryReadRequest(httpRequest);
+		}
 		else if(apiOmhRegistryUpdate.equals(requestUri)) {
 			return new OmhRegistryUpdateRequest(httpRequest);
 		}
@@ -673,6 +679,7 @@ public final class RequestBuilder implements ServletContextAware {
 				// OMH
 				apiOmhAuth.equals(uri) ||
 				apiOmhRegistryCreate.equals(uri) ||
+				apiOmhRegistryRead.equals(uri) ||
 				apiOmhRegistryUpdate.equals(uri) ||
 				apiOmhCatalog.equals(uri) ||
 				apiOmhRead.equals(uri) ||

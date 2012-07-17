@@ -128,6 +128,39 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
+	 * Retrieves the streams that match the given criteria. All parameters are
+	 * optional.
+	 * 
+	 * @param observerId Limits the results to only those whose observer has 
+	 * 					 this ID.
+	 * 
+	 * @param observerVersion Limits the results to only those whose observer
+	 * 						  has this version.
+	 * 
+	 * @param streamId Limits the results to only those streams that have this
+	 * 				   ID.
+	 * 
+	 * @param streamVersion Limits the results to only those streams that have
+	 * 						this version.
+	 * 
+	 * @param numToSkip The number of streams to skip.
+	 * 
+	 * @param numToReturn The number of streams to return.
+	 * 
+	 * @return A map of observer IDs to its respective their of streams.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Map<String, Collection<Observer.Stream>> getStreams(
+		final String observerId,
+		final Long observerVersion,
+		final String streamId,
+		final Long streamVersion,
+		final long numToSkip,
+		final long numToReturn)
+		throws DataAccessException;
+	
+	/**
 	 * Returns the greatest version number for a stream.
 	 * 
 	 * @param observerId The observer's unique identifier.
@@ -146,11 +179,17 @@ public interface IObserverQueries {
 	/**
 	 * Returns a map of observer IDs to all versions of all of their streams.
 	 * 
+	 * @param numToSkip The number of streams to skip.
+	 * 
+	 * @param numToReturn The number of streams to return.
+	 * 
 	 * @return The map of observer IDs to their streams.
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public Map<String, Collection<Stream>> getObserverIdToStreamsMap()
+	public Map<String, Collection<Stream>> getObserverIdToStreamsMap(
+		final long numToSkip,
+		final long numToReturn)
 		throws DataAccessException;
 	
 	/**

@@ -1,6 +1,7 @@
 package org.ohmage.validator;
 
-import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
@@ -12,26 +13,23 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class OmhValidators {
-	private static final String SCHEMA_PAYLOAD_ID = 
-		"^omh:([a-z0-9()+,\\-.:=@;$_!*']|%[0-9a-f]{2})+$";
-	private static final Pattern PATTERN_PAYLOAD_ID = 
-		Pattern.compile(SCHEMA_PAYLOAD_ID);
-	
 	/**
 	 * Default constructor made private as the static methods should be used.
 	 */
 	private OmhValidators() {}
 	
 	/**
-	 * Validates that a payload ID is valid.
+	 * Validates that a payload ID is valid and returns the observer ID and the
+	 * stream ID.
 	 * 
 	 * @param value The payload ID to validate.
 	 * 
-	 * @return The trimmed and validated payload ID.
+	 * @return A map containing one key, the observer ID, mapped to the stream
+	 * 		   ID.
 	 * 
 	 * @throws ValidationException The payload ID is not valid.
 	 */
-	public static String validatePayloadId(
+	public static Map<String, String> validatePayloadId(
 			final String value) 
 			throws ValidationException {
 		
@@ -40,17 +38,77 @@ public class OmhValidators {
 		}
 		
 		String trimmedValue = value.trim();
-		if(PATTERN_PAYLOAD_ID.matcher(trimmedValue).matches()) {
-			return trimmedValue;
-		}
-		else {
+		String[] split = trimmedValue.split(":");
+		if(split.length != 4) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
-				"The payload ID is not valid. It must match the schema '" +
-					SCHEMA_PAYLOAD_ID +
-					"': " +
+				"The payload ID is not valid. " +
+					"It must contain 4 sections, each divided by a ':': " +
 					trimmedValue);
 		}
+		
+		// The first part must be "omh".
+		if("omh".equals(split[0])) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The first section must be 'omh': " +
+					trimmedValue);
+		}
+		
+		// The second part must be "ohmage".
+		if("ohmage".equals(split[1])) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The second section must be 'ohmage': " +
+					trimmedValue);
+		}
+		
+		String observerId;
+		try {
+			observerId = ObserverValidators.validateObserverId(split[2]);
+		}
+		catch(ValidationException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The third section must be a valid observer ID: " +
+					trimmedValue);
+		}
+		if(observerId == null) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The third section is empty: " +
+					trimmedValue);
+		}
+		
+		String streamId;
+		try {
+			streamId = ObserverValidators.validateStreamId(split[3]);
+		}
+		catch(ValidationException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The forth section must be a valid stream ID: " +
+					trimmedValue);
+		}
+		if(streamId == null) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The forth section is empty: " +
+					trimmedValue);
+		}
+		
+		Map<String, String> result = new HashMap<String, String>();
+		result.put(observerId, streamId);
+		
+		return result;
+		
+		
 	}
 	
 	/**

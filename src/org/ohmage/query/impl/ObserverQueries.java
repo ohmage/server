@@ -1,5 +1,6 @@
 package org.ohmage.query.impl;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +15,11 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -177,7 +183,25 @@ public class ObserverQueries extends Query implements IObserverQueries {
 							ps.setBoolean(5, stream.getWithId());
 							ps.setBoolean(6, stream.getWithTimestamp());
 							ps.setBoolean(7, stream.getWithLocation());
-							ps.setString(8, stream.getSchema().toString());
+							
+							try {
+								ps.setString(
+									8, 
+									stream
+										.getSchema()
+										.readValueAsTree()
+										.toString());
+							}
+							catch(JsonParseException e) {
+								throw new SQLException(
+									"The schema is not valid JSON.",
+									e);
+							}
+							catch(IOException e) {
+								throw new SQLException(
+									"Could not read the schema string.",
+									e);
+							}
 							
 							return ps;
 						}
@@ -804,6 +828,154 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				e);
 		}
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#getStreams(java.lang.String, java.lang.Long, java.lang.String, java.lang.Long, long, long)
+	 */
+	@Override
+	public Map<String, Collection<Observer.Stream>> getStreams(
+			final String observerId,
+			final Long observerVersion,
+			final String streamId,
+			final Long streamVersion,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException {
+		
+		if(numToReturn == 0) {
+			return Collections.emptyMap();
+		}
+		
+		// Create the default SQL.
+		StringBuilder sqlBuilder = 
+			new StringBuilder(
+				"SELECT " +
+					"o.observer_id, " +
+					"os.stream_id, " +
+					"os.version, " +
+					"os.name, " +
+					"os.description, " +
+					"os.with_id, " +
+					"os.with_timestamp, " +
+					"os.with_location, " +
+					"os.stream_schema " +
+				"FROM " +
+					"observer o, " +
+					"observer_stream os, " +
+					"observer_stream_link osl " +
+				"WHERE o.id = osl.observer_id " +
+				"AND osl.observer_stream_id = os.id");
+
+		// Create the default set of parameters.
+		List<Object> parameters = new LinkedList<Object>();
+			
+		// If querying about the observer's ID, add that WHERE clause and
+		// add the parameter.
+		if(observerId != null) {
+			sqlBuilder.append(" AND o.observer_id = ?");
+			parameters.add(observerId);
+		}
+		
+		// If querying about the observer's version, add that WHERE clause 
+		// and add the parameter.
+		if(observerVersion != null) {
+			sqlBuilder.append(" AND o.version = ?");
+			parameters.add(observerVersion);
+		}
+
+		// If querying about the stream's ID add the WHERE clause and the
+		// parameter.
+		if(streamId != null) {
+			sqlBuilder.append(" AND os.stream_id = ?");
+			parameters.add(streamId);
+		}
+
+		// If querying about the stream's version add the WHERE clause and the
+		// parameter.
+		if(streamVersion != null) {
+			sqlBuilder.append(" AND os.version = ?");
+			parameters.add(streamVersion);
+		}
+		
+		// Add ordering to facilitate paging.
+		sqlBuilder
+			.append(
+				" ORDER BY o.observer_id, o.version, os.stream_id, os.version");
+		
+		// Add the limits for paging.
+		sqlBuilder.append(" LIMIT ?, ?");
+		parameters.add(numToSkip);
+		parameters.add(numToReturn);
+		
+		// Query for the results and add them to the result map.
+		final Map<String, Collection<Observer.Stream>> result =
+			new HashMap<String, Collection<Observer.Stream>>();
+		try {
+			getJdbcTemplate().query(
+				sqlBuilder.toString(), 
+				parameters.toArray(),
+				new RowMapper<Object>() {
+					/**
+					 * Maps the row of data to a new stream.
+					 */
+					@Override
+					public Object mapRow(
+							final ResultSet rs, 
+							final int rowNum)
+							throws SQLException {
+						
+						// Get the observer's ID.
+						String observerId = rs.getString("observer_id");
+						
+						// Get the streams from the result.
+						Collection<Observer.Stream> streams =
+							result.get(observerId);
+						
+						// If no collection exists for that observer ID yet,
+						// create a new collection and add it.
+						if(streams == null) {
+							streams = new LinkedList<Observer.Stream>();
+							result.put(observerId, streams);
+						}
+						
+						// Add the stream to its respective result list.
+						try {
+							streams
+								.add(
+									new Observer.Stream(
+										rs.getString("stream_id"), 
+										rs.getLong("version"), 
+										rs.getString("name"), 
+										rs.getString("description"), 
+										rs.getBoolean("with_id"),
+										rs.getBoolean("with_timestamp"), 
+										rs.getBoolean("with_location"), 
+										rs.getString("stream_schema")));
+						}
+						catch(DomainException e) {
+							throw new SQLException(e);
+						}
+						
+						// Return nothing as it will never be used.
+						return null;
+					}
+					
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					sqlBuilder.toString() + 
+					"' with parameters: " +
+					parameters,
+				e);
+		}
+		
+		// Return the result.
+		return result;
+	}
 
 	/*
 	 * (non-Javadoc)
@@ -842,10 +1014,12 @@ public class ObserverQueries extends Query implements IObserverQueries {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IObserverQueries#getObserverIdToStreamsMap()
+	 * @see org.ohmage.query.IObserverQueries#getObserverIdToStreamsMap(long, long)
 	 */
 	@Override
-	public Map<String, Collection<Stream>> getObserverIdToStreamsMap()
+	public Map<String, Collection<Stream>> getObserverIdToStreamsMap(
+			final long numToSkip,
+			final long numToReturn)
 			throws DataAccessException {
 		
 		final Map<String, Collection<Stream>> result = 
@@ -865,18 +1039,20 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			"FROM observer o, observer_stream os, observer_stream_link osl " +
 			"WHERE o.id = osl.observer_id " +
 			"AND os.id = osl.observer_stream_id " +
-			"GROUP BY os.stream_id, os.version";
+			"GROUP BY os.stream_id, os.version " +
+			"LIMIT ?, ?";
 		
 		try {
 			getJdbcTemplate().query(
 				sql,
+				new Object[] { numToSkip, numToReturn },
 				new RowMapper<Object>() {
 					/**
 					 * Adds each of the streams to their corresponding list.
 					 */
 					@Override
 					public Object mapRow(
-							final ResultSet rs, 
+							final ResultSet rs,
 							final int rowNum)
 							throws SQLException {
 
@@ -1056,33 +1232,26 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			String timeZoneId = 
 				(timestamp == null) ? null : timestamp.getZone().getID();
 			
-			try {
-				args.add(
-					new Object[] {
-						username,
-						observer.getId(),
-						observer.getVersion(),
-						currData.getStream().getId(),
-						currData.getStream().getVersion(),
-						id,
-						time,
-						timeOffset,
-						timeAdjusted,
-						timeZoneId,
-						(location == null) ? null : (new DateTime(location.getTime(), location.getTimeZone())).toString(),
-						(location == null) ? null : location.getLatitude(),
-						(location == null) ? null : location.getLongitude(),
-						(location == null) ? null : location.getAccuracy(),
-						(location == null) ? null : location.getProvider(),
-						currData.getBinaryData()
-					}
-				);
-			}
-			catch(DomainException e) {
-				throw new DataAccessException(
-					"Could not get the binary data.",
-					e);
-			}
+			args.add(
+				new Object[] {
+					username,
+					observer.getId(),
+					observer.getVersion(),
+					currData.getStream().getId(),
+					currData.getStream().getVersion(),
+					id,
+					time,
+					timeOffset,
+					timeAdjusted,
+					timeZoneId,
+					(location == null) ? null : (new DateTime(location.getTime(), location.getTimeZone())).toString(),
+					(location == null) ? null : location.getLatitude(),
+					(location == null) ? null : location.getLongitude(),
+					(location == null) ? null : location.getAccuracy(),
+					(location == null) ? null : location.getProvider(),
+					currData.getData().toString()
+				}
+			);
 		}
 		
 		// Create the transaction.
@@ -1193,6 +1362,8 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			.append(", ")
 			.append(numToReturn);
 		
+		final JsonFactory jsonFactory = new MappingJsonFactory();
+		
 		try {
 			return
 				getJdbcTemplate().query(
@@ -1261,11 +1432,32 @@ public class ObserverQueries extends Query implements IObserverQueries {
 								metaDataBuilder.setLocation(location);
 							}
 							
+							JsonNode data;
+							try {
+								JsonParser parser =
+									jsonFactory
+										.createJsonParser(
+											rs.getString("osd.data"));
+								data = parser.readValueAsTree();
+							}
+							catch(JsonParseException e) {
+								throw new SQLException(
+									"The data in the database is invalid: " +
+										id,
+									e);
+							}
+							catch(IOException e) {
+								throw new SQLException(
+									"There was a problem reading the data: " +
+										id,
+									e);
+							}
+							
 							try {
 								return new DataStream(
 									stream, 
 									metaDataBuilder.build(), 
-									rs.getBytes("osd.data"));
+									data);
 							}
 							catch(DomainException e) {
 								throw new SQLException(
@@ -1424,7 +1616,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				currArgs[4] = stream.getWithId();
 				currArgs[5] = stream.getWithTimestamp();
 				currArgs[6] = stream.getWithLocation();
-				currArgs[7] = stream.getSchema().toString();
+				currArgs[7] = stream.getSchema();
 				
 				streamArgs.add(currArgs);
 			}

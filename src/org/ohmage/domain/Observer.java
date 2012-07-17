@@ -1,5 +1,7 @@
 package org.ohmage.domain;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.Collection;
@@ -17,15 +19,18 @@ import nu.xom.ValidityException;
 import nu.xom.XMLException;
 import nu.xom.XPathException;
 
-import org.apache.avro.Schema;
-import org.apache.avro.Schema.Parser;
-import org.apache.avro.SchemaParseException;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.MappingJsonFactory;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
+import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.Scriptable;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream.MetaData;
 import org.ohmage.exception.DomainException;
@@ -40,10 +45,62 @@ import org.w3c.dom.DOMException;
  */
 public class Observer {
 	/**
-	 * The pattern for allowed IDs.
+	 * This is the contents of the JavaSciprt file that evaluates schemas and
+	 * data against those schemas. This should be used in conjunction with
+	 * something like Rhino, in order to create a JavaScript interpreter to
+	 * evaluate the JavaScript.
 	 */
-	private static final Pattern PATTERN_ID_VALIDATOR = 
-		Pattern.compile("([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}");
+	private static final String JSON_SCHEMA_JS;
+	static {
+		FileReader reader;
+		try {
+			reader =
+				new FileReader(
+					System.getProperty("webapp.root") + "JsonSchema.js");
+		}
+		catch(FileNotFoundException e) {
+			throw new IllegalStateException(
+				"The JSON Schema could not be found.",
+				e);
+		}
+		
+		try {
+			int amountRead;
+			char[] buffer = new char[4096];
+			StringBuilder builder = new StringBuilder();
+			while((amountRead = reader.read(buffer)) != -1) {
+				builder.append(buffer, 0, amountRead);
+			}
+		
+			JSON_SCHEMA_JS = builder.toString();
+		}
+		catch(IOException e) {
+			throw new IllegalStateException(
+				"There was a problem reading the JSON Schema's JavaScript file.",
+				e);
+		}
+		finally {
+			try {
+				reader.close();
+			}
+			catch(IOException e) {
+				throw new IllegalStateException(
+					"Could not close the file reader.",
+					e);
+			}
+		}
+	}
+	
+	/**
+	 * The pattern for allowed observer IDs.
+	 */
+	public static final String ID_PATTERN = 
+		"([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}";
+	/**
+	 * The compiled pattern for allowed observer IDs.
+	 */
+	private static final Pattern PATTERN_OBSERVER_ID = 
+		Pattern.compile(ID_PATTERN);
 	
 	/**
 	 * The JSON factory for creating parsers and generators.
@@ -71,8 +128,16 @@ public class Observer {
 	 * @author John Jenkins
 	 */
 	public static class Stream {
-		private static final Pattern PATTERN_ID_VALIDATOR = 
-			Pattern.compile("[a-zA-Z0-9_]{1,255}");
+		/**
+		 * The pattern for allowed stream IDs.
+		 */
+		public static final String ID_PATTERN = 
+			"([a-zA-Z0-9]+[a-zA-Z0-9_]+){1,255}";
+		/**
+		 * The compiled pattern for allowed stream IDs.
+		 */
+		private static final Pattern PATTERN_STREAM_ID = 
+			Pattern.compile(ID_PATTERN);
 
 		private static final String KEY_JSON_ID = "id";
 		private static final String KEY_JSON_VERSION = "version";
@@ -95,7 +160,7 @@ public class Observer {
 		private final boolean withTimestamp;
 		private final boolean withLocation;
 
-		private final Schema schema;
+		private final JsonParser schema;
 
 		/**
 		 * Creates a new stream definition.
@@ -157,12 +222,7 @@ public class Observer {
 			this.withTimestamp = withTimestamp;
 			this.withLocation = withLocation;
 
-			try {
-				this.schema = (new Parser()).parse(schema);
-			}
-			catch(SchemaParseException e) {
-				throw new DomainException("The schema was invalid.", e);
-			}
+			this.schema = validateSchema(schema);
 		}
 		
 		/**
@@ -321,21 +381,14 @@ public class Observer {
 				withLocation = false;
 			}
 			
-			try {
-				schema =
-					(new Parser()).parse(
-						getXmlValue(
-							stream, 
-							"schema", 
-							"stream, " +
-								id +
-								", schema"));
-			}
-			catch(SchemaParseException e) {
-				throw new DomainException(
-					"The schema was invalid: " + e.getMessage(),
-					e);
-			}
+			schema =
+				validateSchema(
+					getXmlValue(
+						stream, 
+						"schema", 
+						"stream, " +
+							id +
+							", schema"));
 		}
 
 		/**
@@ -406,7 +459,7 @@ public class Observer {
 		 * 
 		 * @return The schema.
 		 */
-		public Schema getSchema() {
+		public JsonParser getSchema() {
 			return schema;
 		}
 		
@@ -458,14 +511,71 @@ public class Observer {
 				// Add the schema.
 				generator.writeObjectField(
 					KEY_JSON_SCHEMA, 
-					JSON_FACTORY
-						.createJsonParser(schema.toString())
-						.readValueAsTree());
+					schema.readValueAsTree());
 			}
 			finally {
 				// Close this observer's object.
 				generator.writeEndObject();
 			}
+		}
+		
+		/**
+		 * Validates that some data conforms to the schema used when creating
+		 * this stream.
+		 * 
+		 * @param data The data to validate.
+		 * 
+		 * @return The JsonNode as passed into this function.
+		 * 
+		 * @throws DomainException The data does not conform to the schema.
+		 */
+		public JsonNode validateData(JsonNode data) throws DomainException {
+			Context context = Context.enter();
+			try {
+				Scriptable scope = context.initStandardObjects();
+				Function jsonSchemaConstructor =
+					context.compileFunction(
+						scope, 
+						JSON_SCHEMA_JS, 
+						"JsonSchema.js", 
+						1, 
+						null);
+				
+				Scriptable jsonSchema =
+					jsonSchemaConstructor.construct(
+						context, 
+						scope, 
+						new Object[] { schema });
+				
+				Object validateData = 
+					jsonSchema.get("validateData", jsonSchema);
+				if(validateData instanceof Function) {
+					Function validateDataFunction = (Function) validateData;
+					
+					validateDataFunction.call(
+						context, 
+						scope, 
+						validateDataFunction, 
+						new Object[] { data.toString() }
+					);
+				}
+				else {
+					throw new DomainException(
+						"The 'validateData' function is missing.");
+				}
+			}
+			catch(JavaScriptException e) {
+				throw new DomainException(
+					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+					"The data does not conform to the schema: " + 
+						e.getMessage(),
+					e);
+			}
+			finally {
+				Context.exit();
+			}
+			
+			return data;
 		}
 		
 		/**
@@ -486,7 +596,7 @@ public class Observer {
 			}
 			
 			String trimmedId = id.trim();
-			if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
+			if(! PATTERN_STREAM_ID.matcher(trimmedId).matches()) {
 				throw new DomainException(
 					ErrorCode.OBSERVER_INVALID_STREAM_ID,
 					"The stream ID is invalid. " +
@@ -496,6 +606,60 @@ public class Observer {
 			}
 			
 			return trimmedId;
+		}
+		
+		/**
+		 * Validates that a schema used to defined a stream is valid.
+		 * 
+		 * @param schema The stream's schema.
+		 * 
+		 * @return The schema if it was valid.
+		 * 
+		 * @throws DomainException The schema was not valid.
+		 */
+		public static JsonParser validateSchema(
+				final String schema)
+				throws DomainException {
+			
+			Context context = Context.enter();
+			try {
+				Scriptable scope = context.initStandardObjects();
+				Function jsonSchemaConstructor =
+					context.compileFunction(
+						scope, 
+						JSON_SCHEMA_JS, 
+						"JsonSchema.js", 
+						1, 
+						null);
+				
+				jsonSchemaConstructor.construct(
+					context, 
+					scope, 
+					new Object[] { schema });
+			}
+			catch(JavaScriptException e) {
+				throw new DomainException(
+					ErrorCode.OBSERVER_INVALID_STREAM_DEFINITION,
+					"The schema is invalid: " + e.getMessage(),
+					e);
+			}
+			finally {
+				Context.exit();
+			}
+			
+			try {
+				return JSON_FACTORY.createJsonParser(schema);
+			}
+			catch(JsonParseException e) {
+				throw new DomainException(
+					"Validation succeeded, but the schema could not be parsed as JSON.",
+					e);
+			}
+			catch(IOException e) {
+				throw new DomainException(
+					"Could not read the string value.",
+					e);
+			}
 		}
 	}
 	private final Map<String, Stream> streams;
@@ -915,12 +1079,13 @@ public class Observer {
 		if(dataNode == null) {
 			throw new DomainException("The data is missing.");
 		}
+		dataNode = currStream.validateData(dataNode);
 		
 		result = 
 			new DataStream(
 				currStream, 
 				metaData, 
-				dataNode.toString());
+				dataNode);
 		
 		return result;
 	}
@@ -997,7 +1162,7 @@ public class Observer {
 		}
 
 		String trimmedId = id.trim();
-		if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
+		if(! PATTERN_OBSERVER_ID.matcher(trimmedId).matches()) {
 			throw new DomainException(
 				ErrorCode.OBSERVER_INVALID_ID,
 				"The observer is invalid. " +

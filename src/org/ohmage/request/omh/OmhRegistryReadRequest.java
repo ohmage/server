@@ -2,7 +2,6 @@ package org.ohmage.request.omh;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,14 +21,15 @@ import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.request.UserRequest;
+import org.ohmage.request.Request;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.validator.ObserverValidators;
+import org.ohmage.validator.OmhValidators;
 
-public class OmhCatalogRequest extends UserRequest {
+public class OmhRegistryReadRequest extends Request {
 	private static final Logger LOGGER =
-		Logger.getLogger(OmhCatalogRequest.class);
+		Logger.getLogger(OmhRegistryReadRequest.class);
 	
 	/**
 	 * The single factory instance for the writer.
@@ -41,10 +41,14 @@ public class OmhCatalogRequest extends UserRequest {
 	private final String streamId;
 	private final Long streamVersion;
 	
-	private final Map<String, Collection<Stream>> streams;
+	private final long numToSkip;
+	private final long numToReturn;
+
+	private final Map<String, Collection<Stream>> streams = 
+		new HashMap<String, Collection<Stream>>();
 	
 	/**
-	 * Creates an OMH catalog request.
+	 * Creates an OMH registry read request.
 	 * 
 	 * @param httpRequest The HTTP request.
 	 * 
@@ -55,26 +59,25 @@ public class OmhCatalogRequest extends UserRequest {
 	 * 								   event of the HTTP parameters being 
 	 * 								   parsed.
 	 */
-	public OmhCatalogRequest(
-			final HttpServletRequest httpRequest)
+	public OmhRegistryReadRequest(
+			final HttpServletRequest httpRequest) 
 			throws IOException, InvalidRequestException {
 		
-		super(
-			httpRequest, 
-			true, 
-			TokenLocation.EITHER, 
-			null,
-			retrieveFirstRequesterValue(httpRequest));
-
+		super(httpRequest, null);
+		
 		String tObserverId = null;
 		String tStreamId = null;
 		Long tStreamVersion = null;
 		
+		long tNumToSkip = 0;
+		long tNumToReturn = StreamReadRequest.MAX_NUMBER_TO_RETURN;
+		
 		if(! isFailed()) {
-			LOGGER.info("Creating an OMH catalog request.");
+			LOGGER.info("Creating an OMH registry read request.");
 			String[] t;
 			
 			try {
+				Map<String, String> observerIdToStreamId = null;
 				t = getParameterValues(InputKeys.OMH_PAYLOAD_ID);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -83,60 +86,56 @@ public class OmhCatalogRequest extends UserRequest {
 							InputKeys.OMH_PAYLOAD_ID);
 				}
 				else if(t.length == 1) {
-					String[] payloadIdParts = t[0].split(":");
+					observerIdToStreamId = 
+						OmhValidators.validatePayloadId(t[0]);
 					
-					if(payloadIdParts.length != 5) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The payload ID is invalid: " + t[0]);
-					}
-					else if(! "omh".equals(payloadIdParts[0])) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The first part of the payload ID must be \"omh\": " + 
-								t[0]);
-					}
-					else if(! "ohmage".equals(payloadIdParts[1])) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The second part of the payload ID must be \"ohmage\": " + 
-								t[0]);
-					}
-					
-					try {
+					if(
+						(observerIdToStreamId != null) && 
+						(observerIdToStreamId.size() > 0)) {
+						
+						
 						tObserverId = 
-							ObserverValidators.validateObserverId(
-								payloadIdParts[2]);
-						if(tObserverId == null) {
-							throw new ValidationException(
-								ErrorCode.OMH_INVALID_PAYLOAD_ID,
-								"The payload ID is unknown.");
-						}
-						
-						tStreamId = ObserverValidators.validateStreamId(
-							payloadIdParts[3]);
-						if(tStreamId == null) {
-							throw new ValidationException(
-								ErrorCode.OMH_INVALID_PAYLOAD_ID,
-								"The payload ID is unknown.");
-						}
-						
-						tStreamVersion = 
-							ObserverValidators.validateStreamVersion(
-								payloadIdParts[4]);
-						if(tStreamVersion == null) {
-							throw new ValidationException(
-								ErrorCode.OMH_INVALID_PAYLOAD_ID,
-								"The payload ID is unknown.");
-						}
+							observerIdToStreamId.keySet().iterator().next();
+						tStreamId = observerIdToStreamId.get(tObserverId);
 					}
-					catch(ValidationException e) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The payload ID is unknown.",
-							e);
-						
-					}
+				}
+					
+				t = getParameterValues(InputKeys.OMH_PAYLOAD_VERSION);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
+						"Multiple payload versions were given: " +
+							InputKeys.OMH_PAYLOAD_VERSION);
+				}
+				else if(t.length == 1) {
+					tStreamVersion = 
+						OmhValidators.validatePayloadVersion(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.OMH_NUM_TO_SKIP);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_NUM_TO_SKIP,
+						"Multiple \"number of results to skip\" values were given: " +
+							InputKeys.OMH_NUM_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tNumToSkip = ObserverValidators.validateNumToSkip(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.OMH_NUM_TO_RETURN);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_NUM_TO_RETURN,
+						"Multiple \"number of results to return\" values were given: " +
+							InputKeys.OMH_NUM_TO_RETURN);
+				}
+				else if(t.length == 1) {
+					tNumToReturn = 
+						ObserverValidators
+							.validateNumToReturn(
+								t[0], 
+								StreamReadRequest.MAX_NUMBER_TO_RETURN);
 				}
 			}
 			catch(ValidationException e) {
@@ -148,43 +147,32 @@ public class OmhCatalogRequest extends UserRequest {
 		observerId = tObserverId;
 		streamId = tStreamId;
 		streamVersion = tStreamVersion;
-
-		streams = new HashMap<String, Collection<Stream>>();
+		
+		numToSkip = tNumToSkip;
+		numToReturn = tNumToReturn;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.request.Request#service()
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing a stream read request.");
-		
-		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
-			return;
-		}
+		LOGGER.info("Servicing an OMH registry read request.");
 		
 		try {
-			// If the observer ID is null, we are returning all of the observers'
-			// information.
-			if(observerId == null) {
-				streams.putAll(
-					ObserverServices.instance().getObserverIdToStreamsMap(0, 1000));
-			}
-			// If the observer ID is non-null, we are returning the information for
-			// only one observer.
-			else {
-				Collection<Stream> singleStream = new ArrayList<Stream>(1);
-				singleStream.add(
-					ObserverServices.instance().getStream(
-						observerId, 
-						streamId, 
-						streamVersion
-					)
-				);
-				
-				streams.put(observerId, singleStream);
-			}
+			LOGGER.info("Gathering the requested registry entries.");
+			streams
+				.putAll(
+					ObserverServices
+						.instance()
+						.getStreams(
+							observerId, 
+							null, 
+							streamId, 
+							streamVersion, 
+							numToSkip, 
+							numToReturn));
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -200,9 +188,10 @@ public class OmhCatalogRequest extends UserRequest {
 	public void respond(
 			final HttpServletRequest httpRequest,
 			final HttpServletResponse httpResponse) {
-
-		LOGGER.info("Responding to an OMH catalog request.");
 		
+		LOGGER.info("Responding to an OMH registry read request");
+
+		// If either request has failed, set the response's status code.
 		if(isFailed()) {
 			if(
 				ErrorCode
@@ -215,13 +204,12 @@ public class OmhCatalogRequest extends UserRequest {
 			else {
 				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
+			
+			// Then, force the appropriate request to respond.
 			super.respond(httpRequest, httpResponse, null);
 			return;
 		}
-		
-		// Refresh the token cookie.
-		refreshTokenCookie(httpResponse);
-		
+
 		// Expire the response, but this may be a bad idea.
 		expireResponse(httpResponse);
 		
@@ -261,52 +249,58 @@ public class OmhCatalogRequest extends UserRequest {
 		}
 		
 		try {
+			// Start the JSON output.
 			generator.writeStartArray();
 			
+			// For each observer,
 			for(String observerId : streams.keySet()) {
 				for(Stream stream : streams.get(observerId)) {
+					// Start this "payload ID's" object.
 					generator.writeStartObject();
 					
-					// Set the max page size. 
-					// FIXME: The specification says the maximum number of 
-					// seconds, but it appears that that will change to the 
-					// maximum number of records. Therefore, this anticipates 
-					// that change.
+					// Output the chunk size which will be the same for all 
+					// observers.
 					generator.writeNumberField(
 						"chunk_size", 
 						StreamReadRequest.MAX_NUMBER_TO_RETURN);
 					
-					// Set all of the time-stamps as being valid for the data.
+					// There are no external IDs yet. This may change to link   
+					// to observer/read, but there are some discrepancies in 
+					// the parameters.
+					
+					// Set the local timezone as authoritative.
 					generator.writeBooleanField(
 						"local_tz_authoritative",
 						true);
 					
-					// Write a user-friendly name for this payload.
-					generator.writeStringField("name", stream.getName());
-					
-					// Build and then set the payload ID.
+					// Set the summarizable as false for the time being.
+					generator.writeBooleanField("summarizable", false);
+
+					// Set the payload ID.
 					StringBuilder payloadIdBuilder = 
 						new StringBuilder("omh:ohmage:");
 					payloadIdBuilder.append(observerId).append(':');
-					payloadIdBuilder.append(stream.getId()).append(':');
-					payloadIdBuilder.append(stream.getVersion());
+					payloadIdBuilder.append(stream.getId());
 					generator.writeStringField(
 						"payload_id", 
 						payloadIdBuilder.toString());
 					
-					// Build the payload definition. Include strict or optional
-					// in each column's definition.
+					// Set the payload version.
+					generator.writeNumberField(
+						"payload_version", 
+						stream.getVersion());
 					
-					
-					// Set this as not being summarizable. This would be an
-					// interesting and potentially useful feature, but it would
-					// require more work on the observer side first.
-					generator.writeBooleanField("summarizable", false);
-					
+					// Set the payload definition.
+					generator.writeObjectField(
+						"payload_definition", 
+						stream.getSchema().readValueAsTree());
+
+					// End this "payload ID's" object.
 					generator.writeEndObject();
 				}
 			}
 			
+			// End the JSON output.
 			generator.writeEndArray();
 		}
 		catch(JsonProcessingException e) {
@@ -331,31 +325,6 @@ public class OmhCatalogRequest extends UserRequest {
 			catch(IOException e) {
 				LOGGER.info("Could not close the generator.", e);
 			}
-		}
-	}
-	
-	/**
-	 * Retrieves the client value from the request and returns it if there is
-	 * only one. Otherwise, it returns null.
-	 * 
-	 * @param httpRequest The HTTP request that made this call.
-	 * 
-	 * @return The client value or null if no such value exists.
-	 */
-	private static String retrieveFirstRequesterValue(
-			final HttpServletRequest httpRequest) {
-		
-		String[] requesters = 
-			httpRequest.getParameterMap().get(InputKeys.OMH_REQUESTER);
-		
-		if(requesters == null) {
-			return null;
-		}
-		else if (requesters.length == 0) {
-			return null;
-		}
-		else {
-			return requesters[0];
 		}
 	}
 }

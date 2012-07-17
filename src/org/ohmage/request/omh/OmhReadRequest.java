@@ -187,7 +187,7 @@ public class OmhReadRequest extends Request {
 					}
 				}
 				
-				long numToSkip = -1;
+				Long numToSkip = null;
 				t = getParameterValues(InputKeys.OMH_NUM_TO_SKIP);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -199,7 +199,7 @@ public class OmhReadRequest extends Request {
 					numToSkip = ObserverValidators.validateNumToSkip(t[0]);
 				}
 				
-				long numToReturn = -1;
+				Long numToReturn = null;
 				t = getParameterValues(InputKeys.OMH_NUM_TO_RETURN);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -265,14 +265,27 @@ public class OmhReadRequest extends Request {
 
 		LOGGER.info("Responding to an OMH read request.");
 
-		if(isFailed()) {
-			httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			super.respond(httpRequest, httpResponse, null);
-			return;
-		}
-		if(streamReadRequest.isFailed()) {
-			httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			streamReadRequest.respond(httpRequest, httpResponse);
+		// If either request has failed, set the response's status code.
+		if(isFailed() || streamReadRequest.isFailed()) {
+			if(
+				ErrorCode
+					.SYSTEM_GENERAL_ERROR
+					.equals(getAnnotator().getErrorCode())) {
+					
+				httpResponse
+					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			}
+			else {
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+			}
+			
+			// Then, force the appropriate request to respond.
+			if(isFailed()) {
+				super.respond(httpRequest, httpResponse, null);
+			}
+			else {
+				streamReadRequest.respond(httpRequest, httpResponse);
+			}
 			return;
 		}
 		

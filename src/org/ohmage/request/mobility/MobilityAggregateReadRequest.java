@@ -211,8 +211,8 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							tStartDate,
 							endDate,
 							null,
-							0,
-							StreamReadRequest.MAX_NUMBER_TO_RETURN);
+							null,
+							null);
 					
 					tExtendedReadRequest = 
 						new StreamReadRequest(
@@ -228,8 +228,8 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							tStartDate,
 							endDate,
 							null,
-							0,
-							StreamReadRequest.MAX_NUMBER_TO_RETURN);
+							null,
+							null);
 				}
 				catch(IllegalArgumentException e) {
 					throw new ValidationException(

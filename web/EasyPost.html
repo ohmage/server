@@ -2077,6 +2077,30 @@
                         
                                     <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhRegistryRead">
+                                                <i class="icon-plus"></i> Registry Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseOmhRegistryRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="omh/v1.0/registry/read" method="post" class="well" target="outputframe">
+                                                    <label>Payload ID</label>
+                                                    <input type="text" name="payload_id">
+                                                    <label>Payload Version</label>
+                                                    <input type="text" name="payload_version">
+                                                    <label>Number of Results to Skip</label>
+                                                    <input type="text" name="num_to_skip">
+                                                    <label>Number of Results to Return</label>
+                                                    <input type="text" name="num_to_return">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                        
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
                                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-omh" href="#collapseOmhRegistryUpdate">
                                                 <i class="icon-plus"></i> Registry Update
                                             </a>

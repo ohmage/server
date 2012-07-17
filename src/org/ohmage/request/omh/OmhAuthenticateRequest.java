@@ -14,6 +14,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.joda.time.format.ISODateTimeFormat;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.InputKeys;
@@ -87,14 +88,27 @@ public class OmhAuthenticateRequest extends Request {
 		
 		LOGGER.info("Responding to the authentication token request.");
 		
-		// Check for failure.
-		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
-			return;
-		}
-		
-		if(authTokenRequest.isFailed()) {
-			authTokenRequest.respond(httpRequest, httpResponse);
+		// If either request has failed, set the response's status code.
+		if(isFailed() || authTokenRequest.isFailed()) {
+			if(
+				ErrorCode
+					.SYSTEM_GENERAL_ERROR
+					.equals(getAnnotator().getErrorCode())) {
+					
+				httpResponse
+					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			}
+			else {
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+			}
+			
+			// Then, force the appropriate request to respond.
+			if(isFailed()) {
+				super.respond(httpRequest, httpResponse, null);
+			}
+			else {
+				authTokenRequest.respond(httpRequest, httpResponse);
+			}
 			return;
 		}
 		

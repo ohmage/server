@@ -188,6 +188,19 @@ public abstract class Request {
 	}
 	
 	/**
+	 * The annotator describing why this request has failed, if it has. If it
+	 * hasn't failed or it has and a reason wasn't given, then a generic 
+	 * annotator will be returned.
+	 * 
+	 * @return The annotator describing why this request failed or the generic
+	 * 		   annotator if this request hasn't failed or a reason was not
+	 * 		   given.
+	 */
+	public Annotator getAnnotator() {
+		return annotator;
+	}
+	
+	/**
 	 * Simply sets the request as failed without updating the error message.
 	 */
 	public void setFailed() {

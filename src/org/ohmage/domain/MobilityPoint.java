@@ -25,10 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.avro.generic.GenericArray;
-import org.apache.avro.generic.GenericContainer;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.avro.util.Utf8;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.node.ArrayNode;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatterBuilder;
@@ -627,37 +625,55 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			 * @throws DomainException The record is missing data.
 			 */
 			private AccelData(
-					final GenericRecord accelDataRecord)
+					final JsonNode accelDataRecord)
 					throws DomainException {
 
-				Object xObject = 
+				JsonNode xObject = 
 					accelDataRecord.get(AccelDataColumnKey.X.toString(false));
-				if(xObject instanceof Number) {
-					x = ((Number) xObject).doubleValue();
+				if(xObject == null) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+						"The 'x' component is missing.");
+				}
+				else if(! xObject.isNumber()) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+						"The 'x' component is not a number.");
 				}
 				else {
-					throw new DomainException(
-						"The x-value is not a number.");
+					x = xObject.getNumberValue().doubleValue();
 				}
-
-				Object yObject = 
+				
+				JsonNode yObject = 
 					accelDataRecord.get(AccelDataColumnKey.Y.toString(false));
-				if(yObject instanceof Number) {
-					y = ((Number) yObject).doubleValue();
+				if(yObject == null) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+						"The 'y' component is missing.");
+				}
+				else if(! yObject.isNumber()) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+						"The 'y' component is not a number.");
 				}
 				else {
-					throw new DomainException(
-						"The y-value is not a number.");
+					y = yObject.getNumberValue().doubleValue();
 				}
-
-				Object zObject = 
+				
+				JsonNode zObject = 
 					accelDataRecord.get(AccelDataColumnKey.Z.toString(false));
-				if(zObject instanceof Number) {
-					z = ((Number) zObject).doubleValue();
+				if(zObject == null) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+						"The 'z' component is missing.");
+				}
+				else if(! zObject.isNumber()) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+						"The 'z' component is not a number.");
 				}
 				else {
-					throw new DomainException(
-						"The z-value is not a number.");
+					z = zObject.getNumberValue().doubleValue();
 				}
 			}
 			
@@ -1099,67 +1115,107 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			 * @throws DomainException The record was missing some data.
 			 */
 			private WifiData(
-					final GenericRecord wifiDataRecord)
+					final JsonNode wifiDataRecord)
 					throws DomainException {
 				
 				// Write the time.
-				Object timeObject = wifiDataRecord.get("time");
-				if(timeObject instanceof Number) {
-					time = ((Number) timeObject).longValue();
+				JsonNode timeObject = wifiDataRecord.get("time");
+				if(timeObject == null) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+						"The 'time' value is missing.");
+				}
+				else if(! timeObject.isNumber()) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+						"The 'time' value is not a number.");
 				}
 				else {
-					throw new DomainException("The time is not a number.");
+					time = timeObject.getNumberValue().longValue();
 				}
 				
 				// Write the time zone.
-				Object timezoneObject = wifiDataRecord.get("timezone");
-				if(timezoneObject instanceof Utf8) {
-					timezone = 
-						DateTimeZone.forID(((Utf8) timezoneObject).toString()); 
+				JsonNode timezoneObject = wifiDataRecord.get("timezone");
+				if(timezoneObject == null) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+						"The 'timezone' value is missing.");
+				}
+				else if(! timezoneObject.isTextual()) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+						"The 'timezone' value is not a string.");
 				}
 				else {
-					throw new DomainException(
-						"The time zone is not a string.");
+					try {
+						timezone =
+							DateTimeZone.forID(timezoneObject.getTextValue());
+					}
+					catch(IllegalArgumentException e) {
+						throw new DomainException(
+							ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+							"The time-zone is unknown: " + 
+								timezoneObject.getTextValue(),
+							e);
+					}
 				}
 				
 				// Write the scan.
-				Object scanObject = wifiDataRecord.get("scan");
-				if(scanObject instanceof GenericArray) {
-					@SuppressWarnings("unchecked")
-					GenericArray<GenericRecord> scanArray =
-						(GenericArray<GenericRecord>) scanObject;
+				JsonNode scanObject = wifiDataRecord.get("scan");
+				if(scanObject == null) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+						"The 'scan' value is missing.");
+				}
+				else if(! scanObject.isArray()) {
+					throw new DomainException(
+						ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+						"The 'scan' value is not an array.");
+				}
+				else {
+					ArrayNode scanArray = (ArrayNode) scanObject;
 					scan = new HashMap<String, Double>(scanArray.size());
 					
-					for(GenericRecord scanRecord : scanArray) {
+					for(JsonNode scanRecord : scanArray) {
 						String ssid;
-						Object ssidObject = scanRecord.get("ssid");
-						if(ssidObject instanceof Utf8) {
-							ssid = ((Utf8) ssidObject).toString();
+						JsonNode ssidObject = scanRecord.get("ssid");
+						if(ssidObject == null) {
+							throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+								"The 'ssid' value is missing.");
+						}
+						else if(! ssidObject.isTextual()) {
+							throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+								"The 'ssid' value is not a string.");
 						}
 						else {
-							throw new DomainException(
-								"The SSID is not a string.");
+							ssid = ssidObject.getTextValue();
 						}
 						
 						double strength;
-						Object strengthObject = 
-							scanRecord.get("strength");
-						if(strengthObject instanceof Number) {
-							strength = ((Number) strengthObject).doubleValue();
+						JsonNode strengthObject = scanRecord.get("strength");
+						if(strengthObject == null) {
+							throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+								"The 'strength' value is missing.");
+						}
+						else if(! strengthObject.isNumber()) {
+							throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+								"The 'strength' value is not a number.");
 						}
 						else {
-							throw new DomainException(
-								"The strength is not a number.");
+							strength = 
+								strengthObject.getNumberValue().doubleValue();
 						}
 						
 						if(scan.put(ssid, strength) != null) {
 							throw new DomainException(
+								ErrorCode.MOBILITY_INVALID_WIFI_DATA,
 								"Duplicate SSIDs found in the same scan.");
 						}
 					}
-				}
-				else {
-					throw new DomainException("The scan is not an array.");
 				}
 			}
 			
@@ -1890,7 +1946,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		 */
 		private SensorData(
 				final Mode mode,
-				final GenericRecord dataRecord)
+				final JsonNode dataRecord)
 				throws DomainException {
 			
 			if(mode == null) {
@@ -1902,39 +1958,58 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			
 			this.mode = mode;
 			
-			Object speedObject = 
+			JsonNode speedObject = 
 				dataRecord.get(SensorDataColumnKey.SPEED.toString(false));
-			if(speedObject instanceof Number) {
-				speed = ((Number) speedObject).doubleValue();
+			if(speedObject == null) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_SPEED,
+					"The 'speed' value was missing.");
+			}
+			else if(! speedObject.isNumber()) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_SPEED,
+					"The 'speed' value was not numeric.");
 			}
 			else {
-				throw new DomainException("The speed is not a number.");
+				speed = speedObject.getNumberValue().doubleValue();
 			}
 			
-			Object accelDataObject = 
+			JsonNode accelDataObject = 
 				dataRecord.get(
 					SensorDataColumnKey.ACCELEROMETER_DATA.toString(false));
-			if(accelDataObject instanceof GenericArray) {
-				@SuppressWarnings("unchecked")
-				GenericArray<GenericRecord> accelDataArray = 
-					(GenericArray<GenericRecord>) accelDataObject;
+			if(accelDataObject == null) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+					"The 'accel_data' value is missing.");
+			}
+			else if(! accelDataObject.isArray()) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_ACCELEROMETER_DATA,
+					"The 'accel_data' value is not an array.");
+			}
+			else {
+				ArrayNode accelDataArray = (ArrayNode) accelDataObject;
+				
 				accelData = new ArrayList<AccelData>(accelDataArray.size());
-
-				for(GenericRecord accelRecord : accelDataArray) {
+				
+				for(JsonNode accelRecord : accelDataArray) {
 					accelData.add(new AccelData(accelRecord));
 				}
 			}
-			else {
-				throw new DomainException(
-					"The accelerometer data is not an array.");
-			}
 			
-			Object wifiDataObject = dataRecord.get("wifi_data");
-			if(wifiDataObject instanceof GenericRecord) {
-				wifiData = new WifiData((GenericRecord) wifiDataObject);
+			JsonNode wifiDataObject = dataRecord.get("wifi_data");
+			if(wifiDataObject == null) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+					"The 'wifi_data' value is missing.");
+			}
+			else if(! wifiDataObject.isObject()) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_WIFI_DATA,
+					"The 'wifi_data' value is not an array.");
 			}
 			else {
-				throw new DomainException("The WiFi data is not an object.");
+				wifiData = new WifiData(wifiDataObject);
 			}
 		}
 
@@ -2714,33 +2789,39 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		this.privacyState = privacyState;
 		this.subType = subType;
 		
-		GenericContainer data = dataStream.getData();
-		if(data instanceof GenericRecord) {
-			GenericRecord dataRecord = (GenericRecord) data;
-			
-			Object modeObject = 
-				dataRecord.get(MobilityColumnKey.MODE.toString(false));
-			if(modeObject instanceof Utf8) {
-				mode = 
-					Mode.valueOf(((Utf8) modeObject).toString().toUpperCase());
-			}
-			else {
-				throw new DomainException("The mode is not a string.");
-			}
-			
-			if(SubType.MODE_ONLY.equals(subType)) {
-				sensorData = null;
-			}
-			else if(SubType.SENSOR_DATA.equals(subType)) {
-				sensorData = new SensorData(mode, dataRecord);
-			}
-			else {
-				throw new DomainException(
-					"A sub-type was added, but not fully implemented.");
-			}
+		JsonNode data = dataStream.getData();
+		
+		JsonNode modeNode = data.get(MobilityColumnKey.MODE.toString(false));
+		if(modeNode == null) {
+			throw new DomainException(
+				ErrorCode.MOBILITY_INVALID_MODE,
+				"The mode is missing.");
+		}
+		if(! modeNode.isTextual()) {
+			throw new DomainException(
+				ErrorCode.MOBILITY_INVALID_MODE,
+				"The mode is not a string value.");
 		}
 		else {
-			throw new DomainException("The record is malformed.");
+			try {
+				mode = Mode.valueOf(modeNode.getTextValue().toUpperCase());
+			}
+			catch(IllegalArgumentException e) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_MODE,
+					"The mode is not known: " + modeNode.getTextValue());
+			}
+		}
+
+		if(SubType.MODE_ONLY.equals(subType)) {
+			sensorData = null;
+		}
+		else if(SubType.SENSOR_DATA.equals(subType)) {
+			sensorData = new SensorData(mode, data);
+		}
+		else {
+			throw new DomainException(
+				"A sub-type was added, but not fully implemented.");
 		}
 		
 		classifierData = null;

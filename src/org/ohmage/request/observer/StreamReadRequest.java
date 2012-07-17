@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -12,16 +13,16 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericContainer;
-import org.apache.avro.generic.GenericData;
-import org.apache.avro.util.Utf8;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonGenerator.Feature;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.MappingJsonFactory;
+import org.codehaus.jackson.node.ArrayNode;
+import org.codehaus.jackson.node.ObjectNode;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -122,7 +123,7 @@ public class StreamReadRequest extends UserRequest {
 	 * The single factory instance for the writer.
 	 */
 	private static final JsonFactory JSON_FACTORY = 
-		(new JsonFactory()).configure(Feature.AUTO_CLOSE_TARGET, true);
+		(new MappingJsonFactory()).configure(Feature.AUTO_CLOSE_TARGET, true);
 	
 	/**
 	 * The maximum number of records that can be returned.
@@ -353,8 +354,8 @@ public class StreamReadRequest extends UserRequest {
 			final DateTime startDate,
 			final DateTime endDate,
 			final ColumnNode<String> columns,
-			final long numToSkip,
-			final long numToReturn)
+			final Long numToSkip,
+			final Long numToReturn)
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, hashPassword, tokenLocation, parameters);
@@ -374,8 +375,20 @@ public class StreamReadRequest extends UserRequest {
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.columnsRoot = columns;
-		this.numToSkip = numToSkip;
-		this.numToReturn = numToReturn;
+		
+		if(numToSkip == null) {
+			this.numToSkip = 0;
+		}
+		else {
+			this.numToSkip = numToSkip;
+		}
+		
+		if((numToReturn == null) || (numToReturn > MAX_NUMBER_TO_RETURN)) {
+			this.numToReturn = MAX_NUMBER_TO_RETURN;
+		}
+		else {
+			this.numToReturn = numToReturn;
+		}
 		
 		results = new LinkedList<DataStream>();
 	}
@@ -594,7 +607,7 @@ public class StreamReadRequest extends UserRequest {
 		
 		try {
 			// FIXME: Needs to add ACLs or disable users reading other users'
-			// data ASAP.
+			// data.
 			
 			LOGGER.info("Retrieving the stream definition.");
 			stream = 
@@ -995,53 +1008,28 @@ public class StreamReadRequest extends UserRequest {
 	 * 
 	 * @throws IOException Could not write to the output stream.
 	 */
-	@SuppressWarnings("unchecked")
 	private static void handleGeneric(
 			final JsonGenerator generator,
-			final Object generic,
+			final JsonNode generic,
 			final ColumnNode<String> columns,
 			final String fieldName)
 			throws JsonGenerationException, IOException {
 		
 		// If it's an array, then process it as such.
-		if(generic instanceof GenericData.Array) {
+		if(generic.isArray()) {
 			handleArray(
 				generator,
-				(GenericData.Array<GenericContainer>) generic,
+				(ArrayNode) generic,
 				columns,
 				fieldName);
 		}
 		// If it's an object, then process it as such.
-		else if(generic instanceof GenericData.Record) {
+		else if(generic.isObject()) {
 			handleObject(
 				generator,
-				(GenericData.Record) generic, 
+				(ObjectNode) generic, 
 				columns,
 				fieldName);
-		}
-		// If it's another Avro-specific type, then encode it.
-		else if(generic instanceof GenericData.EnumSymbol) {
-			GenericData.EnumSymbol genericEnum = 
-				(GenericData.EnumSymbol) generic;
-			
-			if(fieldName == null) {
-				generator.writeString(genericEnum.toString());
-			}
-			else {
-				generator.writeStringField(fieldName, genericEnum.toString());
-			}
-		}
-		// If it's an Avro string, then we need to code around their string 
-		// type.
-		else if(generic instanceof Utf8) {
-			String value = ((Utf8) generic).toString();
-			
-			if(fieldName == null) {
-				generator.writeString(value);
-			}
-			else {
-				generator.writeStringField(fieldName, value);
-			}
 		}
 		// Otherwise, it can be added to its encapsulating object.
 		else {
@@ -1073,7 +1061,7 @@ public class StreamReadRequest extends UserRequest {
 	 */
 	private static void handleArray(
 			final JsonGenerator generator,
-			final GenericData.Array<GenericContainer> array,
+			final ArrayNode array,
 			final ColumnNode<String> currColumn,
 			final String fieldName) 
 			throws JsonGenerationException, IOException {
@@ -1119,7 +1107,7 @@ public class StreamReadRequest extends UserRequest {
 	 */
 	private static void handleObject(
 			final JsonGenerator generator,
-			final GenericData.Record object,
+			final ObjectNode object,
 			final ColumnNode<String> currColumn,
 			final String fieldName) 
 			throws JsonGenerationException, IOException {
@@ -1134,20 +1122,21 @@ public class StreamReadRequest extends UserRequest {
 		
 		// Add the values of all of the requested keys.
 		if(currColumn.isLeaf()) {
-			for(Schema.Field field : object.getSchema().getFields()) {
-				String currFieldName = field.name();
+			Iterator<String> fields = object.getFieldNames();
+			while(fields.hasNext()) {
+				String field = fields.next();
 				
 				handleGeneric(
 					generator,
-					object.get(currFieldName),
+					object.get(field),
 					currColumn,
-					currFieldName);
+					field);
 			}
 		}
 		// Add only the requested columns.
 		else {
 			for(String key : currColumn.getChildrenValues()) {
-				Object currObject = object.get(key);
+				JsonNode currObject = object.get(key);
 				
 				if(currObject != null) {
 					handleGeneric(

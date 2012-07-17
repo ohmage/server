@@ -250,7 +250,7 @@ public class ObserverServices {
 				throw new ServiceException(
 					ErrorCode.OBSERVER_INVALID_ID,
 					"No such observer exists: " + 
-						"ID: " + observerId + 
+						"ID: " + observerId + ", " + 
 						"Version: " + observerVersion);
 			}
 			
@@ -325,17 +325,73 @@ public class ObserverServices {
 	}
 	
 	/**
+	 * Retrieves the streams that match the given criteria. All parameters are
+	 * optional.
+	 * 
+	 * @param observerId Limits the results to only those whose observer has 
+	 * 					 this ID.
+	 * 
+	 * @param observerVersion Limits the results to only those whose observer
+	 * 						  has this version.
+	 * 
+	 * @param streamId Limits the results to only those streams that have this
+	 * 				   ID.
+	 * 
+	 * @param streamVersion Limits the results to only those streams that have
+	 * 						this version.
+	 * 
+	 * @param numToSkip The number of streams to skip.
+	 * 
+	 * @param numToReturn The number of streams to return.
+	 * 
+	 * @return A map of observer IDs to their respective set of streams.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Map<String, Collection<Observer.Stream>> getStreams(
+			final String observerId,
+			final Long observerVersion,
+			final String streamId,
+			final Long streamVersion,
+			final long numToSkip,
+			final long numToReturn)
+			throws ServiceException {
+		
+		try {
+			return 
+				observerQueries.getStreams(
+					observerId, 
+					observerVersion,
+					streamId, 
+					streamVersion,
+					numToSkip,
+					numToReturn);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Retrieves a map of observer IDs to all versions of all of their streams.
+	 * 
+	 * @param The number of streams to skip.
+	 * 
+	 * @param The number of streams to return.
 	 * 
 	 * @return The map of observer IDs to their streams.
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Map<String, Collection<Stream>> getObserverIdToStreamsMap() 
+	public Map<String, Collection<Stream>> getObserverIdToStreamsMap(
+			final long numToSkip,
+			final long numToReturn) 
 			throws ServiceException {
 		
 		try {
-			return observerQueries.getObserverIdToStreamsMap();
+			return 
+				observerQueries
+					.getObserverIdToStreamsMap(numToSkip, numToReturn);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
