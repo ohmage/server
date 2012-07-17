@@ -155,6 +155,7 @@ CREATE TABLE user (
   campaign_creation_privilege bit NOT NULL,
   email_address varchar(320),
   admin bit NOT NULL,
+  last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
   PRIMARY KEY (id),
   UNIQUE (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -170,6 +171,7 @@ CREATE TABLE user_personal (
   last_name varchar(255) NOT NULL,
   organization varchar(255) NOT NULL,
   personal_id varchar(255) NOT NULL,  -- this is e.g., the Mobilize student's student id
+  last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
   PRIMARY KEY (id),
   UNIQUE (user_id),
   UNIQUE (first_name, last_name, organization, personal_id), 
@@ -290,11 +292,11 @@ CREATE TABLE survey_response (
   location_status tinytext NOT NULL,  -- one of: unavailable, valid, stale, inaccurate 
   location text,                      -- JSON location data: longitude, latitude, accuracy, provider
   upload_timestamp datetime NOT NULL, -- the upload time based on the server time and timezone  
-  audit_timestamp timestamp default current_timestamp on update current_timestamp,
+  last_modified_timestamp timestamp default current_timestamp on update current_timestamp,
   privacy_state_id int unsigned NOT NULL,
   PRIMARY KEY (id),
-  INDEX (user_id, campaign_id),
-  INDEX (user_id, upload_timestamp),
+  KEY key_user_id (user_id),
+  KEY key_campaign_id (campaign_id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,    
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT FOREIGN KEY (privacy_state_id) REFERENCES survey_response_privacy_state (id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -558,3 +560,103 @@ CREATE TABLE annotation_annotation (
   CONSTRAINT FOREIGN KEY (annotation_id) REFERENCES annotation (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- --------------------------------------------------------------------
+-- An observer's definition.
+-- --------------------------------------------------------------------
+-- Create the observer tables.
+CREATE TABLE observer (
+    id int unsigned NOT NULL AUTO_INCREMENT,
+    user_id int unsigned NOT NULL,
+    observer_id varchar(255) NOT NULL,
+    version bigint NOT NULL,
+    name varchar(256) NOT NULL,
+    description text NOT NULL,
+    version_string varchar(32) NOT NULL,
+    last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
+    PRIMARY KEY (id),
+    UNIQUE KEY observer_unique_key_id_version (observer_id, version),
+    KEY observer_key_observer_id (observer_id),
+    KEY observer_key_user_id (user_id),
+    CONSTRAINT observer_foreign_key_user_id 
+       FOREIGN KEY (user_id) 
+       REFERENCES user (id) 
+       ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- A single stream's definition.
+-- --------------------------------------------------------------------
+CREATE TABLE observer_stream (
+    id int unsigned NOT NULL AUTO_INCREMENT,
+    stream_id varchar(255) NOT NULL,
+    version bigint NOT NULL,
+    name varchar(256) NOT NULL,
+    description text NOT NULL,
+    with_id boolean DEFAULT NULL,
+    with_timestamp boolean DEFAULT NULL,
+    with_location boolean DEFAULT NULL,
+    stream_schema text NOT NULL,
+    last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
+    PRIMARY KEY (id),
+    KEY observer_stream_key_stream_id (stream_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- The link between an observer and a stream. This is a many to one 
+-- relationship because the observer's version may change, but the stream does
+-- not. Therefore, we need to allow one version of a stream to span multiple
+-- versions of its observer.
+-- --------------------------------------------------------------------
+CREATE TABLE observer_stream_link (
+  id int(10) unsigned NOT NULL AUTO_INCREMENT,
+  observer_id int(10) unsigned NOT NULL,
+  observer_stream_id int(10) unsigned NOT NULL,
+  PRIMARY KEY (id),
+  KEY observer_stream_link_key_observer_id (observer_id),
+  KEY observer_stream_link_key_stream_id (observer_stream_id),
+  -- There should only be one instance of an observer ID/version pair to a 
+  -- stream ID/version pair.
+  UNIQUE KEY observer_stream_link_unique_key_observer_stream 
+    (observer_id, observer_stream_id),
+  CONSTRAINT observer_stream_link_foreign_key_observer_id
+    FOREIGN KEY (observer_id)
+    REFERENCES observer (id)
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT observer_stream_link_foreign_key_stream_id
+    FOREIGN KEY (observer_id)
+    REFERENCES observer (id)
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- The data collected by a stream.
+-- --------------------------------------------------------------------
+CREATE TABLE observer_stream_data (
+  id int unsigned NOT NULL AUTO_INCREMENT,
+  user_id int unsigned NOT NULL,
+  observer_stream_link_id int unsigned NOT NULL,
+  uid varchar(255) DEFAULT NULL,
+  time bigint DEFAULT NULL,
+  time_offset bigint DEFAULT NULL,
+  time_adjusted bigint DEFAULT NULL,
+  time_zone varchar(32) DEFAULT NULL,
+  location_timestamp varchar(64) DEFAULT NULL,
+  location_latitude double DEFAULT NULL,
+  location_longitude double DEFAULT NULL,
+  location_accuracy double DEFAULT NULL,
+  location_provider varchar(255) DEFAULT NULL,
+  data blob,
+  last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
+  PRIMARY KEY (id),
+  KEY observer_stream_data_key_observer_stream_link_id (observer_stream_link_id),
+  KEY observer_stream_data_key_user_id (user_id),
+  INDEX observer_stream_data_index_time_adjusted (time_adjusted),
+  CONSTRAINT observer_stream_data_foreign_key_user_id 
+    FOREIGN KEY (user_id) 
+    REFERENCES user (id) 
+    ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT observer_stream_data_foreign_key_observer_stream_link_id 
+    FOREIGN KEY (observer_stream_link_id) 
+    REFERENCES observer_stream_link (id) 
+    ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

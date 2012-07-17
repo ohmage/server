@@ -44,6 +44,7 @@ public final class InputKeys {
 	public static final String MOBILITY_WITH_SENSOR_DATA = "with_sensor_data";
 	
 	// Mobility Constants
+	public static final String MOBILITY_ID = "mobility_id";
 	public static final String MOBILITY_CHUNK_DURATION_MINUTES = "chunk_mins";
 	public static final String MOBILITY_AGGREGATE_DURATION = "duration";
 	
@@ -108,6 +109,9 @@ public final class InputKeys {
 	public static final String IMAGES = "images";
 	public static final String IMAGE_OWNER = "owner";
 	public static final String IMAGE_SIZE = "size";
+	
+	// Video Constants
+	public static final String VIDEO_ID = "video_id";
 	
 	// User Constants
 	public static final String USER = "user";
@@ -191,6 +195,24 @@ public final class InputKeys {
 	// Annotation Constants
 	public static final String ANNOTATION_TEXT = "annotation";
 	public static final String ANNOTATION_ID = "annotation_id";
+	
+	// Observer Constants
+	public static final String OBSERVER_ID = "observer_id";
+	public static final String OBSERVER_VERSION = "observer_version";
+	public static final String OBSERVER_DEFINITION = "observer_definition";
+	public static final String STREAM_ID = "stream_id";
+	public static final String STREAM_VERSION = "stream_version";
+	public static final String STREAM_IDS_WITH_VERSION = "stream_ids_with_version";
+	
+	// OMH Constants
+	public static final String OMH_REQUESTER = "requester";
+	public static final String OMH_PAYLOAD_ID = "payload_id";
+	public static final String OMH_START_TIMESTAMP = "t_start";
+	public static final String OMH_END_TIMESTAMP = "t_end";
+	public static final String OMH_COLUMN_LIST = "column_list";
+	public static final String OMH_SUMMARIZE = "summarize";
+	public static final String OMH_NUM_TO_SKIP = "num_to_skip";
+	public static final String OMH_NUM_TO_RETURN = "num_to_return";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

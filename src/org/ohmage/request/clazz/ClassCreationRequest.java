@@ -82,7 +82,7 @@ public class ClassCreationRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public ClassCreationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		LOGGER.info("Creating a class creation request.");
 		

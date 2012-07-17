@@ -122,30 +122,53 @@ public abstract class Request {
 	private static final String PARAMETER_SEPARATOR = "&";
 	private static final String PARAMETER_VALUE_SEPARATOR = "=";
 	
+	private static final String KEY_AUDIT_REQUESTER_INTERNET_ADDRESS = 
+			"requester_inet_addr";
+	
 	private final Annotator annotator;
 	private boolean failed;
 	
 	private final Map<String, String[]> parameters;
+	private final String requesterInetAddr; 
 	
 	/**
-	 * Default constructor. Creates a new, generic annotator for this object.
+	 * Initializes this request.
 	 * 
 	 * @param httpRequest An HttpServletRequest that was used to create this 
 	 * 					  request. This may be null if no such request exists.
 	 * 
+	 * @param parameters The parameters for this request. If this is null, the
+	 * 					 parameters are decoded from the HTTP request. 
+	 * 					 Otherwise, the parameters in this map are used.
+	 * 
 	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed. This is only applicable in the
+	 * 								   event of the HTTP parameters being 
 	 * 								   parsed.
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
 	protected Request(
-			final HttpServletRequest httpRequest)
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters)
 			throws IOException, InvalidRequestException {
 		
 		annotator = new Annotator();
 		failed = false;
 
-		parameters = getParameters(httpRequest);
+		if(parameters == null) {
+			this.parameters = getParameters(httpRequest);
+		}
+		else {
+			this.parameters = parameters;
+		}
+		
+		if(httpRequest == null) {
+			requesterInetAddr = null;
+		}
+		else {
+			requesterInetAddr = httpRequest.getRemoteAddr();
+		}
 	}
 	
 	/**
@@ -280,7 +303,17 @@ public abstract class Request {
 	/**
 	 * Gathers an request-specific data that should be logged in the audit.
 	 */
-	public abstract Map<String, String[]> getAuditInformation();
+	public Map<String, String[]> getAuditInformation() {
+		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
+		
+		if(requesterInetAddr != null) {
+			auditInfo.put(
+					KEY_AUDIT_REQUESTER_INTERNET_ADDRESS, 
+					new String[] { requesterInetAddr });
+		}
+		
+		return auditInfo;
+	}
 		
 	/**************************************************************************
 	 *  Begin JEE Requirements

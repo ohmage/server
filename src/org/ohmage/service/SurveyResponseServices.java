@@ -24,12 +24,14 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
+import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
@@ -118,6 +120,9 @@ public final class SurveyResponseServices {
 	 * 						   BufferedImage objects to use when creating the
 	 * 						   database entry.
 	 * 
+	 * @param videoContentsMap The map of the video unique identifiers to their
+	 * 						   byte array contents.
+	 * 
 	 * @return A list of the indices of the survey responses that were 
 	 * 		   duplicates.
 	 * 
@@ -126,11 +131,18 @@ public final class SurveyResponseServices {
 	public List<Integer> createSurveyResponses(final String user, 
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
-            final Map<String, BufferedImage> bufferedImageMap) 
+            final Map<String, BufferedImage> bufferedImageMap,
+            final Map<String, Video> videoContentsMap) 
             throws ServiceException {
 		
 		try {
-			return surveyUploadQuery.insertSurveys(user, client, campaignUrn, surveyUploadList, bufferedImageMap);
+			return surveyUploadQuery.insertSurveys(
+				user, 
+				client, 
+				campaignUrn, 
+				surveyUploadList, 
+				bufferedImageMap,
+				videoContentsMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -180,6 +192,39 @@ public final class SurveyResponseServices {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"An image was missing for a photo prompt response: " + responseValue.toString());
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Verifies that, for all video prompt responses, a corresponding video
+	 * exists in the list of videos.
+	 * 
+	 * @param surveyResponses The survey responses.
+	 * 
+	 * @param images A map of video IDs to video contents.
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	public void verifyVideosExistForVideoPromptResponses(
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<String, Video> videos) 
+			throws ServiceException {
+		
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if(promptResponse instanceof VideoPromptResponse) {
+					Object responseValue = promptResponse.getResponse();
+					if((responseValue instanceof UUID) && 
+							(! videos.containsKey(responseValue.toString()))) {
+						
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"A video was missing for a video prompt response: " + 
+								responseValue.toString());
 					}
 				}
 			}
@@ -364,7 +409,15 @@ public final class SurveyResponseServices {
 		}
 	}
 	
-	
+	/**
+	 * Gets the campaign ID for a survey response ID.
+	 * 
+	 * @param surveyResponseId The survey response's unique identifier.
+	 * 
+	 * @return The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
 	public String getCampaignForSurveyResponseId(UUID surveyResponseId) 
 			throws ServiceException {
 		try {

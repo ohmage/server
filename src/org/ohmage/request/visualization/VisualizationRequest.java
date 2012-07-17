@@ -104,7 +104,7 @@ public abstract class VisualizationRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public VisualizationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER);
+		super(httpRequest, null, TokenLocation.EITHER, null);
 		
 		String tCampaignId = null;
 		Integer tWidth = 0;

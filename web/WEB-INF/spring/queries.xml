@@ -59,6 +59,12 @@
       <ref bean="dataSource" />
     </constructor-arg>
   </bean>
+  
+  <bean name="campaignVideoQueries" class="org.ohmage.query.impl.CampaignVideoQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
 
   <bean name="classQueries" class="org.ohmage.query.impl.ClassQueries">
     <constructor-arg>
@@ -91,6 +97,12 @@
   </bean>
   
   <bean name="imageQueries" class="org.ohmage.query.impl.ImageQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+
+  <bean name="observerQueries" class="org.ohmage.query.impl.ObserverQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>
@@ -175,6 +187,18 @@
   </bean>
   
   <bean name="userSurveyResponseQueries" class="org.ohmage.query.impl.UserSurveyResponseQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="userVideoQueries" class="org.ohmage.query.impl.UserVideoQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
+  <bean name="videoQueries" class="org.ohmage.query.impl.VideoQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

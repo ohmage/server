@@ -115,7 +115,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public MobilityReadChunkedRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		LOGGER.info("Creating a Mobility read chunked request.");
 		
@@ -255,7 +255,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 		Map<Long, List<MobilityPoint>> millisToPointMap =
 				new HashMap<Long, List<MobilityPoint>>();
 		
-		// Bucket the items perserving order in the bucket.
+		// Bucket the items preserving order in the bucket.
 		for(MobilityPoint mobilityPoint : result) {
 			long time = mobilityPoint.getTime();
 			

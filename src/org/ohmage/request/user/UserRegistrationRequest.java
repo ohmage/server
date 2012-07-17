@@ -1,8 +1,6 @@
 package org.ohmage.request.user;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -81,7 +79,7 @@ public class UserRegistrationRequest extends Request {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserRegistrationRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest);
+		super(httpRequest, null);
 		
 		String tUsername = null;
 		String tPassword = null;
@@ -224,7 +222,8 @@ public class UserRegistrationRequest extends Request {
 		LOGGER.info("Servicing a user registration request.");
 		
 		try {
-			// FIXME: Verify that self-registration is allowed.
+			LOGGER.info("Verifying that self-registration is allowed.");
+			UserServices.instance().verifySelfRegistrationAllowed();
 			
 			LOGGER.info("Verifying the captcha information.");
 			UserServices.instance().verifyCaptcha(
@@ -257,15 +256,5 @@ public class UserRegistrationRequest extends Request {
 		LOGGER.info("Responding to a user registration request.");
 		
 		super.respond(httpRequest, httpResponse, new JSONObject());
-	}
-
-	/**
-	 * Returns an empty map.
-	 * 
-	 * @return An empty map.
-	 */
-	@Override
-	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
 	}
 }

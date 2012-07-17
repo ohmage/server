@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.InvalidRequestException;
@@ -115,6 +116,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final DateTime campaignCreationTimestamp;
 	private List<JSONObject> jsonData;
 	private final Map<String, BufferedImage> imageContentsMap;
+	private final Map<String, Video> videoContentsMap;
 	
 	private Collection<UUID> surveyResponseIds;
 	
@@ -130,7 +132,7 @@ public class SurveyUploadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public SurveyUploadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, false);
+		super(httpRequest, false, null, null);
 		
 		LOGGER.info("Creating a survey upload request.");
 
@@ -138,6 +140,7 @@ public class SurveyUploadRequest extends UserRequest {
 		DateTime tCampaignCreationTimestamp = null;
 		List<JSONObject> tJsonData = null;
 		Map<String, BufferedImage> tImageContentsMap = null;
+		Map<String, Video> tVideoContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -174,14 +177,18 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				t = parameters.get(InputKeys.SURVEYS);
 				if(t == null || t.length != 1) {
-					throw new ValidationException(ErrorCode.SURVEY_INVALID_RESPONSES, "No value found for 'surveys' parameter or multiple surveys parameters were found.");
+					throw new ValidationException(
+						ErrorCode.SURVEY_INVALID_RESPONSES, 
+						"No value found for 'surveys' parameter or multiple surveys parameters were found.");
 				}
 				else {
 					try {
 						tJsonData = CampaignValidators.validateUploadedJson(t[0]);
 					}
 					catch(IllegalArgumentException e) {
-						throw new ValidationException(ErrorCode.SURVEY_INVALID_RESPONSES, "The survey responses could not be URL decoded.", e);
+						throw new ValidationException(
+							ErrorCode.SURVEY_INVALID_RESPONSES, 
+							"The survey responses could not be URL decoded.", e);
 					}
 				}
 				
@@ -202,16 +209,30 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
-				// Retrieve and validate images
+				// Retrieve and validate images and videos.
 				List<String> imageIds = new ArrayList<String>();
+				tVideoContentsMap = new HashMap<String, Video>();
 				Collection<Part> parts = null;
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
 					for(Part p : parts) {
 						try {
-							UUID.fromString(p.getName());
-							imageIds.add(p.getName());
+							String name = p.getName();
+							UUID.fromString(name);
+							
+							String contentType = p.getContentType();
+							if(contentType.startsWith("image")) {
+								imageIds.add(name);
+							}
+							else if(contentType.startsWith("video/")) {
+								tVideoContentsMap.put(
+									name, 
+									new Video(
+										UUID.fromString(name),
+										contentType.split("/")[1],
+										getMultipartValue(httpRequest, name)));
+							}
 						}
 						catch (IllegalArgumentException e) {
 							// ignore because there may not be any UUIDs/images
@@ -255,6 +276,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.campaignCreationTimestamp = tCampaignCreationTimestamp;
 		this.jsonData = tJsonData;
 		this.imageContentsMap = tImageContentsMap;
+		this.videoContentsMap = tVideoContentsMap;
 		
 		surveyResponseIds = null;
 	}
@@ -299,8 +321,18 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
 			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
+			LOGGER.info("Validating that all video prompt responses have their corresponding images attached.");
+			SurveyResponseServices.instance().verifyVideosExistForVideoPromptResponses(surveyResponses, videoContentsMap);
+			
 			LOGGER.info("Inserting the data into the database.");
-			List<Integer> duplicateIndexList = SurveyResponseServices.instance().createSurveyResponses(getUser().getUsername(), getClient(), campaignUrn, surveyResponses, imageContentsMap);
+			List<Integer> duplicateIndexList = 
+				SurveyResponseServices.instance().createSurveyResponses(
+					getUser().getUsername(), 
+					getClient(), 
+					campaignUrn, 
+					surveyResponses, 
+					imageContentsMap,
+					videoContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}

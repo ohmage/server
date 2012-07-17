@@ -5,10 +5,6 @@
          "http://www.springframework.org/schema/beans 
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
   
-  <bean class="org.ohmage.reporting.AuditReporter">
-    <constructor-arg>
-      <ref bean="auditProps" />
-    </constructor-arg>
-  </bean>
+  <bean class="org.ohmage.reporting.AuditReporter" depends-on="preferenceCache" />
   
 </beans>

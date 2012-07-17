@@ -16,7 +16,6 @@
 package org.ohmage.request;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,7 +46,7 @@ import org.ohmage.util.StringUtils;
 public abstract class UserRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(UserRequest.class);
 	
-	protected static enum TokenLocation { COOKIE, PARAMETER, EITHER };
+	public static enum TokenLocation { COOKIE, PARAMETER, EITHER };
 	protected static enum AllowNewAccount { NEW_ACCOUNT_ALLOWED, NEW_ACCOUNT_DISALLOWED };
 	
 	protected static final long MILLIS_IN_A_SECOND = 1000;
@@ -58,99 +57,66 @@ public abstract class UserRequest extends Request {
 	private final String client;
 	
 	/**
-	 * Creates a Request from a username and password in the request.
+	 * Creates a user request based on the information in the HTTP request. All
+	 * parameters except the HTTP request are optional and dictate where to 
+	 * search for the authentication information.
 	 * 
-	 * @param httpRequest The HttpServletRequest with the username, password,
-	 * 					  and client parameters.
+	 * @param httpRequest The HTTP request.
 	 * 
-	 * @param hashPassword Whether or not to hash the user's password when 
-	 * 					   authenticating the user.
+	 * @param hashPassword Whether or not to hash the password in the request.
+	 * 					   If this is null, the request will not use the 
+	 * 					   username and password for authentication.
 	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
+	 * @param tokenLocation Where to search for the authentication token. If
+	 * 						this is null, the request will not use the 
+	 * 						authentication token for authentication.
+	 * 
+	 * @param parameters A preset map of parameters. If this is null, the 
+	 * 					 parameters are decoded from the HTTP request. 
+	 * 					 Otherwise, these parameters are used.
 	 * 
 	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed. This is only applicable in the
+	 * 								   event of the HTTP parameters being 
+	 * 								   parsed.
 	 */
-	public UserRequest(HttpServletRequest httpRequest, boolean hashPassword) 
+	public UserRequest(
+			final HttpServletRequest httpRequest,
+			final Boolean hashPassword,
+			final TokenLocation tokenLocation,
+			final Map<String, String[]> parameters) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest);
-		
-		if(isFailed()) {
-			user = null;
-			client = null;
-			
-			return;
-		}
+		super(httpRequest, parameters);
 		
 		User tUser = null;
-		
-		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = getParameterValues(InputKeys.USER);
-		
-		// If it is missing, fail the request.
-		if(usernames.length == 0) {
-			LOGGER.info("The user is missing from the request.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing user.");
-		}
-		// If there is more than one, fail the request.
-		else if(usernames.length > 1) {
-			LOGGER.info("More than one user was given.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one user was given.");
-		}
-		else {
-			// If exactly one username is found, attempt to retrieve all 
-			// paswords sent to the server.
-			String[] passwords = getParameterValues(InputKeys.PASSWORD);
-			
-			// If it is missing, fail the request.
-			if(passwords.length == 0) {
-				LOGGER.info("The password is missing from the request.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "Missing password.");
-			}
-			// If there are more than one, fail the request.
-			else if(passwords.length > 1) {
-				LOGGER.info("More than one password was given.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one password was given.");
-			}
-			else {
-				// Attempt to create the new User object for this request.
-				try {
-					tUser = new User(usernames[0], passwords[0], hashPassword);
-				}
-				catch(DomainException e) {
-					LOGGER.info("The user and/or password are invalid.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The user and/or password are invalid.");
-				}
-			}
-		}
-		
-		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = getParameterValues(InputKeys.CLIENT);
 		
 		if(! isFailed()) {
-			// If there is no client, throw an error.
-			if(clients.length == 0) {
-				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "Missing client.");
-			}
-			// If there are multiple clients, throw an error.
-			else if(clients.length > 1) {
-				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "More than one client was given.");
-			}
-			else {
-				// Save the client.
-				try {
-					tClient = validateClient(clients[0]);
-					
-					// Push the client into the logs.
-					NDC.push("client=" + tClient);
+			LOGGER.info("Creating a user request.");
+			
+			try {
+				if(hashPassword != null) { 
+					tUser = retrieveUser(hashPassword);
 				}
-				catch(ValidationException e) {
-					LOGGER.info(e.toString());
+				
+				if((tokenLocation != null) && (tUser == null)) {
+					tUser = retrieveToken(httpRequest, tokenLocation);
 				}
+				
+				if(tUser == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"Authentication credentials were not provided.");
+				}
+				
+				tClient = retrieveClient();
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
 			}
 		}
 		
@@ -159,294 +125,83 @@ public abstract class UserRequest extends Request {
 	}
 	
 	/**
-	 * Creates a Request from an authentication token.
+	 * This is a slight variation on 
+	 * {@link #UserRequest(HttpServletRequest, Boolean, TokenLocation, Map)} 
+	 * for OMH requests. There is a slight discrepancy between what they call
+	 * their 'client' parameter; this is fixed by this call which explicitly
+	 * requests the client value rather than pulling it from the request.
 	 * 
-	 * @param httpRequest The HttpServletRequest that contains the token and 
-	 * 					  client parameters.
+	 * @param httpRequest The HTTP request.
 	 * 
-	 * @param tokenLocation This indicates where the token must be located.
+	 * @param hashPassword Whether or not to hash the password in the request.
+	 * 					   If this is null, the request will not use the 
+	 * 					   username and password for authentication.
 	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
+	 * @param tokenLocation Where to search for the authentication token. If
+	 * 						this is null, the request will not use the 
+	 * 						authentication token for authentication.
+	 * 
+	 * @param parameters A preset map of parameters. If this is null, the 
+	 * 					 parameters are decoded from the HTTP request. 
+	 * 					 Otherwise, these parameters are used.
 	 * 
 	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed. This is only applicable in the
+	 * 								   event of the HTTP parameters being 
+	 * 								   parsed.
 	 */
-	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation) 
+	public UserRequest(
+			final HttpServletRequest httpRequest,
+			final Boolean hashPassword,
+			final TokenLocation tokenLocation,
+			final Map<String, String[]> parameters,
+			final String client) 
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest);
-		
-		if(isFailed()) {
-			user = null;
-			client = null;
-			
-			return;
-		}
+		super(httpRequest, parameters);
 		
 		User tUser = null;
-		
-		// First, check if we allow it to be a cookie.
-		if(tokenLocation.equals(TokenLocation.COOKIE) || tokenLocation.equals(TokenLocation.EITHER)) {
-			// Retrieve all of the authentication token cookies from the 
-			// request.
-			List<String> cookies = CookieUtils.getCookieValues(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-			
-			// If there are no authentication token cookies and the
-			// authentication token cannot be retrieved from another location,
-			// fail the request.
-			if((cookies.size() == 0) && (! tokenLocation.equals(TokenLocation.EITHER))) {
-				LOGGER.info("The authentication token is missing.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "The authentication token is missing as a cookie: " + InputKeys.AUTH_TOKEN);
-			}
-			else if(cookies.size() == 1) {
-				// Attempt to retrieve the user.
-				tUser = UserBin.getUser(cookies.get(0));
-				
-				// If the bin doesn't know about the user, set the request as 
-				// failed.
-				if(tUser == null) {
-					LOGGER.info("Unknown token.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
-				}
-			}
-			// If there are multipile authentication token cookies, fail the
-			// request.
-			else if(cookies.size() > 1) {
-				LOGGER.info("Multiple authentication token cookies were found.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
-			}
-		}
-		
-		// Now, if we haven't yet failed or authenticated the user, see if we
-		// allow the token to be a parameter.
-		if((tUser == null) && (! isFailed()) &&
-		   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
-			// Retrieve all of the authentication tokens that were parameters.
-			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
-			
-			if(tokens.length == 0) {
-				LOGGER.info("The authentication token is missing.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "The authentication token is missing as a parameter: " + InputKeys.AUTH_TOKEN);
-			}
-			else if(tokens.length == 1) {
-				// Attempt to retrieve the user.
-				tUser = UserBin.getUser(tokens[0]);
-				
-				// If the bin doesn't know about the user, set the request as 
-				// failed.
-				if(tUser == null) {
-					LOGGER.info("Unknown token.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
-				}
-			}
-			else if(tokens.length > 1){
-				LOGGER.info("Multiple authentication token parameters were found.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
-			}
-		}
-		
-		// Retrieve the client parameter(s) from the request.
 		String tClient = null;
-		String[] clients = getParameterValues(InputKeys.CLIENT);
-
+		
 		if(! isFailed()) {
-			// If there is no client, throw an error.
-			if(clients.length == 0) {
-				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "Missing client.");
-			}
-			// If there are multiple clients, throw an error.
-			else if(clients.length > 1) {
-				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "More than one client was given.");
-			}
-			else {
-				// Save the client.
+			LOGGER.info("Creating a user request.");
+			
+			try {
+				if(hashPassword != null) { 
+					tUser = retrieveUser(hashPassword);
+				}
+				
+				if((tokenLocation != null) && (tUser == null)) {
+					tUser = retrieveToken(httpRequest, tokenLocation);
+				}
+				
+				if(tUser == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"Authentication credentials were not provided.");
+				}
+				
 				try {
-					tClient = validateClient(clients[0]);
-					
-					// Push the client into the logs.
-					NDC.push("client=" + tClient);
+					tClient = validateClient(client);
+					NDC.push(tClient);
 				}
 				catch(ValidationException e) {
-					LOGGER.info(e.toString());
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_REQUESTER,
+						"The requester value was invalid.",
+						e);
 				}
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
 			}
 		}
 		
 		user = tUser;
-		client = tClient;
-	}
-	
-	/**
-	 * Creates a Request from either a username and password or from an
-	 * authentication token. It will default to using the username and 
-	 * password; however, if one is missing it will fall back to using the 
-	 * token.
-	 * 
-	 * @param httpRequest The Request that contains username and password 
-	 * 					  parameters or an authentication token parameter. 
-	 * 					  Either way, it must contain a client parameter.
-	 * 
-	 * @param tokenLocation This indicates where the token must be located.
-	 * 
-	 * @param hashPassword If using a username and password, this indicates
-	 * 					   whether or not to hash the user's password when 
-	 * 					   authenticating them.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	public UserRequest(HttpServletRequest httpRequest, TokenLocation tokenLocation, boolean hashPassword) throws IOException, InvalidRequestException {
-		super(httpRequest);
-		
-		if(isFailed()) {
-			user = null;
-			client = null;
-			
-			return;
-		}
-		
-		User tUser = null;
-		
-		// A flag to indicate whether or not we should look for the token after
-		// looking for a username and password.
-		boolean getToken = false;
-		
-		// Attempt to retrieve all usernames passed to the server.
-		String[] usernames = getParameterValues(InputKeys.USER);
-		
-		// If it is missing, search for a token.
-		if(usernames.length == 0) {
-			getToken = true;
-		}
-		// If there is more than one, fail the request.
-		else if(usernames.length > 1) {
-			LOGGER.info("More than one user was given.");
-			setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one user was given.");
-		}
-		else {
-			// If exactly one username is found, attempt to retrieve all 
-			// paswords sent to the server.
-			String[] passwords = getParameterValues(InputKeys.PASSWORD);
-			
-			// If it is missing, fail the request.
-			if(passwords.length == 0) {
-				getToken = true;
-			}
-			// If there are more than one, fail the request.
-			else if(passwords.length > 1) {
-				LOGGER.info("More than one password was given.");
-				setFailed(ErrorCode.AUTHENTICATION_FAILED, "More than one password was given.");
-			}
-			else {
-				// Attempt to create the new User object for this request.
-				try {
-					tUser = new User(usernames[0], passwords[0], hashPassword);
-				}
-				catch(DomainException e) {
-					LOGGER.info("The user and/or password are invalid.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "The user and/or password are invalid.");
-				}
-			}
-		}
-		
-		if(getToken) {
-			// First, check if we allow it to be a cookie.
-			if(tokenLocation.equals(TokenLocation.COOKIE) || tokenLocation.equals(TokenLocation.EITHER)) {
-				// Retrieve all of the authentication token cookies from the 
-				// request.
-				List<String> cookies = CookieUtils.getCookieValues(httpRequest.getCookies(), InputKeys.AUTH_TOKEN);
-				
-				// If there are no authentication token cookies and the
-				// authentication token cannot be retrieved from another 
-				// location, fail the request.
-				if((cookies.size() == 0) && (! tokenLocation.equals(TokenLocation.EITHER))) {
-					LOGGER.info("Either a user and password or an authentication token are required.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a user and password or an authentication token are required.");
-				}
-				else if(cookies.size() == 1) {
-					// Attempt to retrieve the user.
-					tUser = UserBin.getUser(cookies.get(0));
-					
-					// If the bin doesn't know about the user, set the request as 
-					// failed.
-					if(tUser == null) {
-						LOGGER.info("Unknown token.");
-						setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
-					}
-				}
-				// If there are multipile authentication token cookies, fail the
-				// request.
-				else if(cookies.size() > 1){
-					LOGGER.info("Multiple authentication token cookies were found.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token cookies were found.");
-				}
-			}
-			
-			// Now, if we haven't yet failed or authenticated the user, see if we
-			// allow the token to be a parameter.
-			if((tUser == null) && (! isFailed()) &&
-			   (tokenLocation.equals(TokenLocation.PARAMETER) || tokenLocation.equals(TokenLocation.EITHER))) {
-				// Retrieve all of the authentication tokens that were parameters.
-				String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
-				
-				if(tokens.length == 0) {
-					LOGGER.info("Either a user and password or an authentication token are required.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Either a user and password or an authentication token are required.");
-				}
-				else if(tokens.length == 1) {
-					// Attempt to retrieve the user.
-					tUser = UserBin.getUser(tokens[0]);
-					
-					// If the bin doesn't know about the user, set the request as 
-					// failed.
-					if(tUser == null) {
-						LOGGER.info("Unknown token.");
-						setFailed(ErrorCode.AUTHENTICATION_FAILED, "The token is unknown.");
-					}
-				}
-				else if(tokens.length > 1) {
-					LOGGER.info("Multiple authentication token parameters were found.");
-					setFailed(ErrorCode.AUTHENTICATION_FAILED, "Multiple authentication token parameters were found.");
-				}
-			}
-		}
-		
-		
-		// Retrieve the client parameter(s) from the request.
-		String tClient = null;
-		String[] clients = getParameterValues(InputKeys.CLIENT);
-
-		if(! isFailed()) {
-			// If there is no client, throw an error.
-			if(clients.length == 0) {
-				LOGGER.info("The client is missing from the request.");
-				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "Missing client.");
-			}
-			// If there are multiple clients, throw an error.
-			else if(clients.length > 1) {
-				LOGGER.info("More than one client was given.");
-				setFailed(ErrorCode.SERVER_INVALID_CLIENT, "More than one client was given.");
-			}
-			else {
-				// Save the client.
-				try {
-					tClient = validateClient(clients[0]);
-					
-					// Push the client into the logs.
-					NDC.push("client=" + tClient);
-				}
-				catch(ValidationException e) {
-					LOGGER.info(e.toString());
-				}
-			}
-		}
-		
-		user = tUser;
-		client = tClient;
+		this.client = tClient;
 	}
 	
 	/**
@@ -496,7 +251,7 @@ public abstract class UserRequest extends Request {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> result = new HashMap<String, String[]>();
+		Map<String, String[]> result = super.getAuditInformation();
 		
 		if(! isFailed()) {
 			String[] userArray = new String[1];
@@ -532,6 +287,24 @@ public abstract class UserRequest extends Request {
 		
 		return token;
 	}
+	
+	/**
+	 * Refreshes the token cookie for the request.
+	 * 
+	 * @param httpResponse The HTTP response.
+	 */
+	protected void refreshTokenCookie(final HttpServletResponse httpResponse) {
+		if(user != null) {
+			final String token = user.getToken(); 
+			if(token != null) {
+				CookieUtils.setCookieValue(
+					httpResponse, 
+					InputKeys.AUTH_TOKEN, 
+					token, 
+					(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+			}
+		}
+	}
 
 	/**
 	 * Generates the success/fail response for the user with an additional key-
@@ -553,16 +326,7 @@ public abstract class UserRequest extends Request {
 			final String key, 
 			final Object value) {
 		
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(
-						httpResponse, 
-						InputKeys.AUTH_TOKEN, 
-						token, 
-						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-		}
+		refreshTokenCookie(httpResponse);
 		
 		JSONObject response = new JSONObject();
 		
@@ -617,16 +381,7 @@ public abstract class UserRequest extends Request {
 			final JSONObject metadata, 
 			final JSONObject data) {
 		
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(
-						httpResponse, 
-						InputKeys.AUTH_TOKEN, 
-						token, 
-						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
-			}
-		}
+		refreshTokenCookie(httpResponse);
 		
 		JSONObject response = new JSONObject();
 		try {
@@ -644,25 +399,213 @@ public abstract class UserRequest extends Request {
 	 *************************************************************************/
 	
 	/**
+	 * Retrieves the user's credentials from the request and creates a User
+	 * object or returns null if the credentials didn't exist.
+	 * 
+	 * @param hashPassword Whether or not to hash the user's password.
+	 * 
+	 * @return A User object generated from the username and password or null
+	 * 		   if insufficient information was given. 
+	 * 
+	 * @throws ValidationException The user's credentials were given but were
+	 * 							   invalid.
+	 */
+	private final User retrieveUser(
+			final boolean hashPassword) 
+			throws ValidationException {
+		
+		// Attempt to retrieve all usernames passed to the server.
+		String[] usernames = getParameterValues(InputKeys.USER);
+		
+		// If there is more than one, fail the request.
+		if(usernames.length > 1) {
+			throw new ValidationException(
+				ErrorCode.AUTHENTICATION_FAILED, 
+				"More than one user was given.");
+		}
+		else if(usernames.length == 1) {
+			// If exactly one username is found, attempt to retrieve all 
+			// paswords sent to the server.
+			String[] passwords = getParameterValues(InputKeys.PASSWORD);
+			
+			// If there are more than one, fail the request.
+			if(passwords.length > 1) {
+				throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"More than one password was given.");
+			}
+			else if(passwords.length == 1) {
+				// Attempt to create the new User object for this request.
+				try {
+					return new User(usernames[0], passwords[0], hashPassword);
+				}
+				catch(DomainException e) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED, 
+						"The user and/or password are invalid.",
+						e);
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Checks if a token exists in any of the places specified. If so, it will
+	 * attempt to retrieve the user associated with it and thrown an exception
+	 * if no such user exists. If not, it will return null.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param tokenLocation Where to look for the token.
+	 * 
+	 * @return The user based on the token found or null if no tokens were
+	 * 		   supplied.
+	 * 
+	 * @throws ValidationException The token doesn't exist.
+	 */
+	private final User retrieveToken(
+			final HttpServletRequest httpRequest,
+			final TokenLocation tokenLocation) 
+			throws ValidationException {
+		
+		// Validate the parameters.
+		if(httpRequest == null) {
+			throw new ValidationException(
+				"The HTTP request was null.");
+		}
+		else if(tokenLocation == null) {
+			throw new ValidationException(
+				"The token location was null.");
+		}
+		
+		// First, check if we allow it to be a cookie.
+		if(tokenLocation.equals(TokenLocation.COOKIE) || 
+			tokenLocation.equals(TokenLocation.EITHER)) {
+			
+			// Retrieve all of the authentication token cookies from the 
+			// request.
+			List<String> cookies = 
+				CookieUtils.getCookieValues(
+					httpRequest.getCookies(), 
+					InputKeys.AUTH_TOKEN);
+			
+			// If there are multiple authentication token cookies, fail the
+			// request.
+			 if(cookies.size() > 1) {
+				throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"Multiple authentication token cookies were given.");
+			}
+			else if(cookies.size() == 1) {
+				// Attempt to retrieve the user.
+				User user = UserBin.getUser(cookies.get(0));
+				
+				// If the bin doesn't know about the user, set the request as
+				// failed.
+				if(user == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED, 
+						"The token cookie is unknown.");
+				}
+				
+				return user;
+			}
+		}
+		
+		// Check if it is allowed to be a parameter.
+		if(TokenLocation.PARAMETER.equals(tokenLocation) ||
+			TokenLocation.EITHER.equals(tokenLocation)) {
+			
+			// Retrieve all of the authentication tokens that were parameters.
+			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
+	
+			if(tokens.length > 1){
+				throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"Multiple authentication token parameters were found.");
+			}
+			else if(tokens.length == 1) {
+				// Attempt to retrieve the user.
+				User user = UserBin.getUser(tokens[0]);
+				
+				// If the bin doesn't know about the user, set the request as 
+				// failed.
+				if(user == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED, 
+						"The token is unknown.");
+				}
+				
+				return user;
+			}
+		}
+		
+		// If it didn't exist as a parameter or as a cookie, return null.
+		return null;
+	}
+	
+	/**
+	 * Validates the client value from the parameters.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @return The client value.
+	 * 
+	 * @throws ValidationException The client value was invalid.
+	 */
+	private final String retrieveClient() throws ValidationException {
+		
+		// Get the list of clients.
+		String[] clients = getParameterValues(InputKeys.CLIENT);
+		
+		// If there is no client, throw an error.
+		if(clients.length == 0) {
+			throw new ValidationException(
+				ErrorCode.SERVER_INVALID_CLIENT, 
+				"The client is missing.");
+		}
+		// If there are multiple clients, throw an error.
+		else if(clients.length > 1) {
+			throw new ValidationException(
+				ErrorCode.SERVER_INVALID_CLIENT, 
+				"More than one client was given.");
+		}
+		else {
+			// Get the client.
+			String client = validateClient(clients[0]);
+			
+			// Push the client into the logs.
+			NDC.push("client=" + client);
+			
+			return client;
+		}
+	}
+	
+	/**
 	 * Validates that a client value is valid.
 	 * 
 	 * @param client The client value to be validated.
 	 * 
-	 * @return Returns null if the client value is null or whitespace only;
-	 * 		   otherwise, it returns the client value.
+	 * @return Returns the client value.
 	 * 
-	 * @throws ValidationException Thrown if the client value is not null, not
-	 * 							   whitespace only, and not a valid client
-	 * 							   value.
+	 * @throws ValidationException The client value was invalid.
 	 */
-	private final String validateClient(String client) throws ValidationException {
+	private final String validateClient(
+			final String client)
+			throws ValidationException {
+		
 		if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
-			return null;
+			throw new ValidationException(
+				ErrorCode.SERVER_INVALID_CLIENT,
+				"The client is missing.");
 		}
 		
 		if(client.length() > MAX_CLIENT_LENGTH) {
-			setFailed(ErrorCode.SERVER_INVALID_CLIENT, "The client value is too long.");
-			throw new ValidationException("The client value is too long.");
+			throw new ValidationException(
+				ErrorCode.SERVER_INVALID_CLIENT, 
+				"The client value is too long.");
 		}
 		
 		return client;

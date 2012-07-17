@@ -71,7 +71,7 @@ public class AuthRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public AuthRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, true);
+		super(httpRequest, true, null, null);
 		
 		LOGGER.info("Building an username / password authentication request.");
 	}

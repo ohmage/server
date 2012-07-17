@@ -30,7 +30,7 @@ public class PhotoPromptResponse extends PromptResponse {
 	/**
 	 * Creates a photo prompt response.
 	 * 
-	 * @param prompt The HoursBeforeNowPrompt used to generate this response.
+	 * @param prompt The PhotoPrompt used to generate this response.
 	 * 
 	 * @param repeatableSetIteration If the prompt was part of a repeatable 
 	 * 								 set, this is the iteration of that 

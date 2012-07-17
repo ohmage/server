@@ -31,6 +31,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
@@ -38,7 +39,9 @@ import javax.mail.SendFailedException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
@@ -87,7 +90,7 @@ public final class UserServices {
 	
 	private static final String ACTIVATION_FUNCTION = "#activate";
 	
-	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 4;
+	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 24;
 	
 	final static char[] CHARS_TEMPORARY_PASSWORD = 
 			new char[] { 
@@ -155,7 +158,6 @@ public final class UserServices {
 		return instance;
 	}
 
-	
 	/**
 	 * Creates a new user.
 	 * 
@@ -261,21 +263,8 @@ public final class UserServices {
 						PreferenceCache.KEY_MAIL_REGISTRATION_TEXT,
 					e);
 			}
-			
-			try {
-				registrationText =
-						registrationText.replace(
-								MAIL_REGISTRATION_TEXT_TOS, 
-								PreferenceCache.instance().lookup(
-									PreferenceCache.KEY_TERMS_OF_SERVICE));
-			}
-			catch(CacheMissException e) {
-				throw new ServiceException(
-					"The mail property is not in the preference table: " +
-						PreferenceCache.KEY_TERMS_OF_SERVICE,
-					e);
-			}
-			
+
+			// Compute the registration link.
 			StringBuilder registrationLink = 
 					new StringBuilder("<a href=\"http://");
 			// Get this machine's hostname.
@@ -298,6 +287,27 @@ public final class UserServices {
 					registrationText.replace(
 							MAIL_REGISTRATION_TEXT_REGISTRATION_LINK, 
 							registrationLink);
+			
+			// Split based on the TOS flag.
+			String[] registrationParts = null;
+			if(registrationText.contains(MAIL_REGISTRATION_TEXT_TOS)) {
+				registrationParts = 
+					registrationText.split(MAIL_REGISTRATION_TEXT_TOS);
+			}
+			
+			// Get the terms of service.
+			String termsOfService;
+			try {
+				termsOfService =
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_TERMS_OF_SERVICE);
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+					"The mail property is not in the preference table: " +
+						PreferenceCache.KEY_TERMS_OF_SERVICE,
+					e);
+			}
 			
 			// Get the session.
 			Session smtpSession = getMailSession();
@@ -362,13 +372,43 @@ public final class UserServices {
 						"Could not set the subject on the message.",
 						e);
 			}
-			
 			try {
-				message.setContent(registrationText, "text/html");
+				// There is no TOS.
+				if(registrationParts == null) {
+					try {
+						message.setContent(registrationText, "text/html");
+					}
+					catch(MessagingException e) {
+						throw new ServiceException(
+								"Could not add the content to the message.",
+								e);
+					}
+				}
+				else {
+					MimeMultipart multipart = new MimeMultipart();
+					
+					boolean firstPass = true;
+					for(int i = 0; i < registrationParts.length; i++) {
+						if(firstPass) {
+							firstPass = false;
+						}
+						else {
+							BodyPart plainPart = new MimeBodyPart();
+							plainPart.setContent(termsOfService, "text/plain");
+							multipart.addBodyPart(plainPart);
+						}
+						
+						BodyPart htmlPart = new MimeBodyPart();
+						htmlPart.setContent(registrationParts[i], "text/html");
+						multipart.addBodyPart(htmlPart);
+					}
+					
+					message.setContent(multipart);
+				}
 			}
 			catch(MessagingException e) {
 				throw new ServiceException(
-						"Could not add the content to the message.",
+						"There was an error constructing the message.",
 						e);
 			}
 			
@@ -389,6 +429,38 @@ public final class UserServices {
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
 		} 
+	}
+	
+	/**
+	 * Verifies that self-registration is allowed.
+	 * 
+	 * @throws ServiceException Self-registration is not allowed, or the 
+	 * 							self-registration flag is missing or invalid.
+	 */
+	public void verifySelfRegistrationAllowed() throws ServiceException {
+		try {
+			Boolean selfRegistrationAllowed =
+				StringUtils.decodeBoolean(
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION));
+				
+			if(selfRegistrationAllowed == null) {
+				throw new ServiceException(
+					"The self-registration flag is not a valid boolean: " +
+						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION);	
+			}
+			else if(! selfRegistrationAllowed) {
+				throw new ServiceException(
+					ErrorCode.SERVER_SELF_REGISTRATION_NOT_ALLOWED,
+					"Self-registration is not allowed.");
+			}
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+				"Could not retrieve the 'known' key: " +
+					PreferenceCache.KEY_ALLOW_SELF_REGISTRATION,
+				e);
+		}
 	}
 	
 	/**

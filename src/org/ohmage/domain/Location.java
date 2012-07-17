@@ -15,12 +15,17 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonNode;
+import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -214,6 +219,127 @@ public class Location {
 	/**
 	 * Creates a new Location object.
 	 * 
+	 * @param latitude The latitude of the device.
+	 * 
+	 * @param longitude The longitude of the device.
+	 * 
+	 * @param accuracy The accuracy of the reading.
+	 * 
+	 * @param provider A string representing who the provider was.
+	 * 
+	 * @param timestamp A timestamp of when this reading was made.
+	 * 
+	 * @throws DomainException Thrown if the provider or time zone are null.
+	 */
+	public Location(
+			final DateTime timestamp,
+			final double latitude, 
+			final double longitude, 
+			final double accuracy, 
+			final String provider) 
+			throws DomainException {
+		
+		if(timestamp == null) {
+			throw new DomainException(
+				"The timestamp is null.");
+		}
+		if(provider == null) {
+			throw new DomainException(
+				"The provider is null.");
+		}
+
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.accuracy = accuracy;
+		this.provider = provider;
+		this.time = timestamp.getMillis();
+		this.timeZone = timestamp.getZone();
+	}
+	
+	/**
+	 * Creates a Location object from a Jackson JsonNode.
+	 * 
+	 * @param locationNode The location JsonNode.
+	 * 
+	 * @throws DomainException The node was invalid.
+	 */
+	public Location(
+			final JsonNode locationNode)
+			throws DomainException {
+		
+		if(locationNode == null) {
+			throw new DomainException("The location node is null.");
+		}
+		
+		// Get the time.
+		JsonNode timeNode = locationNode.get("time");
+		if(timeNode == null) {
+			throw new DomainException("The time is missing.");
+		}
+		else if(! timeNode.isNumber()) {
+			throw new DomainException("The time is not a number.");
+		}
+		time = timeNode.getNumberValue().longValue();
+		
+		// Get the time zone.
+		JsonNode timeZoneNode = locationNode.get("timezone");
+		if(timeZoneNode == null) {
+			throw new DomainException("The time zone is missing.");
+		}
+		else if(! timeZoneNode.isTextual()) {
+			throw new DomainException("The time zone is not a string.");
+		}
+		try {
+			timeZone = DateTimeZone.forID(timeZoneNode.getTextValue());
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException("The time zone is unknown.");
+		}
+		
+		// Get the latitude.
+		JsonNode latitudeNode = locationNode.get("latitude");
+		if(latitudeNode == null) {
+			throw new DomainException("The latitude is missing.");
+		}
+		else if(! latitudeNode.isNumber()) {
+			throw new DomainException("The latitude is not a number.");
+		}
+		latitude = latitudeNode.getNumberValue().doubleValue();
+		
+		// Get the longitude.
+		JsonNode longitudeNode = locationNode.get("longitude");
+		if(longitudeNode == null) {
+			throw new DomainException("The longitude is missing.");
+		}
+		else if(! longitudeNode.isNumber()) {
+			throw new DomainException("The longitude is not a number.");
+		}
+		longitude = longitudeNode.getNumberValue().doubleValue();
+		
+		// Get the accuracy.
+		JsonNode accuracyNode = locationNode.get("accuracy");
+		if(accuracyNode == null) {
+			throw new DomainException("The accuracy is missing.");
+		}
+		else if(! accuracyNode.isNumber()) {
+			throw new DomainException("The accuracy is not a number.");
+		}
+		accuracy = accuracyNode.getNumberValue().doubleValue();
+		
+		// Get the provider.
+		JsonNode providerNode = locationNode.get("provider");
+		if(providerNode == null) {
+			throw new DomainException("The provider is missing.");
+		}
+		else if(! providerNode.isTextual()) {
+			throw new DomainException("The provider is not a string.");
+		}
+		provider = providerNode.getTextValue();
+	}
+	
+	/**
+	 * Creates a new Location object.
+	 * 
 	 * @param locationData A JSONObject representing all of the data for a
 	 * 					   Location object.
 	 * 
@@ -388,49 +514,6 @@ public class Location {
 		}
 		provider = tProvider;
 	}
-	
-	/**
-	 * Creates a new Location object.
-	 * 
-	 * @param latitude The latitude of the device.
-	 * 
-	 * @param longitude The longitude of the device.
-	 * 
-	 * @param accuracy The accuracy of the reading.
-	 * 
-	 * @param provider A string representing who the provider was.
-	 * 
-	 * @param timestamp A timestamp of when this reading was made.
-	 * 
-	 * @throws DomainException Thrown if the provider or time zone are null.
-	 */
-	public Location(
-			final double latitude, 
-			final double longitude, 
-			final double accuracy, 
-			final String provider, 
-			final long time, 
-			final DateTimeZone timeZone) 
-			throws DomainException {
-		
-		if(provider == null) {
-			throw new DomainException(
-					ErrorCode.SERVER_INVALID_LOCATION, 
-					"The provider cannot be null.");
-		}
-		else if(timeZone == null) {
-			throw new DomainException(
-					ErrorCode.SERVER_INVALID_LOCATION,
-					"The time zone cannot be null.");
-		}
-		
-		this.latitude = latitude;
-		this.longitude = longitude;
-		this.accuracy = accuracy;
-		this.provider = provider;
-		this.time = time;
-		this.timeZone = timeZone;
-	}
 
 	/**
 	 * Returns the latitude of this location.
@@ -484,6 +567,71 @@ public class Location {
 	 */
 	public final DateTimeZone getTimeZone() {
 		return timeZone;
+	}
+	
+	/**
+	 * Streams this object to the output.
+	 * 
+	 * @param generator The generator that will generate the result.
+	 * 
+	 * @param abbreviated Whether or not to stream the abbreviated keys.
+	 * 
+	 * @param columns The columns indicating which fields to include.
+	 * 
+	 * @throws JsonGenerationException There was a problem generating the JSON.
+	 * 
+	 * @throws IOException There was a problem writing to the stream.
+	 * 
+	 * @throws DomainException A required parameter was missing.
+	 */
+	public final void streamJson(
+			final JsonGenerator generator,
+			final boolean abbreviated,
+			final Collection<ColumnKey> columns)
+			throws JsonGenerationException, IOException, DomainException {
+		
+		if(generator == null) {
+			throw new DomainException("The generator is null.");
+		}
+		else if(columns == null) {
+			throw new DomainException("The list of columns cannot be null.");
+		}
+		
+		if(columns.contains(LocationColumnKey.TIME)) {
+			generator.writeNumberField(
+				LocationColumnKey.TIME.toString(abbreviated), 
+				time);
+		}
+			
+		if(columns.contains(LocationColumnKey.TIMEZONE)) {
+			generator.writeStringField(
+				LocationColumnKey.TIMEZONE.toString(abbreviated), 
+				timeZone.getID());
+		}
+			
+		if(columns.contains(LocationColumnKey.LATITUDE)) {
+			generator.writeNumberField(
+				LocationColumnKey.LATITUDE.toString(abbreviated),  
+				latitude);
+		}
+			
+		if(columns.contains(LocationColumnKey.LONGITUDE)) {
+			generator.writeNumberField(
+				LocationColumnKey.LONGITUDE.toString(abbreviated), 
+				longitude);
+		}
+			
+		if(columns.contains(LocationColumnKey.ACCURACY)) {
+			generator.writeNumberField(
+				LocationColumnKey.ACCURACY.toString(abbreviated), 
+				accuracy);
+		}
+			
+		if(columns.contains(LocationColumnKey.PROVIDER)) {
+			generator.writeStringField(
+				LocationColumnKey.PROVIDER.toString(abbreviated), 
+				provider);
+		}
 	}
 	
 	/**

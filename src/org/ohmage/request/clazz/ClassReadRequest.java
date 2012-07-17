@@ -111,7 +111,7 @@ public class ClassReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public ClassReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER);
+		super(httpRequest, null, TokenLocation.EITHER, null);
 		
 		Set<String> tClassIds = null;
 		Set<String> tClassNameTokens = null;

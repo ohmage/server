@@ -43,15 +43,15 @@ import org.ohmage.service.AuditServices;
  * 
  * @author John Jenkins
  */
-// Note: maxFileSize refers to PUTs whereas maxRequestSize refers to the max 
-// size of a multipart/form-data POST which doesn't differentiate between the
-// different parameters. Therefore, there is no way through this call to limit
-// individual file uploads via POST.
 @MultipartConfig(
-		location="/opt/aw/as/temp/", 
-		maxFileSize=1024*1024*5, 
-		maxRequestSize=1024*1024*5*5, 
-		fileSizeThreshold=1024*1024*5*5 + 1)
+		// 300 MB is the maximum allowed file size for videos.
+		maxFileSize=1024*1024*300, 
+		// 300 MB for a video plus 25 MB for the images plus 5 MB for the 
+		// survey response content.
+		maxRequestSize=1024*1024*300 + 1024*1024*25 + 1024*1024*5,
+		// Let's start caching if the request is greater than that for the 
+		// images plus the survey response content.
+		fileSizeThreshold=1024*1024*25 + 1024*1024*5)
 public class RequestServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(RequestServlet.class);
 	
@@ -298,25 +298,15 @@ public class RequestServlet extends HttpServlet {
 	 */
 	@Override
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		if(RequestBuilder.API_CONFIG_READ.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_IMAGE_READ.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_IMAGE_BATCH_ZIP_READ.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_DOCUMENT_READ_CONTENTS.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(httpRequest.getRequestURI().startsWith("/app/viz/")) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_USER_ACTIVATE.equals(httpRequest.getRequestURI())) {
-			processRequest(httpRequest, httpResponse);
-		}
-		else if(RequestBuilder.API_REGISTRATION_READ.equals(httpRequest.getRequestURI())) {
+		if(RequestBuilder.getInstance().getApiConfigRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiImageRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiImageBatchZipRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiDocumentReadContents().equals(httpRequest.getRequestURI()) ||
+			httpRequest.getRequestURI().startsWith(RequestBuilder.getInstance().getApiVisualization()) ||
+			RequestBuilder.getInstance().getApiUserActivate().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiRegistrationRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiStreamRead().equals(httpRequest.getRequestURI())) {
+			
 			processRequest(httpRequest, httpResponse);
 		}
 		else {
@@ -367,7 +357,7 @@ public class RequestServlet extends HttpServlet {
 			final HttpServletResponse httpResponse) {
 		
 		try {
-			Request request = RequestBuilder.buildRequest(httpRequest);
+			Request request = RequestBuilder.getInstance().buildRequest(httpRequest);
 	
 			if(! request.isFailed()) {
 				request.service();

@@ -77,7 +77,7 @@ public class AnnotationDeleteRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public AnnotationDeleteRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		LOGGER.info("Creating an annotation delete request.");
 		

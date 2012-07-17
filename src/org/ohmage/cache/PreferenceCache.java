@@ -56,6 +56,9 @@ public final class PreferenceCache extends KeyValueCache {
 	// Image-specific information.
 	public static final String KEY_IMAGE_DIRECTORY = "image_directory";
 	
+	// Video-specific information.
+	public static final String KEY_VIDEO_DIRECTORY = "video_directory";
+	
 	// Allows privileged users in a class to view the Mobility information 
 	// about everyone else in the class.
 	public static final String 
@@ -116,6 +119,12 @@ public final class PreferenceCache extends KeyValueCache {
 	
 	// CORS leniency mode
 	public static final String KEY_CORS_LENIENT_MODE = "cors-lenient-mode";
+	
+	// Audit Log Location
+	public static final String KEY_AUDIT_LOG_LOCATION = "audit_log_location";
+	
+	public static final String KEY_FULLY_QUALIFIED_DOMAIN_NAME = 
+		"fully_qualified_domain_name";
 		
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;

@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
@@ -57,6 +58,36 @@ public final class MobilityValidators {
 	 * Default constructor. Private so that it cannot be instantiated.
 	 */
 	private MobilityValidators() {}
+	
+	/**
+	 * Validates that a Mobility ID is a valid ID.
+	 * 
+	 * @param value The value to be validated.
+	 * 
+	 * @return The validated Mobility ID or null if the value was null or only
+	 * 		   whitespace.
+	 * 
+	 * @throws ValidationException The value was not a valid Mobility ID.
+	 */
+	public static UUID validateMobilityId(
+			final String value) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		try {
+			return UUID.fromString(value);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+				ErrorCode.MOBILITY_INVALID_ID,
+				"The Mobility ID is not a valid ID: " +
+					value,
+				e);
+		}
+	}
 	
 	/**
 	 * Validates Mobility data in the format of a JSONArray of JSONObjects 
@@ -313,5 +344,35 @@ public final class MobilityValidators {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Validates a Mobility privacy state.
+	 * 
+	 * @param value The privacy state to be validated.
+	 * 
+	 * @return The privacy state or null if the input was null or only
+	 * 		   whitespace.
+	 * 
+	 * @throws ValidationException The privacy state could not be decoded.
+	 */
+	public static MobilityPoint.PrivacyState validatePrivacyState(
+			final String value)
+			throws ValidationException {
+
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		try {
+			return MobilityPoint.PrivacyState.getValue(value);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.MOBILITY_INVALID_PRIVACY_STATE,
+					"The Mobility privacy state is not a valid privacy state: " +
+						value,
+					e);
+		}
 	}
 }

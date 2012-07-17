@@ -161,7 +161,7 @@ public class OhmageApi {
 			serverResponse = 
 				processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_CONFIG_READ), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiConfigRead()), 
 							new HashMap<String, Object>(0), 
 							false), 
 					InputKeys.DATA);
@@ -217,7 +217,7 @@ public class OhmageApi {
 		try {
 			return processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_USER_AUTH), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiUserAuth()), 
 							parameters, 
 							false), 
 					AuthRequest.KEY_HASHED_PASSWORD);
@@ -258,7 +258,7 @@ public class OhmageApi {
 		try {
 			return processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_USER_AUTH_TOKEN), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiUserAuthToken()), 
 							parameters, 
 							false), 
 					AuthTokenRequest.KEY_AUTH_TOKEN);
@@ -318,7 +318,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_CREATE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiCampaignCreate()), 
 					parameters, 
 					false
 				);
@@ -358,7 +358,7 @@ public class OhmageApi {
 		
 		try {
 			return makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_READ), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiCampaignRead()), 
 					parameters, 
 					false
 				);
@@ -449,7 +449,7 @@ public class OhmageApi {
 			resultJson = new JSONObject(
 					processJsonResponse(
 						makeRequest(
-								new URL(url.toString() + RequestBuilder.API_CAMPAIGN_READ), 
+								new URL(url.toString() + RequestBuilder.getInstance().getApiCampaignRead()), 
 								parameters, 
 								false), 
 						Request.JSON_KEY_DATA
@@ -581,7 +581,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_UPDATE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiCampaignUpdate()), 
 					parameters, 
 					true
 				);
@@ -618,7 +618,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CAMPAIGN_DELETE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiCampaignDelete()), 
 					parameters, 
 					false
 				);
@@ -666,7 +666,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CLASS_CREATE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiClassCreate()), 
 					parameters, 
 					false
 				);
@@ -711,7 +711,7 @@ public class OhmageApi {
 			resultJson = new JSONObject(
 					processJsonResponse(
 						makeRequest(
-								new URL(url.toString() + RequestBuilder.API_CLASS_READ), 
+								new URL(url.toString() + RequestBuilder.getInstance().getApiClassRead()), 
 								parameters, 
 								false), 
 						Request.JSON_KEY_DATA
@@ -777,7 +777,7 @@ public class OhmageApi {
 		
 		try {
 			return makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CLASS_ROSTER_READ), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiClassRosterRead()), 
 					parameters, 
 					false);
 		}
@@ -834,7 +834,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CLASS_UPDATE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiClassUpdate()), 
 					parameters, 
 					false
 				);
@@ -878,7 +878,7 @@ public class OhmageApi {
 			warningMessages = new JSONArray(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_CLASS_ROSTER_UPDATE), 
+									new URL(url.toString() + RequestBuilder.getInstance().getApiClassRosterUpdate()), 
 									parameters, 
 									true
 								),
@@ -934,7 +934,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_CLASS_DELETE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiClassDelete()), 
 					parameters, 
 					false
 				);
@@ -1019,7 +1019,7 @@ public class OhmageApi {
 		try {
 			return processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_DOCUMENT_CREATE), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiDocumentCreate()), 
 							parameters, 
 							true), 
 					DocumentCreationRequest.KEY_DOCUMENT_ID);
@@ -1081,7 +1081,7 @@ public class OhmageApi {
 			documents = new JSONObject(
 					processJsonResponse(
 						makeRequest(
-								new URL(url.toString() + RequestBuilder.API_DOCUMENT_READ), 
+								new URL(url.toString() + RequestBuilder.getInstance().getApiDocumentRead()), 
 								parameters, 
 								false), 
 						Request.JSON_KEY_DATA
@@ -1144,7 +1144,7 @@ public class OhmageApi {
 		
 		try {
 			return makeRequest(
-					new URL(url.toString() + RequestBuilder.API_DOCUMENT_READ_CONTENTS), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiDocumentReadContents()), 
 					parameters, 
 					false);
 		}
@@ -1268,7 +1268,7 @@ public class OhmageApi {
 		try {
 			processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_DOCUMENT_UPDATE), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiDocumentUpdate()), 
 							parameters, 
 							true),
 					null);
@@ -1306,7 +1306,7 @@ public class OhmageApi {
 		try {
 			processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_DOCUMENT_DELETE), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiDocumentDelete()), 
 							parameters, 
 							false), 
 					null);
@@ -1372,7 +1372,7 @@ public class OhmageApi {
 		try {
 			processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_MOBILITY_UPLOAD), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiMobilityUpload()), 
 							parameters, 
 							false), 
 					null);
@@ -1425,12 +1425,16 @@ public class OhmageApi {
 			parameters.put(InputKeys.DATE, TimeUtils.getIso8601DateString(date, false));
 		}
 		
+		parameters.put(
+			InputKeys.COLUMN_LIST, 
+			"mobility:id,mobility:time,mobility:timestamp,mobility:timezone,mobility:location,mobility:subtype,mobility:sensor_data,mobility:mode");
+		
 		JSONArray response;
 		try {
 			response = new JSONArray(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_MOBILITY_READ), 
+									new URL(url.toString() + RequestBuilder.getInstance().getApiMobilityRead()), 
 									parameters, 
 									false), 
 							MobilityReadRequest.JSON_KEY_DATA
@@ -1456,12 +1460,14 @@ public class OhmageApi {
 			// All Mobility points from the server are "mode_only", but that is
 			// not included in the response. We add it here for the 
 			// constructor's benefit.
+			/*
 			try {
-				currResult.put(MobilityColumnKey.SUB_TYPE.toString(false), MobilityPoint.SubType.MODE_ONLY);
+				currResult.put(MobilityColumnKey.SUB_TYPE.toString(false), MobilityPoint.SubType.SENSOR_DATA.toString());
 			}
 			catch(JSONException e) {
 				throw new ApiException("Error adding the subtype to the response.", e);
 			}
+			*/
 			
 			try {
 				results.add(new MobilityPoint(currResult, MobilityPoint.PrivacyState.PRIVATE));
@@ -1547,7 +1553,7 @@ public class OhmageApi {
 		try {
 			processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_SURVEY_UPLOAD), 
+							new URL(url.toString() + RequestBuilder.getInstance().getApiSurveyUpload()), 
 							parameters, 
 							true), 
 					null);
@@ -1687,7 +1693,7 @@ public class OhmageApi {
 		byte[] response;
 		try {
 			response = makeRequest(
-					new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_READ), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiSurveyResponseRead()), 
 					parameters, 
 					false
 				);
@@ -1825,7 +1831,7 @@ public class OhmageApi {
 			response = new JSONObject(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_READ), 
+									new URL(url.toString() + RequestBuilder.getInstance().getApiSurveyResponseRead()), 
 									parameters, 
 									false
 								),
@@ -1971,7 +1977,7 @@ public class OhmageApi {
 			response = new JSONArray(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_READ), 
+									new URL(url.toString() + RequestBuilder.getInstance().getApiSurveyResponseRead()), 
 									parameters, 
 									false
 								),
@@ -2049,7 +2055,7 @@ public class OhmageApi {
 			response = new JSONObject(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_FUNCTION_READ), 
+									new URL(url.toString() + RequestBuilder.getInstance().API_SURVEY_RESPONSE_FUNCTION_READ), 
 									parameters, 
 									false
 								),
@@ -2123,7 +2129,7 @@ public class OhmageApi {
 
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_UPDATE),
+					new URL(url.toString() + RequestBuilder.getInstance().getApiSurveyResponseUpdate()),
 					parameters,
 					false
 				);
@@ -2163,7 +2169,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_SURVEY_RESPONSE_DELETE),
+					new URL(url.toString() + RequestBuilder.getInstance().getApiSurveyResponseDelete()),
 					parameters,
 					false
 				);
@@ -2227,7 +2233,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_USER_CREATE),
+					new URL(url.toString() + RequestBuilder.getInstance().getApiUserCreate()),
 					parameters,
 					false
 				);
@@ -2287,7 +2293,7 @@ public class OhmageApi {
 			response = new JSONObject(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_USER_READ), 
+									new URL(url.toString() + RequestBuilder.getInstance().getApiUserRead()), 
 									parameters, 
 									false
 								),
@@ -2359,7 +2365,7 @@ public class OhmageApi {
 			response = new JSONObject(
 					processJsonResponse(
 							makeRequest(
-									new URL(url.toString() + RequestBuilder.API_USER_INFO_READ), 
+									new URL(url.toString() + RequestBuilder.getInstance().getApiUserInfoRead()), 
 									parameters, 
 									false
 								),
@@ -2457,7 +2463,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_USER_UPDATE), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiUserUpdate()), 
 					parameters, 
 					false
 				);
@@ -2497,7 +2503,7 @@ public class OhmageApi {
 		
 		try {
 			makeRequest(
-					new URL(url.toString() + RequestBuilder.API_USER_CHANGE_PASSWORD), 
+					new URL(url.toString() + RequestBuilder.getInstance().getApiUserChangePassword()), 
 					parameters, 
 					false
 				);
@@ -2544,7 +2550,7 @@ public class OhmageApi {
 		try {
 			processJsonResponse(
 					makeRequest(
-							new URL(url.toString() + RequestBuilder.API_USER_DELETE),
+							new URL(url.toString() + RequestBuilder.getInstance().getApiUserDelete()),
 							parameters,
 							false
 					),
@@ -2844,6 +2850,8 @@ public class OhmageApi {
 					"The response is not valid JSON.", 
 					e);
 		}
+		
+		System.out.println(jsonResponse.toString());
 		
 		boolean success;
 		try {

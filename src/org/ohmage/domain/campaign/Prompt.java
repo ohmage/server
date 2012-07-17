@@ -102,7 +102,8 @@ public abstract class Prompt extends SurveyItem {
 		MULTI_CHOICE,
 		MULTI_CHOICE_CUSTOM,
 		PHOTO,
-		REMOTE_ACTIVITY;
+		REMOTE_ACTIVITY,
+		VIDEO;
 		
 		/**
 		 * Returns an all-lower-case version of the type.

@@ -19,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
 
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 
@@ -35,14 +36,17 @@ public interface ISurveyUploadQuery {
 	 * @param campaignUrn  The campaign for the survey upload.
 	 * @param surveyUploadList  The surveys to persist.
 	 * @param bufferedImageMap  The images to persist.
+	 * @param videoContentsMap The videos to persist.
 	 * @return Returns a List of Integers representing the ids of duplicate
 	 * surveys.
 	 * @throws DataAccessException  If any IO error occurs.
 	 */
-	List<Integer> insertSurveys(final String username, final String client,
+	List<Integer> insertSurveys(
+			final String username, 
+			final String client,
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
-			final Map<String, BufferedImage> bufferedImageMap)
+			final Map<String, BufferedImage> bufferedImageMap,
+			final Map<String, Video> videoContentsMap)
 			throws DataAccessException;
-
 }

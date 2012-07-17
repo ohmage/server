@@ -72,7 +72,7 @@ public class UserDeletionRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserDeletionRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		LOGGER.info("Creating a user deletion request.");
 		

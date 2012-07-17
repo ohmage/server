@@ -24,6 +24,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Image;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
 
@@ -34,13 +35,6 @@ import org.ohmage.util.StringUtils;
  */
 public final class ImageValidators {
 	private static final Logger LOGGER = Logger.getLogger(ImageValidators.class);
-	
-	/**
-	 * These are the different possible values for an image's size.
-	 * 
-	 * @author John Jenkins
-	 */
-	public static enum ImageSize { SMALL };
 	
 	/**
 	 * Default constructor. Private so that it cannot be instantiated.
@@ -92,17 +86,17 @@ public final class ImageValidators {
 	 * @throws ValidationException Thrown if the image size is not null, not
 	 * 							   whitespace only, and not a valid ImageSize.
 	 */
-	public static ImageSize validateImageSize(final String imageSize) 
+	public static Image.Size validateImageSize(final String imageSize) 
 			throws ValidationException {
 		
 		LOGGER.info("Validating an image size value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(imageSize)) {
-			return null;
+			return Image.Size.ORIGINAL;
 		}
 		
 		try {
-			return ImageSize.valueOf(imageSize.trim().toUpperCase());
+			return Image.Size.getValue(imageSize.trim());
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(

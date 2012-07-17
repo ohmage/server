@@ -19,8 +19,10 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -29,6 +31,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -41,15 +44,19 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.cache.VideoDirectoryCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
+import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
+import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
@@ -73,9 +80,10 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUploadQuery {
 	// The current directory to which the next image should be saved.
-	private static File currLeafDirectory;
+	private static File imageLeafDirectory;
 	
-	private static final Pattern IMAGE_DIRECTORY_PATTERN = Pattern.compile("[0-9]+");
+	private static final Pattern IMAGE_DIRECTORY_PATTERN = 
+		Pattern.compile("[0-9]+");
 	
 	public static final String IMAGE_STORE_FORMAT = "png";
 	public static final String IMAGE_SCALED_EXTENSION = "-s";
@@ -97,7 +105,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		}
 	}
 
-	private static final Logger LOGGER = Logger.getLogger(SurveyUploadQuery.class);
+	private static final Logger LOGGER = 
+		Logger.getLogger(SurveyUploadQuery.class);
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE =
 		"INSERT into survey_response " +
@@ -144,27 +153,19 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		super(dataSource);
 	}
 	
-	/**
-	 * Inserts surveys into survey_response, prompt_response,
-	 * and url_based_resource (if the payload contains images).
-	 * Any images are also persisted to the file system. The entire persistence
-	 * process is wrapped in one giant transaction.
-	 * 
-	 * @param user  The owner of the survey upload.
-	 * @param client  The software client that performed the upload.
-	 * @param campaignUrn  The campaign for the survey upload.
-	 * @param surveyUploadList  The surveys to persist.
-	 * @param bufferedImageMap  The images to persist.
-	 * @return Returns a List of Integers representing the ids of duplicate
-	 * surveys.
-	 * @throws DataAccessException  If any IO error occurs.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ISurveyUploadQuery#insertSurveys(java.lang.String, java.lang.String, java.lang.String, java.util.List, java.util.Map, java.util.Map)
 	 */
-	public List<Integer> insertSurveys(final String username,
-			                                  final String client,
-			                                  final String campaignUrn,
-			                                  final List<SurveyResponse> surveyUploadList,
-			                                  final Map<String, BufferedImage> bufferedImageMap)  
-		throws DataAccessException {
+	@Override
+	public List<Integer> insertSurveys(
+			final String username,
+			final String client,
+			final String campaignUrn,
+			final List<SurveyResponse> surveyUploadList,
+			final Map<String, BufferedImage> bufferedImageMap,
+			final Map<String, Video> videoContentsMap)
+			throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
 		int numberOfSurveys = surveyUploadList.size();
@@ -176,6 +177,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		
 		List<File> regularImageList = new ArrayList<File>();
 		List<File> scaledImageList = new ArrayList<File>();
+		List<File> videoList = new LinkedList<File>();
 		
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -199,7 +201,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					KeyHolder idKeyHolder = new GeneratedKeyHolder();
 					
 					// First, insert the survey
-					
 					getJdbcTemplate().update(
 						new PreparedStatementCreator() {
 							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
@@ -275,8 +276,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					Collection<Response> promptUploadList = surveyUpload.getResponses().values();
 					
 					createPromptResponse(username, client, surveyResponseId, 
-							regularImageList, scaledImageList, 
+							regularImageList, scaledImageList, videoList,
 							promptUploadList, null, bufferedImageMap, 
+							videoContentsMap,
 							transactionManager, status);
 					
 				} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
@@ -308,6 +310,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								f.delete();
 							}
 						}
+						for(File f : videoList) {
+							f.delete();
+						}
 						rollback(transactionManager, status);
 						throw new DataAccessException(dive);
 					}
@@ -328,6 +333,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						for(File f : scaledImageList) {
 							f.delete();
 						}
+					}
+					for(File f : videoList) {
+						f.delete();
 					}
 					rollback(transactionManager, status);
 					throw new DataAccessException(dae);
@@ -353,6 +361,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 				for(File f : scaledImageList) {
 					f.delete();
 				}
+			}
+			for(File f : videoList) {
+				f.delete();
 			}
 			logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
 			throw new DataAccessException(te);
@@ -400,6 +411,295 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	}
 	
 	/**
+	 * Creates the prompt response entry in the corresponding table and saves
+	 * any attached files, images, videos, etc..
+	 * 
+	 * @param username The username of the user saving this prompt response.
+	 * 
+	 * @param client The name of the device used to generate the response.
+	 * 
+	 * @param surveyResponseId The unique identifier for this survey response.
+	 * 
+	 * @param regularImageList The list of images saved to the disk, which
+	 * 						   should be a reference to a list that will be
+	 * 						   populated by this function.
+	 * 
+	 * @param scaledImageList The list of scaled images saved to the disk, 
+	 * 						  which should be a reference to a list that will 
+	 * 						  populated by this function.
+	 *  
+	 * @param videoList The list of video files saved to the disk, which should
+	 * 					be a reference to a list that will be populated by this
+	 * 					function.
+	 * 
+	 * @param promptUploadList The collection of prompt responses to store.
+	 * 
+	 * @param repeatableSetIteration If these prompt responses were part of a
+	 * 								 repeatable set, this is the iteration of
+	 * 								 that repeatable set; otherwise, null.
+	 * 
+	 * @param bufferedImageMap The map of image IDs to their contents.
+	 * 
+	 * @param videoContentsMap The map of video IDs to their contents.
+	 * 
+	 * @param transactionManager The manager for this transaction.
+	 * 
+	 * @param status The status of this transaction.
+	 * 
+	 * @throws DataAccessException There was an error saving the information.
+	 */
+	private void createPromptResponse(
+			final String username, final String client,
+			final Number surveyResponseId,
+			final List<File> regularImageList, 
+			final List<File> scaledImageList,
+			final List<File> videoList,
+			final Collection<Response> promptUploadList,
+			final Integer repeatableSetIteration,
+            final Map<String, BufferedImage> bufferedImageMap,
+            final Map<String, Video> videoContentsMap, 
+            final DataSourceTransactionManager transactionManager,
+            final TransactionStatus status) 
+			throws DataAccessException {
+		
+		for(Response response : promptUploadList) {
+			if(response instanceof RepeatableSetResponse) {
+				Map<Integer, Map<Integer, Response>> iterationToResponse =
+					((RepeatableSetResponse) response).getResponseGroups();
+				
+				for(Integer iteration : iterationToResponse.keySet()) {
+					createPromptResponse(username, client, surveyResponseId, 
+							regularImageList, scaledImageList, videoList,
+							iterationToResponse.get(iteration).values(), 
+							iteration, bufferedImageMap, videoContentsMap,
+							transactionManager, status
+						);
+				}
+				continue;
+			}
+			final PromptResponse promptResponse = (PromptResponse) response;
+			
+			getJdbcTemplate().update(
+				new PreparedStatementCreator() {
+					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+						PreparedStatement ps 
+							= connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
+						ps.setLong(1, surveyResponseId.longValue());
+						
+						RepeatableSet parent = promptResponse.getPrompt().getParent();
+						if(parent == null) {
+							ps.setNull(2, java.sql.Types.NULL);
+							ps.setNull(3, java.sql.Types.NULL);
+						}
+						else {
+							ps.setString(2, parent.getId());
+							ps.setInt(3, repeatableSetIteration);
+						}
+						ps.setString(4, promptResponse.getPrompt().getType().toString());
+						ps.setString(5, promptResponse.getPrompt().getId());
+						
+						Object response = promptResponse.getResponse();
+						if(response instanceof DateTime) {
+							ps.setString(6, TimeUtils.getIso8601DateString((DateTime) response, true));
+						}
+						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
+							JSONArray json = new JSONArray();
+							
+							for(Object currResponse : (Collection<?>) response) {
+								json.put(currResponse);
+							}
+							
+							ps.setString(6, json.toString());
+						}
+						else {
+							ps.setString(6, response.toString());
+						}
+						
+						return ps;
+					}
+				}
+			);
+			
+			if(promptResponse instanceof PhotoPromptResponse) {
+				// Grab the associated image and save it
+				String imageId = promptResponse.getResponse().toString();
+				BufferedImage imageContents = bufferedImageMap.get(imageId);
+				
+				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && 
+					! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
+					
+					// getDirectory() is used as opposed to accessing the current leaf
+					// directory class variable as it will do sanitation in case it hasn't
+					// been initialized or is full.
+					File imageDirectory = getDirectory();
+					File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
+					regularImageList.add(regularImage);
+					File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
+					scaledImageList.add(scaledImage);
+					
+					// Write the original to the file system.
+					try {
+						ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
+					}
+					catch(IOException e) {
+						
+						rollback(transactionManager, status);
+						throw new DataAccessException("Error writing the regular image to the system.", e);
+					}
+					catch(IllegalArgumentException e) {
+						rollback(transactionManager, status);
+						throw new DataAccessException("The image contents are null.", e);
+					}
+					
+					// Write the scaled image to the file system.
+					try {
+						// Get the percentage to scale the image.
+						Double scalePercentage;
+						if(imageContents.getWidth() > imageContents.getHeight()) {
+							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+						}
+						else {
+							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+						}
+						
+						// Calculate the scaled image's width and height.
+						int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
+						int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
+						
+						// Create the new image of the same type as the original and of the
+						// scaled dimensions.
+						BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
+						
+						// Paint the original image onto the scaled canvas.
+						Graphics2D graphics2d = scaledContents.createGraphics();
+						graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+						graphics2d.drawImage(imageContents, 0, 0, width, height, null);
+						
+						// Cleanup.
+						graphics2d.dispose();
+						
+						// Write the scaled image to the filesystem.
+						ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
+					}
+					catch(IOException e) {
+						regularImage.delete();
+						rollback(transactionManager, status);
+						throw new DataAccessException("Error writing the scaled image to the system.", e);
+					}
+					
+					// Get the image's URL.
+					String url = "file://" + regularImage.getAbsolutePath();
+					// Insert the image URL into the database.
+					try {
+						getJdbcTemplate().update(
+								SQL_INSERT_IMAGE, 
+								new Object[] { username, client, imageId, url }
+							);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						regularImage.delete();
+						scaledImage.delete();
+						transactionManager.rollback(status);
+						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
+								username + ", " + client + ", " + imageId + ", " + url, e);
+					}
+				}
+			}
+			// Save the video.
+			else if(promptResponse instanceof VideoPromptResponse) {
+				// Make sure the response contains an actual video response.
+				Object responseValue = promptResponse.getResponse();
+				if(! (responseValue instanceof NoResponse)) {
+					// Attempt to write it to the file system.
+					try {
+						// Get the current video directory.
+						File currVideoDirectory = 
+							VideoDirectoryCache.getDirectory();
+
+						// Get the video ID.
+						String responseValueString = responseValue.toString();
+						
+						// Get the video object.
+						Video video = 
+							videoContentsMap.get(responseValueString);
+						
+						// Get the file.
+						File videoFile = 
+							new File(
+								currVideoDirectory.getAbsolutePath() +
+								"/" +
+								responseValueString +
+								"." +
+								video.getType());
+						
+						// Get the video contents.
+						InputStream content = video.getContentStream();
+						if(content == null) {
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+								"The video contents did not exist in the map.");
+						}
+						
+						// Write the video contents to disk.
+						FileOutputStream fos = new FileOutputStream(videoFile);
+						
+						// Write the content to the output stream.
+						int bytesRead;
+						byte[] buffer = new byte[4096];
+						while((bytesRead = content.read(buffer)) != -1) {
+							fos.write(buffer, 0, bytesRead);
+						}
+
+						// Store the file reference in the video list.
+						videoList.add(videoFile);
+						
+						// Get the video's URL.
+						String url = "file://" + videoFile.getAbsolutePath();
+						
+						// Insert the video URL into the database.
+						try {
+							getJdbcTemplate().update(
+									SQL_INSERT_IMAGE, 
+									new Object[] { 
+										username, 
+										client, 
+										responseValueString,
+										url }
+								);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							videoFile.delete();
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+								"Error executing SQL '" + 
+									SQL_INSERT_IMAGE + 
+									"' with parameters: " +
+									username + ", " + 
+									client + ", " + 
+									responseValueString + ", " + 
+									url, 
+								e);
+						}
+					}
+					// If it fails, roll back the transaction.
+					catch(DomainException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Could not get the video directory.",
+							e);
+					}
+					catch(IOException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Could not write the file.",
+							e);
+					}
+				}
+			}
+		}
+	}
+	
+	/**
 	 * Copied directly from ImageQueries.
 	 * 
 	 * Gets the directory to which a image should be saved. This should be used
@@ -407,37 +707,47 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	 * creation of new folders and the checking that the current
 	 * folder is not full.
 	 * 
-	 * @return A File object for where a document should be written.
+	 * @return A File object for where an image should be written.
 	 */
 	private File getDirectory() throws DataAccessException {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
-			numFilesPerDirectory = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY));
+			numFilesPerDirectory = 
+				Integer.decode(
+					PreferenceCache.instance().lookup(
+						PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY));
 		}
 		catch(CacheMissException e) {
-			throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY, e);
+			throw new DataAccessException(
+				"Preference cache doesn't know about 'known' key: " + 
+					PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY,
+				e);
 		}
 		catch(NumberFormatException e) {
-			throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY + "' is not decodable as a number.", e);
+			throw new DataAccessException(
+				"Stored value for key '" + 
+					PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY +
+					"' is not decodable as a number.",
+				e);
 		}
 		
 		// If the leaf directory was never initialized, then we should do
 		// that. Note that the initialization is dumb in that it will get to
 		// the end of the structure and not check to see if the leaf node is
 		// full.
-		if(currLeafDirectory == null) {
+		if(imageLeafDirectory == null) {
 			init(numFilesPerDirectory);
 		}
 		
-		File[] documents = currLeafDirectory.listFiles();
-		// If the 'currLeafDirectory' directory is full, traverse the tree and
+		File[] documents = imageLeafDirectory.listFiles();
+		// If the 'imageLeafDirectory' directory is full, traverse the tree and
 		// find a new directory.
 		if(documents.length >= numFilesPerDirectory) {
 			getNewDirectory(numFilesPerDirectory);
 		}
 		
-		return currLeafDirectory;
+		return imageLeafDirectory;
 	}
 	
 	/**
@@ -449,7 +759,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		try {
 			// If the current leaf directory has been set, we weren't the
 			// first to call init(), so we can just back out.
-			if(currLeafDirectory != null) {
+			if(imageLeafDirectory != null) {
 				return;
 			}
 			
@@ -533,7 +843,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			}
 			
 			// After we have found a suitable directory, set it.
-			currLeafDirectory = currDirectory;
+			imageLeafDirectory = currDirectory;
 		}
 		catch(SecurityException e) {
 			throw new DataAccessException("The current process doesn't have sufficient permiossions to create new directories.", e);
@@ -555,7 +865,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
 			// directory.
-			File[] files = currLeafDirectory.listFiles();
+			File[] files = imageLeafDirectory.listFiles();
 			if(files.length < numFilesPerDirectory) {
 				return;
 			}
@@ -583,7 +893,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			
 			// A local File to use while we are searching to not confuse other
 			// threads.
-			File newDirectory = currLeafDirectory;
+			File newDirectory = imageLeafDirectory;
 			
 			// A flag to indicate when we are done looking for a directory.
 			boolean lookingForDirectory = true;
@@ -657,7 +967,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 				}
 			}
 			
-			currLeafDirectory = newDirectory;
+			imageLeafDirectory = newDirectory;
 		}
 		catch(NumberFormatException e) {
 			throw new DataAccessException("Could not decode a directory name as an integer.", e);
@@ -709,162 +1019,5 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		Arrays.sort(directories);
 		
 		return directories[directories.length - 1];
-	}
-	
-	private void createPromptResponse(
-			final String username, final String client,
-			final Number surveyResponseId,
-			final List<File> regularImageList, 
-			final List<File> scaledImageList,
-			final Collection<Response> promptUploadList,
-			final Integer repeatableSetIteration,
-            final Map<String, BufferedImage> bufferedImageMap,
-            final DataSourceTransactionManager transactionManager,
-            final TransactionStatus status) 
-			throws DataAccessException{
-		
-		for(Response response : promptUploadList) {
-			if(response instanceof RepeatableSetResponse) {
-				Map<Integer, Map<Integer, Response>> iterationToResponse =
-					((RepeatableSetResponse) response).getResponseGroups();
-				
-				for(Integer iteration : iterationToResponse.keySet()) {
-					createPromptResponse(username, client, surveyResponseId, 
-							regularImageList, scaledImageList,
-							iterationToResponse.get(iteration).values(), 
-							iteration, bufferedImageMap, 
-							transactionManager, status
-						);
-				}
-				continue;
-			}
-			final PromptResponse promptResponse = (PromptResponse) response;
-			
-			getJdbcTemplate().update(
-				new PreparedStatementCreator() {
-					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-						PreparedStatement ps 
-							= connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
-						ps.setLong(1, surveyResponseId.longValue());
-						
-						RepeatableSet parent = promptResponse.getPrompt().getParent();
-						if(parent == null) {
-							ps.setNull(2, java.sql.Types.NULL);
-							ps.setNull(3, java.sql.Types.NULL);
-						}
-						else {
-							ps.setString(2, parent.getId());
-							ps.setInt(3, repeatableSetIteration);
-						}
-						ps.setString(4, promptResponse.getPrompt().getType().toString());
-						ps.setString(5, promptResponse.getPrompt().getId());
-						
-						Object response = promptResponse.getResponse();
-						if(response instanceof DateTime) {
-							ps.setString(6, TimeUtils.getIso8601DateString((DateTime) response, true));
-						}
-						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
-							JSONArray json = new JSONArray();
-							
-							for(Object currResponse : (Collection<?>) response) {
-								json.put(currResponse);
-							}
-							
-							ps.setString(6, json.toString());
-						}
-						else {
-							ps.setString(6, response.toString());
-						}
-						
-						return ps;
-					}
-				}
-			);
-			
-			if(promptResponse instanceof PhotoPromptResponse) {
-				// Grab the associated image and save it
-				String imageId = promptResponse.getResponse().toString();
-				BufferedImage imageContents = bufferedImageMap.get(imageId);
-				
-				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && ! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
-					
-					// getDirectory() is used as opposed to accessing the current leaf
-					// directory class variable as it will do sanitation in case it hasn't
-					// been initialized or is full.
-					File imageDirectory = getDirectory();
-					File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
-					regularImageList.add(regularImage);
-					File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
-					scaledImageList.add(scaledImage);
-					
-					// Write the original to the file system.
-					try {
-						ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
-					}
-					catch(IOException e) {
-						
-						rollback(transactionManager, status);
-						throw new DataAccessException("Error writing the regular image to the system.", e);
-					}
-					catch(IllegalArgumentException e) {
-						rollback(transactionManager, status);
-						throw new DataAccessException("The image contents are null.", e);
-					}
-					
-					// Write the scaled image to the file system.
-					try {
-						// Get the percentage to scale the image.
-						Double scalePercentage;
-						if(imageContents.getWidth() > imageContents.getHeight()) {
-							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
-						}
-						else {
-							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
-						}
-						
-						// Calculate the scaled image's width and height.
-						int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
-						int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
-						
-						// Create the new image of the same type as the original and of the
-						// scaled dimensions.
-						BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
-						
-						// Paint the original image onto the scaled canvas.
-						Graphics2D graphics2d = scaledContents.createGraphics();
-						graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-						graphics2d.drawImage(imageContents, 0, 0, width, height, null);
-						
-						// Cleanup.
-						graphics2d.dispose();
-						
-						// Write the scaled image to the filesystem.
-						ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
-					}
-					catch(IOException e) {
-						regularImage.delete();
-						rollback(transactionManager, status);
-						throw new DataAccessException("Error writing the scaled image to the system.", e);
-					}
-					
-					// Get the image's URL.
-					String url = "file://" + regularImage.getAbsolutePath();
-					// Insert the image URL into the database.
-					try {
-						getJdbcTemplate().update(
-								SQL_INSERT_IMAGE, 
-								new Object[] { username, client, imageId, url }
-							);
-					}
-					catch(org.springframework.dao.DataAccessException e) {
-						regularImage.delete();
-						scaledImage.delete();
-						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
-								username + ", " + client + ", " + imageId + ", " + url, e);
-					}
-				}
-			}
-		}
 	}
 }

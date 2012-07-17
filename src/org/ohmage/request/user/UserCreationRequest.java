@@ -108,7 +108,7 @@ public class UserCreationRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserCreationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.PARAMETER);
+		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		String tNewUsername = null;
 		String tNewPassword = null;

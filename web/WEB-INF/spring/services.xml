@@ -67,7 +67,16 @@
   
   <bean class="org.ohmage.service.MobilityServices">
     <constructor-arg>
+      <ref bean="userQueries" />
+    </constructor-arg>
+    <constructor-arg>
       <ref bean="userMobilityQueries" />
+    </constructor-arg>
+  </bean>
+  
+  <bean class="org.ohmage.service.ObserverServices">
+    <constructor-arg>
+      <ref bean="observerQueries" />
     </constructor-arg>
   </bean>
 
@@ -224,6 +233,27 @@
     </constructor-arg>
     <constructor-arg>
       <ref bean="userSurveyResponseQueries" />
+    </constructor-arg>
+  </bean>
+
+  <bean class="org.ohmage.service.UserVideoServices">
+    <constructor-arg>
+      <ref bean="userQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="campaignQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="videoQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="userVideoQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="userCampaignQueries" />
+    </constructor-arg>
+    <constructor-arg>
+      <ref bean="campaignVideoQueries" />
     </constructor-arg>
   </bean>
   

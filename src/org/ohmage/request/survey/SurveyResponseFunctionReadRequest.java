@@ -131,7 +131,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public SurveyResponseFunctionReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, TokenLocation.EITHER, false);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		LOGGER.info("Creating a survey response function read request.");
 		

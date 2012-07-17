@@ -17,6 +17,8 @@ package org.ohmage.service;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -26,7 +28,6 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
 import org.ohmage.query.impl.ImageQueries;
-import org.ohmage.validator.ImageValidators.ImageSize;
 
 /**
  * This class is responsible for all operations pertaining only to images. The
@@ -118,7 +119,7 @@ public final class ImageServices {
 	 */
 	public Image getImage(
 			final UUID imageId, 
-			final ImageSize size) 
+			final Image.Size size) 
 			throws ServiceException {
 		
 		try {
@@ -127,7 +128,7 @@ public final class ImageServices {
 				return null;
 			}
 			
-			if(ImageSize.SMALL.equals(size)) {
+			if(Image.Size.SMALL.equals(size)) {
 				String imageUrlString = imageUrl.toString();
 				int imageUrlLength = imageUrlString.length();
 				
@@ -152,7 +153,10 @@ public final class ImageServices {
 				imageUrl = new URL(imageUrlString);
 			}
 			
-			return new Image(imageUrl);
+			Map<Image.Size, URL> sizeToUrlMap = new HashMap<Image.Size, URL>();
+			sizeToUrlMap.put(size, imageUrl);
+			
+			return new Image(imageId, sizeToUrlMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

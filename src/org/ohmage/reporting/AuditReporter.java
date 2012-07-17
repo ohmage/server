@@ -31,7 +31,9 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Audit;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
@@ -54,10 +56,6 @@ public final class AuditReporter {
 	// should never be generated at the same time, so we only need one thread
 	// to handle this.
 	private static final int THREAD_POOL_SIZE = 1;
-	
-	// The key to use to get the location of where to save the audit reports 
-	// from the constructor's map.
-	private static final String KEY_SAVE_LOCATION = "audit.location";
 	
 	// Where we will save the audit reports.
 	private static String saveLocation;
@@ -129,7 +127,7 @@ public final class AuditReporter {
 				}
 				
 				// If the request is known, note it and continue processing.
-				if(RequestBuilder.knownUri(uri)) {
+				if(RequestBuilder.getInstance().knownUri(uri)) {
 					numberOfValidRequests++;
 					
 					// Calculate the time it took to process the request.
@@ -153,8 +151,8 @@ public final class AuditReporter {
 						numberOfSuccessfulValidRequests++;
 						
 						// Check if it's a class read request.
-						if(RequestBuilder.API_CLASS_READ.equals(uri) ||
-								RequestBuilder.API_CLASS_ROSTER_READ.equals(uri)) {
+						if(RequestBuilder.getInstance().getApiClassRead().equals(uri) ||
+								RequestBuilder.getInstance().getApiClassRosterRead().equals(uri)) {
 							// Get the class ID parameter if it exists.
 							Collection<String> classIdCollection = audit.getExtras(InputKeys.CLASS_URN);
 							if(classIdCollection != null) {
@@ -170,7 +168,7 @@ public final class AuditReporter {
 							}
 						}
 						// Check if it's a campaign read request.
-						else if(RequestBuilder.API_CAMPAIGN_READ.equals(uri)) {
+						else if(RequestBuilder.getInstance().getApiCampaignRead().equals(uri)) {
 							Collection<String> campaignIdCollection = audit.getExtras(InputKeys.CAMPAIGN_URN);
 							if(campaignIdCollection != null) {
 								for(String campaignId : campaignIdCollection) {
@@ -265,10 +263,20 @@ public final class AuditReporter {
 	/**
 	 * Starts a timer task to generate a report at the beginning of every day.
 	 */
-	private AuditReporter(final Map<String, String> auditProperties) {
-		// Get the directory to use to save the audit reports.
-		saveLocation = auditProperties.get(KEY_SAVE_LOCATION);
-
+	private AuditReporter() {
+		try {
+			// Get the location to save the audit logs.
+			saveLocation = 
+				PreferenceCache.instance().lookup(
+					PreferenceCache.KEY_AUDIT_LOG_LOCATION);
+		}
+		catch(CacheMissException e) {
+			throw new IllegalStateException(
+				"The audit log location is missing: " + 
+					PreferenceCache.KEY_AUDIT_LOG_LOCATION,
+				e);
+		}
+		
 		try {
 			// If it doesn't exist, create it. If it does exist, make sure it's a
 			// directory.
@@ -277,11 +285,15 @@ public final class AuditReporter {
 				saveFolder.mkdir();
 			}
 			else if(! saveFolder.isDirectory()) {
-				throw new IllegalStateException("The directory that is to be used for saving the audit reports exists but isn't a directory: " + saveLocation);
+				throw new IllegalStateException(
+					"The directory that is to be used for saving the audit reports exists but isn't a directory: " + 
+						saveLocation);
 			}
 		}
 		catch(SecurityException e) {
-			throw new IllegalStateException("We are not allowed to read or write in the specified directory.", e);
+			throw new IllegalStateException(
+				"We are not allowed to read or write in the specified directory.", 
+				e);
 		}
 		
 		// Generate the number of milliseconds until the first run.
@@ -295,9 +307,15 @@ public final class AuditReporter {
 		firstRun.set(Calendar.MILLISECOND, 0);
 		
 		// Calculate the time between now and when the task should first run.
-		long initialDelay = firstRun.getTimeInMillis() - Calendar.getInstance().getTimeInMillis();
+		long initialDelay = 
+			firstRun.getTimeInMillis() - 
+			Calendar.getInstance().getTimeInMillis();
 		
 		// Begin the task.
-		Executors.newScheduledThreadPool(THREAD_POOL_SIZE).scheduleAtFixedRate(new GenerateReport(), initialDelay, MILLIS_IN_A_DAY, TimeUnit.MILLISECONDS);
+		Executors.newScheduledThreadPool(THREAD_POOL_SIZE).scheduleAtFixedRate(
+			new GenerateReport(), 
+			initialDelay, 
+			MILLIS_IN_A_DAY, 
+			TimeUnit.MILLISECONDS);
 	}
 }

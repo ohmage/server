@@ -21,7 +21,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -50,7 +49,6 @@ import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserMobilityQueries;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -83,101 +81,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 		"FROM user u, mobility m " +
 		"WHERE u.username = ? " +
 		"AND u.id = m.user_id";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user 
-	// and were uploaded by a client.
-	private static final String SQL_GET_IDS_FOR_CLIENT =
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.client = ?";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user 
-	// and were created on or after a specified date.
-	private static final String SQL_GET_IDS_CREATED_AFTER_DATE = 
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.epoch_millis >= ?";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user 
-	// and were created on or before a specified date.
-	private static final String SQL_GET_IDS_CREATED_BEFORE_DATE =
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.epoch_millis <= ?";
-	
-	private static final String SQL_GET_IDS_CREATE_BETWEEN_DATES =
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.epoch_millis >= ? " +
-		"AND m.epoch_millis <= ?";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user 
-	// and were uploaded on or after a specified date.
-	private static final String SQL_GET_IDS_UPLOADED_AFTER_DATE = 
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.upload_timestamp >= ?";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user 
-	// and were uploaded on or before a specified date.
-	private static final String SQL_GET_IDS_UPLOADED_BEFORE_DATE =
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.upload_timestamp <= ?";
-	
-	// Retrieves the UD for all of the Mobility points that belong to a user
-	// and have a given privacy state.
-	private static final String SQL_GET_IDS_WITH_PRIVACY_STATE =
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.privacy_state = ?";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user
-	// and have a given location status.
-	private static final String SQL_GET_IDS_WITH_LOCATION_STATUS = 
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.location_status = ?";
-	
-	// Retrieves the ID for all of the Mobility points that belong to a user
-	// and have a given mode.
-	private static final String SQL_GET_IDS_WITH_MODE = 
-		"SELECT m.uuid " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND m.mode = ?";
-
-	// Retrieves all of the information pertaining to all Mobility data points 
-	// from a collection of given database IDs.
-	private static final String SQL_GET_MOBILITY_DATA_FROM_IDS =
-		"SELECT m.uuid, u.username, m.client, " +
-			"m.epoch_millis, m.upload_timestamp, " +
-			"m.phone_timezone, m.location_status, m.location, " +
-			"m.mode, mps.privacy_state, " +
-			"me.sensor_data, me.features, me.classifier_version " +
-		"FROM user u, mobility_privacy_state mps, " +
-			"mobility m LEFT JOIN mobility_extended me " +
-			"ON m.id = me.mobility_id " +
-		"WHERE u.id = m.user_id " +
-		"AND mps.id = m.privacy_state_id " +
-		"AND m.uuid IN ";
 	
 	// Retrieves all of the columns necessary to construct a Mobility point
 	// and requires only a username.
@@ -288,6 +191,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * 
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
+	@Override
 	public void createMobilityPoint(
 			final String username, 
 			final String client,
@@ -473,8 +377,52 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserMobilityQueries#getUserForId(java.util.UUID)
+	 */
+	public String getUserForId(
+			final UUID mobilityId) 
+			throws DataAccessException {
+
+		String sql =
+				"SELECT u.username " +
+				"FROM user u, mobility m " +
+				"WHERE u.id = m.user_id " +
+				"AND m.uuid = ?";
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+					sql, 
+					new Object[] { mobilityId.toString() },
+					new SingleColumnRowMapper<String>());
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			else {
+				throw new DataAccessException(
+						"Error executing SQL '" +
+							sql +
+							"' with parameter: " +
+							mobilityId.toString(),
+						e);
+			}
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						sql +
+						"' with parameter: " +
+						mobilityId.toString(),
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserMobilityQueries#getIdsForUser(java.lang.String)
 	 */
+	@Override
 	public List<String> getIdsForUser(String username) throws DataAccessException {
 		try {
 			return getJdbcTemplate().query(
@@ -488,279 +436,6 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 							SQL_GET_IDS_FOR_USER + 
 						"' with parameter: " + 
 							username,
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsForClient(java.lang.String, java.lang.String)
-	 */
-	public List<String> getIdsForClient(String username, String client) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_FOR_CLIENT,
-					new Object[] { username, client },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_FOR_CLIENT + 
-						"' with parameters: " + 
-							username + ", " +
-							client,
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsCreatedAfterDate(java.lang.String, java.util.Date)
-	 */
-	public List<String> getIdsCreatedAfterDate(String username, Date startDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_CREATED_AFTER_DATE,
-					new Object[] { username, startDate.getTime() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_CREATED_AFTER_DATE + 
-						"' with parameters: " + 
-							username + ", " +
-							startDate.getTime(),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsCreatedBeforeDate(java.lang.String, java.util.Date)
-	 */
-	public List<String> getIdsCreatedBeforeDate(String username, Date endDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_CREATED_BEFORE_DATE,
-					new Object[] { username, endDate.getTime() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_CREATED_BEFORE_DATE + 
-						"' with parameters: " + 
-							username + ", " +
-							endDate.getTime(),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsCreatedBetweenDates(java.lang.String, java.util.Date, java.util.Date)
-	 */
-	public List<String> getIdsCreatedBetweenDates(String username, Date startDate, Date endDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_CREATE_BETWEEN_DATES,
-					new Object[] { username, startDate.getTime(), endDate.getTime() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_CREATED_BEFORE_DATE + 
-						"' with parameters: " + 
-							username + ", " +
-							startDate.getTime() + ", " +
-							endDate.getTime(),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsUploadedAfterDate(java.lang.String, java.util.Date)
-	 */
-	public List<String> getIdsUploadedAfterDate(String username, DateTime startDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_UPLOADED_AFTER_DATE,
-					new Object[] { username, TimeUtils.getIso8601DateString(startDate, false) },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_UPLOADED_AFTER_DATE + 
-						"' with parameters: " + 
-							username + ", " +
-							TimeUtils.getIso8601DateString(startDate, false),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsUploadedBeforeDate(java.lang.String, java.util.Date)
-	 */
-	public List<String> getIdsUploadedBeforeDate(String username, DateTime endDate) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_UPLOADED_BEFORE_DATE,
-					new Object[] { username, TimeUtils.getIso8601DateString(endDate, false) },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_UPLOADED_BEFORE_DATE + 
-						"' with parameters: " + 
-							username + ", " +
-							TimeUtils.getIso8601DateString(endDate, false),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsWithPrivacyState(java.lang.String, org.ohmage.domain.MobilityPoint.PrivacyState)
-	 */
-	public List<String> getIdsWithPrivacyState(String username, MobilityPoint.PrivacyState privacyState) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_PRIVACY_STATE,
-					new Object[] { username, privacyState.toString() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_WITH_PRIVACY_STATE + 
-						"' with parameters: " + 
-							username + ", " +
-							privacyState,
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsWithLocationStatus(java.lang.String, org.ohmage.domain.MobilityPoint.LocationStatus)
-	 */
-	public List<String> getIdsWithLocationStatus(String username, LocationStatus locationStatus) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_LOCATION_STATUS,
-					new Object[] { username, locationStatus.toString().toLowerCase() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_WITH_LOCATION_STATUS + 
-						"' with parameters: " + 
-							username + ", " +
-							locationStatus.toString().toLowerCase(),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getIdsWithMode(java.lang.String, org.ohmage.domain.MobilityPoint.Mode)
-	 */
-	public List<String> getIdsWithMode(String username, Mode mode) throws DataAccessException {
-		try {
-			return getJdbcTemplate().query(
-					SQL_GET_IDS_WITH_MODE,
-					new Object[] { username, mode.toString().toLowerCase() },
-					new SingleColumnRowMapper<String>());
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							SQL_GET_IDS_WITH_MODE + 
-						"' with parameters: " + 
-							username + ", " +
-							mode.toString().toLowerCase(),
-					e);
-		}
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserMobilityQueries#getMobilityInformationFromIds(java.util.Collection)
-	 */
-	public List<MobilityPoint> getMobilityInformationFromIds(
-			Collection<String> ids) 
-			throws DataAccessException {
-
-		String sql =
-				SQL_GET_MOBILITY_DATA_FROM_IDS + 
-				StringUtils.generateStatementPList(ids.size()) + 
-				" ORDER BY m.epoch_millis";
-		
-		try {
-			return getJdbcTemplate().query(
-					sql,
-					ids.toArray(),
-					new RowMapper<MobilityPoint>() {
-						@Override
-						public MobilityPoint mapRow(ResultSet rs, int rowNum) throws SQLException {
-							try {
-								JSONObject location = null;
-								String locationString = rs.getString("location");
-								if(locationString != null) {
-									location = new JSONObject(locationString);
-								}
-								
-								JSONObject sensorData = null;
-								String sensorDataString = rs.getString("sensor_data");
-								if(sensorDataString != null) {
-									sensorData = new JSONObject(sensorDataString);
-								}
-								
-								JSONObject features = null;
-								String featuresString = rs.getString("features");
-								if(featuresString != null) {
-									features = new JSONObject(featuresString);
-								}
-								
-								return new MobilityPoint(
-										UUID.fromString(rs.getString("uuid")),
-										rs.getLong("epoch_millis"),
-										TimeUtils.getDateTimeZoneFromString(rs.getString("phone_timezone")),
-										LocationStatus.valueOf(rs.getString("location_status").toUpperCase()),
-										location,
-										Mode.valueOf(rs.getString("mode").toUpperCase()),
-										MobilityPoint.PrivacyState.getValue(rs.getString("privacy_state")),
-										sensorData,
-										features,
-										rs.getString("classifier_version"));
-							}
-							catch(JSONException e) {
-								throw new SQLException("Error building a JSONObject.", e);
-							}
-							catch(DomainException e) {
-								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
-							}
-							catch(IllegalArgumentException e) {
-								throw new SQLException("Error building the MobilityInformation object. This suggests malformed data in the database.", e);
-							}
-						}
-					}
-				);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +
-							sql + 
-						"' with parameter: " + 
-							ids,
 					e);
 		}
 	}
@@ -940,6 +615,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserMobilityQueries#getDates(java.util.Date, java.util.Date, java.lang.String)
 	 */
+	@Override
 	public Set<DateTime> getDates(
 			final DateTime startDate,
 			final DateTime endDate,
@@ -1026,6 +702,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * 		   Mobility upload from a user took place. If no Mobility data was
 	 * 		   ever uploaded, null is returned.
 	 */
+	@Override
 	public Date getLastUploadForUser(String username) throws DataAccessException {
 		try {
 			List<Long> timestamps = getJdbcTemplate().query(
@@ -1068,6 +745,7 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	 * @return The percentage of non-null Mobility uploads or null if there
 	 * 		   were none. 
 	 */
+	@Override
 	public Double getPercentageOfNonNullLocations(String username, int hours) 
 		throws DataAccessException {
 		
@@ -1115,6 +793,72 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 						"' with parameters: " + 
 							username, 
 					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserMobilityQueries#updateMobilityPoint(java.util.UUID, org.ohmage.domain.MobilityPoint.PrivacyState)
+	 */
+	@Override
+	public void updateMobilityPoint(
+			final UUID mobilityId, 
+			final MobilityPoint.PrivacyState privacyState)
+			throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Updating a Mobility data point.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = 
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			if(privacyState != null) {
+				String sql = 
+					"UPDATE mobility " +
+					"SET privacy_state_id = (" +
+						"SELECT id " +
+						"FROM mobility_privacy_state " +
+						"WHERE privacy_state = ?) " +
+					"WHERE uuid = ?";
+				
+				try {
+					getJdbcTemplate().update(
+						sql, 
+						new Object[] { 
+							privacyState.toString(), 
+							mobilityId.toString() });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+						"Error executing SQL '" +
+							sql +
+							"' with parameter: " +
+							privacyState.toString(),
+						e);
+							
+				}
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error while committing the transaction.", 
+					e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException(
+				"Error while attempting to rollback the transaction.", 
+				e);
 		}
 	}
 }

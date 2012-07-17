@@ -15,10 +15,10 @@
  ******************************************************************************/
 package org.ohmage.query;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.MobilityAggregatePoint;
@@ -43,6 +43,18 @@ public interface IUserMobilityQueries {
 	 */
 	void createMobilityPoint(final String username, final String client,
 			final MobilityPoint mobilityPoint) throws DataAccessException;
+	
+	/**
+	 * Retrieves the username of the owner of a Mobility point.
+	 * 
+	 * @param mobilityId The Mobility point's unique identifier.
+	 * 
+	 * @return The username of the owner of the point or null if the point 
+	 * 		   doesn't exist.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	String getUserForId(final UUID mobilityId) throws DataAccessException;
 
 	/**
 	 * Retrieves the UUID for all of the Mobility data points that belong to a 
@@ -56,167 +68,6 @@ public interface IUserMobilityQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	List<String> getIdsForUser(String username) throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a 
-	 * specific user and that were uploaded by a specific client.
-	 *  
-	 * @param username The user's username.
-	 * 
-	 * @param client The client value.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsForClient(String username, String client)
-			throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a 
-	 * specific user and that were created on or after a specified date.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param startDate The date.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsCreatedAfterDate(String username, Date startDate)
-			throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a 
-	 * specific user and that were created on or before a specified date.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param endDate The date.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsCreatedBeforeDate(String username, Date endDate)
-			throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a
-	 * specific user and that were created on or after the start date and on
-	 * or before the end date.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param startDate The start date.
-	 * 
-	 * @param endDate The end date.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsCreatedBetweenDates(String username, Date startDate,
-			Date endDate) throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a 
-	 * specific user and that were uploaded on or after a specified date.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param startDate The date.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsUploadedAfterDate(String username, DateTime startDate)
-			throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a  
-	 * specific user and that were uploaded on or before a specified date.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param endDate The date.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsUploadedBeforeDate(String username, DateTime endDate)
-			throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all of the Mobility data points that belong to a
-	 * specific user and that have a given privacy state.
-	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param privacyState The privacy state.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsWithPrivacyState(String username,
-			MobilityPoint.PrivacyState privacyState) throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all Mobility data points that belong to a user 
-	 * and have a given location status.
-	 * 
-	 * @param username The username of the user.
-	 * 
-	 * @param locationStatus The location status.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the 
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsWithLocationStatus(String username,
-			LocationStatus locationStatus) throws DataAccessException;
-
-	/**
-	 * Retrieves the UUID for all Mobility data points that belong to a user 
-	 * and have a given mode.
-	 * 
-	 * @param username The username of the user.
-	 * 
-	 * @param mode The mode.
-	 * 
-	 * @return A, possibly empty but never null, list of UUIDs for the  
-	 * 		   resulting Mobility data points.
-	 * 
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<String> getIdsWithMode(String username, Mode mode)
-			throws DataAccessException;
-
-	/**
-	 * Gathers the Mobility information for all of the UUIDs in the collection.
-	 * 
-	 * @param ids A collection of UUIDs for Mobility points.
-	 * 
-	 * @return A, possibly empty but never null, list of MobilityPoint objects 
-	 * 		   where each object should correspond to an UUID in the 'ids' 
-	 * 		   list.
-	 *  
-	 * @throws DataAccessException Thrown if there is an error.
-	 */
-	List<MobilityPoint> getMobilityInformationFromIds(Collection<String> ids)
-			throws DataAccessException;
 	
 	/**
 	 * Gathers the Mobility information for all of the points that match the
@@ -320,5 +171,19 @@ public interface IUserMobilityQueries {
 	 */
 	Double getPercentageOfNonNullLocations(String username, int hours)
 			throws DataAccessException;
-
+	
+	/**
+	 * Updates a Mobility point.
+	 * 
+	 * @param mobilityId The Mobility point's unique identifier. Required.
+	 * 
+	 * @param privacyState The new privacy state or null if no change is 
+	 * 					   required.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	void updateMobilityPoint(
+			final UUID mobilityId, 
+			final MobilityPoint.PrivacyState privacyState) 
+			throws DataAccessException;
 }
