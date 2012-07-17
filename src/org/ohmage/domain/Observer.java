@@ -92,17 +92,6 @@ public class Observer {
 	}
 	
 	/**
-	 * The pattern for allowed observer IDs.
-	 */
-	public static final String ID_PATTERN = 
-		"([a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)+){3,255}";
-	/**
-	 * The compiled pattern for allowed observer IDs.
-	 */
-	private static final Pattern PATTERN_OBSERVER_ID = 
-		Pattern.compile(ID_PATTERN);
-	
-	/**
 	 * The JSON factory for creating parsers and generators.
 	 */
 	private static final JsonFactory JSON_FACTORY = new MappingJsonFactory();
@@ -113,6 +102,10 @@ public class Observer {
 	private static final String KEY_JSON_DESCRIPTION = "description";
 	private static final String KEY_JSON_VERSION_STRING = "versionString";
 	private static final String KEY_JSON_STREAMS = "streams";
+	
+	private static final Pattern PATTERN_ID_VALIDATOR = 
+		Pattern.compile("([a-zA-Z]{1}[\\w]*(\\.[a-zA-Z]{1}[\\w]*)+)?");
+	private static final long MAX_OBSERVER_ID_LENGTH = 255;
 
 	private final String id;
 	private final long version;
@@ -128,17 +121,6 @@ public class Observer {
 	 * @author John Jenkins
 	 */
 	public static class Stream {
-		/**
-		 * The pattern for allowed stream IDs.
-		 */
-		public static final String ID_PATTERN = 
-			"([a-zA-Z0-9]+[a-zA-Z0-9_]+){1,255}";
-		/**
-		 * The compiled pattern for allowed stream IDs.
-		 */
-		private static final Pattern PATTERN_STREAM_ID = 
-			Pattern.compile(ID_PATTERN);
-
 		private static final String KEY_JSON_ID = "id";
 		private static final String KEY_JSON_VERSION = "version";
 		private static final String KEY_JSON_NAME = "name";
@@ -147,6 +129,9 @@ public class Observer {
 		private static final String KEY_JSON_WITH_TIMESTAMP = "with_timestamp";
 		private static final String KEY_JSON_WITH_LOCATION = "with_location";
 		private static final String KEY_JSON_SCHEMA = "schema";
+
+		private static final Pattern PATTERN_ID_VALIDATOR = 
+			Pattern.compile("[a-zA-Z]{1}[\\w_]{0,254}");
 		
 		private final String id;
 		private final long version;
@@ -596,7 +581,7 @@ public class Observer {
 			}
 			
 			String trimmedId = id.trim();
-			if(! PATTERN_STREAM_ID.matcher(trimmedId).matches()) {
+			if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
 				throw new DomainException(
 					ErrorCode.OBSERVER_INVALID_STREAM_ID,
 					"The stream ID is invalid. " +
@@ -1162,14 +1147,22 @@ public class Observer {
 		}
 
 		String trimmedId = id.trim();
-		if(! PATTERN_OBSERVER_ID.matcher(trimmedId).matches()) {
+		if(! PATTERN_ID_VALIDATOR.matcher(trimmedId).matches()) {
 			throw new DomainException(
 				ErrorCode.OBSERVER_INVALID_ID,
-				"The observer is invalid. " +
+				"The observer ID is invalid. " +
 					"It must consist of only alphanumeric values, " +
+					"begin with a letter, " +
 					"include at least one '.', " +
-					"cannot end in a '.', " +
-					"and cannot be longer than 255 characters: " +
+					"and cannot end in a '.': " +
+					trimmedId);
+		}
+		else if(trimmedId.length() > MAX_OBSERVER_ID_LENGTH) {
+			throw new DomainException(
+				ErrorCode.OBSERVER_INVALID_ID,
+				"The observer ID cannot be more than " +
+					MAX_OBSERVER_ID_LENGTH +
+					" long: " +
 					trimmedId);
 		}
 
