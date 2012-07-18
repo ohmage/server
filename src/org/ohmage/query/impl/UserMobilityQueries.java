@@ -49,7 +49,6 @@ import org.ohmage.domain.MobilityPoint.SubType;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserMobilityQueries;
-import org.ohmage.util.TimeUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -129,14 +128,17 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	// Retrieves the epoch millisecond values for all of the mobility points 
 	// for a user within the date ranges.
 	private static final String SQL_GET_MIN_MAX_MILLIS_FOR_USER_WITHIN_RANGE_GROUPED_BY_TIME_AND_TIMEZONE =
-		"SELECT MIN(m.epoch_millis) as min, MAX(m.epoch_millis) as max, m.phone_timezone " +
-		"FROM user u, mobility m " +
-		"WHERE u.username = ? " +
-		"AND u.id = m.user_id " +
-		"AND epoch_millis >= ? " +
-		"AND epoch_millis <= ? " +
-		"GROUP BY (m.epoch_millis DIV " + MILLIS_PER_DAY + "), m.phone_timezone";
-
+		"SELECT osd.time, osd.time_zone " +
+		"FROM user u, observer o, observer_stream_link osl, observer_stream_data osd " +
+		"WHERE o.observer_id = 'edu.ucla.cens.Mobility' " +
+		"AND o.id = osl.observer_id " +
+		"AND osl.id = osd.observer_stream_link_id " +
+		"AND u.username = ? " +
+		"AND u.id = osd.user_id " +
+		"AND osd.time_adjusted >= ? " +
+		"AND osd.time_adjusted <= ? " +
+		"GROUP BY (osd.time_adjusted DIV " + MILLIS_PER_DAY + ")";
+	
 	// Inserts a mode-only entry into the database.
 	private static final String SQL_INSERT =
 		"INSERT INTO mobility(uuid, user_id, client, epoch_millis, phone_timezone, location_status, location, mode, upload_timestamp, privacy_state_id) " +
@@ -642,40 +644,18 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
-							Set<String> collisionCheck = new HashSet<String>();
 							Set<DateTime> result = new HashSet<DateTime>();
 							
 							while(rs.next()) {
 								DateTimeZone timeZone =
 										DateTimeZone.forID(
-											rs.getString("phone_timezone"));
+											rs.getString("time_zone"));
 								
-								DateTime currDateTime;
-								String currDateTimeString;
-								
-								currDateTime = 
+								result
+									.add(
 										new DateTime(
-											rs.getLong("min"), 
-											timeZone);
-								currDateTimeString = 
-										TimeUtils.getIso8601DateString(
-											currDateTime, 
-											false);
-								if(collisionCheck.add(currDateTimeString)) {
-									result.add(currDateTime);
-								}
-								
-								currDateTime =
-										new DateTime(
-											rs.getLong("max"),
-											timeZone);
-								currDateTimeString = 
-										TimeUtils.getIso8601DateString(
-											currDateTime, 
-											false);
-								if(collisionCheck.add(currDateTimeString)) {
-									result.add(currDateTime);
-								}
+											rs.getLong("time"), 
+											timeZone));
 							}
 							
 							return result;
