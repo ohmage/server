@@ -40,7 +40,11 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
+import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.ObserverValidators;
+import org.ohmage.validator.UserValidators;
 
 /**
  * <p>Reads uploaded data for a stream.</p>
@@ -425,9 +429,6 @@ public class StreamReadRequest extends UserRequest {
 			String[] t;
 			
 			try {
-				// FIXME: Removing this parameter until proper ACLs can be 
-				// established.
-				/*
 				t = getParameterValues(InputKeys.USERNAME);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -438,7 +439,6 @@ public class StreamReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
-				*/
 				
 				t = getParameterValues(InputKeys.OBSERVER_ID);
 				if(t.length > 1) {
@@ -606,8 +606,44 @@ public class StreamReadRequest extends UserRequest {
 		}
 		
 		try {
-			// FIXME: Needs to add ACLs or disable users reading other users'
-			// data.
+			if((username != null) && (! username.equals(getUser().getUsername()))) {
+				try {
+					LOGGER.info("Checking if the user is an admin.");
+					UserServices.instance().verifyUserIsAdmin(
+						getUser().getUsername());
+				}
+				catch(ServiceException notAdmin) {
+					LOGGER.info("The user is not an admin.");
+
+					LOGGER.info(
+						"Checking if reading Mobility points about another user is even allowed.");
+					boolean isPlausible;
+					try {
+						isPlausible = 
+							StringUtils.decodeBoolean(
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
+					}
+					catch(CacheMissException e) {
+						throw new ServiceException(e);
+					}
+					
+					if(isPlausible) {
+						LOGGER.info(
+							"Checking if the requester is allowed to read Mobility points about the user.");
+						UserClassServices
+							.instance()
+							.userIsPrivilegedInAnotherUserClass(
+								getUser().getUsername(), 
+								username);
+					}
+					else {
+						throw new ServiceException(
+							ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
+							"A user is not allowed to query Mobility information about another user.");
+					}
+				}
+			}
 			
 			LOGGER.info("Retrieving the stream definition.");
 			stream = 
