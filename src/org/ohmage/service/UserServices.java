@@ -15,9 +15,7 @@
  ******************************************************************************/
 package org.ohmage.service;
 
-import java.net.InetAddress;
 import java.net.URL;
-import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -266,15 +264,20 @@ public final class UserServices {
 
 			// Compute the registration link.
 			StringBuilder registrationLink = 
-					new StringBuilder("<a href=\"http://");
+					new StringBuilder("<a href=\"");
 			// Get this machine's hostname.
 			try {
-				registrationLink.append(
-						InetAddress.getLocalHost().getHostName());
+				registrationLink
+					.append(
+						PreferenceCache
+							.instance()
+							.lookup(
+								PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME));
 			}
-			catch(UnknownHostException e) {
+			catch(CacheMissException e) {
 				throw new ServiceException(
-						"The sky is falling! Oh, and our own hostname is unknown.",
+						"The preference table is missing its fully qualified domain name: " +
+							PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME,
 						e);
 			}
 			registrationLink.append(ACTIVATION_FUNCTION);
