@@ -480,6 +480,34 @@ public abstract class UserRequest extends Request {
 				"The token location was null.");
 		}
 		
+		// Check if it is allowed to be a parameter.
+		if(TokenLocation.PARAMETER.equals(tokenLocation) ||
+			TokenLocation.EITHER.equals(tokenLocation)) {
+			
+			// Retrieve all of the authentication tokens that were parameters.
+			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
+	
+			if(tokens.length > 1){
+				throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"Multiple authentication token parameters were found.");
+			}
+			else if(tokens.length == 1) {
+				// Attempt to retrieve the user.
+				User user = UserBin.getUser(tokens[0]);
+				
+				// If the bin doesn't know about the user, set the request as 
+				// failed.
+				if(user == null) {
+					throw new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED, 
+						"The token is unknown.");
+				}
+				
+				return user;
+			}
+		}
+		
 		// First, check if we allow it to be a cookie.
 		if(tokenLocation.equals(TokenLocation.COOKIE) || 
 			tokenLocation.equals(TokenLocation.EITHER)) {
@@ -508,34 +536,6 @@ public abstract class UserRequest extends Request {
 					throw new ValidationException(
 						ErrorCode.AUTHENTICATION_FAILED, 
 						"The token cookie is unknown.");
-				}
-				
-				return user;
-			}
-		}
-		
-		// Check if it is allowed to be a parameter.
-		if(TokenLocation.PARAMETER.equals(tokenLocation) ||
-			TokenLocation.EITHER.equals(tokenLocation)) {
-			
-			// Retrieve all of the authentication tokens that were parameters.
-			String[] tokens = getParameterValues(InputKeys.AUTH_TOKEN);
-	
-			if(tokens.length > 1){
-				throw new ValidationException(
-					ErrorCode.AUTHENTICATION_FAILED, 
-					"Multiple authentication token parameters were found.");
-			}
-			else if(tokens.length == 1) {
-				// Attempt to retrieve the user.
-				User user = UserBin.getUser(tokens[0]);
-				
-				// If the bin doesn't know about the user, set the request as 
-				// failed.
-				if(user == null) {
-					throw new ValidationException(
-						ErrorCode.AUTHENTICATION_FAILED, 
-						"The token is unknown.");
 				}
 				
 				return user;

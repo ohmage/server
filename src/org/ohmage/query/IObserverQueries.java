@@ -131,6 +131,9 @@ public interface IObserverQueries {
 	 * Retrieves the streams that match the given criteria. All parameters are
 	 * optional.
 	 * 
+	 * @param username Limits the results to only those streams for which the   
+	 * 				   user submitted some data. 
+	 * 
 	 * @param observerId Limits the results to only those whose observer has 
 	 * 					 this ID.
 	 * 
@@ -152,6 +155,7 @@ public interface IObserverQueries {
 	 * @throws ServiceException There was an error.
 	 */
 	public Map<String, Collection<Observer.Stream>> getStreams(
+		final String username,
 		final String observerId,
 		final Long observerVersion,
 		final String streamId,

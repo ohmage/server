@@ -835,6 +835,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 	 */
 	@Override
 	public Map<String, Collection<Observer.Stream>> getStreams(
+			final String username,
 			final String observerId,
 			final Long observerVersion,
 			final String streamId,
@@ -869,6 +870,20 @@ public class ObserverQueries extends Query implements IObserverQueries {
 
 		// Create the default set of parameters.
 		List<Object> parameters = new LinkedList<Object>();
+		
+		if(username != null) {
+			sqlBuilder
+				.append(
+					" AND EXISTS (" +
+						"SELECT osd.id " +
+						"FROM user u, observer_stream_data osd " +
+						"WHERE u.username = ? " +
+						"AND u.id = osd.user_id " +
+						"AND osl.id = osd.observer_stream_link_id" +
+					")"
+				);
+			parameters.add(username);
+		}
 			
 		// If querying about the observer's ID, add that WHERE clause and
 		// add the parameter.

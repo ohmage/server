@@ -167,6 +167,7 @@ public class OmhRegistryReadRequest extends Request {
 					ObserverServices
 						.instance()
 						.getStreams(
+							null,
 							observerId, 
 							null, 
 							streamId, 
@@ -286,9 +287,9 @@ public class OmhRegistryReadRequest extends Request {
 						payloadIdBuilder.toString());
 					
 					// Set the payload version.
-					generator.writeNumberField(
+					generator.writeStringField(
 						"payload_version", 
-						stream.getVersion());
+						String.valueOf(stream.getVersion()));
 					
 					// Set the payload definition.
 					generator.writeObjectField(

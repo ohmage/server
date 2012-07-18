@@ -328,6 +328,9 @@ public class ObserverServices {
 	 * Retrieves the streams that match the given criteria. All parameters are
 	 * optional.
 	 * 
+	 * @param username Limits the results to only those streams for which the   
+	 * 				   user submitted some data.
+	 * 
 	 * @param observerId Limits the results to only those whose observer has 
 	 * 					 this ID.
 	 * 
@@ -349,6 +352,7 @@ public class ObserverServices {
 	 * @throws ServiceException There was an error.
 	 */
 	public Map<String, Collection<Observer.Stream>> getStreams(
+			final String username,
 			final String observerId,
 			final Long observerVersion,
 			final String streamId,
@@ -360,6 +364,7 @@ public class ObserverServices {
 		try {
 			return 
 				observerQueries.getStreams(
+					username,
 					observerId, 
 					observerVersion,
 					streamId, 

@@ -649,6 +649,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						while((bytesRead = content.read(buffer)) != -1) {
 							fos.write(buffer, 0, bytesRead);
 						}
+						fos.close();
 
 						// Store the file reference in the video list.
 						videoList.add(videoFile);

@@ -2,7 +2,6 @@ package org.ohmage.request.omh;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +24,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.ObserverServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.ObserverValidators;
 
 public class OmhCatalogRequest extends UserRequest {
@@ -40,6 +40,9 @@ public class OmhCatalogRequest extends UserRequest {
 	private final String observerId;
 	private final String streamId;
 	private final Long streamVersion;
+	
+	private final long numToSkip;
+	private final long numToReturn;
 	
 	private final Map<String, Collection<Stream>> streams;
 	
@@ -70,6 +73,9 @@ public class OmhCatalogRequest extends UserRequest {
 		String tStreamId = null;
 		Long tStreamVersion = null;
 		
+		long tNumToSkip = 0;
+		long tNumToReturn = StreamReadRequest.MAX_NUMBER_TO_RETURN;
+		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH catalog request.");
 			String[] t;
@@ -82,10 +88,12 @@ public class OmhCatalogRequest extends UserRequest {
 						"Multiple payload IDs were given: " +
 							InputKeys.OMH_PAYLOAD_ID);
 				}
-				else if(t.length == 1) {
+				else if((t.length == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(t[0]))) {
+					
 					String[] payloadIdParts = t[0].split(":");
 					
-					if(payloadIdParts.length != 5) {
+					if(payloadIdParts.length != 4) {
 						throw new ValidationException(
 							ErrorCode.OMH_INVALID_PAYLOAD_ID,
 							"The payload ID is invalid: " + t[0]);
@@ -120,15 +128,6 @@ public class OmhCatalogRequest extends UserRequest {
 								ErrorCode.OMH_INVALID_PAYLOAD_ID,
 								"The payload ID is unknown.");
 						}
-						
-						tStreamVersion = 
-							ObserverValidators.validateStreamVersion(
-								payloadIdParts[4]);
-						if(tStreamVersion == null) {
-							throw new ValidationException(
-								ErrorCode.OMH_INVALID_PAYLOAD_ID,
-								"The payload ID is unknown.");
-						}
 					}
 					catch(ValidationException e) {
 						throw new ValidationException(
@@ -137,6 +136,44 @@ public class OmhCatalogRequest extends UserRequest {
 							e);
 						
 					}
+				}
+				
+				t = getParameterValues(InputKeys.OMH_PAYLOAD_VERSION);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
+						"Multiple payload versions were given: " +
+							InputKeys.OMH_PAYLOAD_VERSION);
+				}
+				else if(t.length == 1) {
+					tStreamVersion =
+						ObserverValidators.validateStreamVersion(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.OMH_NUM_TO_SKIP);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_NUM_TO_SKIP,
+						"Multiple \"number of results to skip\" values were given: " +
+							InputKeys.OMH_NUM_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tNumToSkip = ObserverValidators.validateNumToSkip(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.OMH_NUM_TO_RETURN);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_NUM_TO_RETURN,
+						"Multiple \"number of results to return\" values were given: " +
+							InputKeys.OMH_NUM_TO_RETURN);
+				}
+				else if(t.length == 1) {
+					tNumToReturn = 
+						ObserverValidators
+							.validateNumToReturn(
+								t[0], 
+								StreamReadRequest.MAX_NUMBER_TO_RETURN);
 				}
 			}
 			catch(ValidationException e) {
@@ -148,6 +185,9 @@ public class OmhCatalogRequest extends UserRequest {
 		observerId = tObserverId;
 		streamId = tStreamId;
 		streamVersion = tStreamVersion;
+		
+		numToSkip = tNumToSkip;
+		numToReturn = tNumToReturn;
 
 		streams = new HashMap<String, Collection<Stream>>();
 	}
@@ -165,26 +205,17 @@ public class OmhCatalogRequest extends UserRequest {
 		}
 		
 		try {
-			// If the observer ID is null, we are returning all of the observers'
-			// information.
-			if(observerId == null) {
-				streams.putAll(
-					ObserverServices.instance().getObserverIdToStreamsMap(0, 1000));
-			}
-			// If the observer ID is non-null, we are returning the information for
-			// only one observer.
-			else {
-				Collection<Stream> singleStream = new ArrayList<Stream>(1);
-				singleStream.add(
-					ObserverServices.instance().getStream(
-						observerId, 
-						streamId, 
-						streamVersion
-					)
-				);
-				
-				streams.put(observerId, singleStream);
-			}
+			streams
+				.putAll(
+					ObserverServices
+						.instance().getStreams(
+							getUser().getUsername(),
+							observerId, 
+							null, 
+							streamId, 
+							streamVersion, 
+							numToSkip, 
+							numToReturn));
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -282,21 +313,28 @@ public class OmhCatalogRequest extends UserRequest {
 						true);
 					
 					// Write a user-friendly name for this payload.
-					generator.writeStringField("name", stream.getName());
+					generator.writeStringField(
+						"source_name", 
+						stream.getName());
 					
 					// Build and then set the payload ID.
 					StringBuilder payloadIdBuilder = 
 						new StringBuilder("omh:ohmage:");
 					payloadIdBuilder.append(observerId).append(':');
-					payloadIdBuilder.append(stream.getId()).append(':');
-					payloadIdBuilder.append(stream.getVersion());
+					payloadIdBuilder.append(stream.getId());
 					generator.writeStringField(
 						"payload_id", 
 						payloadIdBuilder.toString());
 					
-					// Build the payload definition. Include strict or optional
-					// in each column's definition.
+					// Set the payload version.
+					generator.writeStringField(
+						"payload_version", 
+						String.valueOf(stream.getVersion()));
 					
+					// Set the payload definition.
+					generator.writeObjectField(
+						"payload_definition", 
+						stream.getSchema().readValueAsTree());
 					
 					// Set this as not being summarizable. This would be an
 					// interesting and potentially useful feature, but it would
