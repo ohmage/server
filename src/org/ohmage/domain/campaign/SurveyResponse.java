@@ -1128,7 +1128,30 @@ public class SurveyResponse {
 		}
 		location = tLocation;
 		
-		this.privacyState = PrivacyState.PRIVATE;
+		PrivacyState tPrivacyState;
+		if(response.has(JSON_KEY_PRIVACY_STATE)) {
+			try {
+				tPrivacyState = 
+					PrivacyState
+						.getValue(response.getString(JSON_KEY_PRIVACY_STATE));
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_PRIVACY_STATE,
+					"The privacy state was not a string.",
+					e);
+			}
+			catch(IllegalArgumentException e) {
+				throw new DomainException(
+					ErrorCode.MOBILITY_INVALID_PRIVACY_STATE,
+					"The privacy state is unknown: " + e.getMessage(),
+					e);
+			}
+		}
+		else {
+			tPrivacyState = PrivacyState.PRIVATE;
+		}
+		this.privacyState = tPrivacyState;
 		
 		JSONArray responses;
 		try {
