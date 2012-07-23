@@ -270,6 +270,7 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 					endDate, 
 					null, 
 					null, 
+					null,
 					null, 
 					null,
 					null,

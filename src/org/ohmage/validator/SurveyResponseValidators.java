@@ -773,4 +773,24 @@ public final class SurveyResponseValidators {
 		
 		return results;
 	}
+	
+	/**
+	 * Compiles a set of strings from a whitespace-deliminated search string.
+	 * 
+	 * @param searchString The string to be tokenized.
+	 * 
+	 * @return The set of tokens from the search string.
+	 * 
+	 * @throws ValidationException Never thrown.
+	 */
+	public static Set<String> validatePromptResponseSearch(
+			final String searchString)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(searchString)) {
+			return null;
+		}
+		
+		return StringUtils.decodeSearchString(searchString);
+	}
 }

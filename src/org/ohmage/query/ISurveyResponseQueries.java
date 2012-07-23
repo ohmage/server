@@ -87,6 +87,9 @@ public interface ISurveyResponseQueries {
 	 * @param promptType Limits the results to only those survey responses that
 	 * 					 are of the given prompt type.
 	 * 
+	 * @param surveyResponseSearchTokens The set of tokens to use against the
+	 * 									 prompt response values.
+	 * 
 	 * @param columns Aggregates the data based on the column keys. If this is
 	 * 				  null, no aggregation is performed. If the list is empty,
 	 * 				  an empty list is returned.
@@ -122,6 +125,7 @@ public interface ISurveyResponseQueries {
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
+			final Set<String> promptResponseSearchTokens,
 			final Collection<ColumnKey> columns, 
 			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,

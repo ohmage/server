@@ -277,10 +277,13 @@ public final class SurveyResponseServices {
 	 * 					results must belong to any of them. Optional.
 	 * 
 	 * @param promptIds A collection of prompt response IDs to which the 
-	 * 					results must belong ot any of them.
+	 * 					results must belong to any of them.
 	 * 
 	 * @param promptType A prompt type that limits all responses to those of
 	 * 					 exactly this prompt type. Optional.
+	 * 
+	 * @param surveyResponseSearchTokens The set of tokens to use against the
+	 * 									 prompt response values. Optional.
 	 * 
 	 * @param columns Aggregates the data based on the column keys. If this is
 	 * 				  null, no aggregation is performed. If the list is empty,
@@ -316,6 +319,7 @@ public final class SurveyResponseServices {
 			final Collection<String> surveyIds, 
 			final Collection<String> promptIds, 
 			final String promptType,
+			final Set<String> promptResponseSearchTokens,
 			final Collection<ColumnKey> columns, 
 			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
@@ -335,6 +339,7 @@ public final class SurveyResponseServices {
 					surveyIds, 
 					promptIds, 
 					promptType,
+					promptResponseSearchTokens,
 					columns,
 					sortOrder,
 					surveyResponsesToSkip,

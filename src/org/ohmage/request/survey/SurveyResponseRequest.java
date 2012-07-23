@@ -57,6 +57,7 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	private final DateTime startDate;
 	private final DateTime endDate;
 	private final SurveyResponse.PrivacyState privacyState;
+	private final Set<String> promptResponseSearchTokens;
 	
 	private Campaign campaign;
 	
@@ -93,6 +94,8 @@ public abstract class SurveyResponseRequest extends UserRequest {
 		DateTime tEndDate = null;
 		
 		SurveyResponse.PrivacyState tPrivacyState = null;
+		
+		Set<String> tPromptResponseSearchTokens = null;
 		
 		if(! isFailed()) {
 			String[] t;
@@ -223,6 +226,7 @@ public abstract class SurveyResponseRequest extends UserRequest {
 								") must be given.");
 				}
 				
+				// The survey response's unique identifier.
 				t = getParameterValues(InputKeys.SURVEY_RESPONSE_ID_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -234,6 +238,20 @@ public abstract class SurveyResponseRequest extends UserRequest {
 					tSurveyResponseIds = 
 							SurveyResponseValidators.validateSurveyResponseIds(
 									t[0]);
+				}
+				
+				// The prompt response search string.
+				t = getParameterValues(InputKeys.PROMPT_RESPONSE_SEARCH);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.SURVEY_INVALID_PROMPT_RESPONSE_SEARCH,
+						"Multiple prompt response search strings were given: " +
+							InputKeys.PROMPT_RESPONSE_SEARCH);
+				}
+				else if(t.length == 1) {
+					tPromptResponseSearchTokens =
+						SurveyResponseValidators
+							.validatePromptResponseSearch(t[0]);
 				}
 				
 				// Start Date
@@ -293,6 +311,8 @@ public abstract class SurveyResponseRequest extends UserRequest {
 		endDate = tEndDate;
 
 		privacyState = tPrivacyState;
+		
+		promptResponseSearchTokens = tPromptResponseSearchTokens;
 		
 		surveyResponseList = new ArrayList<SurveyResponse>();
 		surveyResponseCount = 0;
@@ -365,8 +385,9 @@ public abstract class SurveyResponseRequest extends UserRequest {
 							endDate, 
 							privacyState, 
 							(URN_SPECIAL_ALL_LIST.equals(surveyIds)) ? null : surveyIds, 
-							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds, 
+							(URN_SPECIAL_ALL_LIST.equals(promptIds)) ? null : promptIds,
 							null,
+							promptResponseSearchTokens,
 							((collapse != null) && collapse && (! columns.equals(URN_SPECIAL_ALL_LIST))) ? columns : null,
 							sortOrder,
 							numSurveyResponsesToSkip,

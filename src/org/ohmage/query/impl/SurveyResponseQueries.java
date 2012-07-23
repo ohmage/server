@@ -368,6 +368,13 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		" AND pr.prompt_type = ?";
 	
 	/**
+	 * Limit the responses to only those whose prompt response contains a given 
+	 * token.
+	 */
+	private static final String SQL_WHERE_PROMPT_RESPONSE_SEARCH_TOKEN =
+		" AND pr.response LIKE ?";
+	
+	/**
 	 * Order the results first by the number of milliseconds since the epoch at
 	 * which time the survey was taken and then, if there is a collision, by
 	 * UUID. This guarantees that all prompt responses for a given survey 
@@ -472,6 +479,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
+			final Set<String> promptResponseSearchTokens,
 			final Collection<ColumnKey> columns,
 			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
@@ -499,6 +507,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 				surveyIds,
 				promptIds,
 				promptType,
+				promptResponseSearchTokens,
 				columns,
 				sortOrder,
 				parameters);
@@ -886,6 +895,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final Collection<String> surveyIds,
 			final Collection<String> promptIds,
 			final String promptType,
+			final Set<String> promptResponseSearchTokens,
 			final Collection<ColumnKey> columns,
 			final List<SortParameter> sortOrder,
 			final Collection<Object> parameters) {
@@ -941,6 +951,12 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		if(promptType != null) {
 			sqlBuilder.append(SQL_WHERE_PROMPT_TYPE);
 			parameters.add(promptType);
+		}
+		if(promptResponseSearchTokens != null) {
+			for(String promptResponseSearchToken : promptResponseSearchTokens) {
+				sqlBuilder.append(SQL_WHERE_PROMPT_RESPONSE_SEARCH_TOKEN);
+				parameters.add('%' + promptResponseSearchToken + '%');
+			}
 		}
 		
 		// Now, collapse the columns if columns is non-null.

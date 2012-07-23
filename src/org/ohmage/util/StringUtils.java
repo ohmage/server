@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -54,8 +55,8 @@ public final class StringUtils {
 		Pattern.compile(
 			"^([_A-Za-z0-9-]+)(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
 	
-	private static final String SEARCH_REGEX = 
-		"(?x)(\\s(?=([^\"]*\"[^\"]*\")*[^\"]*$) | (?!^\\\\)\")";
+	private static final Pattern PATTERN_SEARCH = 
+		Pattern.compile("[^\\s\"']+|\"([^\"]*)\"|'([^']*)'");
 	
 	private static final String DEFAULT_DELIMITER = ",";
 	
@@ -454,9 +455,19 @@ public final class StringUtils {
 		}
 		
 		Set<String> result = new HashSet<String>();
-		result.addAll(Arrays.asList(string.split(SEARCH_REGEX)));
-		result.remove("");
-		result.remove(null);
+		Matcher regexMatcher = PATTERN_SEARCH.matcher(string);
+		while (regexMatcher.find()) {
+		    if (regexMatcher.group(1) != null) {
+		        // Add double-quoted string without the quotes
+		        result.add(regexMatcher.group(1));
+		    } else if (regexMatcher.group(2) != null) {
+		        // Add single-quoted string without the quotes
+		        result.add(regexMatcher.group(2));
+		    } else {
+		        // Add unquoted word
+		        result.add(regexMatcher.group());
+		    }
+		}
 		
 		return result;
 	}

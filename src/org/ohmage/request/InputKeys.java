@@ -104,6 +104,7 @@ public final class InputKeys {
 	public static final String IMAGE_ID = "id";
 	public static final String REPEATABLE_SET_ID = "repeatable_set_id";
 	public static final String REPEATABLE_SET_ITERATION = "repeatable_set_iteration";
+	public static final String PROMPT_RESPONSE_SEARCH = "prompt_response_search";
 	
 	// Image Constants
 	public static final String IMAGES = "images";
