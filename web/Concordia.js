@@ -1,24 +1,23 @@
 /**
- * The JsonSchema object has one constructor which takes a schema and validates
+ * The Concordia object has one constructor which takes a schema and validates
  * it. If it fails validation, an exception will be thrown.
  * 
- * There is one public function, which is validate(data). 'data' must be either
- * a JSON object or a JSON array or a string representing one of the two. If 
- * the data is not valid, an exception will be thrown; otherwise, the function
- * will return the valid JSON object or JSON array.
+ * There is one public function, which is validate(data). 'data' must be a JSON
+ * object or a JSON array or a string representing one of the two. If the data
+ * is not valid, an exception will be thrown; otherwise, the function will 
+ * return the valid JSON object or JSON array.
  * 
  * @author John Jenkins
  */
-
-function JsonSchema(schema) {
-	var JsonSchema = {};
+function Concorida(schema) {
+	var Concordia = {};
 	
 	(function () {
 		'use strict';
 		
 		/**
 		 * Takes in a valid JSON object and validates that it conforms to the 
-		 * JSON Schema specification.
+		 * Concordia schema specification.
 		 * 
 		 * @param obj The JSON object to validate.
 		 * 
@@ -56,10 +55,10 @@ function JsonSchema(schema) {
 		 * Validate data against this object's schema.
 		 * 
 		 * @param obj The data to validate against the schema. This must either
-		 * 			  be a JSON object or a JSON array, or a string 
-		 * 			  representing one of the two.
+		 * 			  be a JSON object or a JSON array or a string representing 
+		 * 			  one of the two.
 		 */
-		JsonSchema.validateData = function (data) {
+		Concordia.validateData = function (data) {
 			var jsonData = data;
 			if(typeof data === "string") {
 				jsonData = JSON.parse(data);
@@ -67,7 +66,7 @@ function JsonSchema(schema) {
 			
 			// The type
 			if(typeof jsonData === "object") {
-				validateDataType(JsonSchema.schema, jsonData);
+				validateDataType(Concordia.schema, jsonData);
 			}
 			else {
 				throw "The data must either be a JSON object or a JSON array or a string representing one of the two.";
@@ -92,7 +91,10 @@ function JsonSchema(schema) {
 		function validateSchemaType(obj) {
 		    var type = obj["type"];
 		    
-		    if(type === "number") {
+		    if(type === "boolean") {
+		    	validateSchemaBooleanType(obj);
+		    }
+		    else if(type === "number") {
 		        validateSchemaNumberType(obj);
 		    }
 		    else if(type === "string") {
@@ -134,7 +136,10 @@ function JsonSchema(schema) {
 		function validateDataType(schema, data) {
 			var type = schema["type"];
 			
-			if(type === "number") {
+			if(type === "boolean") {
+				validateDataBooleanType(schema, data);
+			}
+			else if(type === "number") {
 				validateDataNumberType(schema, data);
 			}
 			else if(type === "string") {
@@ -176,12 +181,46 @@ function JsonSchema(schema) {
 		
 		/**
 		 * Validates a JSON object whose "type" has already been determined to
+		 * be "boolean". There are no other requirements for the "boolean" 
+		 * type.
+		 * 
+		 * @param obj The JSON object to validate.
+		 */
+		function validateSchemaBooleanType(obj) {
+			// There are no additional requirements for a boolean type.
+		}
+		
+		/**
+		 * Validates that the data is a boolean or, if it is 'null' or missing,
+		 * that hte field is optional.
+		 * 
+		 * @param schema The Schema to use to validate the data.
+		 * 
+		 * @param data The data to validate.
+		 */
+		function validateDataBooleanType(schema, data) {
+			var dataType = typeof data;
+			// If the data is not present or 'null', ensure that it is 
+			// optional.
+			if((data === null) || (dataType === "undefined")) {
+				if(! schema["optional"]) {
+					throw "The data is null and not optional.";
+				}
+			}
+			else if(dataType !== "boolean") {
+				throw "The value is not a boolean: " +
+						JSON.stringify(data, null, null);
+			}
+		}
+		
+		/**
+		 * Validates a JSON object whose "type" has already been determined to
 		 * be "number". There are no other requirements for the "number" type.
 		 * 
 		 * @param obj The JSON object to validate.
 		 */
 		function validateSchemaNumberType(obj) {
-		    // There are no additional requirements for a string type.
+		    // There are no additional requirements for a number type.
 		}
 		
 		/**
@@ -525,7 +564,7 @@ function JsonSchema(schema) {
 		/**
 		 * Validates that each element in an array has the given schema.
 		 * 
-		 * @param schema The JSON Schema to use to validate the data.
+		 * @param schema The Concordia schema to use to validate the data.
 		 * 
 		 * @param dataArray The array of elements to validate.
 		 */
@@ -551,10 +590,10 @@ function JsonSchema(schema) {
 		}
 		
 		// Validate the schema and, if it passes, store it as the schema.
-		JsonSchema.schema = validateSchema(schemaJson);
+		Concordia.schema = validateSchema(schemaJson);
 
-	// End of JsonSchema definition.
+	// End of Concordia definition.
 	}());
 	
-	return JsonSchema;
+	return Concordia;
 }

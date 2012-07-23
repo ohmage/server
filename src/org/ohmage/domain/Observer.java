@@ -56,7 +56,7 @@ public class Observer {
 		try {
 			reader =
 				new FileReader(
-					System.getProperty("webapp.root") + "JsonSchema.js");
+					System.getProperty("webapp.root") + "Concordia.js");
 		}
 		catch(FileNotFoundException e) {
 			throw new IllegalStateException(
@@ -518,22 +518,22 @@ public class Observer {
 			Context context = Context.enter();
 			try {
 				Scriptable scope = context.initStandardObjects();
-				Function jsonSchemaConstructor =
+				Function concordiaConstructor =
 					context.compileFunction(
 						scope, 
 						JSON_SCHEMA_JS, 
-						"JsonSchema.js", 
+						"Concordia.js", 
 						1, 
 						null);
 				
-				Scriptable jsonSchema =
-					jsonSchemaConstructor.construct(
+				Scriptable concordia =
+					concordiaConstructor.construct(
 						context, 
 						scope, 
 						new Object[] { schema });
 				
 				Object validateData = 
-					jsonSchema.get("validateData", jsonSchema);
+					concordia.get("validateData", concordia);
 				if(validateData instanceof Function) {
 					Function validateDataFunction = (Function) validateData;
 					
@@ -609,15 +609,15 @@ public class Observer {
 			Context context = Context.enter();
 			try {
 				Scriptable scope = context.initStandardObjects();
-				Function jsonSchemaConstructor =
+				Function concordiaConstructor =
 					context.compileFunction(
 						scope, 
 						JSON_SCHEMA_JS, 
-						"JsonSchema.js", 
+						"Concordia.js", 
 						1, 
 						null);
 				
-				jsonSchemaConstructor.construct(
+				concordiaConstructor.construct(
 					context, 
 					scope, 
 					new Object[] { schema });
