@@ -525,6 +525,20 @@ public interface IUserQueries {
 	public void activateUser(
 			final String registrationId) 
 			throws DataAccessException;
+	
+	/**
+	 * Deletes all registration attempts that took place more than 'duration'
+	 * milliseconds ago and that were never accepted. Also, deletes the 
+	 * corresponding account.
+	 * 
+	 * @param duration The maximum duration for which a registration should 
+	 * 				   live.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public void deleteExpiredRegistration(
+		final long duration)
+		throws DataAccessException;
 
 	/**
 	 * Deletes all of the users in a Collection.

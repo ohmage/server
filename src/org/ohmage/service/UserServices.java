@@ -1424,6 +1424,20 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Deletes all registration attempts that have expired and were never used.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public void deleteExpiredRegistration() throws ServiceException {
+		try {
+			userQueries.deleteExpiredRegistration(REGISTRATION_DURATION);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Deletes all of the users from the Collection.
 	 * 
 	 * @param usernames A Collection of usernames of the users to delete.

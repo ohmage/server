@@ -1923,6 +1923,60 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#deleteExpiredRegistration(long)
+	 */
+	public void deleteExpiredRegistration(
+			final long duration)
+			throws DataAccessException {
+		
+		String sql =
+			"DELETE u, ur " +
+			"FROM user u, user_registration ur " +
+			"WHERE u.id = ur.user_id " +
+			"AND accepted_timestamp IS null " +
+			"AND request_timestamp < ?";
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Activating a user's account.");
+			
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = 
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			long earliestTime = (new Date()).getTime() - duration;
+		
+			try {
+				getJdbcTemplate().update(sql, earliestTime);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error while executing SQL '" +
+						sql +
+						"' with parameter: " +
+						earliestTime,
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+	
 	/**
 	 * Deletes all of the users in a Collection.
 	 * 

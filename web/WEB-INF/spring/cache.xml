@@ -13,4 +13,6 @@
   <!-- User Token Cache -->
   <bean class="org.ohmage.cache.UserBin" />
   
+  <bean class="org.ohmage.cache.RegistrationCleanup" />
+  
 </beans>
