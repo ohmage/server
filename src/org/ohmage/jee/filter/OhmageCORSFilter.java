@@ -38,8 +38,8 @@ import org.ohmage.util.StringUtils;
 import com.thetransactioncompany.cors.CORSFilter;
 
 /**
- * Wrapper to disallow Cross-Origin-Resource-Sharing for URIs given as
- * a comma-separated list init-param to this Filter.
+ * Wrapper around the parent Filter to disallow Cross-Origin Resource Sharing
+ * for URIs given as a comma-separated list init-param to this Filter.
  * 
  * @author Joshua Selsky
  */
@@ -51,8 +51,11 @@ public class OhmageCORSFilter extends CORSFilter {
 	private static final String HOST_REQUEST_HEADER_NAME = "host";
 	
 	/**
-	 * Called on web application start up. Initializes the CORSFilter and 
-	 * stores any disallowed URIs locally.
+	 * Called on web application start up. Performs initialization based on
+	 * web.xml and stores any disallowed URIs locally. The disallowed URI list
+	 * may be overriden by setting the value for the cors-lenient-mode key to
+	 * true in the database's preference table. If lenient mode is enabled, all
+	 * URIs allow Cross-Origin requests.
 	 */
 	@Override
 	public void init(final FilterConfig filterConfig)
@@ -107,8 +110,10 @@ public class OhmageCORSFilter extends CORSFilter {
 	}
 	
 	/**
-	 * Dispatches to the parent Filter if the URI on the request is not present
-	 * in the disallowedURIs list.
+	 * For any disallowed URI, restricts the request to follow a Same-Origin
+	 * policy. If an origin-host mismatch is detected for a disallowed URI, 
+	 * a HTTP 403 Forbidden is returned and execution of the request is
+	 * aborted.
 	 */
 	@Override
 	public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
