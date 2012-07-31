@@ -17,6 +17,7 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
@@ -522,6 +523,64 @@ public class UserQueries extends Query implements IUserQueries {
 							publicClassId + ", " + 
 							Clazz.Role.RESTRICTED.toString(), 
 						e);
+			}
+			
+			// Get the list of campaigns for this class.
+			String sqlGetCampaignIds =
+				"SELECT ca.urn " +
+					"FROM campaign ca, class cl, campaign_class cc " +
+					"WHERE cl.urn = ? " +
+					"AND cl.id = cc.class_id " +
+					"AND ca.id = cc.campaign_id";
+			List<String> campaignIds;
+			try {
+				campaignIds =
+					getJdbcTemplate().query(
+						sqlGetCampaignIds,
+						new Object[] { publicClassId },
+						new SingleColumnRowMapper<String>());
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" +
+						sqlGetCampaignIds +
+						"' with parameter: " +
+						publicClassId,
+					e);
+			}
+			
+			// Construct the parameter map for the batch update.
+			List<Object[]> batchParameters = 
+				new ArrayList<Object[]>(campaignIds.size());
+			for(String campaignId : campaignIds) {
+				String[] parameters = new String[3];
+				parameters[0] = username;
+				parameters[1] = campaignId;
+				parameters[2] = Campaign.Role.PARTICIPANT.toString();
+				batchParameters.add(parameters);
+			}
+			
+			// Perform the batch update.
+			String sqlInsertUserCampaign =
+				"INSERT INTO user_role_campaign" +
+					"(user_id, campaign_id, user_role_id) " +
+					"VALUES (" +
+						"(SELECT id FROM user WHERE username = ?), " +
+						"(SELECT id FROM campaign WHERE urn = ?), " +
+						"(SELECT id FROM user_role WHERE role = ?)" +
+					")";
+			try {
+				getJdbcTemplate()
+					.batchUpdate(sqlInsertUserCampaign, batchParameters);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" +
+						sqlInsertUserCampaign +
+						"'.",
+					e);
 			}
 			
 			// Insert the user's registration information into the 
