@@ -685,6 +685,11 @@ public abstract class Request {
 		response.setHeader("Expires", "Fri, 5 May 1995 12:00:00 GMT");
         response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
         response.setHeader("Pragma", "no-cache");
+        
+	    // This is done to allow client content to be served up from from 
+	    // different domains than the server data e.g., when you want to run a
+	    // client in a local sandbox, but retrieve data from a remote server
+	    response.setHeader("Access-Control-Allow-Origin","*");
 	}
 	
 	/**
