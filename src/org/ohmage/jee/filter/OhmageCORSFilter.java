@@ -129,6 +129,11 @@ public class OhmageCORSFilter extends CORSFilter {
 				String origin = httpServletRequest.getHeader(ORIGIN_REQUEST_HEADER_NAME);
 				String host = httpServletRequest.getHeader(HOST_REQUEST_HEADER_NAME);
 				
+				// Check for a non-null Origin header. This doesn't necessarily
+				// mean that it is a CORS request because Chrome always sends
+				// the Origin header. However, if it *is* a CORS request then
+				// both Origin and Host must be present in the request headers
+				// and they must have the same value.
 				if(origin != null) {
 				
 					if(host == null) {
@@ -159,13 +164,19 @@ public class OhmageCORSFilter extends CORSFilter {
 					}
 					
 					doFilter(httpServletRequest, httpServletResponse, chain);
+					
+				} 
+				else {
+				
+					if(LOGGER.isDebugEnabled()) {
+						LOGGER.debug("No Origin header found; treating request for URI " + httpServletRequest.getRequestURI() + 
+								" as a non-CORS request");
+					}
+					
+					chain.doFilter(request, response);
 				}
 				
 			} else {
-				if(LOGGER.isDebugEnabled()) {
-					LOGGER.debug("No Origin header found; treating request for URI " + httpServletRequest.getRequestURI() + 
-							" as a non-CORS request");
-				}
 				
 				chain.doFilter(request, response);
 			}
