@@ -124,42 +124,46 @@ public class OhmageCORSFilter extends CORSFilter {
 				String origin = httpServletRequest.getHeader(ORIGIN_REQUEST_HEADER_NAME);
 				String host = httpServletRequest.getHeader(HOST_REQUEST_HEADER_NAME);
 				
-				if(origin == null) {
-					LOGGER.info("Could not detect " + ORIGIN_REQUEST_HEADER_NAME + " HTTP header. " +
-							"Aborting request for restricted URI: " + httpServletRequest.getRequestURI());
-					httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
+				if(origin != null) {
+				
+					if(host == null) {
+						LOGGER.info("Could not detect " + HOST_REQUEST_HEADER_NAME + " HTTP header." +
+								" Aborting request for restricted URI: " + httpServletRequest.getRequestURI());
+						httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+						return;
+					}
+					
+					if(origin.startsWith("http://")) {
+						
+						origin = origin.substring(7, origin.length());
+						
+					} else if(origin.startsWith("https://")) {
+						
+						origin = origin.substring(8, origin.length());
+					}
+					
+					// Reject the request because the origin does not match
+					// the host 
+					if(! origin.equals(host)) { 
+						
+						LOGGER.info("The origin HTTP header does not match the host HTTP header." +
+								" Aborting request for restricted URI: " + httpServletRequest.getRequestURI() + " origin="
+								+ origin + " host=" + host);
+						httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
+						return;
+					}
+					
+					doFilter(httpServletRequest, httpServletResponse, chain);
 				}
 				
-				if(host == null) {
-					LOGGER.info("Could not detect " + HOST_REQUEST_HEADER_NAME + " HTTP header." +
-							" Aborting request for restricted URI: " + httpServletRequest.getRequestURI());
-					httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
+			} else {
+				if(LOGGER.isDebugEnabled()) {
+					LOGGER.debug("No Origin header found; treating request for URI " + httpServletRequest.getRequestURI() + 
+							" as a non-CORS request");
 				}
 				
-				if(origin.startsWith("http://")) {
-					
-					origin = origin.substring(7, origin.length());
-					
-				} else if(origin.startsWith("https://")) {
-					
-					origin = origin.substring(8, origin.length());
-				}
-				
-				// Reject the request because the origin does not match
-				// the host 
-				if(! origin.equals(host)) { 
-					
-					LOGGER.info("The origin HTTP header does not match the host HTTP header." +
-							" Aborting request for restricted URI: " + httpServletRequest.getRequestURI() + " origin="
-							+ origin + " host=" + host);
-					httpServletResponse.sendError(HttpServletResponse.SC_FORBIDDEN);
-					return;
-				}
-			} 
-				
-			doFilter(httpServletRequest, httpServletResponse, chain);
+				chain.doFilter(request, response);
+			}
 			
 		}
 		
