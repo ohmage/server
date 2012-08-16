@@ -17,6 +17,7 @@ package org.ohmage.request.campaign;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +32,6 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
-import org.ohmage.service.CampaignServices.CampaignMetadata;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
@@ -85,10 +85,13 @@ import org.ohmage.validator.ClassValidators;
 public class CampaignCreationRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignCreationRequest.class);
 
+	private final Campaign campaign;
+	/*
 	private final String xml;
 	private final String description;
 	private final Campaign.RunningState runningState;
 	private final Campaign.PrivacyState privacyState;
+	*/
 	private final Collection<String> classIds;
 	
 	/**
@@ -105,47 +108,79 @@ public class CampaignCreationRequest extends UserRequest {
 	public CampaignCreationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
-		LOGGER.info("Creating a campaign creation request.");
-		
-		String tXml = null;
-		String tDescription = null;
-		Campaign.RunningState tRunningState = null;
-		Campaign.PrivacyState tPrivacyState = null;
+		Campaign tCampaign = null;
 		Set<String> tClassIds = null;
 		
 		if(! isFailed()) {
+			LOGGER.info("Creating a campaign creation request.");
+			String[] t;
+			
 			try {
-				byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
-				if(pXml == null) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_XML, "Missing required campaign XML: " + InputKeys.XML);
-					throw new ValidationException("Missing required campaign XML.");
+				Campaign.RunningState runningState = null;
+				t = getParameterValues(InputKeys.RUNNING_STATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, 
+						"Multiple running states were found: " +
+							InputKeys.RUNNING_STATE);
+				}
+				else if(t.length == 1) {
+					runningState = 
+						CampaignValidators.validateRunningState(t[0]);
+				}
+				if(runningState == null) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, 
+						"Missing required running state: " +
+							InputKeys.RUNNING_STATE);
+				}
+				
+				Campaign.PrivacyState privacyState = null;
+				t = getParameterValues(InputKeys.PRIVACY_STATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE,
+						"Multiple privacy states were found: " +
+							InputKeys.PRIVACY_STATE);
+				}
+				else if(t.length == 1) {
+					privacyState = 
+						CampaignValidators.validatePrivacyState(t[0]);
+				}
+				if(privacyState == null) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE,
+						"Missing required privacy state: " +
+							InputKeys.PRIVACY_STATE);
+				}
+				
+				String description = null;
+				t = getParameterValues(InputKeys.DESCRIPTION);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_DESCRIPTION,
+						"Multiple descriptions were found: " +
+							InputKeys.DESCRIPTION);
+				}
+				if(t.length == 1) {
+					description = CampaignValidators.validateDescription(t[0]);
+				}
+
+				byte[] xml = getMultipartValue(httpRequest, InputKeys.XML);
+				if(xml == null) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_XML,
+						"Missing required campaign XML: " + InputKeys.XML);
 				}
 				else {
-					tXml = CampaignValidators.validateXml(new String(pXml));
-				}
-				if(tXml == null) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_XML, "Missing required campaign XML.");
-					throw new ValidationException("Missing required campaign XML.");
-				}
-				
-				tRunningState = CampaignValidators.validateRunningState(httpRequest.getParameter(InputKeys.RUNNING_STATE));
-				if(tRunningState == null) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, "Missing the required initial running state.");
-					throw new ValidationException("Missing required running state.");
-				}
-				else if(httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
-					throw new ValidationException("Multiple running states were found.");
-				}
-				
-				tPrivacyState = CampaignValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
-				if(tPrivacyState == null) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, "Missing the required initial privacy state.");
-					throw new ValidationException("Missing required privacy state.");
-				}
-				else if(httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1) {
-					setFailed(ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
-					throw new ValidationException("Multiple privacy states were found.");
+					tCampaign = 
+						CampaignValidators
+							.validateCampaign(
+								new String(xml),
+								description, 
+								runningState, 
+								privacyState, 
+								new Date());
 				}
 				
 				tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));
@@ -157,12 +192,6 @@ public class CampaignCreationRequest extends UserRequest {
 					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
 					throw new ValidationException("Multiple class ID lists were found.");
 				}
-				
-				tDescription = CampaignValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
-				if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-					setFailed(ErrorCode.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
-					throw new ValidationException("Multiple descriptions were found.");
-				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -170,10 +199,7 @@ public class CampaignCreationRequest extends UserRequest {
 			}
 		}
 		
-		xml = tXml;
-		description = tDescription;
-		runningState = tRunningState;
-		privacyState = tPrivacyState;
+		campaign = tCampaign;
 		classIds = tClassIds;
 	}
 
@@ -213,24 +239,17 @@ public class CampaignCreationRequest extends UserRequest {
 				UserClassServices.instance().userBelongsToClasses(getUser().getUsername(), classIds);
 			}
 			
-			LOGGER.info("Gathering the information from the XML.");
-			CampaignMetadata campaignInfo = CampaignServices.instance().getCampaignMetadataFromXml(xml);
-			
 			LOGGER.info("Verifying that the campaign doesn't already exist.");
-			CampaignServices.instance().checkCampaignExistence(campaignInfo.getCampaignId(), false);
+			CampaignServices
+				.instance().checkCampaignExistence(campaign.getId(), false);
 			
 			LOGGER.info("Creating the campaign.");
-			CampaignServices.instance().createCampaign(
-					campaignInfo.getCampaignId(), 
-					campaignInfo.getCampaignName(), 
-					xml, 
-					description, 
-					campaignInfo.getIconUrl(), 
-					campaignInfo.getAuthoredBy(), 
-					runningState, 
-					privacyState, 
-					classIds, 
-					getUser().getUsername());
+			CampaignServices
+				.instance()
+					.createCampaign(
+						campaign, 
+						classIds, 
+						getUser().getUsername());
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -20,11 +20,15 @@ import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -32,7 +36,10 @@ import javax.sql.DataSource;
 import org.joda.time.DateTime;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.Prompt;
+import org.ohmage.domain.campaign.RepeatableSet;
 import org.ohmage.domain.campaign.Survey;
+import org.ohmage.domain.campaign.SurveyItem;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.ICampaignQueries;
@@ -380,12 +387,11 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#createCampaign(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.PrivacyState, java.util.Collection, java.lang.String)
 	 */
-	public void createCampaign(String campaignId, String name, String xml, String description, 
-			String iconUrl, String authoredBy, 
-			Campaign.RunningState runningState, 
-			Campaign.PrivacyState privacyState, 
-			Collection<String> classIds, String creatorUsername)
-		throws DataAccessException {
+	public void createCampaign(
+			final Campaign campaign,
+			final Collection<String> classIds,
+			final String creatorUsername)
+			throws DataAccessException {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -396,27 +402,155 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
+			String iconUrlString = null;
+			URL iconUrl = campaign.getIconUrl();
+			if(iconUrl != null) {
+				iconUrlString = iconUrl.toString();
+			}
+			
 			// Create the campaign.
 			try {
 				getJdbcTemplate().update(
-						SQL_INSERT_CAMPAIGN, 
-						new Object[] { campaignId, name, xml, description, iconUrl, authoredBy, runningState.toString(), privacyState.toString() });
+					SQL_INSERT_CAMPAIGN, 
+					new Object[] { 
+						campaign.getId(), 
+						campaign.getName(), 
+						campaign.getXml(), 
+						campaign.getDescription(), 
+						iconUrlString, 
+						campaign.getAuthoredBy(), 
+						campaign.getRunningState().toString(), 
+						campaign.getPrivacyState().toString()
+					}
+				);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
-				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_CAMPAIGN + "' with parameters: " +
-						campaignId + ", " + name + ", " + xml + ", " + description + ", " + iconUrl + ", " + authoredBy + ", " + runningState + ", " + privacyState, e);
+				throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_INSERT_CAMPAIGN + 
+						"' with parameters: " +
+						campaign.getId() + ", " + 
+						campaign.getName() + ", " + 
+						campaign.getXml() + ", " + 
+						campaign.getDescription() + ", " + 
+						iconUrlString + ", " + 
+						campaign.getAuthoredBy() + ", " + 
+						campaign.getRunningState().toString() + ", " + 
+						campaign.getPrivacyState().toString(),
+					e);
+			}
+			
+			// Create the set of survey and prompt IDs for this campaign.
+			final Set<String> surveyIds = new HashSet<String>();
+			final Set<String> promptIds = new HashSet<String>();
+			
+			// Loop through all of the surveys and add the survey and prompt
+			// IDs.
+			for(Survey survey : campaign.getSurveys().values()) {
+				// Get this survey's ID.
+				surveyIds.add(survey.getId());
+				
+				Queue<SurveyItem> surveyItems = new LinkedList<SurveyItem>();
+				surveyItems.addAll(survey.getSurveyItems().values());
+				while(surveyItems.size() > 0) {
+					SurveyItem surveyItem = surveyItems.poll();
+					
+					if(surveyItem instanceof RepeatableSet) {
+						RepeatableSet repeatableSet = 
+							(RepeatableSet) surveyItem;
+						
+						for(SurveyItem rsSurveyItem : repeatableSet.getSurveyItems().values()) {
+							surveyItems.add(rsSurveyItem);
+						}
+					}
+					else if(surveyItem instanceof Prompt) {
+						promptIds.add(((Prompt) surveyItem).getId());
+					}
+				}
+			}
+			
+			// Get the campaign's ID.
+			final String campaignId = campaign.getId();
+			
+			// Compile the list of parameters for the survey ID lookup table.
+			List<Object[]> surveyParameters = 
+				new ArrayList<Object[]>(surveyIds.size());
+			for(String surveyId : surveyIds) {
+				Object[] params = new Object[2];
+				params[0] = surveyId;
+				params[1] = campaignId;
+				surveyParameters.add(params);
+			}
+
+			// The SQL to write the data.
+			final String surveyIdLookupBatchSql =
+				"INSERT INTO " +
+					"campaign_survey_lookup(survey_id, campaign_id) " +
+				"VALUES (?, SELECT id FROM campaign WHERE urn = ?)";
+			
+			// Add the survey IDs to the lookup table.
+			try {
+				getJdbcTemplate()
+					.batchUpdate(surveyIdLookupBatchSql, surveyParameters);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + 
+						surveyIdLookupBatchSql + 
+						"'.",
+					e);
+			}
+			
+			// Compile the list of parameters for the prompt ID lookup table.
+			List<Object[]> promptParameters = 
+				new ArrayList<Object[]>(surveyIds.size());
+			for(String promptId : surveyIds) {
+				Object[] params = new Object[2];
+				params[0] = promptId;
+				params[1] = campaignId;
+				promptParameters.add(params);
+			}
+
+			// The SQL to write the data.
+			final String promptIdLookupBatchSql =
+				"INSERT INTO " +
+					"campaign_prompt_lookup(prompt_id, campaign_id) " +
+				"VALUES (?, SELECT id FROM campaign WHERE urn = ?)";
+			
+			// Add the prompt IDs to the lookup table.
+			try {
+				getJdbcTemplate()
+					.batchUpdate(promptIdLookupBatchSql, promptParameters);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + 
+						promptIdLookupBatchSql + 
+						"'.",
+					e);
 			}
 			
 			// Add each of the classes to the campaign.
 			for(String classId : classIds) {
-				associateCampaignAndClass(transactionManager, status, campaignId, classId);
+				associateCampaignAndClass(
+					transactionManager, 
+					status, 
+					campaign.getId(), 
+					classId);
 			}
 			
 			// Add the requesting user as the author. This may have already 
 			// happened above.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER_ROLE_CAMPAIGN, creatorUsername, campaignId, Campaign.Role.AUTHOR.toString());
+				getJdbcTemplate()
+					.update(
+						SQL_INSERT_USER_ROLE_CAMPAIGN,
+						creatorUsername, 
+						campaign.getId(), 
+						Campaign.Role.AUTHOR.toString());
 			}
 			catch(org.springframework.dao.DataIntegrityViolationException e) {
 				// The user was already an author of this campaign implying 
@@ -426,8 +560,14 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
-				throw new DataAccessException("Error executing SQL '" + SQL_INSERT_USER_ROLE_CAMPAIGN + "' with parameters: " + 
-						creatorUsername + ", " + campaignId + ", " + Campaign.Role.AUTHOR, e);
+				throw new DataAccessException(
+					"Error executing SQL '" + 
+						SQL_INSERT_USER_ROLE_CAMPAIGN + 
+						"' with parameters: " + 
+						creatorUsername + ", " + 
+						campaign.getId() + ", " + 
+						Campaign.Role.AUTHOR.toString(),
+					e);
 			}
 			
 			// Commit the transaction.
@@ -436,11 +576,15 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			}
 			catch(TransactionException e) {
 				transactionManager.rollback(status);
-				throw new DataAccessException("Error while committing the transaction.", e);
+				throw new DataAccessException(
+					"Error while committing the transaction.",
+					e);
 			}
 		}
 		catch(TransactionException e) {
-			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+			throw new DataAccessException(
+				"Error while attempting to rollback the transaction.",
+				e);
 		}
 	}
 	
@@ -926,31 +1070,31 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			// Begin with a common set of elements to select, and the tables to
 			// which those elements belong.
 			StringBuilder builder = 
-					new StringBuilder(
-							"SELECT ca.urn, ca.name, ca.description, " +
-								"ca.icon_url, ca.authored_by, " +
-								"crs.running_state, cps.privacy_state, " +
-								"ca.creation_timestamp, " +
-								"ca.xml " +
-							"FROM " +
-								"user u, " +
-								"campaign ca, " +
-									"campaign_running_state crs, " +
-									"campaign_privacy_state cps " +
-							"WHERE u.username = ? " +
-							"AND ca.running_state_id = crs.id " +
-							"AND ca.privacy_state_id = cps.id " +
-							// ACL
-							"AND (" +
-								"(u.admin = true)" +
-								" OR " +
-								"EXISTS (" +
-									"SELECT id " +
-									"FROM user_role_campaign urc " +
-									"WHERE u.id = urc.user_id " +
-									"AND ca.id = urc.campaign_id" +
-								")" +
-							")");
+				new StringBuilder(
+					"SELECT ca.urn, ca.name, ca.description, " +
+						"ca.icon_url, ca.authored_by, " +
+						"crs.running_state, cps.privacy_state, " +
+						"ca.creation_timestamp, " +
+						"ca.xml " +
+					"FROM " +
+						"user u, " +
+						"campaign ca, " +
+							"campaign_running_state crs, " +
+							"campaign_privacy_state cps " +
+					"WHERE u.username = ? " +
+					"AND ca.running_state_id = crs.id " +
+					"AND ca.privacy_state_id = cps.id " +
+					// ACL
+					"AND (" +
+						"(u.admin = true)" +
+						" OR " +
+						"EXISTS (" +
+							"SELECT id " +
+							"FROM user_role_campaign urc " +
+							"WHERE u.id = urc.user_id " +
+							"AND ca.id = urc.campaign_id" +
+						")" +
+					")");
 			
 			
 			List<Object> parameters = new LinkedList<Object>();
@@ -1135,6 +1279,163 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaigns(java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, long, long)
+	 */
+	public List<Campaign> getCampaigns(
+			final Collection<String> campaignIds,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final Collection<String> classIds,
+			final DateTime startDate,
+			final DateTime endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException {
+		
+		// Build the base SQL that will select the necessary columns to 
+		// construct the campaigns.
+		StringBuilder sqlBuilder =
+			new StringBuilder(
+				"SELECT " +
+					"ca.urn, ca.name, ca.description, " +
+					"ca.icon_url, ca.authored_by, " +
+					"crs.running_state, cps.privacy_state, " +
+					"ca.creation_timestamp, " +
+					"ca.xml " +
+				"FROM " +
+					"campaign ca, " +
+						"campaign_running_state crs, " + 
+						"campaign_privacy_state cps " +
+				"WHERE ca.running_state_id = crs.id " +
+				"AND ca.privacy_state_id = cps.id");
+		
+		// Add the initial set of parameters.
+		List<Object> parameters = new LinkedList<Object>();
+		
+		// Add the campaign IDs, if any.
+		if((campaignIds != null) && (campaignIds.size() > 0)) {
+			sqlBuilder.append(
+				" AND ca.urn IN " + 
+					StringUtils.generateStatementPList(campaignIds.size()));
+			parameters.addAll(campaignIds);
+		}
+		
+		// Add the survey IDs, if any.
+		if((surveyIds != null) && (surveyIds.size() > 0)) {
+			sqlBuilder.append(
+				" AND ca.id IN (" +
+					"SELECT csl.campaign_id " +
+					"FROM campaign_survey_lookup csl " +
+					"WHERE csl.survey_id IN " +
+					StringUtils.generateStatementPList(surveyIds.size()) +
+				")");
+			parameters.addAll(surveyIds);
+		}
+		
+		// Add the prompt IDs, if any.
+		if((promptIds != null) && (promptIds.size() > 0)) {
+			sqlBuilder.append(
+				" AND ca.id IN (" +
+					"SELECT cpl.campaign_id " +
+					"FROM campaign_prompt_lookup cpl " +
+					"WHERE cpl.prompt_id IN " +
+					StringUtils.generateStatementPList(promptIds.size()) +
+				")");
+			parameters.addAll(promptIds);
+		}
+		
+		// And the classes, if any.
+		if((classIds != null) && (classIds.size() != 0)) {
+			sqlBuilder.append(
+				" AND ca.id IN (" +
+					"SELECT cc.campaign_id " +
+					"FROM campaign_class cc " +
+					"WHERE cc.class_id IN (" +
+						"SELECT cl.id " +
+						"FROM class cl " +
+						"WHERE cl.urn IN " +
+						StringUtils.generateStatementPList(
+								classIds.size()) +
+					")" +
+				")");
+			parameters.addAll(classIds);
+		}
+		
+		// Add the start date if one was given.
+		if(startDate != null) {
+			sqlBuilder.append(" AND creation_timestamp >= ?");
+			parameters.add(TimeUtils.getIso8601DateString(startDate, true));
+		}
+		
+		// Add the end date if one was given.
+		if(endDate != null) {
+			sqlBuilder.append(" AND creation_timestamp <= ?");
+			parameters.add(TimeUtils.getIso8601DateString(endDate, true));
+		}
+		
+		// Add the privacy state if one was given.
+		if(privacyState != null) {
+			sqlBuilder.append(" AND cps.privacy_state = ?");
+			parameters.add(privacyState.toString());
+		}
+		
+		// Add the running state if one was given.
+		if(runningState != null) {
+			sqlBuilder.append(" AND crs.running_state = ?");
+			parameters.add(runningState.toString());
+		}
+		
+		// Limit the number of results.
+		sqlBuilder.append(" LIMIT ?, ?");
+		parameters.add(numToSkip);
+		parameters.add(numToReturn);
+		
+		try {
+			return 
+				getJdbcTemplate().query(
+					sqlBuilder.toString(),
+					parameters.toArray(),
+					new RowMapper<Campaign>() {
+						/**
+						 * Counts the total number of results and converts each
+						 * of the actual results into a Campaign object.
+						 */
+						@Override
+						public Campaign mapRow(
+								ResultSet rs,
+								int rowNum)
+								throws SQLException {
+							
+							try {
+								return
+									new Campaign(
+										rs.getString("description"),
+										Campaign.RunningState.getValue(rs.getString("running_state")),
+										Campaign.PrivacyState.getValue(rs.getString("privacy_state")),
+										new Date(rs.getTimestamp("creation_timestamp").getTime()),
+										rs.getString("xml"));
+							}
+							catch(DomainException e) {
+								throw new SQLException(e);
+							}
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" +
+					sqlBuilder.toString() +
+					"' with parameters: " +
+					parameters.toArray(),
+				e);
 		}
 	}
 	

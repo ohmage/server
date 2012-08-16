@@ -15,12 +15,15 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -293,11 +296,6 @@ public class RepeatableSet extends SurveyItem {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		if(result == null) {
-			// FIXME: Ignore the exception and let it propagate.
-			return null;
-		}
-		
 		result.put(JSON_KEY_TERMINATION_QUESTION, terminationQuestion);
 		result.put(JSON_KEY_TERMINATION_TRUE_LABEL, terminationTrueLabel);
 		result.put(JSON_KEY_TERMINATION_FALSE_LABEL, terminationFalseLabel);
@@ -314,6 +312,65 @@ public class RepeatableSet extends SurveyItem {
 		result.put(JSON_KEY_PROMPTS, surveyItemsJson);
 		
 		return result;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void toConcordia(
+			final JsonGenerator geneartor)
+			throws JsonGenerationException, IOException {
+		
+		// Due to the poor formatting of repeatable set responses, this going 
+		// to be ignored for the time being. The code below is incomplete!
+		throw new UnsupportedOperationException(
+			"The repeatable sets cannot be turned into Concordia schemas.");
+		
+		/*
+		// The root of all Concordia definitions is an object.
+		JSONObject result = new JSONObject();
+		
+		// Set the type of the root object as a JSON object.
+		result.put("type", "object");
+		
+		// Create a JSON array that represents this object's fields.
+		JSONArray fields = new JSONArray();
+
+		// Add the repeatable set ID.
+		JSONObject repeatableSetId = new JSONObject();
+		repeatableSetId.put("name", RepeatableSetResponse.REPEATABLE_SET_ID);
+		repeatableSetId.put("type", "string");
+		repeatableSetId.put("optional", true);
+		fields.put(repeatableSetId);
+
+		// Add the "skipped" boolean.
+		JSONObject skipped = new JSONObject();
+		skipped.put("name", RepeatableSetResponse.SKIPPED);
+		skipped.put("type", "boolean");
+		fields.put(skipped);
+
+		// Add the "not displayed" boolean.
+		JSONObject notDisplayed = new JSONObject();
+		skipped.put("name", RepeatableSetResponse.NOT_DISPLAYED);
+		skipped.put("type", "boolean");
+		fields.put(notDisplayed);
+		
+		// Add the response information.
+		// FIXME: Here lies the problem. This is an objects whose keys are the
+		// iteration number, which is entirely variable. Therefore, this data
+		// cannot conform to a Concordia schema. 
+		JSONObject response = new JSONObject();
+		response.put("name", getId());
+		response.put("type", "object");
+		response.put("schema", value)
+		
+		// Add the fields to the root object.
+		result.put("schema", fields);
+		
+		return result;
+		*/
 	}
 
 	/**

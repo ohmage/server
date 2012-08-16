@@ -15,14 +15,18 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
+import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TimestampPromptResponse;
 import org.ohmage.exception.DomainException;
@@ -212,5 +216,40 @@ public class TimestampPrompt extends Prompt {
 				this,
 				repeatableSetIteration,
 				response);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void toConcordia(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException {
+		
+		// The response is always an object.
+		generator.writeStartObject();
+		generator.writeStringField("type", "object");
+		
+		// The fields array.
+		generator.writeArrayFieldStart("schema");
+		
+		// The first field in the object is the prompt's ID.
+		generator.writeStartObject();
+		generator.writeStringField("name", PromptResponse.JSON_KEY_PROMPT_ID);
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		// The second field in the object is the response's value.
+		generator.writeStartObject();
+		generator.writeStringField("name", PromptResponse.JSON_KEY_RESPONSE);
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		// End the array of fields.
+		generator.writeEndArray();
+		
+		// End the object.
+		generator.writeEndObject();
 	}
 }

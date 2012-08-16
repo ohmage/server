@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -63,6 +64,74 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	
 	private List<SurveyResponse> surveyResponseList;
 	private long surveyResponseCount;
+	
+	/**
+	 * Creates a survey responses request. The optional parameters limit the 
+	 * results to only those that match the criteria.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param parameters The parameters from the HTTP request.
+	 * 
+	 * @param campaignId The campaign's unique identifier. Required.
+	 * 
+	 * @param usernames A set of usernames.
+	 * 
+	 * @param surveyIds A set of survey IDs.
+	 * 
+	 * @param promptIds A set of prompt IDs.
+	 * 
+	 * @param surveyResponseIds A set of survey response IDs.
+	 * 
+	 * @param startDate Limits the responses to only those on or after this
+	 * 					date.
+	 * 
+	 * @param endDate Limits the responses to only those on or before this 
+	 * 				  date.
+	 * 
+	 * @param privacyState A survey response privacy state.
+	 * 
+	 * @param promptResponseSearchTokens A set of tokens which must match the
+	 * 									 prompt responses.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws IllegalArgumentException Thrown if a required parameter is 
+	 * 									missing.
+	 */
+	protected SurveyResponseRequest(
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters,
+			final String campaignId,
+			final Collection<String> usernames,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final Set<UUID> surveyResponseIds,
+			final DateTime startDate,
+			final DateTime endDate,
+			final SurveyResponse.PrivacyState privacyState,
+			final Set<String> promptResponseSearchTokens)
+			throws IOException, InvalidRequestException {
+		
+		super(httpRequest, false, TokenLocation.EITHER, parameters);
+		
+		if(campaignId == null) {
+			throw new IllegalArgumentException("The campaign ID is null.");
+		}
+		
+		this.campaignId = campaignId;
+		this.usernames = usernames;
+		this.surveyIds = surveyIds;
+		this.promptIds = promptIds;
+		this.surveyResponseIds = surveyResponseIds;
+		this.startDate = startDate;
+		this.endDate = endDate;
+		this.privacyState = privacyState;
+		this.promptResponseSearchTokens = promptResponseSearchTokens;
+	}
 
 	/**
 	 * Gathers all of the possible parameters for a survey response request.
@@ -78,7 +147,10 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public SurveyResponseRequest(final HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	protected SurveyResponseRequest(
+			final HttpServletRequest httpRequest) 
+			throws IOException, InvalidRequestException {
+		
 		// Handle user-password or token-based authentication
 		super(httpRequest, false, TokenLocation.EITHER, null);
 

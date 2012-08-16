@@ -15,6 +15,10 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.exception.DomainException;
@@ -211,6 +215,19 @@ public abstract class SurveyItem {
 	 * 		   abstract prompt.
 	 */
 	public abstract int getNumPrompts();
+	
+	/**
+	 * Writes a Concordia definition of the prompt to the generator.
+	 * 
+	 * @param generator The generator to use to write the definition.
+	 * 
+	 * @throws JsonGenerationException There was an error generating the JSON.
+	 * 
+	 * @throws IOException There was an error writing to the generator.
+	 */
+	public abstract void toConcordia(
+		final JsonGenerator generator)
+		throws JsonGenerationException, IOException;
 
 	/**
 	 * Creates a hash code value for this survey item.

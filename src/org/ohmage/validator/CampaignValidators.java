@@ -16,8 +16,10 @@
 package org.ohmage.validator;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -279,7 +281,49 @@ public final class CampaignValidators {
 	 * @throws ValidationException Thrown if the XML is not null, not 
 	 * 							   whitespace only, and is invalid.
 	 */
-	public static String validateXml(final  String xml) 
+	public static Map<String, String> validateXml(
+			final String xml)
+			throws ValidationException{
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(xml)) {
+			return null;
+		}
+		
+		try {
+			return Campaign.validateXml(xml);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.CAMPAIGN_INVALID_XML, 
+				e.getMessage(), 
+				e);
+		}
+	}
+	
+	/**
+	 * Validates a campaign's XML and creates a Campaign object from it and the
+	 * other parameters.
+	 * 
+	 * @param xml The XML to be validated.
+	 * 
+	 * @param description The description of the campaign or null.
+	 * 
+	 * @param runningState The running state of the campaign.
+	 * 
+	 * @param privacyState The privacy state of the campaign.
+	 * 
+	 * @param creationTimestamp The creation timestamp for this campaign.
+	 * 
+	 * @return The Campaign object.
+	 * 
+	 * @throws ValidationException The XML was not valid.
+	 */
+	public static Campaign validateCampaign(
+			final String xml,
+			final String description,
+			final Campaign.RunningState runningState,
+			final Campaign.PrivacyState privacyState,
+			final Date creationTimestamp) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(xml)) {
@@ -287,7 +331,13 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			Campaign.validateXml(xml);
+			return 
+				new Campaign(
+					description, 
+					runningState, 
+					privacyState, 
+					creationTimestamp, 
+					xml);
 		}
 		catch(DomainException e) {
 			throw new ValidationException(
@@ -295,8 +345,6 @@ public final class CampaignValidators {
 					e.getMessage(), 
 					e);
 		}
-		
-		return xml;
 	}
 	
 	/**
@@ -419,6 +467,38 @@ public final class CampaignValidators {
 	}
 
 	/**
+	 * Validates that a campaign's XML's survey ID follows our conventions. It
+	 * does _not_ validate that the survey ID is exists in the XML.
+	 * 
+	 * @param surveyId The survey ID to be validated.
+	 * 
+	 * @return Returns null if the survey ID is null or whitespace only; 
+	 * 		   otherwise, it returns the survey ID.
+	 * 
+	 * @throws ValidationException Thrown if the survey ID is not null, not
+	 * 							   whitespace only, and doesn't pass syntactic
+	 * 							   validation.
+	 */
+	public static String validateSurveyId(final String surveyId) 
+			throws ValidationException {
+		LOGGER.info("Validating a campaign's survey ID.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
+			return null;
+		}
+		
+		try {
+			return Campaign.validateSurveyId(surveyId);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.CAMPAIGN_INVALID_SURVEY_ID,
+				"The survey ID is invalid: " + surveyId,
+				e);
+		}
+	}
+
+	/**
 	 * Validates that a campaign's XML's prompt ID follows our conventions. It
 	 * does _not_ validate that the prompt ID is exists in the XML.
 	 * 
@@ -439,7 +519,15 @@ public final class CampaignValidators {
 			return null;
 		}
 		
-		return promptId.trim();
+		try {
+			return Campaign.validatePromptId(promptId, null);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.CAMPAIGN_INVALID_PROMPT_ID,
+				"The prompt ID is invalid: " + promptId,
+				e);
+		}
 	}
 
 	/**

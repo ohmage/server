@@ -43,6 +43,8 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -723,9 +725,14 @@ public class Campaign {
 	 * 
 	 * @param xml The XML as a String.
 	 * 
+	 * @return Returns a map with one key (the ID) and one value (the name).
+	 * 
 	 * @throws DomainException Thrown if the XML is not valid.
 	 */
-	public static void validateXml(final String xml) throws DomainException {
+	public static Map<String, String> validateXml(
+			final String xml) 
+			throws DomainException {
+		
 		Document document;
 		try {
 			document = (new Builder()).build(new StringReader(xml));
@@ -747,12 +754,16 @@ public class Campaign {
 		
 		Element root = document.getRootElement();
 		
-		getId(root);
-		getName(root);
+		String id = getId(root);
+		String name = getName(root);
 		getServerUrl(root);
 		getIconUrl(root);
 		getAuthoredBy(root);
 		getSurveys(root);
+		
+		Map<String, String> result = new HashMap<String, String>();
+		result.put(id, name);
+		return result;
 	}
 
 	/**
@@ -1815,6 +1826,74 @@ public class Campaign {
 			return false;
 		return true;
 	}
+	
+	/**
+	 * Validates that a survey ID conforms to our specification.
+	 * 
+	 * @param surveyId The survey ID to validate.
+	 * 
+	 * @return The validated survey ID.
+	 * 
+	 * @throws DomainException The survey ID is invalid.
+	 */
+	public static final String validateSurveyId(
+			final String surveyId)
+			throws DomainException {
+		
+		if(surveyId == null) {
+			throw new DomainException("The survey ID is null.");
+		}
+		
+		String trimmedSurveyId = surveyId.trim();
+		if(trimmedSurveyId.length() == 0) {
+			throw new DomainException(
+					"The survey's ID cannot be only whitespace.");
+		}
+		else if(! VALID_CHARACTERS_PATTERN.matcher(trimmedSurveyId).matches()) {
+			throw new DomainException(
+				"The survey's ID contains illegal characters: " + 
+					trimmedSurveyId);
+		}
+		
+		return trimmedSurveyId;
+	}
+	
+	/**
+	 * Validates that a prompt ID conforms to our specification.
+	 * 
+	 * @param promptId The prompt ID to validate.
+	 * 
+	 * @param containerId If this validation was part of a larger object, this 
+	 * 					  may be provided to be appended to the exception's
+	 * 					  message.
+	 * 
+	 * @return The validate prompt ID.
+	 * 
+	 * @throws DomainException The prompt ID was invalid.
+	 */
+	public static final String validatePromptId(
+			final String promptId,
+			final String containerId)
+			throws DomainException {
+		
+		if(promptId == null) {
+			throw new DomainException("The prompt ID is null.");
+		}
+		
+		String trimmedPromptId = promptId.trim();
+		if(trimmedPromptId.length() == 0) {
+			throw new DomainException(
+				"The prompt's ID cannot be only whitespace" +
+					((containerId == null) ? "." : (": " + containerId)));
+		}
+		if(! VALID_CHARACTERS_PATTERN.matcher(trimmedPromptId).matches()) {
+			throw new DomainException(
+				"The prompt's ID contains illegal characters: " + 
+					trimmedPromptId);
+		}
+		
+		return trimmedPromptId;
+	}
 
 	/**
 	 * Returns the label from some prompt response key.
@@ -2178,14 +2257,7 @@ public class Campaign {
 			throw new DomainException(
 					"Multiple survey IDs were found for the same survey.");
 		}
-		String id = ids.get(0).getValue().trim();
-		if(id.length() == 0) {
-			throw new DomainException(
-					"The survey's ID cannot be only whitespace.");
-		}
-		else if(! VALID_CHARACTERS_PATTERN.matcher(id).matches()) {
-			throw new DomainException("The survey's ID contains illegal characters: " + id);
-		}
+		String id = validateSurveyId(ids.get(0).getValue());
 		
 		Nodes titles = survey.query(XML_SURVEY_TITLE);
 		if(titles.size() == 0) {
@@ -2334,9 +2406,11 @@ public class Campaign {
 					"Multiple survey content lists were found: " + id);
 		}
 		Node contentList = contentLists.get(0);
-		List<SurveyItem> promptsList = processContentList(id, contentList.query(XML_CONTENT_LIST_ITEMS));
+		List<SurveyItem> promptsList = 
+			processContentList(id, contentList.query(XML_CONTENT_LIST_ITEMS));
 		
-		Map<Integer, SurveyItem> prompts = new HashMap<Integer, SurveyItem>(promptsList.size());
+		Map<Integer, SurveyItem> prompts = 
+			new HashMap<Integer, SurveyItem>(promptsList.size());
 		Set<String> promptIds = new HashSet<String>();
 		for(SurveyItem prompt : promptsList) {
 			if(promptIds.add(prompt.getId())) {
@@ -2751,17 +2825,7 @@ public class Campaign {
 			throw new DomainException(
 					"Multiple prompt IDs were found: " + containerId);
 		}
-		String id = ids.get(0).getValue().trim();
-		if(id.length() == 0) {
-			throw new DomainException(
-					"The prompt's ID cannot be only whitespace in the survey item container: " +
-						containerId);
-		}
-		if(! VALID_CHARACTERS_PATTERN.matcher(id).matches()) {
-			throw new DomainException(
-					"The prompt's ID contains illegal characters: " + 
-						id);
-		}
+		String id = validatePromptId(ids.get(0).getValue(), containerId);
 		
 		String condition = null;
 		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);

@@ -273,32 +273,62 @@ public class UserCampaignServices {
 	 * 
 	 * @param campaignId The campaign's unique identifier.
 	 * 
+	 * @param id The ID from the new XML.
+	 * 
+	 * @param name The name from the new XML.
+	 * 
 	 * @throws ServiceException Thrown if the user isn't allowed to modify the
 	 * 							campaign, if the user is allowed to modify the
 	 * 							campaign but responses exist, or if there is an
 	 * 							error.
 	 */
 	public void verifyUserCanUpdateCampaignXml(
-			final String username, final String campaignId) 
+			final String username,
+			final String campaignId,
+			final String id,
+			final String name) 
 			throws ServiceException {
 		
 		try {
-			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
+			// Get the user's roles for this campaign.
+			List<Campaign.Role> roles = 
+				userCampaignQueries
+					.getUserCampaignRoles(username, campaignId);
 			
-			if(roles.contains(Campaign.Role.SUPERVISOR) ||
-			   roles.contains(Campaign.Role.AUTHOR)) {
-				if(campaignSurveyResponseQueries.getNumberOfSurveyResponsesForCampaign(campaignId) == 0) {
-					return;
-				}
-				
+			// If the user isn't a supervisor or an author, then they aren't 
+			// allowed to update it.
+			if(!
+				(roles.contains(Campaign.Role.SUPERVISOR) ||
+				roles.contains(Campaign.Role.AUTHOR))) {
+
 				throw new ServiceException(
-						ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
-						"Survey responses exist; therefore the XML can no longer be modified.");
-			}
-			
-			throw new ServiceException(
 					ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
 					"The user is not allowed to modify the campaign's XML.");
+			}
+			
+			// If the campaign already has survey responses, then it cannot be
+			// updated by anyone.
+			if(campaignSurveyResponseQueries
+				.getNumberOfSurveyResponsesForCampaign(campaignId) != 0) {
+				
+				throw new ServiceException(
+					ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
+					"Survey responses exist; therefore the XML can no longer be modified.");
+			}
+			
+			// Check to ensure that the ID of the campaign hasn't changed.
+			if(! campaignId.equals(id)) {
+				throw new ServiceException(
+					ErrorCode.CAMPAIGN_XML_HEADER_CHANGED, 
+					"The campaign's ID in the new XML must be the same as the original XML.");
+			}
+			
+			// Check to ensure that the name of the campaign hasn't changed.
+			if(campaignQueries.getName(campaignId).equals(name)) {
+				throw new ServiceException(
+					ErrorCode.CAMPAIGN_XML_HEADER_CHANGED, 
+					"The campaign's name in the new XML must be the same as the original XML.");
+			}
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
