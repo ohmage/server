@@ -50,7 +50,7 @@ public class Observer {
 	 * something like Rhino, in order to create a JavaScript interpreter to
 	 * evaluate the JavaScript.
 	 */
-	private static final String JSON_SCHEMA_JS;
+	private static final String JS_SCHEMA;
 	static {
 		FileReader reader;
 		try {
@@ -72,7 +72,7 @@ public class Observer {
 				builder.append(buffer, 0, amountRead);
 			}
 		
-			JSON_SCHEMA_JS = builder.toString();
+			JS_SCHEMA = builder.toString();
 		}
 		catch(IOException e) {
 			throw new IllegalStateException(
@@ -145,6 +145,7 @@ public class Observer {
 		private final boolean withTimestamp;
 		private final boolean withLocation;
 
+		private final String schemaString;
 		private final JsonParser schema;
 
 		/**
@@ -208,6 +209,7 @@ public class Observer {
 			this.withLocation = withLocation;
 
 			this.schema = validateSchema(schema);
+			this.schemaString = schema;
 		}
 		
 		/**
@@ -366,14 +368,10 @@ public class Observer {
 				withLocation = false;
 			}
 			
-			schema =
-				validateSchema(
-					getXmlValue(
-						stream, 
-						"schema", 
-						"stream, " +
-							id +
-							", schema"));
+			schemaString = 
+				getXmlValue(stream, "schema", "stream, " + id + ", schema");
+			schema = validateSchema(schemaString);
+			
 		}
 
 		/**
@@ -521,7 +519,7 @@ public class Observer {
 				Function concordiaConstructor =
 					context.compileFunction(
 						scope, 
-						JSON_SCHEMA_JS, 
+						JS_SCHEMA, 
 						"Concordia.js", 
 						1, 
 						null);
@@ -530,7 +528,8 @@ public class Observer {
 					concordiaConstructor.construct(
 						context, 
 						scope, 
-						new Object[] { schema });
+						new Object[] { schemaString }
+					);
 				
 				Object validateData = 
 					concordia.get("validateData", concordia);
@@ -612,7 +611,7 @@ public class Observer {
 				Function concordiaConstructor =
 					context.compileFunction(
 						scope, 
-						JSON_SCHEMA_JS, 
+						JS_SCHEMA, 
 						"Concordia.js", 
 						1, 
 						null);
