@@ -444,7 +444,7 @@ public abstract class Request {
 			// allow CORS except for the authentication URIs. This is done because
 			// if a user can't authenticate, they can't access any other sensitive
 			// URI regardless of whether the origin matches the host.
-		    httpResponse.setHeader("Access-Control-Allow-Origin","*");
+		    httpResponse.setHeader("Access-Control-Allow-Origin",httpRequest.getHeader(ORIGIN_REQUEST_HEADER_NAME));
 		}
 	}
 	
@@ -767,7 +767,7 @@ public abstract class Request {
 	     // This is done to allow client content to be served up from from 
 	     // different domains than the server data e.g., when you want to run a
 	     // client in a local sandbox, but retrieve data from a remote server
-	     response.setHeader("Access-Control-Allow-Origin","*");
+	     //response.setHeader("Access-Control-Allow-Origin","*");
 	}
 	
 	/**
