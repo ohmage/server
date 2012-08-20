@@ -36,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.json.JSONArray;
@@ -68,6 +70,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.omh.OmhReadResponder;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -193,7 +196,10 @@ import org.ohmage.validator.SurveyResponseValidators;
  * 
  * @author Joshua Selsky
  */
-public final class SurveyResponseReadRequest extends SurveyResponseRequest {
+public final class SurveyResponseReadRequest
+		extends SurveyResponseRequest
+		implements OmhReadResponder {
+	
 	public static final Logger LOGGER = 
 			Logger.getLogger(SurveyResponseReadRequest.class);
 	
@@ -1344,6 +1350,101 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		}
 		catch(IOException e) {
 			LOGGER.warn("Unable to close the writer.", e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void respond(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException, DomainException {
+		
+		for(SurveyResponse surveyResponse : getSurveyResponses()) {
+			// Start the object.
+			generator.writeStartObject();
+			
+			// Write the survey's ID.
+			generator.writeStringField(
+				SurveyResponse.JSON_KEY_SURVEY_ID,
+				surveyResponse.getSurvey().getId());
+			
+			// Write the survey response's ID.
+			generator.writeStringField(
+				SurveyResponse.JSON_KEY_SURVEY_RESPONSE_ID,
+				surveyResponse.getSurveyResponseId().toString());
+			
+			// Write the launch context.
+			generator.writeObjectFieldStart(
+				SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+			
+			// Write the launch context's time.
+			generator.writeNumberField(
+				SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIME,
+				surveyResponse.getLaunchContext().getLaunchTime());
+			
+			// Write the launch context's time zone.
+			generator.writeStringField(
+				SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIMEZONE,
+				surveyResponse.getLaunchContext().getTimeZone().getID());
+			
+			// Write the launch context's active triggers.
+			generator.writeArrayFieldStart(
+				SurveyResponse.LaunchContext.JSON_KEY_ACTIVE_TRIGGERS);
+			
+			// Add all of the active triggers.
+			JSONArray activeTriggers = 
+				surveyResponse.getLaunchContext().getActiveTriggers();
+			int numActiveTriggers = activeTriggers.length();
+			for(int i = 0; i < numActiveTriggers; i++) {
+				try {
+					generator.writeString(activeTriggers.getString(i));
+				}
+				catch(JSONException e) {
+					LOGGER.warn(
+						"Could not serialize one of the trigger names.",
+						e);
+				}
+			}
+			
+			// End the launch context's active triggers array.
+			generator.writeEndArray();
+			
+			// End the launch context.
+			generator.writeEndObject();
+			
+			// Write the responses array.
+			generator.writeArrayFieldStart(SurveyResponse.JSON_KEY_RESPONSES);
+			Map<Integer, Response> responses = surveyResponse.getResponses();
+			List<Integer> indices =
+				new ArrayList<Integer>(responses.keySet());
+			Collections.sort(indices);
+			for(Integer index : indices) {
+				// Get the response.
+				Response response = responses.get(index);
+				
+				// Start the response.
+				generator.writeStartObject();
+				
+				// Write the response's ID.
+				generator.writeStringField(
+					PromptResponse.JSON_KEY_PROMPT_ID,
+					response.getId());
+				
+				// Write the response.
+				generator.writeObjectField(
+					PromptResponse.JSON_KEY_RESPONSE,
+					response.getResponse());
+				
+				// End the response.
+				generator.writeEndObject();
+			}
+			generator.writeEndArray();
+			
+			// End the object.
+			generator.writeEndObject();
 		}
 	}
 	

@@ -261,7 +261,7 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		// The second field in the object is the response's value.
 		generator.writeStartObject();
 		generator.writeStringField("name", PromptResponse.JSON_KEY_RESPONSE);
-		generator.writeStringField("type", "string");
+		generator.writeStringField("type", "number");
 		generator.writeEndObject();
 		
 		// End the array of fields.

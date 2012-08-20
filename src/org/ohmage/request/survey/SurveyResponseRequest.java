@@ -62,7 +62,8 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	
 	private Campaign campaign;
 	
-	private List<SurveyResponse> surveyResponseList;
+	private List<SurveyResponse> surveyResponseList =
+		new ArrayList<SurveyResponse>();
 	private long surveyResponseCount;
 	
 	/**
@@ -428,7 +429,7 @@ public abstract class SurveyResponseRequest extends UserRequest {
 			
 		    // The user may want to read survey responses from a user that no
 		    // longer belongs to the campaign.
-		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
+		    if(! URN_SPECIAL_ALL_LIST.equals(usernames)) {
 		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
 		    	UserCampaignServices.instance().verifyUsersExistInCampaign(campaignId, usernames);
 		    }

@@ -293,7 +293,7 @@ public abstract class UserRequest extends Request {
 	 * 
 	 * @param httpResponse The HTTP response.
 	 */
-	protected void refreshTokenCookie(final HttpServletResponse httpResponse) {
+	public void refreshTokenCookie(final HttpServletResponse httpResponse) {
 		if(user != null) {
 			final String token = user.getToken(); 
 			if(token != null) {

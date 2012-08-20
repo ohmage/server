@@ -39,6 +39,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.request.UserRequest;
+import org.ohmage.request.omh.OmhReadResponder;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
@@ -119,7 +120,10 @@ import org.ohmage.validator.UserValidators;
  * 
  * @author John Jenkins
  */
-public class StreamReadRequest extends UserRequest {
+public class StreamReadRequest
+		extends UserRequest
+		implements OmhReadResponder {
+	
 	private static final Logger LOGGER = 
 		Logger.getLogger(StreamReadRequest.class);
 	
@@ -832,50 +836,11 @@ public class StreamReadRequest extends UserRequest {
 			
 			// Add a "data" key that is an array of the results.
 			generator.writeArrayFieldStart("data");
-			for(DataStream dataStream : results) {
-				// Begin this data stream.
-				generator.writeStartObject();
-				
-				// Write the meta-data.
-				DataStream.MetaData metaData = dataStream.getMetaData();
-				if(metaData != null) {
-					generator.writeObjectFieldStart("metadata");
-					
-					String id = metaData.getId();
-					if(id != null) {
-						generator.writeStringField("id", id);
-					}
-					
-					DateTime timestamp = metaData.getTimestamp();
-					if(timestamp != null) {
-						generator.writeStringField(
-							"timestamp",
-							ISODateTimeFormat.dateTime().print(timestamp));
-					}
-					
-					Location location = metaData.getLocation();
-					if(location != null) {
-						generator.writeObjectFieldStart("location");
-						location.streamJson(
-							generator, 
-							false, 
-							LocationColumnKey.ALL_COLUMNS);
-						generator.writeEndObject();
-					}
-					
-					generator.writeEndObject();
-				}
-				
-				// Write the data.
-				handleGeneric(
-					generator,
-					dataStream.getData(), 
-					columnsRoot, 
-					"data");
-				
-				// End this data stream.
-				generator.writeEndObject();
-			}
+			
+			// Write the data.
+			writeData(generator);
+			
+			// End the data array.
 			generator.writeEndArray();
 			
 			// End the overall object.
@@ -910,6 +875,18 @@ public class StreamReadRequest extends UserRequest {
 				LOGGER.info("Could not close the generator.", e);
 			}
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void respond(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException, DomainException {
+		
+		writeData(generator);
 	}
 	
 	/**
@@ -1025,6 +1002,71 @@ public class StreamReadRequest extends UserRequest {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Writes the data points to the generator. The generator be at the point 
+	 * where it has an array open.
+	 * 
+	 * @param generator The generator to write to.
+	 * 
+	 * @throws JsonGenerationException There was an error generating the JSON.
+	 * 								   Has the generator already opened an 
+	 * 								   array?
+	 * 
+	 * @throws IOException There was an error writing to the generator.
+	 * 
+	 * @throws DomainException There was an error generating or reading a 
+	 * 						   domain object.
+	 */
+	private void writeData(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException, DomainException {
+		
+		for(DataStream dataStream : results) {
+			// Begin this data stream.
+			generator.writeStartObject();
+			
+			// Write the meta-data.
+			DataStream.MetaData metaData = dataStream.getMetaData();
+			if(metaData != null) {
+				generator.writeObjectFieldStart("metadata");
+				
+				String id = metaData.getId();
+				if(id != null) {
+					generator.writeStringField("id", id);
+				}
+				
+				DateTime timestamp = metaData.getTimestamp();
+				if(timestamp != null) {
+					generator.writeStringField(
+						"timestamp",
+						ISODateTimeFormat.dateTime().print(timestamp));
+				}
+				
+				Location location = metaData.getLocation();
+				if(location != null) {
+					generator.writeObjectFieldStart("location");
+					location.streamJson(
+						generator, 
+						false, 
+						LocationColumnKey.ALL_COLUMNS);
+					generator.writeEndObject();
+				}
+				
+				generator.writeEndObject();
+			}
+			
+			// Write the data.
+			handleGeneric(
+				generator,
+				dataStream.getData(), 
+				columnsRoot, 
+				"data");
+			
+			// End this data stream.
+			generator.writeEndObject();
+		}
 	}
 	
 	/**

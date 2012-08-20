@@ -48,7 +48,7 @@ public class OmhValidators {
 		}
 		
 		// The first part must be "omh".
-		if("omh".equals(split[0])) {
+		if(! "omh".equals(split[0])) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
 				"The payload ID is not valid. " +
@@ -57,7 +57,7 @@ public class OmhValidators {
 		}
 		
 		// The second part must be "ohmage".
-		if("ohmage".equals(split[1])) {
+		if(! "ohmage".equals(split[1])) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
 				"The payload ID is not valid. " +
@@ -68,15 +68,30 @@ public class OmhValidators {
 		PayloadId result;
 		String type = split[2];
 		if("campaign".equals(type)) {
+			int numCampaignParts = split.length - 2;
+			StringBuilder campaignIdBuilder = new StringBuilder();
+			boolean firstPass = true;
+			for(int i = 3; i < numCampaignParts; i++) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					campaignIdBuilder.append(':');
+				}
+				campaignIdBuilder.append(split[i]);
+			}
+			
 			String campaignId;
 			try {
-				campaignId = CampaignValidators.validateCampaignId(split[3]);
+				campaignId = 
+					CampaignValidators
+						.validateCampaignId(campaignIdBuilder.toString());
 			}
 			catch(ValidationException e) {
 				throw new ValidationException(
 					ErrorCode.OMH_INVALID_PAYLOAD_ID,
 					"The payload ID is not valid because the campaign ID is not valid: " +
-						split[3],
+						campaignIdBuilder.toString(),
 					e);
 			}
 			if(campaignId == null) {
@@ -86,69 +101,50 @@ public class OmhValidators {
 						split[3]);
 			}
 			
-			if(split.length > 4) {
-				if(split.length != 6) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"A payload ID that defines a campaign may have exactly two additional parameters. " +
-							"The first must be either 'survey_id' or 'prompt_id' and the second must be the respective value.");
+			CampaignPayloadId.Type subType;
+			try {
+				subType = 
+					CampaignPayloadId.Type.getType(split[numCampaignParts]);
+			}
+			catch(IllegalArgumentException e) {
+				throw new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The payload ID's campaign sub-type is unknown: " +
+						split[4],
+					e);
+			}
+			
+			String subId = split[split.length - 1]; 
+			try {
+				if(CampaignPayloadId.Type.SURVEY.equals(subType)) {
+					subId = CampaignValidators.validateSurveyId(subId);
 				}
-				
-				CampaignPayloadId.Type subType;
-				try {
-					subType = CampaignPayloadId.Type.getType(split[4]);
-				}
-				catch(IllegalArgumentException e) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The payload ID's campaign sub-type is unknown: " +
-							split[4],
-						e);
-				}
-				
-				String subId; 
-				try {
-					if(CampaignPayloadId.Type.SURVEY.equals(subType)) {
-						subId = CampaignValidators.validateSurveyId(split[5]);
-					}
-					else {
-						subId = CampaignValidators.validatePromptId(split[5]);
-					}
-				}
-				catch(ValidationException e) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The payload ID's sub-value is invalid: " +
-							e.getMessage(),
-						e);
-				}
-				if(subId == null) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The payload ID is not valid because the sub-ID was only whitespace: " +
-							split[5]);
-				}
-				
-				try {
-					result = new CampaignPayloadId(campaignId, subType, subId);
-				}
-				catch(DomainException e) {
-					throw new ValidationException(
-						ErrorCode.SYSTEM_GENERAL_ERROR,
-						"Could not construct the PayloadId object.",
-						e);
+				else {
+					subId = CampaignValidators.validatePromptId(subId);
 				}
 			}
-			else {
-				try {
-					result = new CampaignPayloadId(campaignId);
-				}
-				catch(DomainException e) {
-					throw new ValidationException(
-						ErrorCode.SYSTEM_GENERAL_ERROR,
-						"Could not construct the PayloadId object.",
-						e);
-				}
+			catch(ValidationException e) {
+				throw new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The payload ID's sub-value is invalid: " +
+						e.getMessage(),
+					e);
+			}
+			if(subId == null) {
+				throw new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The payload ID is not valid because the sub-ID was only whitespace: " +
+						split[5]);
+			}
+			
+			try {
+				result = new CampaignPayloadId(campaignId, subType, subId);
+			}
+			catch(DomainException e) {
+				throw new ValidationException(
+					ErrorCode.SYSTEM_GENERAL_ERROR,
+					"Could not construct the PayloadId object.",
+					e);
 			}
 		}
 		else if("observer".equals(type)) {

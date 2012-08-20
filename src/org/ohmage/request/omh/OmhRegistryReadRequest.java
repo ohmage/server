@@ -218,7 +218,7 @@ public class OmhRegistryReadRequest extends Request {
 							null,
 							null,
 							numToSkip,
-							numToReturn
+							numToReturn - streams.size()
 						));
 				LOGGER.info("Found " + campaigns.size() + " campaigns.");
 			}
@@ -488,11 +488,11 @@ public class OmhRegistryReadRequest extends Request {
 						// Set the payload ID.
 						StringBuilder promptPayloadIdBuilder = 
 							new StringBuilder(payloadIdBuilder);
-						promptPayloadIdBuilder.append(":prompt:");
-						surveyPayloadIdBuilder.append(surveyItem.getId());
+						promptPayloadIdBuilder.append(":prompt_id:");
+						promptPayloadIdBuilder.append(surveyItem.getId());
 						generator.writeStringField(
 							"payload_id", 
-							surveyPayloadIdBuilder.toString());
+							promptPayloadIdBuilder.toString());
 						
 						// Set the payload version. For now, all surveys have 
 						// the same version, 1.
