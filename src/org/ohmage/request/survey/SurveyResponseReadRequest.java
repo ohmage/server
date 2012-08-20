@@ -40,12 +40,14 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -633,6 +635,15 @@ public final class SurveyResponseReadRequest
 				collapse, 
 				surveyResponsesToSkip, 
 				surveyResponsesToProcess);
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+	 */
+	@Override
+	public long getNumDataPoints() {
+		return getSurveyResponseCount();
 	}
 	
 	/**
@@ -1366,15 +1377,45 @@ public final class SurveyResponseReadRequest
 			// Start the object.
 			generator.writeStartObject();
 			
+			// Write the data point's metadata.
+			generator.writeObjectFieldStart("metadata");
+			
+			// Write the unique identifier for this point.
+			generator.writeStringField(
+				"id",
+				surveyResponse.getSurveyResponseId().toString());
+			
+			// Write the timestamp for this point.
+			generator.writeStringField(
+				"timestamp",
+				ISODateTimeFormat
+					.dateTime()
+					.print(
+						new DateTime(
+							surveyResponse.getTime(),
+							surveyResponse.getTimezone())));
+			
+			// Write the location for this point.
+			Location location = surveyResponse.getLocation();
+			if(location != null) {
+				generator.writeObjectFieldStart("location");
+				location.streamJson(
+					generator, 
+					false, 
+					LocationColumnKey.ALL_COLUMNS);
+				generator.writeEndObject();
+			}
+			
+			// End the metadata.
+			generator.writeEndObject();
+			
+			// Write the data point's data.
+			generator.writeObjectFieldStart("data");
+			
 			// Write the survey's ID.
 			generator.writeStringField(
 				SurveyResponse.JSON_KEY_SURVEY_ID,
 				surveyResponse.getSurvey().getId());
-			
-			// Write the survey response's ID.
-			generator.writeStringField(
-				SurveyResponse.JSON_KEY_SURVEY_RESPONSE_ID,
-				surveyResponse.getSurveyResponseId().toString());
 			
 			// Write the launch context.
 			generator.writeObjectFieldStart(
@@ -1442,6 +1483,9 @@ public final class SurveyResponseReadRequest
 				generator.writeEndObject();
 			}
 			generator.writeEndArray();
+			
+			// End the data field.
+			generator.writeEndObject();
 			
 			// End the object.
 			generator.writeEndObject();

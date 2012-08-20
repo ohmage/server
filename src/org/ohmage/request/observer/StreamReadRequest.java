@@ -680,6 +680,15 @@ public class StreamReadRequest
 			e.logException(LOGGER);
 		}
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+	 */
+	@Override
+	public long getNumDataPoints() {
+		return results.size();
+	}
 
 	/*
 	 * (non-Javadoc)

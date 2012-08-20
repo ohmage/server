@@ -373,6 +373,8 @@ public class OmhReadRequest extends Request {
 			}
 		}
 		else if(userRequest instanceof OmhReadResponder) {
+			OmhReadResponder omhReadResponder = (OmhReadResponder) userRequest;
+			
 			// Refresh the token cookie.
 			userRequest.refreshTokenCookie(httpResponse);
 			
@@ -421,13 +423,26 @@ public class OmhReadRequest extends Request {
 				// Create the "success" message.
 				generator.writeStringField("result", "success");
 				
-				// TODO: Create the metadata.
+				// Create the metadata.
+				generator.writeObjectFieldStart("metadata");
+				
+				// Write the count.
+				generator.writeNumberField(
+					"count",
+					omhReadResponder.getNumDataPoints());
+				
+				// TODO: Write the previous.
+				
+				// TODO: Write the next.
+				
+				// End the metadata.
+				generator.writeEndObject();
 				
 				// Start the data.
 				generator.writeArrayFieldStart("data");
 				
 				// Dispatch the writing of the data to the request.
-				((OmhReadResponder) userRequest).respond(generator);
+				omhReadResponder.respond(generator);
 				
 				// End the data.
 				generator.writeEndArray();

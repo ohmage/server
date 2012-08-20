@@ -15,6 +15,14 @@ import org.ohmage.exception.DomainException;
  */
 public interface OmhReadResponder {
 	/**
+	 * Returns the number of data points. This will always be 0 if the request
+	 * has not been serviced or if the request has failed.
+	 * 
+	 * @return The number of data points being returned.
+	 */
+	long getNumDataPoints();
+	
+	/**
 	 * The generator will already be set at the data array for the response. 
 	 * The implementer is responsible for generating the series of JSON objects
 	 * or arrays of data as defined by its schema. The data's schema is based 
