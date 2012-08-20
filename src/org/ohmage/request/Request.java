@@ -382,7 +382,7 @@ public abstract class Request {
 			// Handle CORS requests
 			handleCORS(httpRequest, httpResponse);
 			
-			httpResponse.setContentType("text/html");
+			httpResponse.setContentType("application/json");
 			
 			// If the response hasn't failed yet, attempt to create and write the
 			// JSON response.
@@ -445,6 +445,9 @@ public abstract class Request {
 			// if a user can't authenticate, they can't access any other sensitive
 			// URI regardless of whether the origin matches the host.
 		    httpResponse.setHeader("Access-Control-Allow-Origin",httpRequest.getHeader(ORIGIN_REQUEST_HEADER_NAME));
+		    
+		    // Required to allow for CORS.
+		    httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
 		}
 	}
 	
