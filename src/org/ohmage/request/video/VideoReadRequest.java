@@ -122,6 +122,9 @@ public class VideoReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
+		// Set the CORS headers.
+		handleCORS(httpRequest, httpResponse);
+		
 		// Open the connection to the image if it is not null.
 		InputStream videoStream = null;
 		if((! isFailed()) && video != null) {
