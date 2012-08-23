@@ -698,6 +698,9 @@ public class StreamReadRequest extends UserRequest {
 		// Expire the response, but this may be a bad idea.
 		expireResponse(httpResponse);
 		
+		// Set the CORS headers.
+		handleCORS(httpRequest, httpResponse);
+		
 		// Set the content type to JSON.
 		httpResponse.setContentType("application/json");
 		
