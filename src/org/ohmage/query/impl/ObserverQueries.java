@@ -19,6 +19,7 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -1601,51 +1602,8 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"with_id, " +
 					"with_timestamp, " +
 					"with_location, " +
-					"stream_schema)" +
+					"stream_schema) " +
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-			
-			// For each stream, insert it and link it to the observer.
-			List<Object[]> streamArgs = 
-				new ArrayList<Object[]>(unchangedStreamIds.size());
-			for(final Stream stream : observer.getStreams().values()) {
-				// Get the stream's ID.
-				String streamId = stream.getId();
-				
-				// If the stream already exists in the map of stream IDs and
-				// versions, then skip it.
-				if(streamIdAndVersions.containsKey(streamId)) {
-					continue;
-				}
-				// Otherwise, add it to the map and then add it to the 
-				// database.
-				else {
-					streamIdAndVersions.put(streamId, stream.getVersion());
-				}
-				
-				Object[] currArgs = new Object[8];
-				
-				currArgs[0] = streamId;
-				currArgs[1] = stream.getVersion();
-				currArgs[2] = stream.getName();
-				currArgs[3] = stream.getDescription();
-				currArgs[4] = stream.getWithId();
-				currArgs[5] = stream.getWithTimestamp();
-				currArgs[6] = stream.getWithLocation();
-				currArgs[7] = stream.getSchema();
-				
-				streamArgs.add(currArgs);
-			}
-			
-			// Create the streams.
-			try {
-				getJdbcTemplate().batchUpdate(streamSql, streamArgs);
-			}
-			catch(org.springframework.dao.DataAccessException e) {
-				transactionManager.rollback(status);
-				throw new DataAccessException(
-					"Error executing SQL '" + streamSql + "'.",
-					e);
-			}
 			
 			// Observer-stream link SQL.
 			final String observerStreamSql =
@@ -1655,37 +1613,112 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				") " +
 				"VALUES (" +
 					"?, " +
-					"(" +
-						"SELECT id " +
-						"FROM observer_stream os " +
-						"WHERE os.stream_id = ? " +
-						"AND os.version = ?" +
-					")" +
+					"?" +
 				")";
 			
-			// Add all of the streams that need to be associated to a list of
-			// arguments.
-			List<Object[]> args = 
-				new ArrayList<Object[]>(streamIdAndVersions.size());
-			for(String streamId : streamIdAndVersions.keySet()) {
-				Object[] currArgs = new Object[3];
+			// For each stream, insert it and link it to the observer.
+			for(final Stream stream : observer.getStreams().values()) {
+				// Get the stream's ID.
+				final String streamId = stream.getId();
 				
-				currArgs[0] = observerDbId;
-				currArgs[1] = streamId;
-				currArgs[2] = streamIdAndVersions.get(streamId);
+				// If the stream already exists in the map of stream IDs and
+				// versions, then skip it.
+				if(streamIdAndVersions.containsKey(streamId)) {
+					continue;
+				}
 				
-				args.add(currArgs);
-			}
-			
-			// Associate the streams with the new observer in a batch.
-			try {
-				getJdbcTemplate().batchUpdate(observerStreamSql, args);
-			}
-			catch(org.springframework.dao.DataAccessException e) {
-				transactionManager.rollback(status);
-				throw new DataAccessException(
-					"Error executing SQL '" + observerStreamSql +"'.", 
-					e);
+				// Get the stream's schema as a string.
+				final String schema;
+				try {
+					schema = stream.getSchema().readValueAsTree().toString();
+				}
+				catch(JsonProcessingException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+						"Error parsing the schema.",
+						e);
+				}
+				catch(IOException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+						"Error reading the schema.",
+						e);
+				}
+				
+				// Stream creation statement with parameters.
+				PreparedStatementCreator streamCreator =
+					new PreparedStatementCreator() {
+						/**
+						 * Create the stream insertion statement.
+						 */
+						@Override
+						public PreparedStatement createPreparedStatement(
+								final Connection connection)
+								throws SQLException {
+							
+							PreparedStatement ps =
+								connection.prepareStatement(
+									streamSql,
+									new String[] { "id" });
+							
+							ps.setString(1, streamId);
+							ps.setLong(2, stream.getVersion());
+							ps.setString(3, stream.getName());
+							ps.setString(4, stream.getDescription());
+							ps.setBoolean(5, stream.getWithId());
+							ps.setBoolean(6, stream.getWithTimestamp());
+							ps.setBoolean(7, stream.getWithLocation());
+							ps.setString(8, schema);
+							
+							return ps;
+						}
+
+					};
+					
+				// The auto-generated key for the observer.
+				KeyHolder streamKeyHolder = new GeneratedKeyHolder();
+				
+				// Create the observer.
+				try {
+					getJdbcTemplate().update(streamCreator, streamKeyHolder);
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+						"Error executing SQL '" + 
+							streamSql + 
+							"' with parameters: " +
+							streamId + ", " +
+							stream.getVersion() + ", " +
+							stream.getName() + ", " +
+							stream.getDescription() + ", " +
+							stream.getWithId() + ", " +
+							stream.getWithTimestamp() + ", " +
+							stream.getWithLocation() + ", " +
+							schema,
+						e);
+				}
+				
+				// Get the observer ID.
+				long streamDbId = streamKeyHolder.getKey().longValue();
+				
+				// Link the stream to the observer.
+				try {
+					getJdbcTemplate()
+						.update(
+							observerStreamSql, 
+							new Object[] { observerDbId, streamDbId });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+						"Error executing SQL '" +
+							observerStreamSql +
+							"' with parameters: " +
+							observerDbId + ", " +
+							streamDbId,
+						e);
+				}
 			}
 			
 			// Commit the transaction.

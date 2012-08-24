@@ -479,6 +479,9 @@ public class CampaignReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
+		// Set the CORS headers.
+		handleCORS(httpRequest, httpResponse);
+		
 		// If available, update the token.
 		if(getUser() != null) {
 			final String token = getUser().getToken(); 

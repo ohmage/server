@@ -36,7 +36,7 @@ We are constantly striving to build a great software and a pleasing experience t
     '),
     ('mail_registration_sender_address', 'no-reply@ohmage.org'),
     ('mail_registration_subject', 'ohmage: New Account Request'),
-    ('mail_registration_text', '<h3>Registration Activation</h3><p>Thank you for creating an account. To activate your account, follow the link at the end of this message. By following the link you agree to our terms of service.</p><_TOS_><br /><_REGISTRATION_LINK_>'),
+    ('mail_registration_text', '<h3>Registration Activation</h3><p>Thank you for creating an account. Getting started instructions can be found at this link: http://demo.ohmage.org/. To activate your account, follow the link at the end of this message. By following the link you agree to our terms of service.</p><_TOS_><br /><_REGISTRATION_LINK_>'),
     ('mail_password_reset_sender_address', 'no-reply@ohmage.org'),
     ('mail_password_reset_subject', 'ohmage: Password Reset'),
     ('mail_password_reset_text', '<h3>Password Reset</h3><p>Your password has been reset. Please attempt to login with your new password below at which time you will be prompted to change your password.</p>'),
