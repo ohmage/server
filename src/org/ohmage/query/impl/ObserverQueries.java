@@ -1587,11 +1587,6 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			// Get the observer ID.
 			long observerDbId = observerKeyHolder.getKey().longValue();
 			
-			// Create the map of stream IDs to their versions. The initial part
-			// of the map will be based on the pre-existing streams.
-			Map<String, Long> streamIdAndVersions = 
-				new HashMap<String, Long>(unchangedStreamIds);
-			
 			// Stream creation SQL.
 			final String streamSql =
 				"INSERT INTO observer_stream (" +
@@ -1616,91 +1611,144 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"?" +
 				")";
 			
+			// If all we are doing is grabbing the database ID for the stream,
+			// then this will take care of that. Note: The observer's ID must
+			// be put in twice to help get the correct version.
+			final String getStreamIdSql =
+				"SELECT os.id " +
+					"FROM " +
+						"observer o, " +
+						"observer_stream os, " +
+						"observer_stream_link osl " +
+					"WHERE o.observer_id = ? " +
+					"AND o.version = " +
+						"(" +
+							"SELECT version " +
+							"FROM observer " +
+							"WHERE observer_id = ? " +
+							"ORDER BY version DESC " +
+							"LIMIT 1, 1" +
+						") " +
+					"AND os.stream_id = ? " +
+					"AND os.version = ? " +
+					"AND o.id = osl.observer_id " +
+					"AND os.id = osl.observer_stream_id";
+			
 			// For each stream, insert it and link it to the observer.
 			for(final Stream stream : observer.getStreams().values()) {
 				// Get the stream's ID.
 				final String streamId = stream.getId();
 				
+				// The stream's database identifier.
+				Long streamDbId;
+				
 				// If the stream already exists in the map of stream IDs and
-				// versions, then skip it.
-				if(streamIdAndVersions.containsKey(streamId)) {
-					continue;
+				// versions, then get the stream's database ID for linking.
+				if(unchangedStreamIds.containsKey(streamId)) {
+					// Attempt to get the stream's database ID.
+					try {
+						streamDbId =
+							getJdbcTemplate()
+								.queryForLong(
+									getStreamIdSql,
+									new Object[] {
+										observer.getId(),
+										observer.getId(),
+										streamId,
+										stream.getVersion()
+									}
+								);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Error executing SQL '" +
+								getStreamIdSql +
+								"' with parameters: " +
+								observer.getId() + ", " +
+								observer.getId() + ", " +
+								streamId + ", " +
+								stream.getVersion(),
+							e);
+					}
 				}
-				
-				// Get the stream's schema as a string.
-				final String schema;
-				try {
-					schema = stream.getSchema().readValueAsTree().toString();
-				}
-				catch(JsonProcessingException e) {
-					transactionManager.rollback(status);
-					throw new DataAccessException(
-						"Error parsing the schema.",
-						e);
-				}
-				catch(IOException e) {
-					transactionManager.rollback(status);
-					throw new DataAccessException(
-						"Error reading the schema.",
-						e);
-				}
-				
-				// Stream creation statement with parameters.
-				PreparedStatementCreator streamCreator =
-					new PreparedStatementCreator() {
-						/**
-						 * Create the stream insertion statement.
-						 */
-						@Override
-						public PreparedStatement createPreparedStatement(
-								final Connection connection)
-								throws SQLException {
-							
-							PreparedStatement ps =
-								connection.prepareStatement(
-									streamSql,
-									new String[] { "id" });
-							
-							ps.setString(1, streamId);
-							ps.setLong(2, stream.getVersion());
-							ps.setString(3, stream.getName());
-							ps.setString(4, stream.getDescription());
-							ps.setBoolean(5, stream.getWithId());
-							ps.setBoolean(6, stream.getWithTimestamp());
-							ps.setBoolean(7, stream.getWithLocation());
-							ps.setString(8, schema);
-							
-							return ps;
-						}
-
-					};
+				// Otherwise, add the new stream and retain its database ID.
+				else {
+					// Get the stream's schema as a string.
+					final String schema;
+					try {
+						schema = stream.getSchema().readValueAsTree().toString();
+					}
+					catch(JsonProcessingException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Error parsing the schema.",
+							e);
+					}
+					catch(IOException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Error reading the schema.",
+							e);
+					}
 					
-				// The auto-generated key for the observer.
-				KeyHolder streamKeyHolder = new GeneratedKeyHolder();
-				
-				// Create the observer.
-				try {
-					getJdbcTemplate().update(streamCreator, streamKeyHolder);
+					// Stream creation statement with parameters.
+					PreparedStatementCreator streamCreator =
+						new PreparedStatementCreator() {
+							/**
+							 * Create the stream insertion statement.
+							 */
+							@Override
+							public PreparedStatement createPreparedStatement(
+									final Connection connection)
+									throws SQLException {
+								
+								PreparedStatement ps =
+									connection.prepareStatement(
+										streamSql,
+										new String[] { "id" });
+								
+								ps.setString(1, streamId);
+								ps.setLong(2, stream.getVersion());
+								ps.setString(3, stream.getName());
+								ps.setString(4, stream.getDescription());
+								ps.setBoolean(5, stream.getWithId());
+								ps.setBoolean(6, stream.getWithTimestamp());
+								ps.setBoolean(7, stream.getWithLocation());
+								ps.setString(8, schema);
+								
+								return ps;
+							}
+	
+						};
+						
+					// The auto-generated key for the observer.
+					KeyHolder streamKeyHolder = new GeneratedKeyHolder();
+					
+					// Create the observer.
+					try {
+						getJdbcTemplate().update(streamCreator, streamKeyHolder);
+					}
+					catch(org.springframework.dao.DataAccessException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Error executing SQL '" + 
+								streamSql + 
+								"' with parameters: " +
+								streamId + ", " +
+								stream.getVersion() + ", " +
+								stream.getName() + ", " +
+								stream.getDescription() + ", " +
+								stream.getWithId() + ", " +
+								stream.getWithTimestamp() + ", " +
+								stream.getWithLocation() + ", " +
+								schema,
+							e);
+					}
+					
+					// Get the observer ID.
+					streamDbId = streamKeyHolder.getKey().longValue();
 				}
-				catch(org.springframework.dao.DataAccessException e) {
-					transactionManager.rollback(status);
-					throw new DataAccessException(
-						"Error executing SQL '" + 
-							streamSql + 
-							"' with parameters: " +
-							streamId + ", " +
-							stream.getVersion() + ", " +
-							stream.getName() + ", " +
-							stream.getDescription() + ", " +
-							stream.getWithId() + ", " +
-							stream.getWithTimestamp() + ", " +
-							stream.getWithLocation() + ", " +
-							schema,
-						e);
-				}
-				
-				// Get the observer ID.
-				long streamDbId = streamKeyHolder.getKey().longValue();
 				
 				// Link the stream to the observer.
 				try {
