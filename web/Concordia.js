@@ -640,7 +640,7 @@ function Concordia(schema) {
 		    			JSON.stringify(obj, null, null);
 		    }
 		    if ((type !== TYPE_OBJECT) && (type !== TYPE_ARRAY)) {
-		        throw "The root object's '"
+		        throw "The root object's '" +
 		        		KEYWORD_TYPE +
 		        		"' field must either be " +
 		        		"'object' or 'array': " + 
