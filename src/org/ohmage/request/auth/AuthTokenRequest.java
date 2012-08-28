@@ -75,10 +75,11 @@ public class AuthTokenRequest extends UserRequest {
 	 */
 	public AuthTokenRequest(
 			final HttpServletRequest httpRequest,
-			final Map<String, String[]> parameters)
+			final Map<String, String[]> parameters,
+			final String client)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, true, null, parameters);
+		super(httpRequest, true, null, parameters, client);
 		
 		if(! isFailed()) {
 			LOGGER.info("Building an authentication token request.");

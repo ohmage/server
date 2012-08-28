@@ -2,8 +2,6 @@ package org.ohmage.request.omh;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +15,6 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
-import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.auth.AuthTokenRequest;
 
@@ -54,13 +51,11 @@ public class OmhAuthenticateRequest extends Request {
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH authenticate request.");
 			
-			// Convert the 'requester' parameter to the 'client' parameter.
-			Map<String, String[]> parameters = 
-				new HashMap<String, String[]>(this.getParameters());
-			parameters.put(
-				InputKeys.CLIENT, 
-				parameters.get(InputKeys.OMH_REQUESTER));
-			tAuthTokenRequest = new AuthTokenRequest(httpRequest, parameters);
+			tAuthTokenRequest = 
+				new AuthTokenRequest(
+					httpRequest, 
+					getParameters(),
+					retrieveFirstRequesterValue(httpRequest));
 		}
 		
 		authTokenRequest = tAuthTokenRequest;

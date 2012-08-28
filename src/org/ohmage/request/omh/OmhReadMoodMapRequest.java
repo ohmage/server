@@ -68,6 +68,7 @@ public class OmhReadMoodMapRequest
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
+			final String client,
 			final DateTime startDate,
 			final DateTime endDate,
 			final ColumnNode<String> columns,
@@ -75,7 +76,7 @@ public class OmhReadMoodMapRequest
 			final long numToReturn)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, hashPassword, tokenLocation, parameters);
+		super(httpRequest, hashPassword, tokenLocation, parameters, client);
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH read Mood Map request.");
@@ -153,8 +154,13 @@ public class OmhReadMoodMapRequest
 			final HttpServletResponse httpResponse)
 			throws UnsupportedOperationException {
 
-		throw new UnsupportedOperationException(
-			"HTTP requests are not allowed for this API.");
+		if(isFailed()) {
+			super.respond(httpRequest, httpResponse, null);
+		}
+		else {
+			throw new UnsupportedOperationException(
+				"HTTP requests are not allowed for this API.");
+		}
 	}
 
 	/**

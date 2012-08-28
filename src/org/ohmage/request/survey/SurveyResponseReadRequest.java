@@ -327,6 +327,7 @@ public final class SurveyResponseReadRequest
 	public SurveyResponseReadRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
+			final String client,
 			final String campaignId,
 			final Collection<String> usernames,
 			final Collection<String> surveyIds,
@@ -349,8 +350,9 @@ public final class SurveyResponseReadRequest
 		
 		super(
 			httpRequest, 
-			parameters, 
+			parameters,
 			campaignId, 
+			client,
 			usernames, 
 			surveyIds, 
 			promptIds, 

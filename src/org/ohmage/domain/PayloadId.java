@@ -73,6 +73,7 @@ public abstract interface PayloadId {
 		Map<String, String[]> parameters,
 		Boolean hashPassword,
 		TokenLocation tokenLocation,
+		String client,
 		long version,
 		DateTime startDate,
 		DateTime endDate,

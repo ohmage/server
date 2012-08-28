@@ -1961,9 +1961,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 			JsonNode speedObject = 
 				dataRecord.get(SensorDataColumnKey.SPEED.toString(false));
 			if(speedObject == null) {
-				throw new DomainException(
-					ErrorCode.MOBILITY_INVALID_SPEED,
-					"The 'speed' value was missing.");
+				speed = -1.0;
 			}
 			else if(! speedObject.isNumber()) {
 				throw new DomainException(

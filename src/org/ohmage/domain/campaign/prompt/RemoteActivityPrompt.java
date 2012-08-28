@@ -150,7 +150,7 @@ public class RemoteActivityPrompt extends Prompt {
 		else if(! validateAction(action)) {
 			throw new DomainException("The action value is invalid.");
 		}
-		else if(validateRetriesAndMinRuns(retries, minRuns)) {
+		else if(! validateRetriesAndMinRuns(retries, minRuns)) {
 			throw new DomainException(
 					"The minimum number of runs is greater than the number of allowed runs.");
 		}

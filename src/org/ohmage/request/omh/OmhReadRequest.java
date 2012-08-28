@@ -140,7 +140,7 @@ public class OmhReadRequest extends Request {
 								t[0], 
 								StreamReadRequest.MAX_NUMBER_TO_RETURN);
 				}
-				
+			
 				t = getParameterValues(InputKeys.OMH_COLUMN_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -214,6 +214,7 @@ public class OmhReadRequest extends Request {
 								parameters, 
 								true, 
 								TokenLocation.EITHER, 
+								retrieveFirstRequesterValue(httpRequest),
 								version, 
 								startDate, 
 								endDate, 

@@ -190,6 +190,7 @@ public class CampaignPayloadId implements PayloadId {
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
+			final String client,
 			final long version,
 			final DateTime startDate,
 			final DateTime endDate,
@@ -217,6 +218,7 @@ public class CampaignPayloadId implements PayloadId {
 				new SurveyResponseReadRequest(
 					httpRequest,
 					parameters,
+					client,
 					campaignId,
 					SurveyResponseRequest.URN_SPECIAL_ALL_LIST,
 					surveyIds,
