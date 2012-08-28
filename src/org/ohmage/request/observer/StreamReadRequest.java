@@ -586,16 +586,6 @@ public class StreamReadRequest
 		
 		results = new LinkedList<DataStream>();
 	}
-	
-	/**
-	 * Returns an unmodifiable copy of the results. If {@link #service()} has
-	 * not been call on this request, this will be an empty list.
-	 * 
-	 * @return The list of results generated thus far.
-	 */
-	public Collection<DataStream> getResults() {
-		return Collections.unmodifiableCollection(results);
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -688,6 +678,16 @@ public class StreamReadRequest
 	@Override
 	public long getNumDataPoints() {
 		return results.size();
+	}
+	
+	/**
+	 * Returns an unmodifiable copy of the results. If {@link #service()} has
+	 * not been call on this request, this will be an empty list.
+	 * 
+	 * @return The list of results generated thus far.
+	 */
+	public Collection<DataStream> getResults() {
+		return Collections.unmodifiableCollection(results);
 	}
 
 	/*
@@ -850,7 +850,7 @@ public class StreamReadRequest
 			generator.writeArrayFieldStart("data");
 			
 			// Write the data.
-			writeData(generator);
+			writeData(generator, columnsRoot);
 			
 			// End the data array.
 			generator.writeEndArray();
@@ -895,10 +895,11 @@ public class StreamReadRequest
 	 */
 	@Override
 	public void respond(
-			final JsonGenerator generator)
+			final JsonGenerator generator,
+			final ColumnNode<String> columns)
 			throws JsonGenerationException, IOException, DomainException {
 		
-		writeData(generator);
+		writeData(generator, columns);
 	}
 	
 	/**
@@ -1022,6 +1023,8 @@ public class StreamReadRequest
 	 * 
 	 * @param generator The generator to write to.
 	 * 
+	 * @param columns The columns to write the data.
+	 * 
 	 * @throws JsonGenerationException There was an error generating the JSON.
 	 * 								   Has the generator already opened an 
 	 * 								   array?
@@ -1032,7 +1035,8 @@ public class StreamReadRequest
 	 * 						   domain object.
 	 */
 	private void writeData(
-			final JsonGenerator generator)
+			final JsonGenerator generator,
+			final ColumnNode<String> columns)
 			throws JsonGenerationException, IOException, DomainException {
 		
 		for(DataStream dataStream : results) {
@@ -1073,7 +1077,7 @@ public class StreamReadRequest
 			handleGeneric(
 				generator,
 				dataStream.getData(), 
-				columnsRoot, 
+				columns, 
 				"data");
 			
 			// End this data stream.

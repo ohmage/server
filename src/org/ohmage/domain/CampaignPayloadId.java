@@ -1,9 +1,21 @@
 package org.ohmage.domain;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.joda.time.DateTime;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.UserRequest.TokenLocation;
+import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
+import org.ohmage.request.survey.SurveyResponseReadRequest;
+import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -165,5 +177,79 @@ public class CampaignPayloadId implements PayloadId {
 	@Override
 	public String getSubId() {
 		return subId;
+	}
+
+	/**
+	 * Creates a survey_response/read request.
+	 * 
+	 * @return A survey_response/read request.
+	 */
+	@Override
+	public SurveyResponseReadRequest generateSubRequest(
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters,
+			final Boolean hashPassword,
+			final TokenLocation tokenLocation,
+			final long version,
+			final DateTime startDate,
+			final DateTime endDate,
+			final ColumnNode<String> columns,
+			final long numToSkip,
+			final long numToReturn)
+			throws DomainException {
+		
+		Collection<String> surveyIds = null;
+		Collection<String> promptIds = null;
+		if(CampaignPayloadId.Type.SURVEY.equals(type)) {
+			surveyIds = new ArrayList<String>(1);
+			surveyIds.add(subId);
+		}
+		else if(CampaignPayloadId.Type.PROMPT.equals(type)) {
+			promptIds = new ArrayList<String>(1);
+			promptIds.add(subId);
+		}
+		
+		Collection<SurveyResponse.ColumnKey> translatedColumns = null;
+		// TODO: Convert the columns list to something the request wants.
+		
+		try {
+			return
+				new SurveyResponseReadRequest(
+					httpRequest,
+					parameters,
+					campaignId,
+					SurveyResponseRequest.URN_SPECIAL_ALL_LIST,
+					surveyIds,
+					promptIds,
+					null,
+					startDate,
+					endDate,
+					null,
+					null,
+					translatedColumns,
+					null,
+					null,
+					null,
+					null,
+					null,
+					null,
+					numToSkip,
+					numToReturn);
+		}
+		catch(IOException e) {
+			throw new DomainException(
+				"There was an error reading the HTTP request.",
+				e);
+		}
+		catch(InvalidRequestException e) {
+			throw new DomainException(
+				"Error parsing the parameters.",
+				e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+				"One of the parameters was invalid.",
+				e);
+		}
 	}
 }

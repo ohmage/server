@@ -72,6 +72,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.request.omh.OmhReadResponder;
 import org.ohmage.util.TimeUtils;
 import org.ohmage.validator.SurveyResponseValidators;
@@ -1373,7 +1374,8 @@ public final class SurveyResponseReadRequest
 	 */
 	@Override
 	public void respond(
-			final JsonGenerator generator)
+			final JsonGenerator generator,
+			final ColumnNode<String> columns)
 			throws JsonGenerationException, IOException, DomainException {
 		
 		for(SurveyResponse surveyResponse : getSurveyResponses()) {
@@ -1416,76 +1418,140 @@ public final class SurveyResponseReadRequest
 			generator.writeObjectFieldStart("data");
 			
 			// Write the survey's ID.
-			generator.writeStringField(
-				SurveyResponse.JSON_KEY_SURVEY_ID,
-				surveyResponse.getSurvey().getId());
+			if((columns == null) || 
+				columns.hasChild(SurveyResponse.JSON_KEY_SURVEY_ID)) {
+				
+				generator.writeStringField(
+					SurveyResponse.JSON_KEY_SURVEY_ID,
+					surveyResponse.getSurvey().getId());
+			}
+			
+			boolean allColumns = columns.isLeaf();
 			
 			// Write the launch context.
-			generator.writeObjectFieldStart(
-				SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
-			
-			// Write the launch context's time.
-			generator.writeNumberField(
-				SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIME,
-				surveyResponse.getLaunchContext().getLaunchTime());
-			
-			// Write the launch context's time zone.
-			generator.writeStringField(
-				SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIMEZONE,
-				surveyResponse.getLaunchContext().getTimeZone().getID());
-			
-			// Write the launch context's active triggers.
-			generator.writeArrayFieldStart(
-				SurveyResponse.LaunchContext.JSON_KEY_ACTIVE_TRIGGERS);
-			
-			// Add all of the active triggers.
-			JSONArray activeTriggers = 
-				surveyResponse.getLaunchContext().getActiveTriggers();
-			int numActiveTriggers = activeTriggers.length();
-			for(int i = 0; i < numActiveTriggers; i++) {
-				try {
-					generator.writeString(activeTriggers.getString(i));
+			if(	allColumns || 
+				columns
+					.hasChild(SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT)) {
+				
+				generator.writeObjectFieldStart(
+					SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+				
+				ColumnNode<String> launchContextColumns =
+					columns
+						.getChild(
+							SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+				boolean allLaunchContextColumns =
+					(launchContextColumns == null) ? 
+						true : 
+						launchContextColumns.isLeaf();
+				
+				// Write the launch context's time.
+				if(	allColumns ||
+					allLaunchContextColumns ||
+					launchContextColumns
+						.hasChild(
+							SurveyResponse
+								.LaunchContext.JSON_KEY_LAUNCH_TIME)) {
+					
+					generator.writeNumberField(
+						SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIME,
+						surveyResponse.getLaunchContext().getLaunchTime());
 				}
-				catch(JSONException e) {
-					LOGGER.warn(
-						"Could not serialize one of the trigger names.",
-						e);
+				
+				// Write the launch context's time zone.
+				if(	allColumns ||
+					allLaunchContextColumns ||
+					launchContextColumns
+						.hasChild(
+							SurveyResponse
+								.LaunchContext.JSON_KEY_LAUNCH_TIMEZONE)) {
+					
+					generator.writeStringField(
+						SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIMEZONE,
+						surveyResponse
+							.getLaunchContext().getTimeZone().getID());
 				}
-			}
-			
-			// End the launch context's active triggers array.
-			generator.writeEndArray();
-			
-			// End the launch context.
-			generator.writeEndObject();
-			
-			// Write the responses array.
-			generator.writeArrayFieldStart(SurveyResponse.JSON_KEY_RESPONSES);
-			Map<Integer, Response> responses = surveyResponse.getResponses();
-			List<Integer> indices =
-				new ArrayList<Integer>(responses.keySet());
-			Collections.sort(indices);
-			for(Integer index : indices) {
-				// Get the response.
-				Response response = responses.get(index);
 				
-				// Start the response.
-				generator.writeStartObject();
+				// Write the launch context's active triggers.
+				if(	allColumns ||
+					allLaunchContextColumns ||
+					launchContextColumns
+						.hasChild(
+							SurveyResponse
+								.LaunchContext.JSON_KEY_ACTIVE_TRIGGERS)) {
+					
+					generator.writeArrayFieldStart(
+						SurveyResponse.LaunchContext.JSON_KEY_ACTIVE_TRIGGERS);
+					
+					
+					// Add all of the active triggers.
+					JSONArray activeTriggers = 
+						surveyResponse.getLaunchContext().getActiveTriggers();
+					int numActiveTriggers = activeTriggers.length();
+					for(int i = 0; i < numActiveTriggers; i++) {
+						try {
+							generator.writeString(activeTriggers.getString(i));
+						}
+						catch(JSONException e) {
+							LOGGER.warn(
+								"Could not serialize one of the trigger names.",
+								e);
+						}
+					}
+					
+					// End the launch context's active triggers array.
+					generator.writeEndArray();
+				}
 				
-				// Write the response's ID.
-				generator.writeStringField(
-					PromptResponse.JSON_KEY_PROMPT_ID,
-					response.getId());
-				
-				// Write the response.
-				generator.writeObjectField(
-					PromptResponse.JSON_KEY_RESPONSE,
-					response.getResponse());
-				
-				// End the response.
+				// End the launch context.
 				generator.writeEndObject();
 			}
-			generator.writeEndArray();
+			
+			// Write the responses array.
+			if(	allColumns || 
+				columns.hasChild(SurveyResponse.JSON_KEY_RESPONSES)) {
+				
+				// Start the array of responses.
+				generator
+					.writeArrayFieldStart(SurveyResponse.JSON_KEY_RESPONSES);
+				
+				// Get the list of response columns.
+				ColumnNode<String> responseColumns =
+					columns.getChild(SurveyResponse.JSON_KEY_RESPONSES);
+				
+				// Process each response in its prompt's order in the survey.
+				Map<Integer, Response> responses =
+					surveyResponse.getResponses();
+				List<Integer> indices =
+					new ArrayList<Integer>(responses.keySet());
+				Collections.sort(indices);
+				
+				// Add each prompt if it is in the column list.
+				for(Integer index : indices) {
+					// Get the response.
+					Response response = responses.get(index);
+					
+					if(allColumns || responseColumns.isLeaf())
+					// Start the response.
+					generator.writeStartObject();
+					
+					// Write the response's ID.
+					generator.writeStringField(
+						PromptResponse.JSON_KEY_PROMPT_ID,
+						response.getId());
+					
+					// Write the response.
+					generator.writeObjectField(
+						PromptResponse.JSON_KEY_RESPONSE,
+						response.getResponse());
+					
+					// End the response.
+					generator.writeEndObject();
+				}
+				
+				// End the array of responses.
+				generator.writeEndArray();
+			}
 			
 			// End the data field.
 			generator.writeEndObject();

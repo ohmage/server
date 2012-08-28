@@ -1,7 +1,17 @@
 package org.ohmage.domain;
 
+import java.io.IOException;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.UserRequest.TokenLocation;
+import org.ohmage.request.observer.StreamReadRequest;
+import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -61,5 +71,59 @@ public class ObserverPayloadId implements PayloadId {
 	@Override
 	public String getSubId() {
 		return streamId;
+	}
+
+	/**
+	 * Creates a stream/read request.
+	 * 
+	 * @return A stream read request.
+	 */
+	@Override
+	public StreamReadRequest generateSubRequest(
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters,
+			final Boolean hashPassword,
+			final TokenLocation tokenLocation,
+			final long version,
+			final DateTime startDate,
+			final DateTime endDate,
+			final ColumnNode<String> columns,
+			final long numToSkip,
+			final long numToReturn)
+			throws DomainException {
+		
+		try {
+			return
+				new StreamReadRequest(
+					httpRequest,
+					parameters,
+					true,
+					TokenLocation.EITHER,
+					null,
+					observerId,
+					null,
+					streamId,
+					version,
+					startDate,
+					endDate,
+					columns,
+					numToSkip,
+					numToReturn);
+		}
+		catch(IOException e) {
+			throw new DomainException(
+				"There was an error reading the HTTP request.",
+				e);
+		}
+		catch(InvalidRequestException e) {
+			throw new DomainException(
+				"Error parsing the parameters.",
+				e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+				"One of the parameters was invalid.",
+				e);
+		}
 	}
 }

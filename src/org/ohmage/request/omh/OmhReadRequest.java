@@ -2,11 +2,8 @@ package org.ohmage.request.omh;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,10 +16,7 @@ import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.CampaignPayloadId;
-import org.ohmage.domain.ObserverPayloadId;
 import org.ohmage.domain.PayloadId;
-import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
@@ -32,11 +26,8 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
-import org.ohmage.request.survey.SurveyResponseReadRequest;
-import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.validator.ObserverValidators;
 import org.ohmage.validator.OmhValidators;
-import org.ohmage.validator.SurveyResponseValidators;
 
 public class OmhReadRequest extends Request {
 	private static final Logger LOGGER = 
@@ -49,6 +40,7 @@ public class OmhReadRequest extends Request {
 		(new MappingJsonFactory()).configure(Feature.AUTO_CLOSE_TARGET, true);
 	
 	private final UserRequest userRequest;
+	private final ColumnNode<String> columns;
 	
 	/**
 	 * Creates an OMH read request.
@@ -69,6 +61,7 @@ public class OmhReadRequest extends Request {
 		super(httpRequest, null);
 		
 		UserRequest tUserRequest = null;
+		ColumnNode<String> tColumns = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH read request.");
@@ -148,6 +141,27 @@ public class OmhReadRequest extends Request {
 								StreamReadRequest.MAX_NUMBER_TO_RETURN);
 				}
 				
+				t = getParameterValues(InputKeys.OMH_COLUMN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_COLUMN_LIST,
+						"Multiple column lists were given: " + 
+								InputKeys.OMH_COLUMN_LIST);
+				}
+				else if(t.length == 1) {
+					try {
+						tColumns = 
+							ObserverValidators.validateColumnList(
+								t[0]);
+					}
+					catch(ValidationException e) {
+						throw new ValidationException(
+							ErrorCode.OMH_INVALID_COLUMN_LIST,
+							"The column list was invalid.",
+							e);
+					}
+				}
+				
 				Long version = null;
 				String[] versionStrings = 
 					getParameterValues(InputKeys.OMH_PAYLOAD_VERSION);
@@ -192,129 +206,25 @@ public class OmhReadRequest extends Request {
 						"No payload ID was given.");
 				}
 				
-				if(payloadId instanceof ObserverPayloadId) {
-					try {
-						ColumnNode<String> columns = null;
-						t = getParameterValues(InputKeys.OMH_COLUMN_LIST);
-						if(t.length > 1) {
-							throw new ValidationException(
-								ErrorCode.OMH_INVALID_COLUMN_LIST,
-								"Multiple column lists were given: " + 
-										InputKeys.OMH_COLUMN_LIST);
-						}
-						else if(t.length == 1) {
-							try {
-								columns = 
-									ObserverValidators.validateColumnList(
-										t[0]);
-							}
-							catch(ValidationException e) {
-								throw new ValidationException(
-									ErrorCode.OMH_INVALID_COLUMN_LIST,
-									"The column list was invalid.",
-									e);
-							}
-						}
-						
-						tUserRequest = 
-							new StreamReadRequest(
-								httpRequest,
-								parameters,
-								true,
-								TokenLocation.EITHER,
-								null,
-								payloadId.getId(),
-								null,
-								payloadId.getSubId(),
-								version,
-								startDate,
-								endDate,
-								columns,
-								numToSkip,
+				try {
+					tUserRequest = 
+						payloadId
+							.generateSubRequest(
+								httpRequest, 
+								parameters, 
+								true, 
+								TokenLocation.EITHER, 
+								version, 
+								startDate, 
+								endDate, 
+								tColumns, 
+								numToSkip, 
 								numToReturn);
-					}
-					catch(ValidationException e) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The payload ID is unknown.",
-							e);
-						
-					}
 				}
-				else if(payloadId instanceof CampaignPayloadId) {
-					try {
-						// Create the survey ID or prompt ID list.
-						Collection<String> surveyIds = null;
-						Collection<String> promptIds = null;
-						CampaignPayloadId.Type type = 
-							((CampaignPayloadId) payloadId).getType();
-						if(CampaignPayloadId.Type.SURVEY.equals(type)) {
-							surveyIds = new ArrayList<String>(1);
-							surveyIds.add(payloadId.getSubId());
-						}
-						else if(CampaignPayloadId.Type.PROMPT.equals(type)) {
-							promptIds = new ArrayList<String>(1);
-							promptIds.add(payloadId.getSubId());
-						}
-						
-						Set<SurveyResponse.ColumnKey> columns = null;
-						t = getParameterValues(InputKeys.COLUMN_LIST);
-						if(t.length == 0) {
-							throw new ValidationException(
-									ErrorCode.OMH_INVALID_PAYLOAD_ID,
-									"The payload ID is invalid.");
-						}
-						else if(t.length > 1) {
-							throw new ValidationException(
-									ErrorCode.OMH_INVALID_PAYLOAD_ID,
-									"The payload ID is invalid.");
-						}
-						else {
-							try {
-								// FIXME: This won't work because the format is 
-								// different.
-								columns = 
-									SurveyResponseValidators
-										.validateColumnList(t[0]);
-							}
-							catch(ValidationException e) {
-								throw new ValidationException(
-									ErrorCode.OMH_INVALID_PAYLOAD_ID,
-									"The payload ID is invalid.",
-									e);
-							}
-						}
-						
-						tUserRequest =
-							new SurveyResponseReadRequest(
-								httpRequest,
-								parameters,
-								payloadId.getId(),
-								SurveyResponseRequest.URN_SPECIAL_ALL_LIST,
-								surveyIds,
-								promptIds,
-								null,
-								startDate,
-								endDate,
-								null,
-								null,
-								columns,
-								null,
-								null,
-								null,
-								null,
-								null,
-								null,
-								numToSkip,
-								numToReturn);
-					}
-					catch(ValidationException e) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The payload ID is unknown.",
-							e);
-						
-					}
+				catch(DomainException e) {
+					throw new ValidationException(
+						"There was an error creating the underlying request.",
+						e);
 				}
 			}
 			catch(ValidationException e) {
@@ -324,6 +234,7 @@ public class OmhReadRequest extends Request {
 		}
 		
 		userRequest = tUserRequest;
+		columns = tColumns;
 	}
 	
 	/*
@@ -442,7 +353,7 @@ public class OmhReadRequest extends Request {
 				generator.writeArrayFieldStart("data");
 				
 				// Dispatch the writing of the data to the request.
-				omhReadResponder.respond(generator);
+				omhReadResponder.respond(generator, columns);
 				
 				// End the data.
 				generator.writeEndArray();

@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.ohmage.exception.DomainException;
+import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 
 /**
  * This interface defines the methods for requests that can be used to respond
@@ -30,6 +31,8 @@ public interface OmhReadResponder {
 	 * 
 	 * @param generator The generator to use to write the data.
 	 * 
+	 * @param columns The set of columns to return for each object.
+	 * 
 	 * @throws JsonGenerationException There was an error generating the JSON.
 	 * 
 	 * @throws IOException There was an error writing to the generator.
@@ -38,6 +41,7 @@ public interface OmhReadResponder {
 	 * 						   generating the data.
 	 */
 	void respond(
-		final JsonGenerator generator) 
+		final JsonGenerator generator,
+		final ColumnNode<String> columns) 
 		throws JsonGenerationException, IOException, DomainException;
 }

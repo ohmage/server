@@ -2,6 +2,7 @@ package org.ohmage.validator;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.CampaignPayloadId;
+import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
 import org.ohmage.domain.PayloadId;
 import org.ohmage.exception.DomainException;
@@ -37,13 +38,15 @@ public class OmhValidators {
 			return null;
 		}
 		
+		PayloadId result = null;
+		
 		String trimmedValue = value.trim();
 		String[] split = trimmedValue.split(":");
-		if(split.length < 4) {
+		if(split.length < 3) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
 				"The payload ID is not valid. " +
-					"It must contain at least 4 sections, each divided by a ':': " +
+					"It must contain at least 3 sections, each divided by a ':': " +
 					trimmedValue);
 		}
 		
@@ -57,17 +60,35 @@ public class OmhValidators {
 		}
 		
 		// The second part must be "ohmage".
-		if(! "ohmage".equals(split[1])) {
-			throw new ValidationException(
-				ErrorCode.OMH_INVALID_PAYLOAD_ID,
-				"The payload ID is not valid. " +
-					"The second section must be 'ohmage': " +
-					trimmedValue);
+		String domain = split[1];
+		if(! "ohmage".equals(domain)) {
+			// This is the shim layer that will process the other types of 
+			// requests. Normally, this would simply throw an exception, but,
+			// for now, it will return the payload ID that corresponds to the
+			// remote resource.
+			if("intel".equals(domain)) {
+				if("mood_phone".equals(split[2])) {
+					result = new MoodMapPayloadId();
+				}
+				else {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The payload ID is not valid. " +
+							"The domain 'intel' does not know this type: " +
+							trimmedValue);
+				}
+			}
+			else {
+				throw new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The payload ID is not valid. " +
+						"The second section must be 'ohmage': " +
+						trimmedValue);
+			}
 		}
 
-		PayloadId result;
 		String type = split[2];
-		if("campaign".equals(type)) {
+		if((result == null) && "campaign".equals(type)) {
 			int numCampaignParts = split.length - 2;
 			StringBuilder campaignIdBuilder = new StringBuilder();
 			boolean firstPass = true;
@@ -147,7 +168,7 @@ public class OmhValidators {
 					e);
 			}
 		}
-		else if("observer".equals(type)) {
+		else if((result == null) && "observer".equals(type)) {
 			String observerId;
 			try {
 				observerId = ObserverValidators.validateObserverId(split[2]);
@@ -196,7 +217,7 @@ public class OmhValidators {
 					e);
 			}
 		}
-		else {
+		else if(result == null) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
 				"The payload ID is not valid. " +
