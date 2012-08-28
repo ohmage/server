@@ -221,6 +221,7 @@ public class OmhReadRequest extends Request {
 						parameters,
 						true,
 						TokenLocation.EITHER,
+						retrieveFirstRequesterValue(httpRequest),
 						null,
 						observerId,
 						null,

@@ -374,29 +374,4 @@ public class OmhCatalogRequest extends UserRequest {
 			}
 		}
 	}
-	
-	/**
-	 * Retrieves the client value from the request and returns it if there is
-	 * only one. Otherwise, it returns null.
-	 * 
-	 * @param httpRequest The HTTP request that made this call.
-	 * 
-	 * @return The client value or null if no such value exists.
-	 */
-	private static String retrieveFirstRequesterValue(
-			final HttpServletRequest httpRequest) {
-		
-		String[] requesters = 
-			httpRequest.getParameterMap().get(InputKeys.OMH_REQUESTER);
-		
-		if(requesters == null) {
-			return null;
-		}
-		else if (requesters.length == 0) {
-			return null;
-		}
-		else {
-			return requesters[0];
-		}
-	}
 }

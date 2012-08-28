@@ -350,6 +350,7 @@ public class StreamReadRequest extends UserRequest {
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
+			final String client,
 			final String username,
 			final String observerId,
 			final Long observerVersion,
@@ -362,7 +363,7 @@ public class StreamReadRequest extends UserRequest {
 			final Long numToReturn)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, hashPassword, tokenLocation, parameters);
+		super(httpRequest, hashPassword, tokenLocation, parameters, client);
 		
 		if(observerId == null) {
 			throw new IllegalArgumentException("The observer ID is null.");
