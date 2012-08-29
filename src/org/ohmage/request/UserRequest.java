@@ -183,15 +183,20 @@ public abstract class UserRequest extends Request {
 						"Authentication credentials were not provided.");
 				}
 				
-				try {
-					tClient = validateClient(client);
-					NDC.push(tClient);
+				if(client == null) {
+					tClient = retrieveClient();
 				}
-				catch(ValidationException e) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_REQUESTER,
-						"The requester value was invalid.",
-						e);
+				else {
+					try {
+						tClient = validateClient(client);
+						NDC.push(tClient);
+					}
+					catch(ValidationException e) {
+						throw new ValidationException(
+							ErrorCode.OMH_INVALID_REQUESTER,
+							"The requester value was invalid.",
+							e);
+					}
 				}
 			}
 			catch(ValidationException e) {
