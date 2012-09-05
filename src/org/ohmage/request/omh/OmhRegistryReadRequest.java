@@ -5,8 +5,10 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -305,9 +307,49 @@ public class OmhRegistryReadRequest extends Request {
 			// Start the JSON output.
 			generator.writeStartArray();
 			
+			// Keep track of the observers' stream-version pairs to ensure that
+			// if two observers point to the same stream-version pair that both
+			// don't output the definition.
+			Map<String, Map<String, Set<Long>>> observerStreamIdVersionMap =
+				new HashMap<String, Map<String, Set<Long>>>();
+			
 			// For each observer,
 			for(String observerId : streams.keySet()) {
+				// Get the map of stream ID-version pairs.
+				Map<String, Set<Long>> streamIdVersionMap = 
+					observerStreamIdVersionMap.get(observerId);
+				
+				// If the map is null, create it and add it.
+				if(streamIdVersionMap == null) {
+					streamIdVersionMap = new HashMap<String, Set<Long>>();
+					observerStreamIdVersionMap
+						.put(observerId, streamIdVersionMap);
+				}
+				
+				// Cycle through the streams and output each definition.
 				for(Stream stream : streams.get(observerId)) {
+					// Get the existing stream version that has already been
+					// output.
+					Set<Long> existingStreamVersion = 
+						streamIdVersionMap.get(stream.getId());
+					
+					// If it doesn't exist yet, create it and add it to the 
+					// map.
+					if(existingStreamVersion == null) {
+						existingStreamVersion = new HashSet<Long>();
+						streamIdVersionMap
+							.put(stream.getId(), existingStreamVersion);
+					}
+					// If this version of this stream in this observer has
+					// already been output, then skip it.
+					if(existingStreamVersion.contains(stream.getVersion())) {
+						continue;
+					}
+					// Otherwise, add it to the set and then output it.
+					else {
+						existingStreamVersion.add(stream.getVersion());
+					}
+					
 					// Start this "payload ID's" object.
 					generator.writeStartObject();
 					
