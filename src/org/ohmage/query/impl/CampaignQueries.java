@@ -487,7 +487,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			final String surveyIdLookupBatchSql =
 				"INSERT INTO " +
 					"campaign_survey_lookup(survey_id, campaign_id) " +
-				"VALUES (?, SELECT id FROM campaign WHERE urn = ?)";
+				"VALUES (?, (SELECT id FROM campaign WHERE urn = ?))";
 			
 			// Add the survey IDs to the lookup table.
 			try {
@@ -517,7 +517,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			final String promptIdLookupBatchSql =
 				"INSERT INTO " +
 					"campaign_prompt_lookup(prompt_id, campaign_id) " +
-				"VALUES (?, SELECT id FROM campaign WHERE urn = ?)";
+				"VALUES (?, (SELECT id FROM campaign WHERE urn = ?))";
 			
 			// Add the prompt IDs to the lookup table.
 			try {
