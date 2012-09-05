@@ -490,7 +490,7 @@ public class OmhRegistryReadRequest extends Request {
 						
 						// Set the payload ID.
 						StringBuilder promptPayloadIdBuilder = 
-							new StringBuilder(payloadIdBuilder);
+							new StringBuilder(surveyPayloadIdBuilder);
 						promptPayloadIdBuilder.append(":prompt_id:");
 						promptPayloadIdBuilder.append(surveyItem.getId());
 						generator.writeStringField(
