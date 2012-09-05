@@ -213,6 +213,7 @@ public class MobilityDatesReadRequest extends UserRequest {
 				UserServices.instance().checkUserExistance(username, true);
 			}
 			
+			LOGGER.info("Gathering the dates.");
 			dates = 
 					MobilityServices.instance().getDates(
 							startDate, 

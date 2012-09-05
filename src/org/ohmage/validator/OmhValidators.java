@@ -5,8 +5,11 @@ import org.ohmage.domain.CampaignPayloadId;
 import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
 import org.ohmage.domain.PayloadId;
+import org.ohmage.domain.RunKeeperPayloadId;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApi;
+import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApiFactory;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -78,11 +81,24 @@ public class OmhValidators {
 							trimmedValue);
 				}
 			}
+			else if("run_keeper".equals(domain)) {
+				try {
+					result = new RunKeeperPayloadId(split[2]);
+				}
+				catch(DomainException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The RunKeeper API value is invalid: " + split[2],
+						e);
+				}
+			}
 			else {
 				throw new ValidationException(
 					ErrorCode.OMH_INVALID_PAYLOAD_ID,
 					"The payload ID is not valid. " +
-						"The second section must be 'ohmage': " +
+						"The domain, '" +
+						domain +
+						"' is unknown: " +
 						trimmedValue);
 			}
 		}
@@ -254,6 +270,35 @@ public class OmhValidators {
 				ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
 				"The payload version is not a whole number: " +
 					value);
+		}
+	}
+	
+	/**
+	 * Validates that the API is known.
+	 * 
+	 * @param value The path string to use to create a {@link RunKeeperApi} object.
+	 * 
+	 * @return The {@link RunKeeperApi} object that matches the path String.
+	 * 
+	 * @throws ValidationException The path string doesn't reference any known
+	 * 							   {@link RunKeeperApi}.
+	 */
+	public static RunKeeperApi validateRunKeeperApi(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		try {
+			return RunKeeperApiFactory.getApi(value);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The path is invalid: " + value,
+				e);
 		}
 	}
 }

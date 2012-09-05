@@ -9,11 +9,9 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
-import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest.TokenLocation;
-import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.util.StringUtils;
@@ -194,7 +192,6 @@ public class CampaignPayloadId implements PayloadId {
 			final long version,
 			final DateTime startDate,
 			final DateTime endDate,
-			final ColumnNode<String> columns,
 			final long numToSkip,
 			final long numToReturn)
 			throws DomainException {
@@ -209,9 +206,6 @@ public class CampaignPayloadId implements PayloadId {
 			promptIds = new ArrayList<String>(1);
 			promptIds.add(subId);
 		}
-		
-		Collection<SurveyResponse.ColumnKey> translatedColumns = null;
-		// TODO: Convert the columns list to something the request wants.
 		
 		try {
 			return
@@ -228,7 +222,7 @@ public class CampaignPayloadId implements PayloadId {
 					endDate,
 					null,
 					null,
-					translatedColumns,
+					null,
 					null,
 					null,
 					null,

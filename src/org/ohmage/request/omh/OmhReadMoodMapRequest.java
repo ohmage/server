@@ -40,7 +40,6 @@ public class OmhReadMoodMapRequest
 	
 	private final DateTime startDate;
 	private final DateTime endDate;
-	private final ColumnNode<String> columns;
 	private final long numToSkip;
 	private final long numToReturn;
 	
@@ -71,7 +70,6 @@ public class OmhReadMoodMapRequest
 			final String client,
 			final DateTime startDate,
 			final DateTime endDate,
-			final ColumnNode<String> columns,
 			final long numToSkip,
 			final long numToReturn)
 			throws IOException, InvalidRequestException {
@@ -79,11 +77,10 @@ public class OmhReadMoodMapRequest
 		super(httpRequest, hashPassword, tokenLocation, parameters, client);
 		
 		if(! isFailed()) {
-			LOGGER.info("Creating an OMH read Mood Map request.");
+			LOGGER.info("Creating an OMH read request for Mood Map.");
 		}
 		this.startDate = startDate;
 		this.endDate = endDate;
-		this.columns = columns;
 		this.numToSkip = numToSkip;
 		this.numToReturn = numToReturn;
 	}
@@ -128,18 +125,29 @@ public class OmhReadMoodMapRequest
 		}
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+	 */
 	@Override
 	public long getNumDataPoints() {
-		// TODO Auto-generated method stub
+		// FIXME: This needs to be implemented once the getData() method is
+		// completed.
 		return 0;
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator, org.ohmage.request.observer.StreamReadRequest.ColumnNode)
+	 */
 	@Override
 	public void respond(
 			final JsonGenerator generator,
 			final ColumnNode<String> columns)
 			throws JsonGenerationException, IOException, DomainException {
 		
+		// FIXME: This needs to be completed once the getData() method is
+		// completed.
 	}
 
 	/**

@@ -8,7 +8,6 @@ import org.joda.time.DateTime;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
-import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 
 /**
  * This is a superclass for all of the types of payload IDs.
@@ -57,9 +56,6 @@ public abstract interface PayloadId {
 	 * @param endDate Limits the data to only those points on or before this
 	 * 				  date.
 	 * 
-	 * @param columns Limits the data by only outputting the data that is
-	 * 				  specified.
-	 * 
 	 * @param numToSkip The number of points to skip.
 	 * 
 	 * @param numToReturn The number of points to return.
@@ -77,7 +73,6 @@ public abstract interface PayloadId {
 		long version,
 		DateTime startDate,
 		DateTime endDate,
-		ColumnNode<String> columns,
 		long numToSkip,
 		long numToReturn)
 		throws DomainException;

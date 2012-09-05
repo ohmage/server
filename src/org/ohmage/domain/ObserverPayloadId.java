@@ -11,7 +11,6 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
-import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -88,7 +87,6 @@ public class ObserverPayloadId implements PayloadId {
 			final long version,
 			final DateTime startDate,
 			final DateTime endDate,
-			final ColumnNode<String> columns,
 			final long numToSkip,
 			final long numToReturn)
 			throws DomainException {
@@ -108,7 +106,7 @@ public class ObserverPayloadId implements PayloadId {
 					version,
 					startDate,
 					endDate,
-					columns,
+					null,
 					numToSkip,
 					numToReturn);
 		}

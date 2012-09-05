@@ -9,27 +9,46 @@ import org.joda.time.DateTime;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest.TokenLocation;
-import org.ohmage.request.omh.OmhReadMoodMapRequest;
+import org.ohmage.request.omh.OmhReadRunKeeperRequest;
+import org.ohmage.util.StringUtils;
 
 /**
- * This class represents a Mood Map payload ID. This is used when retrieving 
- * the data from a remote source. When it is being retrieved as a survey 
- * response, the {@link org.ohmage.domain.CampaignPayloadId CampaignPayloadId}
- * should be used.
+ * This class represents a payload ID for Run Keeper.
  *
  * @author John Jenkins
  */
-public class MoodMapPayloadId implements PayloadId {
+public class RunKeeperPayloadId implements PayloadId {
+	private final String api;
+	
 	/**
-	 * There are not IDs associated with a mood map payload.
+	 * Creates a payload ID that contains a type representing the type of 
+	 * information desired, e.g. "profile", "sleep", "weight", etc..
+	 * 
+	 * @param api The type of information desired.
+	 * 
+	 * @throws DomainException The API value is null or whitespace.
+	 */
+	public RunKeeperPayloadId(final String api) throws DomainException {
+		if(StringUtils.isEmptyOrWhitespaceOnly(api)) {
+			throw new DomainException("The ID is missing or whitespace.");
+		}
+		
+		this.api = api;
+	}
+	
+	/**
+	 * The type of information desired, e.g. "profile", "sleep", "weight", 
+	 * etc..
 	 */
 	@Override
 	public String getId() {
-		return null;
+		return api;
 	}
 
 	/**
-	 * There are no sub-IDs associated with a mood map payload.
+	 * There are no sub-types for this time, so this always returns null.
+	 * 
+	 * @return Always null.
 	 */
 	@Override
 	public String getSubId() {
@@ -37,12 +56,12 @@ public class MoodMapPayloadId implements PayloadId {
 	}
 
 	/**
-	 * Generates an OMH read for a mood map reading.
+	 * Returns an OMH read request for Run Keeper.
 	 * 
-	 * @return An OmhReadMoodMapRequest.
+	 * @return An OmhReadMoodMapRequest object.
 	 */
 	@Override
-	public OmhReadMoodMapRequest generateSubRequest(
+	public OmhReadRunKeeperRequest generateSubRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
@@ -52,12 +71,12 @@ public class MoodMapPayloadId implements PayloadId {
 			final DateTime startDate,
 			final DateTime endDate,
 			final long numToSkip,
-			final long numToReturn)
+			final long numToReturn) 
 			throws DomainException {
-
+		
 		try {
 			return
-				new OmhReadMoodMapRequest(
+				new OmhReadRunKeeperRequest(
 					httpRequest, 
 					parameters, 
 					hashPassword,
@@ -66,7 +85,8 @@ public class MoodMapPayloadId implements PayloadId {
 					startDate, 
 					endDate,
 					numToSkip, 
-					numToReturn);
+					numToReturn,
+					api);
 		}
 		catch(IOException e) {
 			throw new DomainException(
@@ -79,4 +99,5 @@ public class MoodMapPayloadId implements PayloadId {
 				e);
 		}
 	}
+
 }

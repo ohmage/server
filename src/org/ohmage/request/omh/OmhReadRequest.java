@@ -218,7 +218,6 @@ public class OmhReadRequest extends Request {
 								version, 
 								startDate, 
 								endDate, 
-								tColumns, 
 								numToSkip, 
 								numToReturn);
 				}
