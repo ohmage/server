@@ -388,7 +388,7 @@ public class StreamReadRequest extends UserRequest {
 			this.numToSkip = numToSkip;
 		}
 		
-		if((numToReturn == null) || (numToReturn > MAX_NUMBER_TO_RETURN)) {
+		if(numToReturn == null) {
 			this.numToReturn = MAX_NUMBER_TO_RETURN;
 		}
 		else {
