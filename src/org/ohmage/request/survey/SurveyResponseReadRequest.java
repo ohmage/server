@@ -34,6 +34,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -1198,6 +1199,9 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		try {
 			writer.write(resultString);
 		}
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
+		}
 		catch(IOException e) {
 			LOGGER.warn("Unable to write response message. Aborting.", e);
 		}
@@ -1205,6 +1209,9 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		// Close it.
 		try {
 			writer.close();
+		}
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
 		}
 		catch(IOException e) {
 			LOGGER.warn("Unable to close the writer.", e);

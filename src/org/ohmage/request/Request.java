@@ -36,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.util.http.fileupload.FileUploadBase.FileSizeLimitExceededException;
 import org.apache.tomcat.util.http.fileupload.FileUploadBase.SizeLimitExceededException;
@@ -407,6 +408,10 @@ public abstract class Request {
 			}
 			
 			writer.write(responseText);
+		}
+		// If the client hangs up, just print a warning.
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
 		}
 		catch(IOException e) {
 			LOGGER.error("Unable to write response message. Aborting.", e);
