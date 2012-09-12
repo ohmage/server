@@ -149,31 +149,33 @@ public abstract class Request {
 		Map<String, String[]> tParameters = new HashMap<String, String[]>();
 		String tRequesterInetAddr = null;
 		try {
-			if(parameters == null) {
-				Object parametersObject = 
-					httpRequest
-						.getAttribute(GzipFilter.ATTRIBUTE_KEY_PARAMETERS);
+			if(httpRequest != null) {
+				// Get the requester's IP address.
+				tRequesterInetAddr = httpRequest.getRemoteAddr();
 				
-				if(parametersObject instanceof Map) {
-					// We make the assumption that we are the only one setting
-					// this value, so it must be a map.
-					tParameters = (Map<String, String[]>) parametersObject;
-				}
-				else if(parametersObject == null) {
-					throw new ValidationException(
-						"The parameter map was never set which should have been done in the GZIP filter.");
+				// Get the parameters.
+				if (parameters == null) {
+					Object parametersObject = 
+						httpRequest
+							.getAttribute(GzipFilter.ATTRIBUTE_KEY_PARAMETERS);
+					
+					if(parametersObject instanceof Map) {
+						// We make the assumption that we are the only one 
+						// setting this value, so it must be a map.
+						tParameters = (Map<String, String[]>) parametersObject;
+					}
+					else if(parametersObject == null) {
+						throw new ValidationException(
+							"The parameter map was never set which should have been done in the GZIP filter.");
+					}
+					else {
+						throw new ValidationException(
+							"The parameters object was not a map.");
+					}
 				}
 				else {
-					throw new ValidationException(
-						"The parameters object was not a map.");
+					tParameters = parameters;
 				}
-			}
-			else {
-				tParameters = parameters;
-			}
-			
-			if(httpRequest != null) {
-				tRequesterInetAddr = httpRequest.getRemoteAddr();
 			}
 		}
 		catch(ValidationException e) {
