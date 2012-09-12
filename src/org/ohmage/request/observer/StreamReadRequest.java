@@ -315,6 +315,9 @@ public class StreamReadRequest extends UserRequest {
 	 * @param tokenLocation Where to look for the token. If it is null, the 
 	 * 						token for authentication will not be allowed.
 	 * 
+	 * @param callClientRequester Use the name "requester" in place of 
+	 * 							  "client".
+	 * 
 	 * @param observerId The observer's unique identifier. Required.
 	 * 
 	 * @param observerVersion The observer's version. Optional.
@@ -350,7 +353,7 @@ public class StreamReadRequest extends UserRequest {
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
-			final String client,
+			final boolean callClientRequester,
 			final String username,
 			final String observerId,
 			final Long observerVersion,
@@ -363,7 +366,7 @@ public class StreamReadRequest extends UserRequest {
 			final Long numToReturn)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, hashPassword, tokenLocation, parameters, client);
+		super(httpRequest, hashPassword, tokenLocation, parameters, callClientRequester);
 		
 		if(observerId == null) {
 			throw new IllegalArgumentException("The observer ID is null.");

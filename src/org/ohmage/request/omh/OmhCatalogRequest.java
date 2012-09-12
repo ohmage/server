@@ -67,7 +67,7 @@ public class OmhCatalogRequest extends UserRequest {
 			true, 
 			TokenLocation.EITHER, 
 			null,
-			retrieveFirstRequesterValue(httpRequest));
+			true);
 
 		String tObserverId = null;
 		String tStreamId = null;

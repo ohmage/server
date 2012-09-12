@@ -68,6 +68,9 @@ public class AuthTokenRequest extends UserRequest {
 	 * 
 	 * @param parameters The map of parameters to use.
 	 * 
+	 * @param callClientRequester Use the name "requester" in place of 
+	 * 							  "client".
+	 * 
 	 * @throws InvalidRequestException Thrown if the parameters cannot be 
 	 * 								   parsed.
 	 * 
@@ -76,10 +79,10 @@ public class AuthTokenRequest extends UserRequest {
 	public AuthTokenRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
-			final String client)
+			final boolean callClientRequester)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, true, null, parameters, client);
+		super(httpRequest, true, null, parameters, callClientRequester);
 		
 		if(! isFailed()) {
 			LOGGER.info("Building an authentication token request.");
