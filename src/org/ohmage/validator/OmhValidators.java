@@ -1,6 +1,7 @@
 package org.ohmage.validator;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
 import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
@@ -8,6 +9,8 @@ import org.ohmage.domain.PayloadId;
 import org.ohmage.domain.RunKeeperPayloadId;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApi;
+import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApiFactory;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApi;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApiFactory;
 import org.ohmage.util.StringUtils;
@@ -45,11 +48,12 @@ public class OmhValidators {
 		
 		String trimmedValue = value.trim();
 		String[] split = trimmedValue.split(":");
-		if(split.length < 3) {
+		if(split.length < 2) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
 				"The payload ID is not valid. " +
-					"It must contain at least 3 sections, each divided by a ':': " +
+					"It must contain at least 2 sections, " +
+					"\"omh\" and the domain, each divided by a ':': " +
 					trimmedValue);
 		}
 		
@@ -92,6 +96,17 @@ public class OmhValidators {
 						e);
 				}
 			}
+			else if("body_media".equals(domain)) {
+				try {
+					result = new BodyMediaPayloadId(split[2]);
+				}
+				catch(DomainException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The RunKeeper API value is invalid: " + split[2],
+						e);
+				}
+			}
 			else {
 				throw new ValidationException(
 					ErrorCode.OMH_INVALID_PAYLOAD_ID,
@@ -103,7 +118,7 @@ public class OmhValidators {
 			}
 		}
 
-		String type = split[2];
+		String type = (result == null) ? split[2] : null;
 		if((result == null) && "campaign".equals(type)) {
 			int numCampaignParts = split.length - 2;
 			StringBuilder campaignIdBuilder = new StringBuilder();
@@ -276,7 +291,8 @@ public class OmhValidators {
 	/**
 	 * Validates that the API is known.
 	 * 
-	 * @param value The path string to use to create a {@link RunKeeperApi} object.
+	 * @param value The path string to use to create a {@link RunKeeperApi}
+	 * 				object.
 	 * 
 	 * @return The {@link RunKeeperApi} object that matches the path String.
 	 * 
@@ -293,6 +309,36 @@ public class OmhValidators {
 		
 		try {
 			return RunKeeperApiFactory.getApi(value);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The path is invalid: " + value,
+				e);
+		}
+	}
+	
+	/**
+	 * Validates that the API is known.
+	 * 
+	 * @param value The path string to use to create a {@link BodyMediaApi}
+	 * 				object.
+	 * 
+	 * @return The {@link BodyMediaApi} object that matches the path String.
+	 * 
+	 * @throws ValidationException The path string doesn't reference any known
+	 * 							   {@link BodyMediaApi}.
+	 */
+	public static BodyMediaApi validateBodyMediaApi(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		try {
+			return BodyMediaApiFactory.getApi(value);
 		}
 		catch(DomainException e) {
 			throw new ValidationException(

@@ -20,6 +20,7 @@ import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.domain.ObserverPayloadId;
@@ -37,6 +38,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.observer.StreamReadRequest;
+import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApiFactory;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApiFactory;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ObserverServices;
@@ -167,7 +169,7 @@ public class OmhRegistryReadRequest extends Request {
 			// If the user isn't specifically asking for campaigns, then either
 			// they are asking for a specific observer or they want everything 
 			// from both observers and campaigns.
-			if(! (payloadId instanceof CampaignPayloadId)) {
+			if((payloadId == null) || (payloadId instanceof CampaignPayloadId)) {
 				LOGGER.info("Gathering the requested observer registry entries.");
 				streams
 					.putAll(
@@ -187,7 +189,7 @@ public class OmhRegistryReadRequest extends Request {
 			// If the user isn't specifically asking for observers, then either
 			// they are asking for a specific campaign or they want everything
 			// from both observers and campaigns.
-			if(! (payloadId instanceof ObserverPayloadId)) {
+			if((payloadId == null) || (payloadId instanceof ObserverPayloadId)) {
 				List<String> campaignIds = null;
 				List<String> surveyIds = null;
 				List<String> promptIds = null;
@@ -568,17 +570,17 @@ public class OmhRegistryReadRequest extends Request {
 			// If all were ask for, then output all of the RunKeeper APIs.
 			if(payloadId == null) {
 				// Get markers for all of the APIs.
-				RunKeeperApiFactory[] apiFactories = 
+				RunKeeperApiFactory[] runKeeperApiFactories = 
 					RunKeeperApiFactory.values();
 		
 				// Compute the number of API definitions to return.
 				long numFactoriesToOutput =
-					(numToReturnLeft >= apiFactories.length) ?
-						apiFactories.length : numToReturnLeft;
+					(numToReturnLeft >= runKeeperApiFactories.length) ?
+						runKeeperApiFactories.length : numToReturnLeft;
 				
 				for(int i = 0; i < numFactoriesToOutput; i++) {
 					// Get the API's string value.
-					String apiString = apiFactories[i].getApi();
+					String apiString = runKeeperApiFactories[i].getApi();
 					
 					// Write the API's registry entry. 
 					try {
@@ -593,7 +595,41 @@ public class OmhRegistryReadRequest extends Request {
 									apiString,
 								e);
 					}
-				}	
+				}
+				
+				// Update the number of end-points to output. 
+				numToReturnLeft -= numFactoriesToOutput;
+
+				// Get markers for all of the APIs.
+				BodyMediaApiFactory[] bodyMediaApiFactories = 
+					BodyMediaApiFactory.values();
+		
+				// Compute the number of API definitions to return.
+				numFactoriesToOutput -=
+					(numToReturnLeft >= bodyMediaApiFactories.length) ?
+						bodyMediaApiFactories.length : numToReturnLeft;
+				
+				for(int i = 0; i < numFactoriesToOutput; i++) {
+					// Get the API's string value.
+					String apiString = bodyMediaApiFactories[i].getApi();
+					
+					// Write the API's registry entry. 
+					try {
+						BodyMediaApiFactory
+							.getApi(apiString)
+							.writeRegistryEntry(generator);
+					}
+					catch(DomainException e) {
+						LOGGER
+							.warn(
+								"Could not output the registry entry for the API: " +
+									apiString,
+								e);
+					}
+				}
+
+				// Update the number of end-points to output. 
+				numToReturnLeft -= numFactoriesToOutput;
 			}
 			// If a specific RunKeeper API was asked for, 
 			else if(payloadId instanceof RunKeeperPayloadId) {
@@ -615,6 +651,29 @@ public class OmhRegistryReadRequest extends Request {
 					LOGGER
 						.info(
 							"The requested RunKeeper API does not exist: " +
+								apiString);
+				}
+			}
+			// If a specific RunKeeper API was asked for, 
+			else if(payloadId instanceof BodyMediaPayloadId) {
+				// Type cast the PayloadId object specifically to a
+				// RunKeeperPayloadId.
+				BodyMediaPayloadId bodyMediaPayloadId =
+					(BodyMediaPayloadId) payloadId;
+				
+				// Get the requested API string.
+				String apiString = bodyMediaPayloadId.getId();
+				
+				// Write the registry entry.
+				try {
+					BodyMediaApiFactory
+						.getApi(apiString)
+						.writeRegistryEntry(generator);
+				}
+				catch(DomainException e) {
+					LOGGER
+						.info(
+							"The requested BodyMedia API does not exist: " +
 								apiString);
 				}
 			}
