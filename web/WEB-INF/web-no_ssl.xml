@@ -6,7 +6,7 @@
   <!--  Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
 
   <!--
-  	Allow Cross-Origin-Resource-Sharing for everything except authentication
+    Allow Cross-Origin-Resource-Sharing for everything except authentication
   -->
   <filter>
     <filter-name>OhmageCORSFilter</filter-name>
@@ -42,6 +42,30 @@
     <filter-name>Utf8RequestEncodingFilter</filter-name>
     <url-pattern>/*</url-pattern>
   </filter-mapping>
+
+  <!--
+    Decode the parameters, which may include our GZIP schema.
+  -->
+  <filter>
+    <filter-name>GzipFilter</filter-name>
+    <filter-class>org.ohmage.jee.filter.GzipFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>GzipFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping> 
+
+  <!--
+    Allow Cross-Origin-Resource-Sharing for everything except authentication
+  -->
+  <filter>
+    <filter-name>ClientFilter</filter-name>
+    <filter-class>org.ohmage.jee.filter.ClientFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>ClientFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping> 
 
   <!--  The default Tomcat Servlet used to locate and serve static content -->
   <servlet>

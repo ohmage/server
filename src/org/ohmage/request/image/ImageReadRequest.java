@@ -24,6 +24,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
@@ -271,6 +272,9 @@ public class ImageReadRequest extends UserRequest {
 					try {
 						dos.close();
 					}
+					catch(ClientAbortException e) {
+						LOGGER.info("The client hung up unexpectedly.", e);
+					}
 					catch(IOException e) {
 						LOGGER.warn("Error closing the data output stream.", e);
 					}
@@ -286,6 +290,10 @@ public class ImageReadRequest extends UserRequest {
 			setFailed();
 			httpResponse.setStatus(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		}
+		// If the client hangs up, just print a warning.
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
 		}
 		// If the error occurred while reading from the input stream or
 		// writing to the output stream, abort the whole operation and
@@ -304,6 +312,10 @@ public class ImageReadRequest extends UserRequest {
 				if(imageStream != null) {
 					imageStream.close();
 				}
+			}
+			// If the client hangs up, just print a warning.
+			catch(ClientAbortException e) {
+				LOGGER.info("The client hung up unexpectedly.", e);
 			}
 			catch(IOException e) {
 				LOGGER.warn("Could not close the image stream.", e);

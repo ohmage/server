@@ -205,7 +205,7 @@ public class OmhReadRequest extends Request {
 						ErrorCode.OMH_INVALID_PAYLOAD_ID,
 						"No payload ID was given.");
 				}
-				
+			
 				try {
 					tUserRequest = 
 						payloadId
@@ -214,7 +214,7 @@ public class OmhReadRequest extends Request {
 								parameters, 
 								true, 
 								TokenLocation.EITHER, 
-								retrieveFirstRequesterValue(httpRequest),
+								true,
 								version, 
 								startDate, 
 								endDate, 

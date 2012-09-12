@@ -35,6 +35,7 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -276,6 +277,9 @@ public final class SurveyResponseReadRequest
 	 * 
 	 * @param parameters The parameters from the HTTP request.
 	 * 
+	 * @param callClientRequester Refers to the "client" parameter as the
+	 * 							  "requester".
+	 * 
 	 * @param campaignId The campaign's unique identifier. Required.
 	 * 
 	 * @param usernames A set of usernames.
@@ -327,7 +331,7 @@ public final class SurveyResponseReadRequest
 	public SurveyResponseReadRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
-			final String client,
+			boolean callClientRequester,
 			final String campaignId,
 			final Collection<String> usernames,
 			final Collection<String> surveyIds,
@@ -351,8 +355,8 @@ public final class SurveyResponseReadRequest
 		super(
 			httpRequest, 
 			parameters,
-			campaignId, 
-			client,
+			callClientRequester,
+			campaignId,
 			usernames, 
 			surveyIds, 
 			promptIds, 
@@ -1357,6 +1361,9 @@ public final class SurveyResponseReadRequest
 		try {
 			writer.write(resultString);
 		}
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
+		}
 		catch(IOException e) {
 			LOGGER.warn("Unable to write response message. Aborting.", e);
 		}
@@ -1364,6 +1371,9 @@ public final class SurveyResponseReadRequest
 		// Close it.
 		try {
 			writer.close();
+		}
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
 		}
 		catch(IOException e) {
 			LOGGER.warn("Unable to close the writer.", e);

@@ -19,10 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import org.codehaus.jackson.JsonNode;
@@ -1103,9 +1101,41 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 			}
 			
+			/**
+			 * Private, inner class for representing access points in the scan. 
+			 *
+			 * @author John Jenkins
+			 */
+			private final class AccessPoint {
+				private String ssid;
+				private double strength;
+				
+				/**
+				 * Creates a new AccessPoint object.
+				 * 
+				 * @param ssid The access point's SSID.
+				 * 
+				 * @param strength The strength of the signal of the SSID.
+				 * 
+				 * @throws DomainException The SSID was null.
+				 */
+				public AccessPoint(
+						final String ssid, 
+						final double strength)
+						throws DomainException {
+					
+					if(ssid == null) {
+						throw new DomainException("The SSID is null.");
+					}
+					
+					this.ssid = ssid;
+					this.strength = strength;
+				}
+			}
+			private final List<AccessPoint> scan;
+			
 			private final Long time;
 			private final DateTimeZone timezone;
-			private final Map<String, Double> scan;
 			
 			/**
 			 * Creates a WifiData object from this generic record.
@@ -1174,7 +1204,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				}
 				else {
 					ArrayNode scanArray = (ArrayNode) scanObject;
-					scan = new HashMap<String, Double>(scanArray.size());
+					scan = new ArrayList<AccessPoint>(scanArray.size());
 					
 					for(JsonNode scanRecord : scanArray) {
 						String ssid;
@@ -1210,11 +1240,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 								strengthObject.getNumberValue().doubleValue();
 						}
 						
-						if(scan.put(ssid, strength) != null) {
-							throw new DomainException(
-								ErrorCode.MOBILITY_INVALID_WIFI_DATA,
-								"Duplicate SSIDs found in the same scan.");
-						}
+						scan.add(new AccessPoint(ssid, strength));
 					}
 				}
 			}
@@ -1371,13 +1397,14 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					this.scan = null;
 				}
 				else {
-					// Create the local scan map.
-					this.scan = new HashMap<String, Double>();
-					//List<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
-					
 					// For each of the entries in the array, parse out the
 					// necessary information.
 					int numScans = scan.length();
+					
+					// Create the local scan map.
+					this.scan = new ArrayList<AccessPoint>(numScans);
+					//List<AccessPoint> accessPoints = new ArrayList<AccessPoint>();
+					
 					for(int i = 0; i < numScans; i++) {
 						try {
 							JSONObject jsonObject = scan.getJSONObject(i);
@@ -1438,7 +1465,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 							
 							// Add them to the map.
 							//accessPoints.add(new AccessPoint(ssid, strength));
-							this.scan.put(ssid, strength);
+							this.scan.add(new AccessPoint(ssid, strength));
 						}
 						catch(JSONException e) {
 							throw new DomainException(
@@ -1448,41 +1475,6 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					}
 					//this.wifiScan = new WifiScan(tTime, accessPoints);
 				}
-			}
-			
-			/**
-			 * Creates a WiFiData object that contains a timestamp of when the
-			 * record was made and the map of WiFi device IDs to their signal
-			 * strength.
-			 * 
-			 * @param time The time in milliseconds since the epoch when this
-			 * 			   occurred.
-			 *  
-			 * @param timestamp The date and time that this record was made.
-			 * 
-			 * @param scan A map of WiFi device IDs to their signal strength.
-			 * 
-			 * @throws DomainException Thrown if the timestamp or scans map are
-			 * 						   null.
-			 */
-			public WifiData(
-					final long time,
-					final DateTimeZone timezone,
-					final Map<String, Double> scan)
-					throws DomainException {
-				
-				if(timezone == null) {
-					throw new DomainException(
-							"The timezone cannot be null.");
-				}
-				else if(scan == null) {
-					throw new DomainException(
-							"The WiFi scan cannot be null.");
-				}
-				
-				this.time = time;
-				this.timezone = timezone;
-				this.scan = new HashMap<String, Double>(scan);
 			}
 			
 			/**
@@ -1557,17 +1549,17 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					
 					if(scan != null) {
 						JSONArray scans = new JSONArray();
-						for(String ssid : scan.keySet()) {
+						for(AccessPoint accessPoint : scan) {
 							JSONObject currScan = new JSONObject();
 							
 							currScan.put(
 									WifiDataColumnKey.SSID.toString(
 											abbreviated),
-									ssid);
+									accessPoint.ssid);
 							currScan.put(
 									WifiDataColumnKey.STRENGTH.toString(
 											abbreviated),
-									scan.get(ssid));
+									accessPoint.strength);
 							
 							scans.put(currScan);
 						}
@@ -1584,13 +1576,13 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					
 					if(scan != null) {
 						JSONArray scans = new JSONArray();
-						for(String ssid : scan.keySet()) {
+						for(AccessPoint accessPoint : scan) {
 							JSONObject currScan = new JSONObject();
 							
 							currScan.put(
-									WifiDataColumnKey.STRENGTH.toString(
+									WifiDataColumnKey.SSID.toString(
 											abbreviated),
-									scan.get(ssid));
+									accessPoint.ssid);
 							
 							scans.put(currScan);
 						}
@@ -1607,13 +1599,13 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					
 					if(scan != null) {
 						JSONArray scans = new JSONArray();
-						for(String ssid : scan.keySet()) {
+						for(AccessPoint accessPoint : scan) {
 							JSONObject currScan = new JSONObject();
 							
 							currScan.put(
-									WifiDataColumnKey.SSID.toString(
+									WifiDataColumnKey.STRENGTH.toString(
 											abbreviated),
-									ssid);
+									accessPoint.strength);
 							
 							scans.put(currScan);
 						}
@@ -1694,13 +1686,13 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					Collection<Double> strengths =
 							new ArrayList<Double>(scan.size());
 					
-					for(String ssid : scan.keySet()) {
+					for(AccessPoint accessPoint : scan) {
 						if(ssidIndex != -1) {
-							ssids.add(ssid);
+							ssids.add(accessPoint.ssid);
 						}
 						
 						if(strengthIndex != -1) {
-							strengths.add(scan.get(ssid));
+							strengths.add(accessPoint.strength);
 						}
 					}
 					
@@ -3500,12 +3492,13 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 					"There was no WiFi data generated for this point.");
 		}
 
-		Map<String, Double> scan = sensorData.wifiData.scan;
+		List<SensorData.WifiData.AccessPoint> scan = sensorData.wifiData.scan;
 		List<AccessPoint> accessPoints = 
 				new ArrayList<AccessPoint>(scan.size());
 		
-		for(String ssid : scan.keySet()) {
-			accessPoints.add(new AccessPoint(ssid, scan.get(ssid)));
+		for(SensorData.WifiData.AccessPoint accessPoint : scan) {
+			accessPoints
+				.add(new AccessPoint(accessPoint.ssid, accessPoint.strength));
 		}
 		
 		return new WifiScan(sensorData.wifiData.time, accessPoints);

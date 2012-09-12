@@ -48,6 +48,9 @@ public abstract interface PayloadId {
 	 * 						this request. Otherwise, it describes where to look
 	 * 						for the token.
 	 * 
+	 * @param callClientRequester Refers to the "client" parameter as the
+	 * 							  "requester".
+	 * 
 	 * @param version The version of the payload from which to pull data.
 	 * 
 	 * @param startDate Limits the data to only those points on or after this
@@ -69,7 +72,7 @@ public abstract interface PayloadId {
 		Map<String, String[]> parameters,
 		Boolean hashPassword,
 		TokenLocation tokenLocation,
-		String client,
+		boolean callClientRequester,
 		long version,
 		DateTime startDate,
 		DateTime endDate,

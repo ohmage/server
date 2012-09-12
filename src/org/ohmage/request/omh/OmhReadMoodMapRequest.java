@@ -58,6 +58,9 @@ public class OmhReadMoodMapRequest
 	 * 						is null, an authentication token is not allowed for
 	 * 						this request.
 	 * 
+	 * @param callClientRequester Refers to the "client" parameter as the
+	 * 							  "requester".
+	 * 
 	 * @throws IOException There was a problem reading the parameters.
 	 * 
 	 * @throws InvalidRequestException The request parameters were invalid.
@@ -67,14 +70,14 @@ public class OmhReadMoodMapRequest
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
-			final String client,
+			final boolean callClientRequester,
 			final DateTime startDate,
 			final DateTime endDate,
 			final long numToSkip,
 			final long numToReturn)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, hashPassword, tokenLocation, parameters, client);
+		super(httpRequest, hashPassword, tokenLocation, parameters, callClientRequester);
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH read request for Mood Map.");

@@ -55,7 +55,7 @@ public class OmhAuthenticateRequest extends Request {
 				new AuthTokenRequest(
 					httpRequest, 
 					getParameters(),
-					retrieveFirstRequesterValue(httpRequest));
+					true);
 		}
 		
 		authTokenRequest = tAuthTokenRequest;

@@ -23,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.NDC;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -33,9 +32,9 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
+import org.ohmage.jee.filter.ClientFilter;
 import org.ohmage.service.AuthenticationService;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.util.StringUtils;
 
 /**
  * A request that contains a User object and a client String that represents
@@ -50,8 +49,6 @@ public abstract class UserRequest extends Request {
 	protected static enum AllowNewAccount { NEW_ACCOUNT_ALLOWED, NEW_ACCOUNT_DISALLOWED };
 	
 	protected static final long MILLIS_IN_A_SECOND = 1000;
-	
-	private static final int MAX_CLIENT_LENGTH = 255;
 	
 	private final User user;
 	private final String client;
@@ -112,7 +109,7 @@ public abstract class UserRequest extends Request {
 						"Authentication credentials were not provided.");
 				}
 				
-				tClient = retrieveClient();
+				tClient = retrieveClient(httpRequest, false);
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -157,7 +154,7 @@ public abstract class UserRequest extends Request {
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
 			final Map<String, String[]> parameters,
-			final String client) 
+			final boolean callClientRequester) 
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, parameters);
@@ -183,21 +180,7 @@ public abstract class UserRequest extends Request {
 						"Authentication credentials were not provided.");
 				}
 				
-				if(client == null) {
-					tClient = retrieveClient();
-				}
-				else {
-					try {
-						tClient = validateClient(client);
-						NDC.push(tClient);
-					}
-					catch(ValidationException e) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_REQUESTER,
-							"The requester value was invalid.",
-							e);
-					}
-				}
+				tClient = retrieveClient(httpRequest, callClientRequester);
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -206,7 +189,7 @@ public abstract class UserRequest extends Request {
 		}
 		
 		user = tUser;
-		this.client = tClient;
+		client = tClient;
 	}
 	
 	/**
@@ -552,67 +535,44 @@ public abstract class UserRequest extends Request {
 	}
 	
 	/**
-	 * Validates the client value from the parameters.
+	 * Retrieves the client value as an attribute to the request.
 	 * 
 	 * @param httpRequest The HTTP request.
 	 * 
 	 * @return The client value.
 	 * 
-	 * @throws ValidationException The client value was invalid.
+	 * @throws ValidationException The client value was missing.
 	 */
-	private final String retrieveClient() throws ValidationException {
-		
-		// Get the list of clients.
-		String[] clients = getParameterValues(InputKeys.CLIENT);
-		
-		// If there is no client, throw an error.
-		if(clients.length == 0) {
-			throw new ValidationException(
-				ErrorCode.SERVER_INVALID_CLIENT, 
-				"The client is missing.");
-		}
-		// If there are multiple clients, throw an error.
-		else if(clients.length > 1) {
-			throw new ValidationException(
-				ErrorCode.SERVER_INVALID_CLIENT, 
-				"More than one client was given.");
-		}
-		else {
-			// Get the client.
-			String client = validateClient(clients[0]);
-			
-			// Push the client into the logs.
-			NDC.push("client=" + client);
-			
-			return client;
-		}
-	}
-	
-	/**
-	 * Validates that a client value is valid.
-	 * 
-	 * @param client The client value to be validated.
-	 * 
-	 * @return Returns the client value.
-	 * 
-	 * @throws ValidationException The client value was invalid.
-	 */
-	private final String validateClient(
-			final String client)
+	private final String retrieveClient(
+			final HttpServletRequest httpRequest,
+			final boolean callClientRequester)
 			throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(client)) {
-			throw new ValidationException(
-				ErrorCode.SERVER_INVALID_CLIENT,
-				"The client is missing.");
+		String client = null;
+		
+		// Get the client object as an attribute.
+		Object clientObject =
+			httpRequest
+				.getAttribute(ClientFilter.ATTRIBUTE_KEY_CLIENT);
+		
+		// Ensure that the client is a string.
+		if(clientObject instanceof String) {
+			client = (String) clientObject; 
 		}
 		
-		if(client.length() > MAX_CLIENT_LENGTH) {
-			throw new ValidationException(
-				ErrorCode.SERVER_INVALID_CLIENT, 
-				"The client value is too long.");
+		// If the 'clientObject' was null or not a string, fail the request 
+		// indicating that it must have been missing. If it was invalid, it 
+		// would have been rejected in the filter.
+		if(client == null) {
+			throw
+				new ValidationException(
+					ErrorCode.SERVER_INVALID_CLIENT,
+					"The '" +
+						((callClientRequester) ? "requester" : "client") +
+						"' value is missing.");
 		}
 		
+		// Return the client value.
 		return client;
 	}
 }

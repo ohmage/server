@@ -23,12 +23,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
@@ -36,9 +32,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
-import org.apache.tomcat.util.http.fileupload.FileUploadBase.FileSizeLimitExceededException;
-import org.apache.tomcat.util.http.fileupload.FileUploadBase.SizeLimitExceededException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -46,7 +41,7 @@ import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
-import org.ohmage.util.StringUtils;
+import org.ohmage.jee.filter.GzipFilter;
 
 /**
  * Superclass for all requests. Defines the basic requirements for a request.
@@ -114,14 +109,6 @@ public abstract class Request {
 			"\"" + Annotator.JSON_KEY_TEXT + "\":\"An error occurred while building the JSON response.\"}" +
 		"]}";
 	
-	private static final String KEY_CONTENT_ENCODING = "Content-Encoding";
-	private static final String VALUE_GZIP = "gzip";
-	
-	private static final int CHUNK_SIZE = 4096;
-	
-	private static final String PARAMETER_SEPARATOR = "&";
-	private static final String PARAMETER_VALUE_SEPARATOR = "=";
-	
 	private static final String KEY_AUDIT_REQUESTER_INTERNET_ADDRESS = 
 			"requester_inet_addr";
 	
@@ -150,6 +137,7 @@ public abstract class Request {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
+	@SuppressWarnings("unchecked")
 	protected Request(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters)
@@ -158,19 +146,43 @@ public abstract class Request {
 		annotator = new Annotator();
 		failed = false;
 
-		if(parameters == null) {
-			this.parameters = getParameters(httpRequest);
+		Map<String, String[]> tParameters = new HashMap<String, String[]>();
+		String tRequesterInetAddr = null;
+		try {
+			if(parameters == null) {
+				Object parametersObject = 
+					httpRequest
+						.getAttribute(GzipFilter.ATTRIBUTE_KEY_PARAMETERS);
+				
+				if(parametersObject instanceof Map) {
+					// We make the assumption that we are the only one setting
+					// this value, so it must be a map.
+					tParameters = (Map<String, String[]>) parametersObject;
+				}
+				else if(parametersObject == null) {
+					throw new ValidationException(
+						"The parameter map was never set which should have been done in the GZIP filter.");
+				}
+				else {
+					throw new ValidationException(
+						"The parameters object was not a map.");
+				}
+			}
+			else {
+				tParameters = parameters;
+			}
+			
+			if(httpRequest != null) {
+				tRequesterInetAddr = httpRequest.getRemoteAddr();
+			}
 		}
-		else {
-			this.parameters = parameters;
+		catch(ValidationException e) {
+			e.failRequest(this);
+			e.logException(LOGGER);
 		}
 		
-		if(httpRequest == null) {
-			requesterInetAddr = null;
-		}
-		else {
-			requesterInetAddr = httpRequest.getRemoteAddr();
-		}
+		this.parameters = tParameters;
+		this.requesterInetAddr = tRequesterInetAddr;
 	}
 	
 	/**
@@ -408,6 +420,10 @@ public abstract class Request {
 			
 			writer.write(responseText);
 		}
+		// If the client hangs up, just print a warning.
+		catch(ClientAbortException e) {
+			LOGGER.info("The client hung up unexpectedly.", e);
+		}
 		catch(IOException e) {
 			LOGGER.error("Unable to write response message. Aborting.", e);
 		}
@@ -449,255 +465,6 @@ public abstract class Request {
 		    // Required to allow for CORS.
 		    httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
 		}
-	}
-	
-	
-	/**
-	 * Retrieves the parameter map from the request and returns it.
-	 * 
-	 * @param httpRequest A HttpServletRequest that contains the desired 
-	 * 					  parameter map.
-	 * 
-	 * @return Returns a map of keys to an array of values for all of the
-	 * 		   parameters contained in the request. This may return an empty 
-	 * 		   map, but it will never return null.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	private Map<String, String[]> getParameters(
-			final HttpServletRequest httpRequest) 
-			throws IOException, InvalidRequestException {
-		
-		if(httpRequest == null) {
-			return Collections.emptyMap();
-		}
-		
-		// This is a hack to validate whether or not the size limits have been
-		// exceeded. If this isn't done and the parameters violate the size
-		// limits, Tomcat will silently fail by returning an empty parameter
-		// map even if all parameters are valid except one. It will not throw
-		// an exception or give any indication that something has failed.
-		try {
-			httpRequest.getParts();
-		}
-		catch(ServletException e) {
-			// This simply means that it is not a multipart/form-post request.
-		}
-		catch(IllegalStateException e) {
-			String errorText;
-			
-			Throwable cause = e.getCause();
-			if(cause instanceof FileSizeLimitExceededException) {
-				errorText = 
-						((FileSizeLimitExceededException) cause).getMessage();
-			}
-			else if(cause instanceof SizeLimitExceededException) {
-				errorText = ((SizeLimitExceededException) cause).getMessage();
-			}
-			else {
-				errorText = 
-						"A parameter and/or the entire request is too large.";
-			}
-			
-			setFailed(ErrorCode.SYSTEM_REQUEST_TOO_LARGE, errorText);
-		} 
-		catch(IOException e) {
-			// This appears to happen when it is a POST request but there 
-			// aren't any attached files; however, nothing has actually failed.
-			// Given that this is simply a check to see if the size limit has
-			// been exceeded and not to actually retrieve or validate any data,
-			// this is being allowed to pass through.
-			/*
-			setFailed(
-					ErrorCode.SYSTEM_GENERAL_ERROR, 
-					"Error reading the request's parameters.");
-			*/
-		}
-		
-		Map<String, String[]> result = null;
-		Enumeration<String> contentEncodingHeaders = 
-				httpRequest.getHeaders(KEY_CONTENT_ENCODING);
-		
-		// Look for a GZIP content encoding header.
-		while(contentEncodingHeaders.hasMoreElements()) {
-			// If one is found, gunzip the request.
-			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
-				result = gunzipRequest(httpRequest);
-				break;
-			}
-		}
-		
-		// If the parameter map has not yet been decoded, use the container's
-		// parameter map retrieval.
-		if(result == null) {
-			result = httpRequest.getParameterMap();
-		}
-		
-		return result;
-	}
-	
-	/**
-	 * Retrieves the parameter map from a request that has had its contents
-	 * GZIP'd. 
-	 * 
-	 * @param httpRequest A HttpServletRequest whose contents are GZIP'd as
-	 * 					  indicated by a "Content-Encoding" header.
-	 * 
-	 * @return Returns a map of keys to a list of values for all of the 
-	 * 		   parameters passed to the server. This may return an empty map,
-	 * 		   but it will never return null.
-	 * 
-	 * @throws InvalidRequestException Thrown if the parameters cannot be 
-	 * 								   parsed.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 */
-	private Map<String, String[]> gunzipRequest(
-			final HttpServletRequest httpRequest)
-			throws IOException, InvalidRequestException {
-		
-		// Get the request's InputStream.
-		InputStream requestInputStream;
-		try {
-			requestInputStream = httpRequest.getInputStream();
-		}
-		catch(IOException e) {
-			LOGGER.info("Could not connect to the request's input stream.", e);
-			throw e;
-		}
-		
-		// Pass it through the GZIP input stream.
-		GZIPInputStream gzipInputStream;
-		try {
-			gzipInputStream = new GZIPInputStream(requestInputStream);
-		}
-		catch(IOException e) {
-			try {
-				requestInputStream.close();
-			}
-			catch(IOException requestIs) {
-				LOGGER.error(
-					"Could not close the request's input stream.", 
-					requestIs);
-				throw requestIs;
-			}
-			
-			throw new InvalidRequestException(
-				HttpServletResponse.SC_BAD_REQUEST,
-				"The content was not a valid GZIP stream.");
-		}
-		
-		// Retrieve the parameter list as a string.
-		String parameterString;
-		try {
-			// This will build the parameter string.
-			StringBuilder builder = new StringBuilder();
-			
-			// These will store the information for the current chunk.
-			byte[] chunk = new byte[CHUNK_SIZE];
-			int readLen = 0;
-			
-			while((readLen = gzipInputStream.read(chunk)) != -1) {
-				builder.append(new String(chunk, 0, readLen));
-			}
-			
-			parameterString = builder.toString();
-		}
-		catch(IOException e) {
-			LOGGER.info(
-				"The stream was cut off before reading was finished.",
-				e);
-			throw e;
-		}
-		finally {
-			try {
-				gzipInputStream.close();
-				gzipInputStream = null;
-			}
-			catch(IOException e) {
-				LOGGER.info("Error closing the GZIP input stream.", e);
-			}
-
-			try {
-				requestInputStream.close();
-				requestInputStream = null;
-			}
-			catch(IOException e) {
-				LOGGER.info("Error closing the request's input stream.", e);
-			}
-		}
-		
-		// Create the resulting object so that we will never return null.
-		Map<String, String[]> parameterMap = new HashMap<String, String[]>();
-		
-		// If the parameters string is not empty, parse it for the parameters.
-		if(! StringUtils.isEmptyOrWhitespaceOnly(parameterString)) {
-			Map<String, List<String>> parameters = new HashMap<String, List<String>>();
-			
-			// First, split all of the parameters apart.
-			String[] keyValuePairs = parameterString.split(PARAMETER_SEPARATOR);
-			
-			// For each of the pairs, split their key and value and store them.
-			for(String keyValuePair : keyValuePairs) {
-				// If the pair is empty or null, ignore it.
-				if(StringUtils.isEmptyOrWhitespaceOnly(keyValuePair.trim())) {
-					continue;
-				}
-				
-				// Split the key from the value.
-				String[] splitPair = keyValuePair.split(PARAMETER_VALUE_SEPARATOR);
-				
-				// If there isn't exactly one key to one value, then there is a
-				// problem, and we need to abort.
-				if(splitPair.length <= 1) {
-					String errorText =
-						"One of the parameter's 'pairs' did not contain a '" + 
-							PARAMETER_VALUE_SEPARATOR + 
-							"': " + 
-							keyValuePair;
-					
-					LOGGER.error(errorText);
-					throw new InvalidRequestException(
-						HttpServletResponse.SC_BAD_REQUEST, 
-						errorText);
-				}
-				else if(splitPair.length > 2) {
-					String errorText =
-						"One of the parameter's 'pairs' contained multiple '" + 
-							PARAMETER_VALUE_SEPARATOR + 
-							"'s: " + 
-							keyValuePair;
-					
-					LOGGER.error(errorText);
-					throw new InvalidRequestException(
-						HttpServletResponse.SC_BAD_REQUEST, 
-						errorText);
-				}
-				
-				// The key is the first part of the pair.
-				String key = StringUtils.urlDecode(splitPair[0]);
-				
-				// The first or next value for the key is the second part of 
-				// the pair.
-				List<String> values = parameters.get(key);
-				if(values == null) {
-					values = new LinkedList<String>();
-					parameters.put(key, values);
-				}
-				values.add(StringUtils.urlDecode(splitPair[1]));
-			}
-			
-			// Now that we have all of the pairs, convert it into the 
-			// appropriate map.
-			for(String key : parameters.keySet()) {
-				parameterMap.put(key, parameters.get(key).toArray(new String[0]));
-			}
-		}
-		
-		return parameterMap;
 	}
 	
 	/**
@@ -811,29 +578,4 @@ public abstract class Request {
 	/**************************************************************************
 	 *  End JEE Requirements
 	 *************************************************************************/
-	
-	/**
-	 * Retrieves the client value from the request and returns it if there is
-	 * only one. Otherwise, it returns null.
-	 * 
-	 * @param httpRequest The HTTP request that made this call.
-	 * 
-	 * @return The client value or null if no such value exists.
-	 */
-	protected static String retrieveFirstRequesterValue(
-			final HttpServletRequest httpRequest) {
-		
-		String[] requesters = 
-			httpRequest.getParameterMap().get(InputKeys.OMH_REQUESTER);
-		
-		if(requesters == null) {
-			return null;
-		}
-		else if (requesters.length == 0) {
-			return null;
-		}
-		else {
-			return requesters[0];
-		}
-	}
 }

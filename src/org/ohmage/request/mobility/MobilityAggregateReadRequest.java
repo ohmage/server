@@ -203,7 +203,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							getParameterMap(),
 							false,
 							TokenLocation.EITHER,
-							retrieveFirstRequesterValue(httpRequest),
+							false,
 							tUsername,
 							"edu.ucla.cens.Mobility",
 							null,
@@ -213,7 +213,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							endDate,
 							null,
 							null,
-							null);
+							Long.MAX_VALUE);
 					
 					tExtendedReadRequest = 
 						new StreamReadRequest(
@@ -221,7 +221,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							getParameterMap(),
 							false,
 							TokenLocation.EITHER,
-							retrieveFirstRequesterValue(httpRequest),
+							false,
 							tUsername,
 							"edu.ucla.cens.Mobility",
 							null,
@@ -231,7 +231,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							endDate,
 							null,
 							null,
-							null);
+							Long.MAX_VALUE);
 				}
 				catch(IllegalArgumentException e) {
 					throw new ValidationException(

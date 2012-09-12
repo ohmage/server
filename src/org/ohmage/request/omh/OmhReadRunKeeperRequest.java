@@ -1196,7 +1196,8 @@ public class OmhReadRunKeeperRequest
 	 * @param tokenLocation Where to search for the user's token. If null, a
 	 * 						token is not allowed for this API.
 	 * 
-	 * @param client The client value from the request.
+	 * @param callClientRequester Refers to the "client" parameter as the
+	 * 							  "requester".
 	 * 
 	 * @param startDate Limits the results to only those on or after this date.
 	 * 
@@ -1224,7 +1225,7 @@ public class OmhReadRunKeeperRequest
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
-			final String client,
+			final boolean callClientRequester,
 			final DateTime startDate,
 			final DateTime endDate,
 			final long numToSkip,
@@ -1232,7 +1233,7 @@ public class OmhReadRunKeeperRequest
 			final String api)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, hashPassword, tokenLocation, parameters, client);
+		super(httpRequest, hashPassword, tokenLocation, parameters, callClientRequester);
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH read request for RunKeeper.");

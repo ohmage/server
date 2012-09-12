@@ -106,7 +106,7 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	protected SurveyResponseRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
-			final String client,
+			boolean callClientRequester,
 			final String campaignId,
 			final Collection<String> usernames,
 			final Collection<String> surveyIds,
@@ -118,7 +118,7 @@ public abstract class SurveyResponseRequest extends UserRequest {
 			final Set<String> promptResponseSearchTokens)
 			throws IOException, InvalidRequestException {
 		
-		super(httpRequest, false, TokenLocation.EITHER, parameters, client);
+		super(httpRequest, false, TokenLocation.EITHER, parameters, callClientRequester);
 		
 		if(campaignId == null) {
 			throw new IllegalArgumentException("The campaign ID is null.");

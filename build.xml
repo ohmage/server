@@ -41,6 +41,7 @@
   	<include name="joda-time-2.1.jar"/>
     <include name="jackson-all-1.9.7.jar"/>
     <include name="js.jar"/>
+    <include name="catalina-2012-09-10.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${library}">
