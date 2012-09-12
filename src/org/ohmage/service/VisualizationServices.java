@@ -21,11 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.util.Map;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -176,36 +174,23 @@ public class VisualizationServices {
 				.append(URLEncoder.encode(PARAMETER_KEY_SERVER, ENCODING))
 				.append("='");
 			
-			// Get the protocol string based on SSL being enabled.
+			// Get this machine's hostname.
 			try {
-				String sslEnabled = 
-						PreferenceCache.instance().lookup(
-								PreferenceCache.KEY_SSL_ENABLED);
-				if((sslEnabled != null) && (sslEnabled.equals("true"))) {
-					parameterBuilder.append("https");
-				}
-				else {
-					parameterBuilder.append("http");
-				}
+				parameterBuilder
+					.append(
+						URLEncoder
+							.encode(
+								PreferenceCache
+									.instance()
+										.lookup(
+											PreferenceCache
+												.KEY_FULLY_QUALIFIED_DOMAIN_NAME),
+								ENCODING));
 			}
 			catch(CacheMissException e) {
 				throw new ServiceException(
-						"Cache doesn't know about 'known' key: " + 
-							PreferenceCache.KEY_SSL_ENABLED, 
-						e);
-			}
-			parameterBuilder.append(URLEncoder.encode("://", ENCODING));
-			
-			// Get this machine's hostname.
-			try {
-				parameterBuilder.append(
-						URLEncoder.encode(
-								InetAddress.getLocalHost().getHostName(), 
-								ENCODING));
-			}
-			catch(UnknownHostException e) {
-				throw new ServiceException(
-						"The sky is falling! Oh, and our own hostname is unknown.",
+						"The FQDN preference is missing: " +
+							PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME,
 						e);
 			}
 			parameterBuilder
@@ -253,6 +238,8 @@ public class VisualizationServices {
 					"UTF-8 encoding is unknown.",
 					e);
 		}
+		
+		System.out.println(parameterBuilder.toString());
 		
 		try {
 			// Connect to the visualization server.
