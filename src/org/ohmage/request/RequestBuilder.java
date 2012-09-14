@@ -308,7 +308,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiStreamRead = apiRoot + "/stream/read";
 		
 		// OMH
-		apiOmhAuth = apiRoot + "/omh/v1.0/auth";
+		apiOmhAuth = apiRoot + "/omh/v1.0/authenticate";
 		apiOmhRegistryCreate = apiRoot + "/omh/v1.0/registry/create";
 		apiOmhRegistryRead = apiRoot + "/omh/v1.0/registry/read";
 		apiOmhRegistryUpdate = apiRoot + "/omh/v1.0/registry/update";
