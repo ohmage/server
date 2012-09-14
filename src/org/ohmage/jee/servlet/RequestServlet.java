@@ -310,7 +310,7 @@ public class RequestServlet extends HttpServlet {
 			processRequest(httpRequest, httpResponse);
 		}
 		else {
-			LOGGER.warn("GET attempted and denied.");
+			LOGGER.info("GET attempted and denied.");
 			try {
 				httpResponse.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
 			}
