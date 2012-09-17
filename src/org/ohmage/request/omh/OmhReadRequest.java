@@ -283,6 +283,9 @@ public class OmhReadRequest extends Request {
 				userRequest.respond(httpRequest, httpResponse);
 			}
 		}
+		else if(userRequest instanceof OmhReadMindMyMedsRequest) {
+			userRequest.respond(httpRequest, httpResponse);
+		}
 		else if(userRequest instanceof OmhReadResponder) {
 			OmhReadResponder omhReadResponder = (OmhReadResponder) userRequest;
 			

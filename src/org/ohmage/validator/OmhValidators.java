@@ -3,6 +3,7 @@ package org.ohmage.validator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
+import org.ohmage.domain.MindMyMedsPayloadId;
 import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
 import org.ohmage.domain.PayloadId;
@@ -106,6 +107,9 @@ public class OmhValidators {
 						"The RunKeeper API value is invalid: " + split[2],
 						e);
 				}
+			}
+			else if("mind_my_meds".equals(domain)) {
+				result = new MindMyMedsPayloadId();
 			}
 			else {
 				throw new ValidationException(
