@@ -202,7 +202,7 @@ public class OmhValidators {
 		else if((result == null) && "observer".equals(type)) {
 			String observerId;
 			try {
-				observerId = ObserverValidators.validateObserverId(split[2]);
+				observerId = ObserverValidators.validateObserverId(split[3]);
 			}
 			catch(ValidationException e) {
 				throw new ValidationException(
@@ -221,7 +221,7 @@ public class OmhValidators {
 			
 			String streamId;
 			try {
-				streamId = ObserverValidators.validateStreamId(split[3]);
+				streamId = ObserverValidators.validateStreamId(split[4]);
 			}
 			catch(ValidationException e) {
 				throw new ValidationException(
