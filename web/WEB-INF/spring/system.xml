@@ -22,7 +22,7 @@
   
   <util:map id="dbProps">
     <entry key="db.driver" value="com.mysql.jdbc.Driver"/>
-    <entry key="db.jdbcurl" value="jdbc:mysql://131.179.145.16:3305/ohmage"/>
+    <entry key="db.jdbcurl" value="jdbc:mysql://localhost:3306/ohmage"/>
     <entry key="db.username" value="ohmage"/>
     <entry key="db.password" value="&amp;!sickly"/>
   </util:map>
