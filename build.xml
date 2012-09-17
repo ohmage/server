@@ -266,6 +266,13 @@ it up and remove the warnings.</echo>
         <exclude name="WEB-INF/**"/>
       </zipfileset>
     </war>
+    <echo>
+    
+    ******************************************************************************************
+    If you are deploying to odev, did you remember to change the MySQL JDBC connection string?
+    ******************************************************************************************
+    
+    </echo>
   </target>
 
   <target name="dist-no_ssl" depends="test, javac" description="Compiles Java files and creates WAR.">
