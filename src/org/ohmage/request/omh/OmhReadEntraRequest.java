@@ -1710,27 +1710,27 @@ public class OmhReadEntraRequest
 				
 				// Write the 'val2' field.
 				if(result.vals[1] != null) {
-					generator.writeNumberField(JSON_KEY_VAL1, result.vals[1]);
+					generator.writeNumberField(JSON_KEY_VAL2, result.vals[1]);
 				}
 				
 				// Write the 'val3' field.
 				if(result.vals[2] != null) {
-					generator.writeNumberField(JSON_KEY_VAL1, result.vals[2]);
+					generator.writeNumberField(JSON_KEY_VAL3, result.vals[2]);
 				}
 				
 				// Write the 'val4' field.
 				if(result.vals[3] != null) {
-					generator.writeNumberField(JSON_KEY_VAL1, result.vals[3]);
+					generator.writeNumberField(JSON_KEY_VAL4, result.vals[3]);
 				}
 				
 				// Write the 'val5' field.
 				if(result.vals[4] != null) {
-					generator.writeNumberField(JSON_KEY_VAL1, result.vals[4]);
+					generator.writeNumberField(JSON_KEY_VAL5, result.vals[4]);
 				}
 				
 				// Write the 'val6' field.
 				if(result.vals[5] != null) {
-					generator.writeNumberField(JSON_KEY_VAL1, result.vals[5]);
+					generator.writeNumberField(JSON_KEY_VAL6, result.vals[5]);
 				}
 				
 				// End the data.
