@@ -324,7 +324,7 @@ public class UserCampaignServices {
 			}
 			
 			// Check to ensure that the name of the campaign hasn't changed.
-			if(campaignQueries.getName(campaignId).equals(name)) {
+			if(! campaignQueries.getName(campaignId).equals(name)) {
 				throw new ServiceException(
 					ErrorCode.CAMPAIGN_XML_HEADER_CHANGED, 
 					"The campaign's name in the new XML must be the same as the original XML.");
