@@ -3,6 +3,7 @@ package org.ohmage.validator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
+import org.ohmage.domain.EntraPayloadId;
 import org.ohmage.domain.MindMyMedsPayloadId;
 import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
@@ -12,6 +13,8 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApi;
 import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApiFactory;
+import org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod;
+import org.ohmage.request.omh.OmhReadEntraRequest.EntraMethodFactory;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApi;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApiFactory;
 import org.ohmage.util.StringUtils;
@@ -110,6 +113,24 @@ public class OmhValidators {
 			}
 			else if("mind_my_meds".equals(domain)) {
 				result = new MindMyMedsPayloadId();
+			}
+			else if("entra".equals(domain)) {
+				try {
+					result = new EntraPayloadId(split[2]);
+				}
+				catch(IndexOutOfBoundsException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The payload ID for the Entra domain requires a third section indicating the method: " +
+							trimmedValue,
+						e);
+				}
+				catch(DomainException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The Entra method is invalid: " + split[2],
+						e);
+				}
 			}
 			else {
 				throw new ValidationException(
@@ -343,6 +364,36 @@ public class OmhValidators {
 		
 		try {
 			return BodyMediaApiFactory.getApi(value);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The path is invalid: " + value,
+				e);
+		}
+	}
+	
+	/**
+	 * Validates that the method is known.
+	 * 
+	 * @param value The path string to use to create a {@link EntraMethod}
+	 * 				object.
+	 * 
+	 * @return The {@link EntraMethod} object that matches the path String.
+	 * 
+	 * @throws ValidationException The path string doesn't reference any known
+	 * 							   {@link EntraMethod}.
+	 */
+	public static EntraMethod validateEntraMethod(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		try {
+			return EntraMethodFactory.getMethod(value);
 		}
 		catch(DomainException e) {
 			throw new ValidationException(

@@ -1298,6 +1298,10 @@ public class OmhReadBodyMediaRequest
 		return api.getNumDataPoints();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator, org.ohmage.request.observer.StreamReadRequest.ColumnNode)
+	 */
 	@Override
 	public void respond(
 			final JsonGenerator generator, 

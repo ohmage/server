@@ -1075,9 +1075,7 @@ public class OmhReadRunKeeperRequest
 	}
 	
 	/**
-	 * A factory class for generating {@link RunKeeperApi} objects. Each path
-	 * subclass must register with the factory in order to be built in that
-	 * fashion.
+	 * A factory class for generating {@link RunKeeperApi} objects.
 	 *
 	 * @author John Jenkins
 	 */
