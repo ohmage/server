@@ -1,13 +1,15 @@
 package org.ohmage.domain;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
 import org.ohmage.exception.DomainException;
-import org.ohmage.request.UserRequest;
+import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest.TokenLocation;
+import org.ohmage.request.omh.OmhReadEntraRequest;
 
 public class EntraPayloadId implements PayloadId {
 	private final String id;
@@ -36,12 +38,13 @@ public class EntraPayloadId implements PayloadId {
 		return null;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.PayloadId#generateSubRequest(javax.servlet.http.HttpServletRequest, java.util.Map, java.lang.Boolean, org.ohmage.request.UserRequest.TokenLocation, boolean, long, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+	/**
+	 * Creates an Entra request.
+	 * 
+	 * @return An OmhReadEntraRequest object.
 	 */
 	@Override
-	public UserRequest generateSubRequest(
+	public OmhReadEntraRequest generateSubRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
@@ -54,7 +57,30 @@ public class EntraPayloadId implements PayloadId {
 			final long numToReturn)
 			throws DomainException {
 		
-		return null;
+		try {
+			return
+				new OmhReadEntraRequest(
+					httpRequest, 
+					parameters, 
+					hashPassword,
+					tokenLocation,
+					callClientRequester,
+					startDate, 
+					endDate,
+					numToSkip, 
+					numToReturn,
+					id);
+		}
+		catch(IOException e) {
+			throw new DomainException(
+				"There was an error reading the parameters.", 
+				e);
+		}
+		catch(InvalidRequestException e) {
+			throw new DomainException(
+				"There was a problem building the request.",
+				e);
+		}
 	}
 
 }

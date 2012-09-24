@@ -26,8 +26,10 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -101,6 +103,20 @@ public class OmhReadEntraRequest
 		 * The parameter name for the method.
 		 */
 		protected static final String PARAM_METHOD = "method";
+		/**
+		 * The parameter that indicates the type of glucose reading.
+		 */
+		private static final String PARAM_TYPE_ID = "typeID";
+		/**
+		 * The parameter that indicates the earliest point at which results
+		 * should be returned.
+		 */
+		private static final String PARAM_START_DATE = "fromDate";
+		/**
+		 * The parameter that indicates the earliest point at which results
+		 * should be returned.
+		 */
+		private static final String PARAM_END_DATE = "toDate";
 		
 		/**
 		 * The method String for this EntraMethod.
@@ -428,17 +444,99 @@ public class OmhReadEntraRequest
 		 * Builds and makes the HTTP GET request. This will return the data as
 		 * a string.
 		 * 
-		 * @return The response from Entra as a String.
+		 * @return The root Element of the response parsed as XML.
 		 * 
 		 * @throws DomainException There was a problem making the request.
 		 */
-		protected final String makeRequest(
-				final URI uri)
+		protected final Element makeRequest(
+				final String appId,
+				final String appPassword,
+				final String appSource,
+				final String userName,
+				final String userPassword,
+				final DateTime startDate,
+				final DateTime endDate)
 				throws DomainException {
 			
+			// Build the request based on the API's URI.
+			StringBuilder uriBuilder = new StringBuilder(API_URI);
+			uriBuilder.append('?');
+			
+			// Create the parameters.
+			List<BasicNameValuePair> params = 
+				new LinkedList<BasicNameValuePair>();
+			
+			// Add the ohamge ID.
+			params.add(new BasicNameValuePair(PARAM_APP_ID, appId));
+			
+			// Add the ohmage password.
+			params
+				.add(new BasicNameValuePair(PARAM_APP_PASSWORD, appPassword));
+			
+			// Add the ohmage 'source'.
+			params.add(new BasicNameValuePair(PARAM_APP_SOURCE, appSource));
+			
+			// Add the user's username.
+			params.add(new BasicNameValuePair(PARAM_USER_NAME, userName));
+			
+			// Add the user's password.
+			params
+				.add(
+					new BasicNameValuePair(PARAM_USER_PASSWORD, userPassword));
+			
+			// Add the method.
+			params.add(new BasicNameValuePair(PARAM_METHOD, getMethod()));
+			
+			// The type ID must always be added, even though there is only one
+			// value.
+			params
+				.add(
+					new BasicNameValuePair(
+						PARAM_TYPE_ID,
+						(new Integer(getTypeId()).toString())));
+			
+			// Add some start date.
+			if(startDate == null) {
+				params
+					.add(
+						new BasicNameValuePair(
+							PARAM_START_DATE, 
+							DATE_TIME_FORMATTER.print(new DateTime(0))));
+			}
+			else {
+				params
+					.add(
+						new BasicNameValuePair(
+							PARAM_START_DATE,
+							DATE_TIME_FORMATTER.print(startDate)));
+			}
+			
+			// Add the end date if it is present.
+			if(endDate != null) {
+				params
+					.add(
+						new BasicNameValuePair(
+							PARAM_END_DATE,
+							DATE_TIME_FORMATTER.print(endDate)));
+			}
+			
+			// Add the parameters.
+			uriBuilder.append(URLEncodedUtils.format(params, "UTF-8"));
+			
+			// Create the URI.
+			URI uri;
+			try {
+				uri = new URI(uriBuilder.toString());
+			}
+			catch(URISyntaxException e) {
+				throw new DomainException("The URI was invalid.", e);
+			}
+			
+			// Create the GET request and the client to handle it.
 			HttpClient httpClient = new DefaultHttpClient();
 			HttpGet httpGet = new HttpGet(uri);
 			
+			// Make the request.
 			HttpResponse httpResponse;
 			try {
 				httpResponse = httpClient.execute(httpGet);
@@ -452,8 +550,10 @@ public class OmhReadEntraRequest
 					e);
 			}
 			
+			// Process the response for its content.
+			String responseString;
 			try {
-				return 
+				responseString =
 					(new BasicResponseHandler()).handleResponse(httpResponse);
 			}
 			catch(HttpResponseException e) {
@@ -466,7 +566,41 @@ public class OmhReadEntraRequest
 					"There was an error commmunicating with the server.",
 					e);
 			}
+			
+			// Parse the result as XML. 
+			Document document;
+			try {
+				document = 
+					(new Builder()).build(new StringReader(responseString));
+			} 
+			catch(IOException e) {
+				// This should only be thrown if it can't read the 'xml', but
+				// given that it is already in memory this should never happen.
+				throw new DomainException("XML was unreadable.", e);
+			}
+			catch(XMLException e) {
+				throw
+					new DomainException(
+						"No usable XML parser could be found.",
+						e);
+			}
+			catch(ValidityException e) {
+				throw new DomainException("The XML is invalid.", e);
+			}
+			catch(ParsingException e) {
+				throw new DomainException("The XML is not well formed.", e);
+			}
+			
+			// Get the set of "record" nodes.
+			return document.getRootElement();
 		}
+		
+		/**
+		 * Returns the type ID for a specific type in the request.
+		 * 
+		 * @return The specific type's ID.
+		 */
+		public abstract int getTypeId();
 	}
 	
 	/**
@@ -481,25 +615,10 @@ public class OmhReadEntraRequest
 		private static final String METHOD = "getGlucose";
 		
 		/**
-		 * The parameter that indicates the type of glucose reading.
-		 */
-		private static final String PARAM_TYPE_ID = "typeID";
-		/**
-		 * The parameter that indicates the earliest point at which results
-		 * should be returned.
-		 */
-		private static final String PARAM_START_DATE = "fromDate";
-		/**
-		 * The parameter that indicates the earliest point at which results
-		 * should be returned.
-		 */
-		private static final String PARAM_END_DATE = "toDate";
-		
-		/**
 		 * The date-time formatter for our concatenation of the date and time.
 		 */
 		private static final DateTimeFormatter DATE_TIME_CONCAT_FORMATTER =
-			DateTimeFormat.forPattern(DATE_TIME_PATTERN + "'T'" + "HH:mm");
+			DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm");
 		
 		/**
 		 * This class represents a single data point returned from the API.
@@ -703,6 +822,10 @@ public class OmhReadEntraRequest
 			return Result.toConcordia(generator);
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#makeRequest(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+		 */
 		@Override
 		protected void makeRequest(
 				final String appId,
@@ -715,98 +838,17 @@ public class OmhReadEntraRequest
 				final long numToSkip,
 				final long numToReturn)
 				throws DomainException {
-			
-			// Build the request based on the API's URI.
-			StringBuilder uriBuilder = new StringBuilder(API_URI);
-			uriBuilder.append('?');
-			
-			// Add the ohamge ID.
-			uriBuilder.append(PARAM_APP_ID).append('=').append(appId);
-			
-			// Add the ohmage password.
-			uriBuilder
-				.append('&')
-					.append(PARAM_APP_PASSWORD)
-						.append('=').append(appPassword);
-			
-			// Add the ohmage 'source'.
-			uriBuilder
-				.append('&')
-					.append(PARAM_APP_SOURCE).append('=').append(appSource);
-			
-			// Add the user's username.
-			uriBuilder
-				.append('&')
-					.append(PARAM_USER_NAME).append('=').append(userName);
-			
-			// Add the user's password.
-			uriBuilder
-				.append('&')
-					.append(PARAM_USER_PASSWORD)
-						.append('=').append(userPassword);
-			
-			// Add the method.
-			uriBuilder
-				.append('&')
-					.append(PARAM_METHOD).append('=').append(getMethod());
-			
-			// The type ID must always be added, even though there is only one
-			// value.
-			uriBuilder
-				.append('&').append(PARAM_TYPE_ID).append('=').append('1');
-			
-			// Add some start date.
-			uriBuilder.append('&').append(PARAM_START_DATE).append('=');
-			if(startDate == null) {
-				uriBuilder.append(DATE_TIME_FORMATTER.print(new DateTime()));
-			}
-			else {
-				uriBuilder.append(DATE_TIME_FORMATTER.print(startDate));
-			}
-			
-			// Add the end date if it is present.
-			if(endDate != null) {
-				uriBuilder
-					.append('&')
-						.append(PARAM_END_DATE)
-							.append('=')
-								.append(DATE_TIME_FORMATTER.print(endDate));
-			}
-			
-			// Get the result of the request.
-			String result;
-			try {
-				result = makeRequest(new URI(uriBuilder.toString()));
-			}
-			catch(URISyntaxException e) {
-				throw new DomainException("The URI was invalid.", e);
-			}
-			
-			// Parse the result as XML. 
-			Document document;
-			try {
-				document = (new Builder()).build(new StringReader(result));
-			} 
-			catch(IOException e) {
-				// This should only be thrown if it can't read the 'xml', but
-				// given that it is already in memory this should never happen.
-				throw new DomainException("XML was unreadable.", e);
-			}
-			catch(XMLException e) {
-				throw
-					new DomainException(
-						"No usable XML parser could be found.",
-						e);
-			}
-			catch(ValidityException e) {
-				throw new DomainException("The XML is invalid.", e);
-			}
-			catch(ParsingException e) {
-				throw new DomainException("The XML is not well formed.", e);
-			}
-			
+
 			// Get the set of "record" nodes.
-			Element root = document.getRootElement();
+			Element root = 
+				makeRequest(
+					appId, 
+					appPassword, 
+					appSource, 
+					userName, 
+					userPassword, 
+					startDate, 
+					endDate);
 			Nodes records = root.query("record");
 			
 			// Calculate the last index to return.
@@ -1026,6 +1068,14 @@ public class OmhReadEntraRequest
 				generator.writeEndObject();
 			}
 		}
+
+		/**
+		 * @return Always returns 1.
+		 */
+		@Override
+		public int getTypeId() {
+			return 1;
+		}
 	}
 	
 	/**
@@ -1033,41 +1083,27 @@ public class OmhReadEntraRequest
 	 *
 	 * @author John Jenkins
 	 */
-	public abstract static class FitnessMethod extends EntraMethod {
+	public abstract static class DataMethod extends EntraMethod {
 		/**
 		 * This Entra method's method name.
 		 */
 		private static final String METHOD = "getData";
 		
 		/**
-		 * The parameter that indicates the earliest point at which results
-		 * should be returned.
-		 */
-		private static final String PARAM_START_DATE = "fromDate";
-		/**
-		 * The parameter that indicates the earliest point at which results
-		 * should be returned.
-		 */
-		private static final String PARAM_END_DATE = "toDate";
-		
-		/**
 		 * The date-time formatter for our concatenation of the date and time.
 		 */
 		private static final DateTimeFormatter DATE_TIME_CONCAT_FORMATTER =
-			DateTimeFormat.forPattern(DATE_TIME_PATTERN + "'T'" + "HH:mm");
+			DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm");
 		
-		private static final String JSON_KEY_TYPE = "type";
-		private static final String JSON_KEY_TIME_SLOT = "timeslot";
-		private static final String JSON_KEY_COMMENT = "comment";
 		/*
 		 * The keys that represent the values. 
 		 */
-		private static final String JSON_KEY_VAL1 = "val1";
-		private static final String JSON_KEY_VAL2 = "val2";
-		private static final String JSON_KEY_VAL3 = "val3";
-		private static final String JSON_KEY_VAL4 = "val4";
-		private static final String JSON_KEY_VAL5 = "val5";
-		private static final String JSON_KEY_VAL6 = "val6";
+		private static final String XML_KEY_VAL1 = "val1";
+		private static final String XML_KEY_VAL2 = "val2";
+		private static final String XML_KEY_VAL3 = "val3";
+		private static final String XML_KEY_VAL4 = "val4";
+		private static final String XML_KEY_VAL5 = "val5";
+		private static final String XML_KEY_VAL6 = "val6";
 		
 		/**
 		 * The different types of data. This is used to decode what the data
@@ -1104,142 +1140,10 @@ public class OmhReadEntraRequest
 		}
 		
 		/**
-		 * This defines what a result object must do in order to decode its own
-		 * results and return them in a logical fashion.
-		 *
-		 * @author John Jenkins
-		 */
-		private static class Result {
-			private String id;
-			private DateTime timestamp;
-			private String type;
-			private String timeSlot;
-			private String comment;
-			private Double[] vals = new Double[6];
-		}
-		/**
-		 * The results of this query are a list of subclasses of this object.
-		 */
-		private final List<Result> results = new LinkedList<Result>();
-		
-		/**
 		 * Creates a {@link EntraMethod} for the user's Entra data.
 		 */
-		private FitnessMethod() {
+		protected DataMethod() {
 			super(METHOD);
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#hasId()
-		 */
-		@Override
-		public boolean hasId() {
-			return true;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#hasTimestamp()
-		 */
-		@Override
-		public boolean hasTimestamp() {
-			return true;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#hasLocation()
-		 */
-		@Override
-		public boolean hasLocation() {
-			return false;
-		}
-		
-		/*
-		 * (non-Javadoc)
-		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#toConcordia(org.codehaus.jackson.JsonGenerator)
-		 */
-		@Override
-		public JsonGenerator toConcordia(
-				final JsonGenerator generator)
-				throws JsonGenerationException, IOException {
-			
-			// Start the definition.
-			generator.writeStartObject();
-			
-			// The data will always be a JSON object.
-			generator.writeStringField("type", "object");
-			generator.writeArrayFieldStart("schema");
-			
-			// Add the 'type' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_TYPE);
-			generator.writeStringField("type", "string");
-			generator.writeEndObject();
-			
-			// Add the 'timeslot' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_TIME_SLOT);
-			generator.writeStringField("type", "string");
-			generator.writeEndObject();
-			
-			// Add the 'comment' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_COMMENT);
-			generator.writeStringField("type", "string");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val1' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_VAL1);
-			generator.writeStringField("type", "number");
-			generator.writeEndObject();
-			
-			// Add the 'val2' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_VAL2);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val3' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_VAL3);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val4' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_VAL4);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val5' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_VAL5);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val6' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_VAL6);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// End the overall schema array.
-			generator.writeEndArray();
-			
-			// End the definition.
-			generator.writeEndObject();
-			
-			// Return the generator.
-			return generator;
 		}
 
 		/*
@@ -1259,97 +1163,16 @@ public class OmhReadEntraRequest
 				final long numToReturn)
 				throws DomainException {
 			
-			// Build the request based on the API's URI.
-			StringBuilder uriBuilder = new StringBuilder(API_URI);
-			uriBuilder.append('?');
-			
-			// Add the ohamge ID.
-			uriBuilder.append(PARAM_APP_ID).append('=').append(appId);
-			
-			// Add the ohmage password.
-			uriBuilder
-				.append('&')
-					.append(PARAM_APP_PASSWORD)
-						.append('=').append(appPassword);
-			
-			// Add the ohmage 'source'.
-			uriBuilder
-				.append('&')
-					.append(PARAM_APP_SOURCE).append('=').append(appSource);
-			
-			// Add the user's username.
-			uriBuilder
-				.append('&')
-					.append(PARAM_USER_NAME).append('=').append(userName);
-			
-			// Add the user's password.
-			uriBuilder
-				.append('&')
-					.append(PARAM_USER_PASSWORD)
-						.append('=').append(userPassword);
-			
-			// Add the method.
-			uriBuilder
-				.append('&')
-					.append(PARAM_METHOD).append('=').append(getMethod());
-			
-			// Add some start date.
-			uriBuilder.append('&').append(PARAM_START_DATE).append('=');
-			if(startDate == null) {
-				uriBuilder.append(DATE_TIME_FORMATTER.print(new DateTime()));
-			}
-			else {
-				uriBuilder.append(DATE_TIME_FORMATTER.print(startDate));
-			}
-			
-			// Add the end date if it is present.
-			if(endDate != null) {
-				uriBuilder
-					.append('&')
-						.append(PARAM_END_DATE)
-							.append('=')
-								.append(DATE_TIME_FORMATTER.print(endDate));
-			}
-			
-			// Get the result of the request.
-			String result;
-			try {
-				result = makeRequest(new URI(uriBuilder.toString()));
-			}
-			catch(URISyntaxException e) {
-				throw new DomainException("The URI was invalid.", e);
-			}
-			
-			// FIXME: Remove this. This will check to see if the documentation
-			// is incorrect or of the typeID is actually outside of the record
-			// tags.
-			LOGGER.debug("Result: " + result);
-			
-			// Parse the result as XML. 
-			Document document;
-			try {
-				document = (new Builder()).build(new StringReader(result));
-			} 
-			catch(IOException e) {
-				// This should only be thrown if it can't read the 'xml', but
-				// given that it is already in memory this should never happen.
-				throw new DomainException("XML was unreadable.", e);
-			}
-			catch(XMLException e) {
-				throw
-					new DomainException(
-						"No usable XML parser could be found.",
-						e);
-			}
-			catch(ValidityException e) {
-				throw new DomainException("The XML is invalid.", e);
-			}
-			catch(ParsingException e) {
-				throw new DomainException("The XML is not well formed.", e);
-			}
-			
 			// Get the root of the XML.
-			Element root = document.getRootElement();
+			Element root = 
+				makeRequest(
+					appId, 
+					appPassword, 
+					appSource, 
+					userName, 
+					userPassword, 
+					startDate, 
+					endDate);
 			// Get all of the records.
 			Nodes records = root.query("record");
 			
@@ -1366,11 +1189,9 @@ public class OmhReadEntraRequest
 				// Get the node.
 				Node node = records.get((int) i);
 				
-				// Create the Result object.
-				Result currResult = new Result();
-				
 				// Convert the node into a Result object.
 				// Get the ID.
+				String id;
 				Nodes idNodes = node.query("id");
 				if(idNodes.size() == 0) {
 					throw
@@ -1383,10 +1204,11 @@ public class OmhReadEntraRequest
 							"Multiple IDs were returned for the record.");
 				}
 				else {
-					currResult.id = idNodes.get(0).getValue().trim();
+					id = idNodes.get(0).getValue().trim();
 				}
 				
 				// Get the timestamp.
+				DateTime timestamp;
 				String date, time;
 				// First, get the date.
 				Nodes dateNodes = node.query("date");
@@ -1419,42 +1241,12 @@ public class OmhReadEntraRequest
 					time = timeNodes.get(0).getValue().trim();
 				}
 				// Finally, concatenate the two and parse it using our parser.
-				currResult.timestamp =
+				timestamp =
 					DATE_TIME_CONCAT_FORMATTER
 						.parseDateTime(date + "T" + time);
 				
-				// Get the type ID.
-				Nodes typeIds = node.query("typeid");
-				if(typeIds.size() == 0) {
-					throw
-						new DomainException(
-							"No type ID was returned for the record.");
-				}
-				else if(typeIds.size() > 1) {
-					throw
-						new DomainException(
-							"Multiple type IDs were returned for the record.");
-				}
-				else {
-					try {
-						int typeId = 
-							Integer.decode(typeIds.get(0).getValue().trim());
-						currResult.type = TYPES.get(typeId);
-						
-						if(currResult.type == null) {
-							throw
-								new DomainException(
-									"The type ID is unknown: " + typeId);
-						}
-					}
-					catch(NumberFormatException e) {
-						throw new DomainException(
-							"The type ID is missing.",
-							e);
-					}
-				}
-				
 				// Get the timeslot.
+				String timeSlot;
 				Nodes timeslots = node.query("timeslot");
 				if(timeslots.size() == 0) {
 					throw
@@ -1470,9 +1262,9 @@ public class OmhReadEntraRequest
 					try {
 						int timeslotId = 
 							Integer.decode(timeslots.get(0).getValue().trim());
-						currResult.timeSlot = TIME_SLOTS.get(timeslotId);
+						timeSlot = TIME_SLOTS.get(timeslotId);
 						
-						if(currResult.timeSlot == null) {
+						if(timeSlot == null) {
 							throw
 								new DomainException(
 									"The timeslot ID is unknown: " + 
@@ -1488,6 +1280,7 @@ public class OmhReadEntraRequest
 				}
 				
 				// Get the comment.
+				String comment = null;
 				Nodes commentNodes = node.query("comment");
 				if(commentNodes.size() > 1) {
 					throw
@@ -1495,19 +1288,22 @@ public class OmhReadEntraRequest
 							"Multiple comments were returned for the record.");
 				}
 				else if(commentNodes.size() == 1) {
-					currResult.comment = commentNodes.get(0).getValue().trim();
+					comment = commentNodes.get(0).getValue().trim();
 				}
 				
 				// Get the val1.
-				Nodes val1s = node.query("val1");
+				Double val1 = null;
+				Nodes val1s = node.query(XML_KEY_VAL1);
 				if(val1s.size() > 1) {
 					throw
 						new DomainException(
-							"Multiple val1's were returned for the record.");
+							"Multiple " +
+								XML_KEY_VAL1 +
+								"'s were returned for the record.");
 				}
 				else if(val1s.size() == 1) {
 					try {
-						currResult.vals[0] =
+						val1 =
 							Double
 								.parseDouble(
 									commentNodes.get(0).getValue().trim());
@@ -1515,24 +1311,26 @@ public class OmhReadEntraRequest
 					catch(NumberFormatException e) {
 						throw
 							new DomainException(
-								"The value for val1 was not a number.",
+								"The value for " +
+									XML_KEY_VAL1 +
+									" was not a number.",
 								e);
 					}
-				}
-				else {
-					currResult.vals[0] = null;
 				}
 				
 				// Get the val2.
-				Nodes val2s = node.query("val2");
+				Double val2 = null;
+				Nodes val2s = node.query(XML_KEY_VAL2);
 				if(val2s.size() > 1) {
 					throw
 						new DomainException(
-							"Multiple val2's were returned for the record.");
+							"Multiple " +
+								XML_KEY_VAL2 +
+								"'s were returned for the record.");
 				}
 				else if(val2s.size() == 1) {
 					try {
-						currResult.vals[1] =
+						val2 =
 							Double
 								.parseDouble(
 									commentNodes.get(0).getValue().trim());
@@ -1540,24 +1338,26 @@ public class OmhReadEntraRequest
 					catch(NumberFormatException e) {
 						throw
 							new DomainException(
-								"The value for val2 was not a number.",
+								"The value for " +
+									XML_KEY_VAL2 +
+									" was not a number.",
 								e);
 					}
-				}
-				else {
-					currResult.vals[1] = null;
 				}
 				
 				// Get the val3.
-				Nodes val3s = node.query("val3");
+				Double val3 = null;
+				Nodes val3s = node.query(XML_KEY_VAL3);
 				if(val3s.size() > 1) {
 					throw
 						new DomainException(
-							"Multiple val3's were returned for the record.");
+							"Multiple " +
+								XML_KEY_VAL3 +
+								"'s were returned for the record.");
 				}
 				else if(val3s.size() == 1) {
 					try {
-						currResult.vals[2] =
+						val3 =
 							Double
 								.parseDouble(
 									commentNodes.get(0).getValue().trim());
@@ -1565,24 +1365,26 @@ public class OmhReadEntraRequest
 					catch(NumberFormatException e) {
 						throw
 							new DomainException(
-								"The value for val3 was not a number.",
+								"The value for " +
+									XML_KEY_VAL3 +
+									" was not a number.",
 								e);
 					}
-				}
-				else {
-					currResult.vals[2] = null;
 				}
 				
 				// Get the val4.
-				Nodes val4s = node.query("val4");
+				Double val4 = null;
+				Nodes val4s = node.query(XML_KEY_VAL4);
 				if(val4s.size() > 1) {
 					throw
 						new DomainException(
-							"Multiple val4's were returned for the record.");
+							"Multiple " +
+								XML_KEY_VAL4 +
+								"'s were returned for the record.");
 				}
 				else if(val4s.size() == 1) {
 					try {
-						currResult.vals[3] =
+						val4 =
 							Double
 								.parseDouble(
 									commentNodes.get(0).getValue().trim());
@@ -1590,24 +1392,26 @@ public class OmhReadEntraRequest
 					catch(NumberFormatException e) {
 						throw
 							new DomainException(
-								"The value for val4 was not a number.",
+								"The value for " +
+									XML_KEY_VAL4 +
+									" was not a number.",
 								e);
 					}
-				}
-				else {
-					currResult.vals[3] = null;
 				}
 				
 				// Get the val5.
-				Nodes val5s = node.query("val5");
+				Double val5 = null;
+				Nodes val5s = node.query(XML_KEY_VAL5);
 				if(val5s.size() > 1) {
 					throw
 						new DomainException(
-							"Multiple val5's were returned for the record.");
+							"Multiple " +
+								XML_KEY_VAL5 +
+								"'s were returned for the record.");
 				}
 				else if(val5s.size() == 1) {
 					try {
-						currResult.vals[4] =
+						val5 =
 							Double
 								.parseDouble(
 									commentNodes.get(0).getValue().trim());
@@ -1615,24 +1419,26 @@ public class OmhReadEntraRequest
 					catch(NumberFormatException e) {
 						throw
 							new DomainException(
-								"The value for val5 was not a number.",
+								"The value for " +
+									XML_KEY_VAL5 +
+									" was not a number.",
 								e);
 					}
-				}
-				else {
-					currResult.vals[4] = null;
 				}
 				
 				// Get the val6.
-				Nodes val6s = node.query("val6");
+				Double val6 = null;
+				Nodes val6s = node.query(XML_KEY_VAL6);
 				if(val6s.size() > 1) {
 					throw
 						new DomainException(
-							"Multiple val6's were returned for the record.");
+							"Multiple " +
+								XML_KEY_VAL6 +
+								"'s were returned for the record.");
 				}
 				else if(val6s.size() == 1) {
 					try {
-						currResult.vals[5] =
+						val6 =
 							Double
 								.parseDouble(
 									commentNodes.get(0).getValue().trim());
@@ -1640,17 +1446,255 @@ public class OmhReadEntraRequest
 					catch(NumberFormatException e) {
 						throw
 							new DomainException(
-								"The value for val6 was not a number.",
+								"The value for " +
+									XML_KEY_VAL6 +
+									" was not a number.",
 								e);
 					}
 				}
-				else {
-					currResult.vals[5] = null;
-				}
 				
 				// Finally, add this result to the set of results.
-				results.add(currResult);
+				handleResult(
+					id, 
+					timestamp, 
+					timeSlot, 
+					comment, 
+					val1, 
+					val2, 
+					val3, 
+					val4, 
+					val5, 
+					val6);
 			}
+		}
+		
+		/**
+		 * Adds a result record for this request.
+		 * 
+		 * @param id The unique ID for the record.
+		 * 
+		 * @param timestamp The timestamp for the record.
+		 * 
+		 * @param timeSlot The String representing the time slot when this 
+		 * 				   record was created.
+		 * 
+		 * @param comment The comment String for this record. This is optional
+		 * 				  and may be null.
+		 * 
+		 * @param val1 The first value returned.
+		 * 
+		 * @param val2 The second value returned. This may be null if there was
+		 * 			   no second value.
+		 * 
+		 * @param val3 The third value returned. This may be null if there was
+		 * 			   no third value.
+		 * 
+		 * @param val4 The fourth value returned. This may be null if there was
+		 * 			   no fourth value.
+		 * 
+		 * @param val5 The fifth value returned. This may be null if there was
+		 * 			   no fifth value.
+		 * 
+		 * @param val6 The sixth value returned. This may be null if there was
+		 * 			   no sixth value.
+		 * 
+		 * @throws DomainException One of the values was missing or invalid.
+		 */
+		protected abstract void handleResult(
+			final String id,
+			final DateTime timestamp,
+			final String timeSlot,
+			final String comment,
+			final Double val1,
+			final Double val2,
+			final Double val3,
+			final Double val4,
+			final Double val5,
+			final Double val6)
+			throws DomainException;
+	}
+	
+	/**
+	 * This class uses the {@link DataMethod} class and asks specifically for
+	 * the height, weight, and body fat readings.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class HeightWeight extends DataMethod {
+		/**
+		 * Our method name which shadows the larger "getData" method from 
+		 * Entra.
+		 */
+		private static final String METHOD = "getHeightWeight";
+		
+		/*
+		 * The JSON keys to output.
+		 */
+		private static final String JSON_KEY_TIME_SLOT = "timeslot";
+		private static final String JSON_KEY_COMMENT = "comment";
+		private static final String JSON_KEY_HEIGHT = "height";
+		private static final String JSON_KEY_WEIGHT = "weight";
+		private static final String JSON_KEY_BODY_FAT = "body_fat";
+		
+		/**
+		 * This class represents a single data point for this method.
+		 *
+		 * @author John Jenkins
+		 */
+		private static final class Result {
+			private String id;
+			private DateTime timestamp;
+			private String timeSlot;
+			private String comment;
+			private double height;
+			private double weight;
+			private double bodyFat;
+		}
+		private final List<Result> results = new LinkedList<Result>();
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#hasId()
+		 */
+		@Override
+		public boolean hasId() {
+			return true;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#hasTimestamp()
+		 */
+		@Override
+		public boolean hasTimestamp() {
+			return true;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#hasLocation()
+		 */
+		@Override
+		public boolean hasLocation() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#toConcordia(org.codehaus.jackson.JsonGenerator)
+		 */
+		@Override
+		public JsonGenerator toConcordia(
+				final JsonGenerator generator)
+				throws JsonGenerationException, IOException {
+			
+			// Start the definition.
+			generator.writeStartObject();
+			
+			// The data will always be a JSON object.
+			generator.writeStringField("type", "object");
+			generator.writeArrayFieldStart("schema");
+			
+			// Add the 'timeslot' field.
+			generator.writeStartObject();
+			generator.writeStringField("name", JSON_KEY_TIME_SLOT);
+			generator.writeStringField("type", "string");
+			generator.writeEndObject();
+			
+			// Add the 'comment' field.
+			generator.writeStartObject();
+			generator.writeStringField("name", JSON_KEY_COMMENT);
+			generator.writeStringField("type", "string");
+			generator.writeBooleanField("optional", true);
+			generator.writeEndObject();
+			
+			// Add the 'val1' field.
+			generator.writeStartObject();
+			generator.writeStringField("name", JSON_KEY_HEIGHT);
+			generator.writeStringField("type", "number");
+			generator.writeEndObject();
+			
+			// Add the 'val2' field.
+			generator.writeStartObject();
+			generator.writeStringField("name", JSON_KEY_WEIGHT);
+			generator.writeStringField("type", "number");
+			generator.writeBooleanField("optional", true);
+			generator.writeEndObject();
+			
+			// Add the 'val3' field.
+			generator.writeStartObject();
+			generator.writeStringField("name", JSON_KEY_BODY_FAT);
+			generator.writeStringField("type", "number");
+			generator.writeBooleanField("optional", true);
+			generator.writeEndObject();
+			
+			// End the overall schema array.
+			generator.writeEndArray();
+			
+			// End the definition.
+			generator.writeEndObject();
+			
+			// Return the generator.
+			return generator;
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+		 */
+		@Override
+		public long getNumDataPoints() {
+			return results.size();
+		}
+
+		/**
+		 * Adds a height and weight record to the list of results.
+		 * 
+		 * @param val1 The weight from the record.
+		 * 
+		 * @param val2 The height from the record.
+		 * 
+		 * @param val3 The body fat from the record.
+		 * 
+		 * @param val4 Unused.
+		 * 
+		 * @param val5 Unused.
+		 * 
+		 * @param val6 Unused.
+		 */
+		@Override
+		protected void handleResult(
+				final String id,
+				final DateTime timestamp,
+				final String timeSlot,
+				final String comment,
+				final Double val1,
+				final Double val2,
+				final Double val3,
+				final Double val4,
+				final Double val5,
+				final Double val6)
+				throws DomainException {
+			
+			if(val1 == null) {
+				throw new DomainException("The weight is missing.");
+			}
+			if(val2 == null) {
+				throw new DomainException("The height is missing.");
+			}
+			if(val3 == null) {
+				throw new DomainException("The body fat is missing.");
+			}
+			
+			Result result = new Result();
+			result.id = id;
+			result.timestamp = timestamp;
+			result.timeSlot = timeSlot;
+			result.comment = comment;
+			result.weight = val1;
+			result.height = val2;
+			result.bodyFat = val3;
+			results.add(result);
 		}
 
 		/*
@@ -1690,9 +1734,6 @@ public class OmhReadEntraRequest
 				// Write the data.
 				generator.writeObjectFieldStart("data");
 				
-				// Write the 'type' field.
-				generator.writeStringField(JSON_KEY_TYPE, result.type);
-				
 				// Write the 'timeslot' field.
 				generator
 					.writeStringField(JSON_KEY_TIME_SLOT, result.timeSlot);
@@ -1703,35 +1744,14 @@ public class OmhReadEntraRequest
 						.writeStringField(JSON_KEY_COMMENT, result.comment);
 				}
 				
-				// Write the 'val1' field.
-				if(result.vals[0] != null) {
-					generator.writeNumberField(JSON_KEY_VAL1, result.vals[0]);
-				}
+				// Write the 'height' field.
+				generator.writeNumberField(JSON_KEY_HEIGHT, result.height);
 				
-				// Write the 'val2' field.
-				if(result.vals[1] != null) {
-					generator.writeNumberField(JSON_KEY_VAL2, result.vals[1]);
-				}
+				// Write the 'weight' field.
+				generator.writeNumberField(JSON_KEY_WEIGHT, result.weight);
 				
-				// Write the 'val3' field.
-				if(result.vals[2] != null) {
-					generator.writeNumberField(JSON_KEY_VAL3, result.vals[2]);
-				}
-				
-				// Write the 'val4' field.
-				if(result.vals[3] != null) {
-					generator.writeNumberField(JSON_KEY_VAL4, result.vals[3]);
-				}
-				
-				// Write the 'val5' field.
-				if(result.vals[4] != null) {
-					generator.writeNumberField(JSON_KEY_VAL5, result.vals[4]);
-				}
-				
-				// Write the 'val6' field.
-				if(result.vals[5] != null) {
-					generator.writeNumberField(JSON_KEY_VAL6, result.vals[5]);
-				}
+				// Write the 'body fat' field.
+				generator.writeNumberField(JSON_KEY_BODY_FAT, result.bodyFat);
 				
 				// End the data.
 				generator.writeEndObject();
@@ -1740,6 +1760,15 @@ public class OmhReadEntraRequest
 				generator.writeEndObject();
 			}
 		}
+
+		/**
+		 * @return Always returns the height and weight type ID, 23.
+		 */
+		@Override
+		public int getTypeId() {
+			return 23;
+		}
+		
 	}
 	
 	/**
@@ -1749,7 +1778,7 @@ public class OmhReadEntraRequest
 	 */
 	public static enum EntraMethodFactory {
 		GLUCOSE (GlucoseMethod.METHOD, GlucoseMethod.class),
-		FITNESS_METHOD (FitnessMethod.METHOD, FitnessMethod.class);
+		HEIGHT_WEIGHT (HeightWeight.METHOD, HeightWeight.class);
 		
 		private final String methodString;
 		private final Class<? extends EntraMethod> methodClass;
