@@ -83,6 +83,9 @@ public class OmhAuthenticateRequest extends Request {
 		
 		LOGGER.info("Responding to the authentication token request.");
 		
+		// Set the CORS headers.
+		handleCORS(httpRequest, httpResponse);
+		
 		// If either request has failed, set the response's status code.
 		if(isFailed() || authTokenRequest.isFailed()) {
 			if(
@@ -109,9 +112,6 @@ public class OmhAuthenticateRequest extends Request {
 		
 		// Expire the response, but this may be a bad idea.
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
 		
 		// Set the content type to JSON.
 		httpResponse.setContentType("application/json");

@@ -124,6 +124,9 @@ public class OmhReadRequest extends Request {
 				else if(t.length == 1) {
 					numToSkip = ObserverValidators.validateNumToSkip(t[0]);
 				}
+				if(numToSkip == null) {
+					numToSkip = 0L;
+				}
 				
 				Long numToReturn = null;
 				t = getParameterValues(InputKeys.OMH_NUM_TO_RETURN);
@@ -139,6 +142,9 @@ public class OmhReadRequest extends Request {
 							.validateNumToReturn(
 								t[0], 
 								StreamReadRequest.MAX_NUMBER_TO_RETURN);
+				}
+				if(numToReturn == null) {
+					numToReturn = StreamReadRequest.MAX_NUMBER_TO_RETURN;
 				}
 			
 				t = getParameterValues(InputKeys.OMH_COLUMN_LIST);
@@ -207,6 +213,9 @@ public class OmhReadRequest extends Request {
 				}
 			
 				try {
+					LOGGER
+						.info(
+							"Creating a sub-request based on this payload ID.");
 					tUserRequest = 
 						payloadId
 							.generateSubRequest(
@@ -260,6 +269,9 @@ public class OmhReadRequest extends Request {
 			final HttpServletResponse httpResponse) {
 
 		LOGGER.info("Responding to an OMH read request.");
+		
+		// Handles the CORS headers.
+		handleCORS(httpRequest, httpResponse);
 
 		// If either request has failed, set the response's status code.
 		if(isFailed() || userRequest.isFailed()) {
@@ -272,7 +284,7 @@ public class OmhReadRequest extends Request {
 					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 			
 			// Then, force the appropriate request to respond.

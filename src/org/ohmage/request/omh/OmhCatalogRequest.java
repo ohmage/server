@@ -234,6 +234,9 @@ public class OmhCatalogRequest extends UserRequest {
 
 		LOGGER.info("Responding to an OMH catalog request.");
 		
+		// Set the CORS headers.
+		handleCORS(httpRequest, httpResponse);
+		
 		if(isFailed()) {
 			if(
 				ErrorCode
@@ -255,9 +258,6 @@ public class OmhCatalogRequest extends UserRequest {
 		
 		// Expire the response, but this may be a bad idea.
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
 		
 		// Set the content type to JSON.
 		httpResponse.setContentType("application/json");
