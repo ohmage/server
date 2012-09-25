@@ -37,8 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.ISODateTimeFormat;
@@ -206,6 +208,8 @@ public final class SurveyResponseReadRequest
 	
 	public static final Logger LOGGER = 
 			Logger.getLogger(SurveyResponseReadRequest.class);
+	
+	private static final JsonFactory JSON_FACTORY = new MappingJsonFactory();
 	
 	/**
 	 * The, optional, additional JSON key associated with a prompt responses in
@@ -1552,10 +1556,24 @@ public final class SurveyResponseReadRequest
 						PromptResponse.JSON_KEY_PROMPT_ID,
 						response.getId());
 					
+					// Remote activity prompt responses are JSONArray objects.
+					// Jackson cannot readily parse them, so we will convert 
+					// them into their string representation, have Jackson 
+					// parse that string and then output it.
+					Object responseValue = response.getResponse();
+					if(	(responseValue instanceof JSONArray) ||
+						(responseValue instanceof JSONObject)) {
+						
+						responseValue =
+							JSON_FACTORY
+								.createJsonParser(responseValue.toString())
+								.readValueAsTree();
+					}
+					
 					// Write the response.
 					generator.writeObjectField(
 						PromptResponse.JSON_KEY_RESPONSE,
-						response.getResponse());
+						responseValue);
 					
 					// End the response.
 					generator.writeEndObject();
