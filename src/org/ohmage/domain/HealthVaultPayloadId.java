@@ -8,34 +8,35 @@ import javax.servlet.http.HttpServletRequest;
 import org.joda.time.DateTime;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
-import org.ohmage.request.omh.OmhReadEntraRequest;
+import org.ohmage.request.omh.OmhReadHealthVaultRequest;
 
 /**
- * The class that represents how Entra payload IDs are handled.
+ * The class that represents how HealthVault payload IDs are handled.
  *
  * @author John Jenkins
  */
-public class EntraPayloadId implements PayloadId {
+public class HealthVaultPayloadId implements PayloadId {
 	private final String id;
 	
 	/**
-	 * Creates a new Entra payload ID.
+	 * Creates a new HealthVault payload ID.
 	 * 
-	 * @param id The type of data requested.
+	 * @param id The type of data desired from HealthVault.
 	 * 
-	 * @throws DomainException The method was null.
+	 * @throws DomainException The ID was null.
 	 */
-	public EntraPayloadId(final String id) throws DomainException {
+	public HealthVaultPayloadId(final String id) throws DomainException {
 		if(id == null) {
-			throw new DomainException("The Entra method is null.");
+			throw new DomainException("The HealthVault type is null.");
 		}
 		
 		this.id = id;
 	}
 	
 	/**
-	 * @return The Entra method to call.
+	 * @return The HealthVault data type desired.
 	 */
 	@Override
 	public String getId() {
@@ -50,13 +51,12 @@ public class EntraPayloadId implements PayloadId {
 		return null;
 	}
 
-	/**
-	 * Creates an Entra request.
-	 * 
-	 * @return An OmhReadEntraRequest object.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.PayloadId#generateSubRequest(javax.servlet.http.HttpServletRequest, java.util.Map, java.lang.Boolean, org.ohmage.request.UserRequest.TokenLocation, boolean, long, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
 	 */
 	@Override
-	public OmhReadEntraRequest generateSubRequest(
+	public UserRequest generateSubRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
@@ -70,16 +70,16 @@ public class EntraPayloadId implements PayloadId {
 			throws DomainException {
 		
 		try {
-			return
-				new OmhReadEntraRequest(
-					httpRequest, 
-					parameters, 
+			return 
+				new OmhReadHealthVaultRequest(
+					httpRequest,
+					parameters,
 					hashPassword,
 					tokenLocation,
 					callClientRequester,
-					startDate, 
+					startDate,
 					endDate,
-					numToSkip, 
+					numToSkip,
 					numToReturn,
 					id);
 		}

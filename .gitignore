@@ -7,3 +7,5 @@ web/WEB-INF/properties/system.properties
 .sonar
 thirdparty
 /nbproject/
+web/WEB-INF/classes/hv-application.properties
+web/WEB-INF/classes/keystore

@@ -4,6 +4,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
 import org.ohmage.domain.EntraPayloadId;
+import org.ohmage.domain.HealthVaultPayloadId;
 import org.ohmage.domain.MindMyMedsPayloadId;
 import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
@@ -15,6 +16,8 @@ import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApi;
 import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApiFactory;
 import org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod;
 import org.ohmage.request.omh.OmhReadEntraRequest.EntraMethodFactory;
+import org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing;
+import org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThingFactory;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApi;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApiFactory;
 import org.ohmage.util.StringUtils;
@@ -129,6 +132,24 @@ public class OmhValidators {
 					throw new ValidationException(
 						ErrorCode.OMH_INVALID_PAYLOAD_ID,
 						"The Entra method is invalid: " + split[2],
+						e);
+				}
+			}
+			else if("health_vault".equals(domain)) {
+				try {
+					result = new HealthVaultPayloadId(split[2]);
+				}
+				catch(IndexOutOfBoundsException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The payload ID for the HealthVault domain requires a third section indicating the type of data desired: " +
+							trimmedValue,
+						e);
+				}
+				catch(DomainException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The HealthVault method is invalid: " + split[2],
 						e);
 				}
 			}
@@ -394,6 +415,36 @@ public class OmhValidators {
 		
 		try {
 			return EntraMethodFactory.getMethod(value);
+		}
+		catch(DomainException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The path is invalid: " + value,
+				e);
+		}
+	}
+	
+	/**
+	 * Validates that the thing is known.
+	 * 
+	 * @param value The thing name to use to create a {@link HealthVaultThing}
+	 * 				object.
+	 * 
+	 * @return The {@link HealthVaultThing} object that matches the thing name.
+	 * 
+	 * @throws ValidationException The thing name doesn't reference any known
+	 * 							   {@link HealthVaultThing}.
+	 */
+	public static HealthVaultThing validateHealthVaultThing(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		try {
+			return HealthVaultThingFactory.getThing(value);
 		}
 		catch(DomainException e) {
 			throw new ValidationException(

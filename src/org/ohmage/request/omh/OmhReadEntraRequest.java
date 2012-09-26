@@ -1768,7 +1768,6 @@ public class OmhReadEntraRequest
 		public int getTypeId() {
 			return 23;
 		}
-		
 	}
 	
 	/**
