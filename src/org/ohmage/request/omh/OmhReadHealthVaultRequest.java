@@ -46,6 +46,8 @@ import com.microsoft.hsg.HVAccessor;
 import com.microsoft.hsg.HVException;
 import com.microsoft.hsg.Request;
 import com.microsoft.hsg.Response;
+import com.microsoft.hsg.thing.oxm.jaxb.base.Person;
+import com.microsoft.hsg.thing.oxm.jaxb.condition.Condition;
 import com.microsoft.hsg.thing.oxm.jaxb.medication.Medication;
 
 public class OmhReadHealthVaultRequest
@@ -1616,8 +1618,8 @@ public class OmhReadHealthVaultRequest
 				final long numToReturn)
 				throws DomainException {
 			
-			// Create the unmarshaller, which will take the XML and convert it into
-			// Medication objects.
+			// Create the unmarshaller, which will take the XML and convert it
+			// into Medication objects.
 			Unmarshaller unmarshaller;
 			try {
 				unmarshaller = 
@@ -1784,12 +1786,441 @@ public class OmhReadHealthVaultRequest
 	}
 	
 	/**
+	 * The HealthVault Thing for Conditions.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class ConditionThing extends HealthVaultThing {
+		/**
+		 * The name of this thing.
+		 */
+		private static final String NAME = "condition";
+		/**
+		 * The type ID for this type as defined by HealthVault.
+		 */
+		private static final String TYPE_ID = 
+			"7ea7a1f9-880b-4bd4-b593-f5660f20eda8";
+		/**
+		 * The XPath to use to get the conditions.
+		 */
+		private static final String XPATH = "//condition";
+		
+		// The root fields.
+		private static final String JSON_KEY_NAME = "name";
+		private static final String JSON_KEY_ONSET_DATE = "onset-date";
+		private static final String JSON_KEY_STATUS = "status";
+		private static final String JSON_KEY_STOP_DATE = "stop-date";
+		private static final String JSON_KEY_STOP_REASON = "stop-reason";
+		
+		/**
+		 * The conditions retrieved from HealthVault. This will always be 
+		 * empty until
+		 * {@link #service(String, String, DateTime, DateTime, long, long)} has
+		 * been called.
+		 */
+		private final List<Condition> conditions =
+			new LinkedList<Condition>();
+
+		/**
+		 * Creates a {@link HealthVaultThing} for conditions.
+		 */
+		public ConditionThing() {
+			super(NAME);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#hasId()
+		 */
+		@Override
+		public boolean hasId() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#hasTimestamp()
+		 */
+		@Override
+		public boolean hasTimestamp() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#hasLocation()
+		 */
+		@Override
+		public boolean hasLocation() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#toConcordia(org.codehaus.jackson.JsonGenerator)
+		 */
+		@Override
+		public JsonGenerator toConcordia(
+				final JsonGenerator generator)
+				throws JsonGenerationException, IOException {
+			
+			// Begin the definition.
+			generator.writeStartObject();
+			
+			// The type of the data is a JSON object.
+			generator.writeStringField("type", "object");
+			
+			// Define that object.
+			generator.writeArrayFieldStart("schema");
+			
+			// Add the "name" field.
+			writeCodableValueConcordia(generator, JSON_KEY_NAME, true);
+			
+			// Add the "onset-date" field.
+			writeApproxDateTimeConcordia(generator, JSON_KEY_ONSET_DATE, true);
+			
+			// Add the "status" field.
+			writeCodableValueConcordia(generator, JSON_KEY_STATUS, true);
+			
+			// Add the "stop-date" field.
+			writeApproxDateTimeConcordia(generator, JSON_KEY_STOP_DATE, true);
+			
+			// Add the "stop-reason" field.
+			generator.writeStartObject();
+			generator.writeStringField("name", JSON_KEY_STOP_REASON);
+			generator.writeStringField("type", "string");
+			generator.writeBooleanField("optional", true);
+			generator.writeEndObject();
+
+			// Finish defining the overall object.
+			generator.writeEndArray();
+			
+			// Close the definition.
+			generator.writeEndObject();
+			
+			// Return the generator to facilitate chaining.
+			return generator;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#getTypeId()
+		 */
+		@Override
+		protected String getTypeId() {
+			return TYPE_ID;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#getResponseXpath()
+		 */
+		@Override
+		protected String getResponseXpath() {
+			return XPATH;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#makeRequest(java.lang.String, java.lang.String, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+		 */
+		@Override
+		protected void makeRequest(
+				final String recordId,
+				final String personId,
+				final DateTime startDate,
+				final DateTime endDate,
+				final long numToSkip,
+				final long numToReturn)
+				throws DomainException {
+			
+			// Create the unmarshaller, which will take the XML and convert it 
+			// into Condition objects.
+			Unmarshaller unmarshaller;
+			try {
+				unmarshaller = 
+					JAXBContext
+						.newInstance(Condition.class).createUnmarshaller();
+			}
+			catch(JAXBException e) {
+				throw 
+					new DomainException(
+						"Could not create the unmarshaller for the conditions.",
+						e);
+			}
+			
+			// Make the request to HealthVault.
+			NodeList conditionNodes =
+				makeRequest(
+					recordId, 
+					personId, 
+					startDate, 
+					endDate, 
+					numToSkip + numToReturn);
+			
+			// For each of the condition nodes, convert it into a Condition
+			// object.
+			int numConditions = conditionNodes.getLength();
+			try {
+				for(int i = 0; i < numConditions; i++) {
+					conditions
+						.add(
+							(Condition) unmarshaller
+								.unmarshal(conditionNodes.item(i)));
+				}
+			}
+			catch(JAXBException e) {
+				throw
+					new DomainException(
+						"There was an error unmarshalling a condition.",
+						e);
+			}
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+		 */
+		@Override
+		public long getNumDataPoints() {
+			return conditions.size();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator, org.ohmage.request.observer.StreamReadRequest.ColumnNode)
+		 */
+		@Override
+		public void respond(
+				final JsonGenerator generator, 
+				final ColumnNode<String> columns)
+				throws JsonGenerationException, IOException, DomainException {
+			
+			// For each object,
+			for(Condition condition : conditions) {
+				// Start the overall object.
+				generator.writeStartObject();
+				
+				// Write the data.
+				generator.writeObjectField("data", condition);
+				
+				// End the overall object.
+				generator.writeEndObject();
+			}
+		}
+	}
+	
+	/**
+	 * The HealthVault Thing for Conditions.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class EmergencyOrProviderContactThing
+			extends HealthVaultThing {
+		
+		/**
+		 * The name of this thing.
+		 */
+		private static final String NAME = "emergency_or_provider_contact";
+		/**
+		 * The type ID for this type as defined by HealthVault.
+		 */
+		private static final String TYPE_ID = 
+			"25c94a9f-9d3d-4576-96dc-6791178a8143";
+		/**
+		 * The XPath to use to get the conditions.
+		 */
+		private static final String XPATH = "//person";
+		
+		/**
+		 * The conditions retrieved from HealthVault. This will always be 
+		 * empty until
+		 * {@link #service(String, String, DateTime, DateTime, long, long)} has
+		 * been called.
+		 */
+		private final List<Person> contacts = new LinkedList<Person>();
+
+		/**
+		 * Creates a {@link HealthVaultThing} for emergency or provider
+		 * contacts
+		 */
+		public EmergencyOrProviderContactThing() {
+			super(NAME);
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#hasId()
+		 */
+		@Override
+		public boolean hasId() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#hasTimestamp()
+		 */
+		@Override
+		public boolean hasTimestamp() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#hasLocation()
+		 */
+		@Override
+		public boolean hasLocation() {
+			return false;
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#toConcordia(org.codehaus.jackson.JsonGenerator)
+		 */
+		@Override
+		public JsonGenerator toConcordia(
+				final JsonGenerator generator)
+				throws JsonGenerationException, IOException {
+			
+			// Begin the definition.
+			generator.writeStartObject();
+			
+			// The type of the data is a JSON object.
+			generator.writeStringField("type", "object");
+			
+			// Define that object.
+			generator.writeFieldName("schema");
+			
+			// Add the person object.
+			writePersonConcordia(generator, "person", true);
+			
+			// Close the definition.
+			generator.writeEndObject();
+			
+			// Return the generator to facilitate chaining.
+			return generator;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#getTypeId()
+		 */
+		@Override
+		protected String getTypeId() {
+			return TYPE_ID;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#getResponseXpath()
+		 */
+		@Override
+		protected String getResponseXpath() {
+			return XPATH;
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThing#makeRequest(java.lang.String, java.lang.String, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+		 */
+		@Override
+		protected void makeRequest(
+				final String recordId,
+				final String personId,
+				final DateTime startDate,
+				final DateTime endDate,
+				final long numToSkip,
+				final long numToReturn)
+				throws DomainException {
+			
+			// Create the unmarshaller, which will take the XML and convert it
+			// into Medication objects.
+			Unmarshaller unmarshaller;
+			try {
+				unmarshaller = 
+					JAXBContext
+						.newInstance(Person.class).createUnmarshaller();
+			}
+			catch(JAXBException e) {
+				throw 
+					new DomainException(
+						"Could not create the unmarshaller for the contacts.",
+						e);
+			}
+			
+			// Make the request to HealthVault.
+			NodeList contactNodes =
+				makeRequest(
+					recordId, 
+					personId, 
+					startDate, 
+					endDate, 
+					numToSkip + numToReturn);
+			
+			// For each of the medication nodes, convert it into a Medication
+			// object.
+			int numContacts = contactNodes.getLength();
+			try {
+				for(int i = 0; i < numContacts; i++) {
+					contacts
+						.add(
+							(Person) unmarshaller
+								.unmarshal(contactNodes.item(i)));
+				}
+			}
+			catch(JAXBException e) {
+				throw
+					new DomainException(
+						"There was an error unmarshalling a contact.",
+						e);
+			}
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+		 */
+		@Override
+		public long getNumDataPoints() {
+			return contacts.size();
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator, org.ohmage.request.observer.StreamReadRequest.ColumnNode)
+		 */
+		@Override
+		public void respond(
+				final JsonGenerator generator,
+				final ColumnNode<String> columns)
+				throws JsonGenerationException, IOException, DomainException {
+			
+			// For each object,
+			for(Person contact : contacts) {
+				// Start the overall object.
+				generator.writeStartObject();
+				
+				// Write the data.
+				generator.writeObjectField("data", contact);
+				
+				// End the overall object.
+				generator.writeEndObject();
+			}
+		}
+	}
+	
+	/**
 	 * A factory class for generated {@link HealthVaultThing} objects.
 	 *
 	 * @author John Jenkins
 	 */
 	public static enum HealthVaultThingFactory {
-		MEDICATION (MedicationThing.NAME, MedicationThing.class);
+		MEDICATION (MedicationThing.NAME, MedicationThing.class),
+		CONDITION (ConditionThing.NAME, ConditionThing.class);
+		// TODO: Add EmergencyOrProviderContact once the problem with JAXB and
+		// the Person class has been resolved.
 		
 		private final String thingName;
 		private final Class<? extends HealthVaultThing> thingClass;
