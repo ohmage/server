@@ -1827,7 +1827,7 @@ public class OmhReadEntraRequest
 		 * 
 		 * @return The method's string value.
 		 */
-		public final String getApi() {
+		public final String getMethod() {
 			return methodString;
 		}
 		

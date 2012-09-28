@@ -7,7 +7,6 @@ import org.ohmage.domain.EntraPayloadId;
 import org.ohmage.domain.GingerIoPayloadId;
 import org.ohmage.domain.HealthVaultPayloadId;
 import org.ohmage.domain.MindMyMedsPayloadId;
-import org.ohmage.domain.MoodMapPayloadId;
 import org.ohmage.domain.ObserverPayloadId;
 import org.ohmage.domain.PayloadId;
 import org.ohmage.domain.RunKeeperPayloadId;
@@ -81,19 +80,7 @@ public class OmhValidators {
 			// requests. Normally, this would simply throw an exception, but,
 			// for now, it will return the payload ID that corresponds to the
 			// remote resource.
-			if("intel".equals(domain)) {
-				if("mood_phone".equals(split[2])) {
-					result = new MoodMapPayloadId();
-				}
-				else {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The payload ID is not valid. " +
-							"The domain 'intel' does not know this type: " +
-							trimmedValue);
-				}
-			}
-			else if("run_keeper".equals(domain)) {
+			if("run_keeper".equals(domain)) {
 				try {
 					result = new RunKeeperPayloadId(split[2]);
 				}

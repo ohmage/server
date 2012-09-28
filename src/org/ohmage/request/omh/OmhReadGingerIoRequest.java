@@ -33,6 +33,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.UserRequest;
+import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.service.OmhServices;
 
@@ -145,79 +146,89 @@ public class OmhReadGingerIoRequest
 			generator.writeArrayFieldStart("schema");
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_LOCATION_COUNT);
+			generator.writeStringField("name", Result.JSON_KEY_LOCATION_COUNT);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_MOBILITY);
+			generator.writeStringField("name", Result.JSON_KEY_MOBILITY);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_MOBILITY_RADIUS);
+			generator.writeStringField("name", Result.JSON_KEY_MOBILITY_RADIUS);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_MISSED_INTERACTIONS);
+			generator.writeStringField(
+				"name", 
+				Result.JSON_KEY_MISSED_INTERACTIONS);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_INTERACTION_DIVERSITY);
+			generator.writeStringField(
+				"name", 
+				Result.JSON_KEY_INTERACTION_DIVERSITY);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_INTERACTION_DURATION);
+			generator.writeStringField(
+				"name", 
+				Result.JSON_KEY_INTERACTION_DURATION);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_INTERACTION_BALANCE);
+			generator.writeStringField(
+				"name", 
+				Result.JSON_KEY_INTERACTION_BALANCE);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_SMS_COUNT);
+			generator.writeStringField("name", Result.JSON_KEY_SMS_COUNT);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_SMS_LENGTH);
+			generator.writeStringField("name", Result.JSON_KEY_SMS_LENGTH);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_AGGREGATE_COMMUNICATION);
+			generator.writeStringField(
+				"name", 
+				Result.JSON_KEY_AGGREGATE_COMMUNICATION);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_RESPONSIVENESS);
+			generator.writeStringField("name", Result.JSON_KEY_RESPONSIVENESS);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_CALL_DURATION);
+			generator.writeStringField("name", Result.JSON_KEY_CALL_DURATION);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_CALL_COUNT);
+			generator.writeStringField("name", Result.JSON_KEY_CALL_COUNT);
 			generator.writeStringField("type", "number");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
@@ -302,6 +313,60 @@ public class OmhReadGingerIoRequest
 		this.endDate = endDate;
 		this.numToSkip = numToSkip;
 		this.numToReturn = numToReturn;
+	}
+	
+	/**
+	 * Creates the registry entry for GingerIO.
+	 * 
+	 * @param generator The generator to use to write the definition.
+	 * 
+	 * @throws JsonGenerationException There was an error creating the 
+	 * 								   JSON.
+	 * 
+	 * @throws IOException There was an error writing to the generator.
+	 */
+	public static void writeRegistryEntry(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException {
+		
+		// Root of the definition
+		generator.writeStartObject();
+		
+		// Output the chunk size which will be the same for all 
+		// observers.
+		generator.writeNumberField(
+			"chunk_size", 
+			StreamReadRequest.MAX_NUMBER_TO_RETURN);
+		
+		// There are no external IDs yet. This may change to
+		// link to observer/read, but there are some
+		// discrepancies in the parameters.
+		
+		// Set the local timezone as authoritative.
+		generator.writeBooleanField(
+			"local_tz_authoritative",
+			true);
+		
+		// Set the summarizable as false for the time being.
+		generator.writeBooleanField("summarizable", false);
+		
+		// Set the payload ID.
+		generator.writeStringField(
+			"payload_id", 
+			"urn:ginger_io");
+		
+		// Set the payload version. For now, all surveys have 
+		// the same version, 1.
+		generator.writeStringField(
+			"payload_version", 
+			"1");
+		
+		// Set the payload definition.
+		generator.writeFieldName("payload_definition"); 
+		Result.toConcordia(generator);
+
+		// End the root of the definition.
+		generator.writeEndObject();
 	}
 
 	/*

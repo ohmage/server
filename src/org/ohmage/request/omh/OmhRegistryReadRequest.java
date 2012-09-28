@@ -22,6 +22,10 @@ import org.codehaus.jackson.map.MappingJsonFactory;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
+import org.ohmage.domain.EntraPayloadId;
+import org.ohmage.domain.GingerIoPayloadId;
+import org.ohmage.domain.HealthVaultPayloadId;
+import org.ohmage.domain.MindMyMedsPayloadId;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.domain.ObserverPayloadId;
 import org.ohmage.domain.PayloadId;
@@ -39,6 +43,8 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApiFactory;
+import org.ohmage.request.omh.OmhReadEntraRequest.EntraMethodFactory;
+import org.ohmage.request.omh.OmhReadHealthVaultRequest.HealthVaultThingFactory;
 import org.ohmage.request.omh.OmhReadRunKeeperRequest.RunKeeperApiFactory;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ObserverServices;
@@ -407,52 +413,6 @@ public class OmhRegistryReadRequest extends Request {
 					new StringBuilder("omh:ohmage:campaign:");
 				payloadIdBuilder.append(campaign.getId());
 				
-				// For now, there is no concept of querying the entire 
-				// campaign. Instead, the coarsest-grained query will be that 
-				// of survey responses.
-				/*
-				// First, do the campaign without any surveys or prompts.
-				generator.writeStartObject();
-				
-				// Output the chunk size which will be the same for all 
-				// observers.
-				generator.writeNumberField(
-					"chunk_size", 
-					StreamReadRequest.MAX_NUMBER_TO_RETURN);
-				
-				// There are no external IDs yet. This may change to link   
-				// to observer/read, but there are some discrepancies in 
-				// the parameters.
-				
-				// Set the local timezone as authoritative.
-				generator.writeBooleanField(
-					"local_tz_authoritative",
-					true);
-				
-				// Set the summarizable as false for the time being.
-				generator.writeBooleanField("summarizable", false);
-
-				// Set the payload ID.
-				generator.writeStringField(
-					"payload_id", 
-					payloadIdBuilder.toString());
-				
-				// Set the payload version. For now, all campaigns have the
-				// same version, 1.
-				generator.writeStringField(
-					"payload_version", 
-					"1");
-				
-				// Set the payload definition.
-				generator.writeObjectField(
-					"payload_definition", 
-					// TODO: Write the definition for all surveys.
-					null);
-
-				// End the campaign's object.
-				generator.writeEndObject();
-				*/
-				
 				// For each survey,
 				Map<String, Survey> surveys = campaign.getSurveys();
 				for(String surveyId : surveys.keySet()) {
@@ -570,45 +530,15 @@ public class OmhRegistryReadRequest extends Request {
 			
 			// Finally, add the hard-coded ones for the showcase, i.e. 
 			// RunKeeper, BodyMedia, etc..
-			// If all were ask for, then output all of the RunKeeper APIs.
+			// If all of them were asked for, then output all of them based on
+			// paging.
 			if(payloadId == null) {
-				// Get markers for all of the APIs.
-				RunKeeperApiFactory[] runKeeperApiFactories = 
-					RunKeeperApiFactory.values();
-		
-				// Compute the number of API definitions to return.
-				long numFactoriesToOutput =
-					(numToReturnLeft >= runKeeperApiFactories.length) ?
-						runKeeperApiFactories.length : numToReturnLeft;
-				
-				for(int i = 0; i < numFactoriesToOutput; i++) {
-					// Get the API's string value.
-					String apiString = runKeeperApiFactories[i].getApi();
-					
-					// Write the API's registry entry. 
-					try {
-						RunKeeperApiFactory
-							.getApi(apiString)
-							.writeRegistryEntry(generator);
-					}
-					catch(DomainException e) {
-						LOGGER
-							.warn(
-								"Could not output the registry entry for the API: " +
-									apiString,
-								e);
-					}
-				}
-				
-				// Update the number of end-points to output. 
-				numToReturnLeft -= numFactoriesToOutput;
-
 				// Get markers for all of the APIs.
 				BodyMediaApiFactory[] bodyMediaApiFactories = 
 					BodyMediaApiFactory.values();
 		
 				// Compute the number of API definitions to return.
-				numFactoriesToOutput -=
+				long numFactoriesToOutput =
 					(numToReturnLeft >= bodyMediaApiFactories.length) ?
 						bodyMediaApiFactories.length : numToReturnLeft;
 				
@@ -633,6 +563,192 @@ public class OmhRegistryReadRequest extends Request {
 
 				// Update the number of end-points to output. 
 				numToReturnLeft -= numFactoriesToOutput;
+
+				// Get markers for all of the APIs.
+				EntraMethodFactory[] entraMethodFactories = 
+					EntraMethodFactory.values();
+		
+				// Compute the number of API definitions to return.
+				numFactoriesToOutput =
+					(numToReturnLeft >= entraMethodFactories.length) ?
+						entraMethodFactories.length : numToReturnLeft;
+				
+				for(int i = 0; i < numFactoriesToOutput; i++) {
+					// Get the method's string value.
+					String methodString = entraMethodFactories[i].getMethod();
+					
+					// Write the API's registry entry. 
+					try {
+						EntraMethodFactory
+							.getMethod(methodString)
+							.writeRegistryEntry(generator);
+					}
+					catch(DomainException e) {
+						LOGGER
+							.warn(
+								"Could not output the registry entry for the Entra method: " +
+									methodString,
+								e);
+					}
+				}
+
+				// Update the number of end-points to output. 
+				numToReturnLeft -= numFactoriesToOutput;
+
+				// Get the GingerIO registry entry.
+				if(numToReturnLeft > 0) {
+					OmhReadGingerIoRequest.writeRegistryEntry(generator);
+
+					// Update the number of end-points to output. 
+					numToReturnLeft -= 1;
+				}
+
+				// Get the HealthVault registry entry.
+				HealthVaultThingFactory[] healthVaultThingFactories = 
+					HealthVaultThingFactory.values();
+		
+				// Compute the number of API definitions to return.
+				numFactoriesToOutput =
+					(numToReturnLeft >= healthVaultThingFactories.length) ?
+						healthVaultThingFactories.length : numToReturnLeft;
+				
+				for(int i = 0; i < numFactoriesToOutput; i++) {
+					// Get the method's string value.
+					String thingName = 
+						healthVaultThingFactories[i].getThingName();
+					
+					// Write the API's registry entry. 
+					try {
+						HealthVaultThingFactory
+							.getThing(thingName)
+							.writeRegistryEntry(generator);
+					}
+					catch(DomainException e) {
+						LOGGER
+							.warn(
+								"Could not output the registry entry for the HealthVault Thing: " +
+									thingName,
+								e);
+					}
+				}
+
+				// Update the number of end-points to output. 
+				numToReturnLeft -= numFactoriesToOutput;
+
+				// Get the Mind My Meds registry entry.
+				if(numToReturnLeft > 0) {
+					OmhReadMindMyMedsRequest.writeRegistryEntry(generator);
+
+					// Update the number of end-points to output. 
+					numToReturnLeft -= 1;
+				}
+				
+				// Get markers for all of the APIs.
+				RunKeeperApiFactory[] runKeeperApiFactories = 
+					RunKeeperApiFactory.values();
+		
+				// Compute the number of API definitions to return.
+				numFactoriesToOutput =
+					(numToReturnLeft >= runKeeperApiFactories.length) ?
+						runKeeperApiFactories.length : numToReturnLeft;
+				
+				for(int i = 0; i < numFactoriesToOutput; i++) {
+					// Get the API's string value.
+					String apiString = runKeeperApiFactories[i].getApi();
+					
+					// Write the API's registry entry. 
+					try {
+						RunKeeperApiFactory
+							.getApi(apiString)
+							.writeRegistryEntry(generator);
+					}
+					catch(DomainException e) {
+						LOGGER
+							.warn(
+								"Could not output the registry entry for the API: " +
+									apiString,
+								e);
+					}
+				}
+				
+				// Update the number of end-points to output. 
+				numToReturnLeft -= numFactoriesToOutput;
+			}
+			// If a specific BodyMedia API was asked for, 
+			else if(payloadId instanceof BodyMediaPayloadId) {
+				// Type cast the PayloadId object specifically to a
+				// RunKeeperPayloadId.
+				BodyMediaPayloadId bodyMediaPayloadId =
+					(BodyMediaPayloadId) payloadId;
+				
+				// Get the requested API string.
+				String apiString = bodyMediaPayloadId.getId();
+				
+				// Write the registry entry.
+				try {
+					BodyMediaApiFactory
+						.getApi(apiString)
+						.writeRegistryEntry(generator);
+				}
+				catch(DomainException e) {
+					LOGGER
+						.info(
+							"The requested BodyMedia API does not exist: " +
+								apiString);
+				}
+			}
+			// If a specific Entra API was asked for, 
+			else if(payloadId instanceof EntraPayloadId) {
+				// Type cast the PayloadId object specifically to a
+				// EntraPayloadId.
+				EntraPayloadId entraPayloadId = (EntraPayloadId) payloadId;
+				
+				// Get the requested API string.
+				String apiString = entraPayloadId.getId();
+				
+				// Write the registry entry.
+				try {
+					EntraMethodFactory
+						.getMethod(apiString)
+						.writeRegistryEntry(generator);
+				}
+				catch(DomainException e) {
+					LOGGER
+						.info(
+							"The requested BodyMedia API does not exist: " +
+								apiString);
+				}
+			}
+			// If a specific GingerIO API was asked for, 
+			else if(payloadId instanceof GingerIoPayloadId) {
+				OmhReadGingerIoRequest.writeRegistryEntry(generator);
+			}
+			// If a specific HealthVault API was asked for, 
+			else if(payloadId instanceof HealthVaultPayloadId) {
+				// Type cast the PayloadId object specifically to a
+				// HealthVaultPayloadId.
+				HealthVaultPayloadId healthVaultPayloadId = 
+					(HealthVaultPayloadId) payloadId;
+				
+				// Get the requested API string.
+				String apiString = healthVaultPayloadId.getId();
+				
+				// Write the registry entry.
+				try {
+					HealthVaultThingFactory
+						.getThing(apiString)
+						.writeRegistryEntry(generator);
+				}
+				catch(DomainException e) {
+					LOGGER
+						.info(
+							"The requested BodyMedia API does not exist: " +
+								apiString);
+				}
+			}
+			// If a specific Mind My Meds API was asked for, 
+			else if(payloadId instanceof MindMyMedsPayloadId) {
+				OmhReadMindMyMedsRequest.writeRegistryEntry(generator);
 			}
 			// If a specific RunKeeper API was asked for, 
 			else if(payloadId instanceof RunKeeperPayloadId) {
@@ -654,29 +770,6 @@ public class OmhRegistryReadRequest extends Request {
 					LOGGER
 						.info(
 							"The requested RunKeeper API does not exist: " +
-								apiString);
-				}
-			}
-			// If a specific RunKeeper API was asked for, 
-			else if(payloadId instanceof BodyMediaPayloadId) {
-				// Type cast the PayloadId object specifically to a
-				// RunKeeperPayloadId.
-				BodyMediaPayloadId bodyMediaPayloadId =
-					(BodyMediaPayloadId) payloadId;
-				
-				// Get the requested API string.
-				String apiString = bodyMediaPayloadId.getId();
-				
-				// Write the registry entry.
-				try {
-					BodyMediaApiFactory
-						.getApi(apiString)
-						.writeRegistryEntry(generator);
-				}
-				catch(DomainException e) {
-					LOGGER
-						.info(
-							"The requested BodyMedia API does not exist: " +
 								apiString);
 				}
 			}

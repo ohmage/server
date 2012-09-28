@@ -14,12 +14,15 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.OmhServices;
 
 public class OmhReadMindMyMedsRequest extends UserRequest{
@@ -97,6 +100,60 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 		this.endDate = endDate;
 		this.numToSkip = numToSkip;
 		this.numToReturn = numToReturn;
+	}
+	
+	/**
+	 * Creates the registry entry for GingerIO.
+	 * 
+	 * @param generator The generator to use to write the definition.
+	 * 
+	 * @throws JsonGenerationException There was an error creating the 
+	 * 								   JSON.
+	 * 
+	 * @throws IOException There was an error writing to the generator.
+	 */
+	public static void writeRegistryEntry(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException {
+		
+		// Root of the definition
+		generator.writeStartObject();
+		
+		// Output the chunk size which will be the same for all 
+		// observers.
+		generator.writeNumberField(
+			"chunk_size", 
+			StreamReadRequest.MAX_NUMBER_TO_RETURN);
+		
+		// There are no external IDs yet. This may change to
+		// link to observer/read, but there are some
+		// discrepancies in the parameters.
+		
+		// Set the local timezone as authoritative.
+		generator.writeBooleanField(
+			"local_tz_authoritative",
+			true);
+		
+		// Set the summarizable as false for the time being.
+		generator.writeBooleanField("summarizable", false);
+		
+		// Set the payload ID.
+		generator.writeStringField(
+			"payload_id", 
+			"urn:mind_my_meds");
+		
+		// Set the payload version. For now, all surveys have 
+		// the same version, 1.
+		generator.writeStringField(
+			"payload_version", 
+			"1");
+		
+		// Set the payload definition.
+		generator.writeFieldName("payload_definition"); 
+		toConcordia(generator);
+
+		// End the root of the definition.
+		generator.writeEndObject();
 	}
 	
 	/*
@@ -324,5 +381,73 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Generates the Concordia schema for this Result object.
+	 * 
+	 * @param generator The generator to use to write the definition.
+	 * 
+	 * @return The 'generator' that was passed in to facilitate chaining.
+	 * 
+	 * @throws JsonGenerationException There was a problem generating the
+	 * 								   JSON.
+	 * 
+	 * @throws IOException There was a problem writing to the generator.
+	 */
+	private static JsonGenerator toConcordia(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException {
+		
+		// Start the definition.
+		generator.writeStartObject();
+		
+		// The data will always be a JSON object.
+		generator.writeStringField("type", "object");
+		generator.writeArrayFieldStart("schema");
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "medicine_name");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "reminder_sent");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "response");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "response_date");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "doctor");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "instruction");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		generator.writeStartObject();
+		generator.writeStringField("name", "dose_info");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		// End the overall schema array.
+		generator.writeEndArray();
+		
+		// End the definition.
+		generator.writeEndObject();
+		
+		// Return the generator.
+		return generator;
 	}
 }
