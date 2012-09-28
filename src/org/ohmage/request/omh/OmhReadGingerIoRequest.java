@@ -26,6 +26,7 @@ import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.exception.DomainException;
@@ -51,9 +52,14 @@ public class OmhReadGingerIoRequest
 	private static final JsonFactory JSON_FACTORY = new MappingJsonFactory();
 	
 	/**
-	 * The reusable DateTimeFormatter. 
+	 * DateTimeFormatter for GingerIO.
 	 */
-	private final DateTimeFormatter ISO_DATE_TIME_FORMATTER = 
+	private static final DateTimeFormatter DATE_TIME_FORMATTER_GINGER_IO = 
+		ISODateTimeFormat.dateHourMinuteSecond().withZone(DateTimeZone.UTC);
+	/**
+	 * DateTimeFormatter for ohmage.
+	 */
+	private static final DateTimeFormatter DATE_TIME_FORMATTER_OHMAGE =
 		ISODateTimeFormat.dateTime();
 	
 	/**
@@ -89,31 +95,31 @@ public class OmhReadGingerIoRequest
 		
 		// The data for this record.
 		@JsonProperty(JSON_KEY_LOCATION_COUNT)
-		private Long locationCount = null;
+		private Double locationCount = null;
 		@JsonProperty(JSON_KEY_MOBILITY)
-		private Long mobility = null;
+		private Double mobility = null;
 		@JsonProperty(JSON_KEY_MOBILITY_RADIUS)
-		private Long mobilityRadius = null;
+		private Double mobilityRadius = null;
 		@JsonProperty(JSON_KEY_MISSED_INTERACTIONS)
-		private Long missedInteractions = null;
+		private Double missedInteractions = null;
 		@JsonProperty(JSON_KEY_INTERACTION_DIVERSITY)
-		private Long interactionDiversity = null;
+		private Double interactionDiversity = null;
 		@JsonProperty(JSON_KEY_INTERACTION_DURATION)
-		private Long interactionDuration = null;
+		private Double interactionDuration = null;
 		@JsonProperty(JSON_KEY_INTERACTION_BALANCE)
-		private Long interactionBalance = null;
+		private Double interactionBalance = null;
 		@JsonProperty(JSON_KEY_SMS_COUNT)
-		private Long smsCount = null;
+		private Double smsCount = null;
 		@JsonProperty(JSON_KEY_SMS_LENGTH)
-		private Long smsLength = null;
+		private Double smsLength = null;
 		@JsonProperty(JSON_KEY_AGGREGATE_COMMUNICATION)
-		private Long aggregateCommuniaction = null;
+		private Double aggregateCommuniaction = null;
 		@JsonProperty(JSON_KEY_RESPONSIVENESS)
-		private Long responsiveness = null;
+		private Double responsiveness = null;
 		@JsonProperty(JSON_KEY_CALL_DURATION)
-		private Long callDuration = null;
+		private Double callDuration = null;
 		@JsonProperty(JSON_KEY_CALL_COUNT)
-		private Long callCount = null;
+		private Double callCount = null;
 		
 		/**
 		 * Generates the Concordia schema for this Result object.
@@ -443,16 +449,16 @@ public class OmhReadGingerIoRequest
 										"The timestamp is missing.");
 							}
 							DateTime timestamp = 
-								ISO_DATE_TIME_FORMATTER
+								DATE_TIME_FORMATTER_GINGER_IO
 									.parseDateTime(timestampString);
 							
+							// Advance the token.
+							parser.nextToken();
 							// Get the value.
-							long value = parser.nextLongValue(Long.MIN_VALUE);
-							if(value == Long.MIN_VALUE) {
-								throw 
-									new DomainException(
-										"The value is missing.");
-							}
+							double value = parser.getDoubleValue();
+							
+							// Advance the token to consume the JsonToken.END_ARRAY.
+							parser.nextToken();
 							
 							// If this point is before the start date or after
 							// the end date, don't add it to the results.
@@ -575,7 +581,8 @@ public class OmhReadGingerIoRequest
 		LOGGER.info("Responding to an OMH read request for GingerIO data.");
 		
 		// Keep track of the number of records processed.
-		int numProcessed = 0;
+		long numProcessed = 0;
+		long totalNumToProcess = numToSkip + numToReturn;
 		
 		// For each object,
 		for(Result result : results) {
@@ -583,7 +590,7 @@ public class OmhReadGingerIoRequest
 			if(numProcessed <= numToSkip) {
 				continue;
 			}
-			if(numProcessed > numToReturn) {
+			if(numProcessed > totalNumToProcess) {
 				break;
 			}
 			
@@ -597,7 +604,7 @@ public class OmhReadGingerIoRequest
 			generator
 				.writeStringField(
 					"timestamp", 
-					ISO_DATE_TIME_FORMATTER.print(result.timestamp));
+					DATE_TIME_FORMATTER_OHMAGE.print(result.timestamp));
 			
 			// End the metadata object.
 			generator.writeEndObject();
@@ -607,9 +614,6 @@ public class OmhReadGingerIoRequest
 			
 			// Write the data.
 			generator.writeObject(result);
-			
-			// End the data object.
-			generator.writeEndObject();
 			
 			// End the overall object.
 			generator.writeEndObject();
