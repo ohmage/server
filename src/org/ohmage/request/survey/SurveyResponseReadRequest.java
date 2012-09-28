@@ -654,7 +654,7 @@ public final class SurveyResponseReadRequest
 	 */
 	@Override
 	public long getNumDataPoints() {
-		return getSurveyResponseCount();
+		return getSurveyResponses().size();
 	}
 	
 	/**
