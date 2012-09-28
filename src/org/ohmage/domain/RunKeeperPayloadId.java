@@ -39,20 +39,11 @@ public class RunKeeperPayloadId implements PayloadId {
 	/**
 	 * The type of information desired, e.g. "profile", "sleep", "weight", 
 	 * etc..
-	 */
-	@Override
-	public String getId() {
-		return api;
-	}
-
-	/**
-	 * There are no sub-types for this time, so this always returns null.
 	 * 
-	 * @return Always null.
+	 * @return The API name.
 	 */
-	@Override
-	public String getSubId() {
-		return null;
+	public String getApi() {
+		return api;
 	}
 
 	/**

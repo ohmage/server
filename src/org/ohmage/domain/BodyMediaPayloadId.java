@@ -18,7 +18,7 @@ import org.ohmage.request.omh.OmhReadBodyMediaRequest;
  * @author John Jenkins
  */
 public class BodyMediaPayloadId implements PayloadId {
-	private final String id;
+	private final String path;
 	
 	/**
 	 * Creates a payload ID that contains no ID or sub-ID.
@@ -32,23 +32,16 @@ public class BodyMediaPayloadId implements PayloadId {
 			throw new DomainException("The path was null.");
 		}
 		
-		id = path;
+		this.path = path;
 	}
 
 	/**
+	 * Returns the path for this BodyMedia API.
+	 * 
 	 * @return This is the path for the BodyMedia API.
 	 */
-	@Override
 	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @return There is no sub-ID for the BodyMedia payload ID.
-	 */
-	@Override
-	public String getSubId() {
-		return null;
+		return path;
 	}
 
 	/**
@@ -91,7 +84,7 @@ public class BodyMediaPayloadId implements PayloadId {
 					endDate,
 					numToSkip, 
 					numToReturn,
-					id);
+					path);
 		}
 		catch(IOException e) {
 			throw new DomainException(

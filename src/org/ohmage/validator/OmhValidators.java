@@ -157,10 +157,56 @@ public class OmhValidators {
 
 		String type = (result == null) ? split[2] : null;
 		if((result == null) && "campaign".equals(type)) {
-			int numCampaignParts = split.length - 2;
+			// There have to be at least 7 parts for a 'campgign'-based payload
+			// ID.
+			if(split.length < 7) {
+				throw
+					new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The payload ID is too short for a 'campaign'-based payload ID.");
+			}
+			
+			int surveyIdIndex;
+			String surveyId;
+			String promptId = null;
+			
+			// Get the second to last part.
+			String lastIdType = split[split.length - 2];
+			
+			// If it is "survey_ID", then the last part must be the survey ID.
+			if("survey_id".equals(lastIdType)) {
+				surveyId = split[split.length - 1];
+				surveyIdIndex = split.length - 2;
+			}
+			// If it is "prompt_id", then the last part must be the prompt ID
+			// and the part just before it must be the survey ID.
+			else if("prompt_id".equals(lastIdType)) {
+				surveyId = split[split.length - 3];
+				promptId = split[split.length - 1];
+				surveyIdIndex = split.length - 4;
+				
+				if(! "survey_id".equals(split[surveyIdIndex])) {
+					throw 
+						new ValidationException(
+							ErrorCode.OMH_INVALID_PAYLOAD_ID,
+							"The 'campaign-based' payload ID is incorrectly formatted. " +
+								"It must be of the form: " +
+								"omh:ohmage:campaign:<campaign_id>:survey_id:<survey_id>[:prompt_id:<prompt_id>]");
+				}
+			}
+			else {
+				throw 
+					new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The 'campaign-based' payload ID is incorrectly formatted. " +
+							"It must be of the form: " +
+							"omh:ohmage:campaign:<campaign_id>:survey_id:<survey_id>[:prompt_id:<prompt_id>]");
+			}
+			
+			// Build the campaign ID.
 			StringBuilder campaignIdBuilder = new StringBuilder();
 			boolean firstPass = true;
-			for(int i = 3; i < numCampaignParts; i++) {
+			for(int i = 3; i < surveyIdIndex; i++) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -170,64 +216,12 @@ public class OmhValidators {
 				campaignIdBuilder.append(split[i]);
 			}
 			
-			String campaignId;
 			try {
-				campaignId = 
-					CampaignValidators
-						.validateCampaignId(campaignIdBuilder.toString());
-			}
-			catch(ValidationException e) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid because the campaign ID is not valid: " +
-						campaignIdBuilder.toString(),
-					e);
-			}
-			if(campaignId == null) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid because the campaign ID was only whitespace: " +
-						split[3]);
-			}
-			
-			CampaignPayloadId.Type subType;
-			try {
-				subType = 
-					CampaignPayloadId.Type.getType(split[numCampaignParts]);
-			}
-			catch(IllegalArgumentException e) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID's campaign sub-type is unknown: " +
-						split[4],
-					e);
-			}
-			
-			String subId = split[split.length - 1]; 
-			try {
-				if(CampaignPayloadId.Type.SURVEY.equals(subType)) {
-					subId = CampaignValidators.validateSurveyId(subId);
-				}
-				else {
-					subId = CampaignValidators.validatePromptId(subId);
-				}
-			}
-			catch(ValidationException e) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID's sub-value is invalid: " +
-						e.getMessage(),
-					e);
-			}
-			if(subId == null) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid because the sub-ID was only whitespace: " +
-						split[5]);
-			}
-			
-			try {
-				result = new CampaignPayloadId(campaignId, subType, subId);
+				result = 
+					new CampaignPayloadId(
+						campaignIdBuilder.toString(), 
+						surveyId, 
+						promptId);
 			}
 			catch(DomainException e) {
 				throw new ValidationException(

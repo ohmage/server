@@ -25,22 +25,6 @@ public class GingerIoPayloadId implements PayloadId {
 	}
 
 	/**
-	 * @return Always returns null.
-	 */
-	@Override
-	public String getId() {
-		return null;
-	}
-
-	/**
-	 * @return Always returns null.
-	 */
-	@Override
-	public String getSubId() {
-		return null;
-	}
-
-	/**
 	 * Creates a new OMH read call for GingerIO.
 	 * 
 	 * @return An OmhReadGingerIoRequest object.

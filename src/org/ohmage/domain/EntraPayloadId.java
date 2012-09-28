@@ -17,37 +17,30 @@ import org.ohmage.request.omh.OmhReadEntraRequest;
  * @author John Jenkins
  */
 public class EntraPayloadId implements PayloadId {
-	private final String id;
+	private final String method;
 	
 	/**
 	 * Creates a new Entra payload ID.
 	 * 
-	 * @param id The type of data requested.
+	 * @param method The type of data requested.
 	 * 
 	 * @throws DomainException The method was null.
 	 */
-	public EntraPayloadId(final String id) throws DomainException {
-		if(id == null) {
+	public EntraPayloadId(final String method) throws DomainException {
+		if(method == null) {
 			throw new DomainException("The Entra method is null.");
 		}
 		
-		this.id = id;
+		this.method = method;
 	}
 	
 	/**
+	 * Returns the Entra method to call.
+	 * 
 	 * @return The Entra method to call.
 	 */
-	@Override
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @return Always returns null.
-	 */
-	@Override
-	public String getSubId() {
-		return null;
+	public String getMethod() {
+		return method;
 	}
 
 	/**
@@ -81,7 +74,7 @@ public class EntraPayloadId implements PayloadId {
 					endDate,
 					numToSkip, 
 					numToReturn,
-					id);
+					method);
 		}
 		catch(IOException e) {
 			throw new DomainException(

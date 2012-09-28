@@ -57,8 +57,7 @@ public class ObserverPayloadId implements PayloadId {
 	 * 
 	 * @return The observer ID.
 	 */
-	@Override
-	public String getId() {
+	public String getObserverId() {
 		return observerId;
 	}
 
@@ -67,8 +66,7 @@ public class ObserverPayloadId implements PayloadId {
 	 * 
 	 * @return The stream ID.
 	 */
-	@Override
-	public String getSubId() {
+	public String getStreamId() {
 		return streamId;
 	}
 

@@ -88,7 +88,7 @@ public class OmhRegistryReadRequest extends Request {
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, null);
-		
+
 		PayloadId tPayloadId = null;
 		Long tPayloadVersion = null;
 		
@@ -175,7 +175,10 @@ public class OmhRegistryReadRequest extends Request {
 			// If the user isn't specifically asking for campaigns, then either
 			// they are asking for a specific observer or they want everything 
 			// from both observers and campaigns.
-			if((payloadId == null) || (payloadId instanceof CampaignPayloadId)) {
+			if((payloadId == null) || (payloadId instanceof ObserverPayloadId)) {
+				ObserverPayloadId observerPayloadId = 
+					(ObserverPayloadId) payloadId;
+				
 				LOGGER.info("Gathering the requested observer registry entries.");
 				streams
 					.putAll(
@@ -183,9 +186,9 @@ public class OmhRegistryReadRequest extends Request {
 							.instance()
 							.getStreams(
 								null,
-								(payloadId == null) ? null : payloadId.getId(), 
+								(payloadId == null) ? null : observerPayloadId.getObserverId(), 
 								null, 
-								(payloadId == null) ? null : payloadId.getSubId(), 
+								(payloadId == null) ? null : observerPayloadId.getStreamId(),
 								payloadVersion, 
 								numToSkip, 
 								numToReturn));
@@ -195,7 +198,7 @@ public class OmhRegistryReadRequest extends Request {
 			// If the user isn't specifically asking for observers, then either
 			// they are asking for a specific campaign or they want everything
 			// from both observers and campaigns.
-			if((payloadId == null) || (payloadId instanceof ObserverPayloadId)) {
+			if((payloadId == null) || (payloadId instanceof CampaignPayloadId)) {
 				List<String> campaignIds = null;
 				List<String> surveyIds = null;
 				List<String> promptIds = null;
@@ -204,16 +207,15 @@ public class OmhRegistryReadRequest extends Request {
 						(CampaignPayloadId) payloadId;
 					
 					campaignIds = new ArrayList<String>(1);
-					campaignIds.add(campaignPayloadId.getId());
+					campaignIds.add(campaignPayloadId.getCampaignId());
+
+					surveyIds = new ArrayList<String>(1);
+					surveyIds.add(campaignPayloadId.getSurveyId());
 					
-					CampaignPayloadId.Type type = campaignPayloadId.getType();
-					if(CampaignPayloadId.Type.SURVEY.equals(type)) {
-						surveyIds = new ArrayList<String>(1);
-						surveyIds.add(campaignPayloadId.getSubId());
-					}
-					else if(CampaignPayloadId.Type.PROMPT.equals(type)) {
+					String promptId = campaignPayloadId.getPromptId();
+					if(promptId != null) {
 						promptIds = new ArrayList<String>(1);
-						promptIds.add(campaignPayloadId.getSubId());
+						promptIds.add(promptId);
 					}
 				}
 				
@@ -418,58 +420,81 @@ public class OmhRegistryReadRequest extends Request {
 				for(String surveyId : surveys.keySet()) {
 					// Write the survey.
 					Survey survey = surveys.get(surveyId);
-					generator.writeStartObject();
 					
-					// Output the chunk size which will be the same for all 
-					// observers.
-					generator.writeNumberField(
-						"chunk_size", 
-						StreamReadRequest.MAX_NUMBER_TO_RETURN);
-					
-					// There are no external IDs yet. This may change to
-					// link to observer/read, but there are some
-					// discrepancies in the parameters.
-					
-					// Set the local timezone as authoritative.
-					generator.writeBooleanField(
-						"local_tz_authoritative",
-						true);
-					
-					// Set the summarizable as false for the time being.
-					generator.writeBooleanField("summarizable", false);
-					
-					// Set the payload ID.
+					// Build this survey's payload ID.
 					StringBuilder surveyPayloadIdBuilder = 
 						new StringBuilder(payloadIdBuilder);
 					surveyPayloadIdBuilder.append(":survey_id:");
 					surveyPayloadIdBuilder.append(survey.getId());
-					generator.writeStringField(
-						"payload_id", 
-						surveyPayloadIdBuilder.toString());
 					
-					// Set the payload version. For now, all surveys have 
-					// the same version, 1.
-					generator.writeStringField(
-						"payload_version", 
-						"1");
+					// If this request is specifying a prompt ID, get it now.
+					String promptId = null;
+					if(payloadId instanceof CampaignPayloadId) {
+						promptId = 
+							((CampaignPayloadId) payloadId).getPromptId();
+					}
 					
-					// Set the payload definition.
-					generator.writeFieldName("payload_definition"); 
-					survey.toConcordia(generator, null);
-
-					// End the campaign's object.
-					generator.writeEndObject();
+					// If the prompt ID indicates that we only want a specific
+					// prompt, then don't output the survey.
+					if(promptId == null) {
+						generator.writeStartObject();
+						
+						// Output the chunk size which will be the same for all 
+						// observers.
+						generator.writeNumberField(
+							"chunk_size", 
+							StreamReadRequest.MAX_NUMBER_TO_RETURN);
+						
+						// There are no external IDs yet. This may change to
+						// link to observer/read, but there are some
+						// discrepancies in the parameters.
+						
+						// Set the local timezone as authoritative.
+						generator.writeBooleanField(
+							"local_tz_authoritative",
+							true);
+						
+						// Set the summarizable as false for the time being.
+						generator.writeBooleanField("summarizable", false);
+						
+						// Set the payload ID.
+						generator.writeStringField(
+							"payload_id", 
+							surveyPayloadIdBuilder.toString());
+						
+						// Set the payload version. For now, all surveys have 
+						// the same version, 1.
+						generator.writeStringField(
+							"payload_version", 
+							"1");
+						
+						// Set the payload definition.
+						generator.writeFieldName("payload_definition"); 
+						survey.toConcordia(generator, null);
+	
+						// End the campaign's object.
+						generator.writeEndObject();
+					}
 					
 					// For each prompt in the survey,
 					for(SurveyItem surveyItem :
 							survey.getSurveyItems().values()) {
 						
+						// Messages don't have response values.
 						if(surveyItem instanceof Message) {
 							continue;
 						}
 						
 						// For now, we are ignoring repeatable sets.
 						if(surveyItem instanceof RepeatableSet) {
+							continue;
+						}
+						
+						// If we are asking for a specific prompt and this is
+						// not it, skip it.
+						if(	(promptId != null) && 
+							(! promptId.equals(surveyItem.getId()))) {
+							
 							continue;
 						}
 						
@@ -704,19 +729,19 @@ public class OmhRegistryReadRequest extends Request {
 				EntraPayloadId entraPayloadId = (EntraPayloadId) payloadId;
 				
 				// Get the requested API string.
-				String apiString = entraPayloadId.getId();
+				String method = entraPayloadId.getMethod();
 				
 				// Write the registry entry.
 				try {
 					EntraMethodFactory
-						.getMethod(apiString)
+						.getMethod(method)
 						.writeRegistryEntry(generator);
 				}
 				catch(DomainException e) {
 					LOGGER
 						.info(
-							"The requested BodyMedia API does not exist: " +
-								apiString);
+							"The requested Entra method does not exist: " +
+								method);
 				}
 			}
 			// If a specific GingerIO API was asked for, 
@@ -731,19 +756,19 @@ public class OmhRegistryReadRequest extends Request {
 					(HealthVaultPayloadId) payloadId;
 				
 				// Get the requested API string.
-				String apiString = healthVaultPayloadId.getId();
+				String thingName = healthVaultPayloadId.getThingName();
 				
 				// Write the registry entry.
 				try {
 					HealthVaultThingFactory
-						.getThing(apiString)
+						.getThing(thingName)
 						.writeRegistryEntry(generator);
 				}
 				catch(DomainException e) {
 					LOGGER
 						.info(
-							"The requested BodyMedia API does not exist: " +
-								apiString);
+							"The requested HealthVault Thign does not exist: " +
+								thingName);
 				}
 			}
 			// If a specific Mind My Meds API was asked for, 
@@ -758,7 +783,7 @@ public class OmhRegistryReadRequest extends Request {
 					(RunKeeperPayloadId) payloadId;
 				
 				// Get the requested API string.
-				String apiString = runKeeperPayloadId.getId();
+				String apiString = runKeeperPayloadId.getApi();
 				
 				// Write the registry entry.
 				try {

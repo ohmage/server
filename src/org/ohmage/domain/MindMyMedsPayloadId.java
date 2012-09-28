@@ -23,22 +23,6 @@ public class MindMyMedsPayloadId implements PayloadId {
 	public MindMyMedsPayloadId() {
 		// Do nothing.
 	}
-	
-	/**
-	 * @return Always returns null.
-	 */
-	@Override
-	public String getId() {
-		return null;
-	}
-
-	/**
-	 * @return Always returns null.
-	 */
-	@Override
-	public String getSubId() {
-		return null;
-	}
 
 	/**
 	 * Creates a new OMH read call for Mind My Meds.

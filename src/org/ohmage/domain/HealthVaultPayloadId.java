@@ -18,37 +18,33 @@ import org.ohmage.request.omh.OmhReadHealthVaultRequest;
  * @author John Jenkins
  */
 public class HealthVaultPayloadId implements PayloadId {
-	private final String id;
+	private final String thingName;
 	
 	/**
 	 * Creates a new HealthVault payload ID.
 	 * 
-	 * @param id The type of data desired from HealthVault.
+	 * @param thingName The type of data desired from HealthVault.
 	 * 
 	 * @throws DomainException The ID was null.
 	 */
-	public HealthVaultPayloadId(final String id) throws DomainException {
-		if(id == null) {
+	public HealthVaultPayloadId(
+			final String thingName)
+			throws DomainException {
+		
+		if(thingName == null) {
 			throw new DomainException("The HealthVault type is null.");
 		}
 		
-		this.id = id;
+		this.thingName = thingName;
 	}
 	
 	/**
-	 * @return The HealthVault data type desired.
+	 * Returns the HealthVault Thing name.
+	 * 
+	 * @return The HealthVault Thing name.
 	 */
-	@Override
-	public String getId() {
-		return id;
-	}
-
-	/**
-	 * @return Always returns null.
-	 */
-	@Override
-	public String getSubId() {
-		return null;
+	public String getThingName() {
+		return thingName;
 	}
 
 	/*
@@ -81,7 +77,7 @@ public class HealthVaultPayloadId implements PayloadId {
 					endDate,
 					numToSkip,
 					numToReturn,
-					id);
+					thingName);
 		}
 		catch(IOException e) {
 			throw new DomainException(
