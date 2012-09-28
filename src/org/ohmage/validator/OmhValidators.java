@@ -4,6 +4,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.BodyMediaPayloadId;
 import org.ohmage.domain.CampaignPayloadId;
 import org.ohmage.domain.EntraPayloadId;
+import org.ohmage.domain.GingerIoPayloadId;
 import org.ohmage.domain.HealthVaultPayloadId;
 import org.ohmage.domain.MindMyMedsPayloadId;
 import org.ohmage.domain.MoodMapPayloadId;
@@ -152,6 +153,9 @@ public class OmhValidators {
 						"The HealthVault method is invalid: " + split[2],
 						e);
 				}
+			}
+			else if("ginger_io".equals(domain)) {
+				result = new GingerIoPayloadId();
 			}
 			else {
 				throw new ValidationException(

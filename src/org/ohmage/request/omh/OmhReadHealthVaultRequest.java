@@ -1,7 +1,6 @@
 package org.ohmage.request.omh;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -2329,8 +2328,6 @@ public class OmhReadHealthVaultRequest
 	private final long numToReturn;
 	private final HealthVaultThing thing;
 	
-	private List<Medication> results = Collections.emptyList();
-	
 	/**
 	 * Creates a request to read a HealthVault API.
 	 * 
@@ -2359,6 +2356,8 @@ public class OmhReadHealthVaultRequest
 	 * 
 	 * @param numToReturn The number of responses to return after the required
 	 * 					  responses have been skipped.
+	 * 
+	 * @param thingName The name of the HealthVault Thing to retrieve.
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 * 
@@ -2487,7 +2486,7 @@ public class OmhReadHealthVaultRequest
 	 */
 	@Override
 	public long getNumDataPoints() {
-		return results.size();
+		return thing.getNumDataPoints();
 	}
 
 	/*

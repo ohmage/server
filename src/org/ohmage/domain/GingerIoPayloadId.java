@@ -9,21 +9,21 @@ import org.joda.time.DateTime;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest.TokenLocation;
-import org.ohmage.request.omh.OmhReadMindMyMedsRequest;
+import org.ohmage.request.omh.OmhReadGingerIoRequest;
 
 /**
- * This class represents a payload ID for Run Keeper.
+ * This class represents a payload ID for GingerIO.
  *
  * @author John Jenkins
  */
-public class MindMyMedsPayloadId implements PayloadId {
+public class GingerIoPayloadId implements PayloadId {
 	/**
 	 * Default constructor that contains no additional parameters.
 	 */
-	public MindMyMedsPayloadId() {
+	public GingerIoPayloadId() {
 		// Do nothing.
 	}
-	
+
 	/**
 	 * @return Always returns null.
 	 */
@@ -41,12 +41,12 @@ public class MindMyMedsPayloadId implements PayloadId {
 	}
 
 	/**
-	 * Creates a new OMH read call for Mind My Meds.
+	 * Creates a new OMH read call for GingerIO.
 	 * 
-	 * @return An OmhReadMindMyMedsRequest request object.
+	 * @return An OmhReadGingerIoRequest object.
 	 */
 	@Override
-	public OmhReadMindMyMedsRequest generateSubRequest(
+	public OmhReadGingerIoRequest generateSubRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
@@ -58,18 +58,19 @@ public class MindMyMedsPayloadId implements PayloadId {
 			final long numToSkip,
 			final long numToReturn)
 			throws DomainException {
-		
+
 		try {
-			return new OmhReadMindMyMedsRequest(
-				httpRequest, 
-				parameters, 
-				hashPassword,
-				tokenLocation, 
-				callClientRequester,
-				startDate,
-				endDate,
-				numToSkip,
-				numToReturn);
+			return
+				new OmhReadGingerIoRequest(
+					httpRequest, 
+					parameters, 
+					hashPassword,
+					tokenLocation, 
+					callClientRequester,
+					startDate,
+					endDate,
+					numToSkip,
+					numToReturn);
 		}
 		catch(IOException e) {
 			throw new DomainException(
@@ -82,4 +83,5 @@ public class MindMyMedsPayloadId implements PayloadId {
 				e);
 		}
 	}
+
 }
