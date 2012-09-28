@@ -2217,9 +2217,10 @@ public class OmhReadHealthVaultRequest
 	 */
 	public static enum HealthVaultThingFactory {
 		MEDICATION (MedicationThing.NAME, MedicationThing.class),
-		CONDITION (ConditionThing.NAME, ConditionThing.class);
-		// TODO: Add EmergencyOrProviderContact once the problem with JAXB and
-		// the Person class has been resolved.
+		CONDITION (ConditionThing.NAME, ConditionThing.class),
+		EMERGENCY_OR_PROVIDER_CONTACT (
+			EmergencyOrProviderContactThing.NAME,
+			EmergencyOrProviderContactThing.class);
 		
 		private final String thingName;
 		private final Class<? extends HealthVaultThing> thingClass;
