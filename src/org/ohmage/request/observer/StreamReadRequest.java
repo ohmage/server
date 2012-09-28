@@ -614,7 +614,7 @@ public class StreamReadRequest
 					LOGGER.info("The user is not an admin.");
 
 					LOGGER.info(
-						"Checking if reading Mobility points about another user is even allowed.");
+						"Checking if reading stream data about another user is even allowed.");
 					boolean isPlausible;
 					try {
 						isPlausible = 
@@ -628,7 +628,7 @@ public class StreamReadRequest
 					
 					if(isPlausible) {
 						LOGGER.info(
-							"Checking if the requester is allowed to read Mobility points about the user.");
+							"Checking if the requester is allowed to read stream data about the user.");
 						UserClassServices
 							.instance()
 							.userIsPrivilegedInAnotherUserClass(
@@ -637,8 +637,8 @@ public class StreamReadRequest
 					}
 					else {
 						throw new ServiceException(
-							ErrorCode.MOBILITY_INSUFFICIENT_PERMISSIONS,
-							"A user is not allowed to query Mobility information about another user.");
+							ErrorCode.OBSERVER_INSUFFICIENT_PERMISSIONS,
+							"This user is not allowed to query stream data about the requested user.");
 					}
 				}
 			}
