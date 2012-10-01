@@ -33,6 +33,7 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -893,7 +894,7 @@ public class OmhReadEntraRequest
 				// Get the timestamp.
 				String date, time;
 				// First, get the date.
-				Nodes dateNodes = node.query("testdate");
+				Nodes dateNodes = node.query("date");
 				if(dateNodes.size() == 0) {
 					throw
 						new DomainException(
@@ -908,7 +909,7 @@ public class OmhReadEntraRequest
 					date = dateNodes.get(0).getValue().trim();
 				}
 				// Then, get the time.
-				Nodes timeNodes = node.query("testtime");
+				Nodes timeNodes = node.query("time");
 				if(timeNodes.size() == 0) {
 					throw
 						new DomainException(
@@ -1217,7 +1218,7 @@ public class OmhReadEntraRequest
 				DateTime timestamp;
 				String date, time;
 				// First, get the date.
-				Nodes dateNodes = node.query("date");
+				Nodes dateNodes = node.query("testdate");
 				if(dateNodes.size() == 0) {
 					throw
 						new DomainException(
@@ -1232,7 +1233,7 @@ public class OmhReadEntraRequest
 					date = dateNodes.get(0).getValue().trim();
 				}
 				// Then, get the time.
-				Nodes timeNodes = node.query("time");
+				Nodes timeNodes = node.query("testtime");
 				if(timeNodes.size() == 0) {
 					throw
 						new DomainException(
@@ -1252,19 +1253,14 @@ public class OmhReadEntraRequest
 						.parseDateTime(date + "T" + time);
 				
 				// Get the timeslot.
-				String timeSlot;
+				String timeSlot = null;
 				Nodes timeslots = node.query("timeslot");
 				if(timeslots.size() == 0) {
 					throw
 						new DomainException(
 							"No timeslot was returned for the record.");
 				}
-				else if(timeslots.size() > 1) {
-					throw
-						new DomainException(
-							"Multiple timeslots were returned for the record.");
-				}
-				else {
+				else if((timeslots.size() == 1) && (! StringUtils.isEmptyOrWhitespaceOnly(timeslots.get(0).getValue()))){
 					try {
 						int timeslotId = 
 							Integer.decode(timeslots.get(0).getValue().trim());
@@ -1307,12 +1303,12 @@ public class OmhReadEntraRequest
 								XML_KEY_VAL1 +
 								"'s were returned for the record.");
 				}
-				else if(val1s.size() == 1) {
+				else if((val1s.size() == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(val1s.get(0).getValue()))) {
+					
 					try {
 						val1 =
-							Double
-								.parseDouble(
-									commentNodes.get(0).getValue().trim());
+							Double.parseDouble(val1s.get(0).getValue().trim());
 					}
 					catch(NumberFormatException e) {
 						throw
@@ -1334,12 +1330,11 @@ public class OmhReadEntraRequest
 								XML_KEY_VAL2 +
 								"'s were returned for the record.");
 				}
-				else if(val2s.size() == 1) {
+				else if((val2s.size() == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(val2s.get(0).getValue()))) {
 					try {
 						val2 =
-							Double
-								.parseDouble(
-									commentNodes.get(0).getValue().trim());
+							Double.parseDouble(val2s.get(0).getValue().trim());
 					}
 					catch(NumberFormatException e) {
 						throw
@@ -1361,12 +1356,11 @@ public class OmhReadEntraRequest
 								XML_KEY_VAL3 +
 								"'s were returned for the record.");
 				}
-				else if(val3s.size() == 1) {
+				else if((val3s.size() == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(val3s.get(0).getValue()))) {
 					try {
 						val3 =
-							Double
-								.parseDouble(
-									commentNodes.get(0).getValue().trim());
+							Double.parseDouble(val3s.get(0).getValue().trim());
 					}
 					catch(NumberFormatException e) {
 						throw
@@ -1388,12 +1382,11 @@ public class OmhReadEntraRequest
 								XML_KEY_VAL4 +
 								"'s were returned for the record.");
 				}
-				else if(val4s.size() == 1) {
+				else if((val4s.size() == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(val4s.get(0).getValue()))) {
 					try {
 						val4 =
-							Double
-								.parseDouble(
-									commentNodes.get(0).getValue().trim());
+							Double.parseDouble(val4s.get(0).getValue().trim());
 					}
 					catch(NumberFormatException e) {
 						throw
@@ -1415,12 +1408,11 @@ public class OmhReadEntraRequest
 								XML_KEY_VAL5 +
 								"'s were returned for the record.");
 				}
-				else if(val5s.size() == 1) {
+				else if((val5s.size() == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(val5s.get(0).getValue()))) {
 					try {
 						val5 =
-							Double
-								.parseDouble(
-									commentNodes.get(0).getValue().trim());
+							Double.parseDouble(val5s.get(0).getValue().trim());
 					}
 					catch(NumberFormatException e) {
 						throw
@@ -1442,12 +1434,11 @@ public class OmhReadEntraRequest
 								XML_KEY_VAL6 +
 								"'s were returned for the record.");
 				}
-				else if(val6s.size() == 1) {
+				else if((val6s.size() == 1) && 
+						(! StringUtils.isEmptyOrWhitespaceOnly(val6s.get(0).getValue()))) {
 					try {
 						val6 =
-							Double
-								.parseDouble(
-									commentNodes.get(0).getValue().trim());
+							Double.parseDouble(val6s.get(0).getValue().trim());
 					}
 					catch(NumberFormatException e) {
 						throw
@@ -1533,28 +1524,104 @@ public class OmhReadEntraRequest
 		 */
 		private static final String METHOD = "getHeightWeight";
 		
-		/*
-		 * The JSON keys to output.
-		 */
-		private static final String JSON_KEY_TIME_SLOT = "timeslot";
-		private static final String JSON_KEY_COMMENT = "comment";
-		private static final String JSON_KEY_HEIGHT = "height";
-		private static final String JSON_KEY_WEIGHT = "weight";
-		private static final String JSON_KEY_BODY_FAT = "body_fat";
-		
 		/**
 		 * This class represents a single data point for this method.
 		 *
 		 * @author John Jenkins
 		 */
 		private static final class Result {
+			/*
+			 * The JSON keys to output.
+			 */
+			private static final String JSON_KEY_TIME_SLOT = "timeslot";
+			private static final String JSON_KEY_COMMENT = "comment";
+			private static final String JSON_KEY_HEIGHT = "height";
+			private static final String JSON_KEY_WEIGHT = "weight";
+			private static final String JSON_KEY_BODY_FAT = "body_fat";
+			
 			private String id;
 			private DateTime timestamp;
+			
+			@JsonProperty(JSON_KEY_TIME_SLOT)
 			private String timeSlot;
+			@JsonProperty(JSON_KEY_COMMENT)
 			private String comment;
-			private double height;
+			@JsonProperty(JSON_KEY_HEIGHT)
+			private Double height;
+			@JsonProperty(JSON_KEY_WEIGHT)
 			private double weight;
-			private double bodyFat;
+			@JsonProperty(JSON_KEY_BODY_FAT)
+			private Double bodyFat;
+
+			/**
+			 * Writes the Concordia definition of this object to the generator
+			 * and returns it when it is finished. The definition is a
+			 * self-contained JSON object, meaning it both starts and ends the
+			 * object.
+			 * 
+			 * @param generator The generator to use to write the definition.
+			 * 
+			 * @return The generator after it has finished.
+		 * 
+		 * @throws JsonGenerationException There was a problem generating the
+		 * 								   JSON.
+		 * 
+		 * @throws IOException There was a problem writing to the generator.
+			 */
+			public static JsonGenerator toConcordia(
+					final JsonGenerator generator)
+					throws JsonGenerationException, IOException {
+				
+				// Start the definition.
+				generator.writeStartObject();
+				
+				// The data will always be a JSON object.
+				generator.writeStringField("type", "object");
+				generator.writeArrayFieldStart("schema");
+				
+				// Add the 'timeslot' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_TIME_SLOT);
+				generator.writeStringField("type", "string");
+				generator.writeBooleanField("optional", true);
+				generator.writeEndObject();
+				
+				// Add the 'comment' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_COMMENT);
+				generator.writeStringField("type", "string");
+				generator.writeBooleanField("optional", true);
+				generator.writeEndObject();
+				
+				// Add the 'val1' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_HEIGHT);
+				generator.writeStringField("type", "number");
+				generator.writeBooleanField("optional", true);
+				generator.writeEndObject();
+				
+				// Add the 'val2' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_WEIGHT);
+				generator.writeStringField("type", "number");
+				generator.writeEndObject();
+				
+				// Add the 'val3' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_BODY_FAT);
+				generator.writeStringField("type", "number");
+				generator.writeBooleanField("optional", true);
+				generator.writeEndObject();
+				
+				// End the overall schema array.
+				generator.writeEndArray();
+				
+				// End the definition.
+				generator.writeEndObject();
+				
+				// Return the generator.
+				return generator;
+			}
 		}
 		private final List<Result> results = new LinkedList<Result>();
 
@@ -1593,55 +1660,8 @@ public class OmhReadEntraRequest
 		public JsonGenerator toConcordia(
 				final JsonGenerator generator)
 				throws JsonGenerationException, IOException {
-			
-			// Start the definition.
-			generator.writeStartObject();
-			
-			// The data will always be a JSON object.
-			generator.writeStringField("type", "object");
-			generator.writeArrayFieldStart("schema");
-			
-			// Add the 'timeslot' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_TIME_SLOT);
-			generator.writeStringField("type", "string");
-			generator.writeEndObject();
-			
-			// Add the 'comment' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_COMMENT);
-			generator.writeStringField("type", "string");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val1' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_HEIGHT);
-			generator.writeStringField("type", "number");
-			generator.writeEndObject();
-			
-			// Add the 'val2' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_WEIGHT);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// Add the 'val3' field.
-			generator.writeStartObject();
-			generator.writeStringField("name", JSON_KEY_BODY_FAT);
-			generator.writeStringField("type", "number");
-			generator.writeBooleanField("optional", true);
-			generator.writeEndObject();
-			
-			// End the overall schema array.
-			generator.writeEndArray();
-			
-			// End the definition.
-			generator.writeEndObject();
-			
-			// Return the generator.
-			return generator;
+
+			return Result.toConcordia(generator);
 		}
 		
 		/*
@@ -1684,12 +1704,6 @@ public class OmhReadEntraRequest
 			
 			if(val1 == null) {
 				throw new DomainException("The weight is missing.");
-			}
-			if(val2 == null) {
-				throw new DomainException("The height is missing.");
-			}
-			if(val3 == null) {
-				throw new DomainException("The body fat is missing.");
 			}
 			
 			Result result = new Result();
@@ -1738,29 +1752,10 @@ public class OmhReadEntraRequest
 				generator.writeEndObject();
 				
 				// Write the data.
-				generator.writeObjectFieldStart("data");
+				generator.writeFieldName("data");
 				
-				// Write the 'timeslot' field.
-				generator
-					.writeStringField(JSON_KEY_TIME_SLOT, result.timeSlot);
-				
-				// Write the 'comment' field.
-				if(result.comment != null) {
-					generator
-						.writeStringField(JSON_KEY_COMMENT, result.comment);
-				}
-				
-				// Write the 'height' field.
-				generator.writeNumberField(JSON_KEY_HEIGHT, result.height);
-				
-				// Write the 'weight' field.
-				generator.writeNumberField(JSON_KEY_WEIGHT, result.weight);
-				
-				// Write the 'body fat' field.
-				generator.writeNumberField(JSON_KEY_BODY_FAT, result.bodyFat);
-				
-				// End the data.
-				generator.writeEndObject();
+				// Write this data point.
+				generator.writeObject(result);
 				
 				// End the overall object.
 				generator.writeEndObject();
