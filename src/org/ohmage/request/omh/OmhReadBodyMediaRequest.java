@@ -462,7 +462,7 @@ public class OmhReadBodyMediaRequest
 			
 			// Set the payload ID.
 			StringBuilder surveyPayloadIdBuilder = 
-				new StringBuilder("urn:body_media:");
+				new StringBuilder("omh:body_media:");
 			surveyPayloadIdBuilder.append(path);
 			generator.writeStringField(
 				"payload_id", 

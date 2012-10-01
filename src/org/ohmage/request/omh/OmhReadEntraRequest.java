@@ -299,7 +299,7 @@ public class OmhReadEntraRequest
 			
 			// Set the payload ID.
 			StringBuilder surveyPayloadIdBuilder = 
-				new StringBuilder("urn:entra:");
+				new StringBuilder("omh:entra:");
 			surveyPayloadIdBuilder.append(method);
 			generator.writeStringField(
 				"payload_id", 
