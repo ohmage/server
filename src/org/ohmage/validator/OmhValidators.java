@@ -84,6 +84,12 @@ public class OmhValidators {
 				try {
 					result = new RunKeeperPayloadId(split[2]);
 				}
+				catch(ArrayIndexOutOfBoundsException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The RunKeeper payload ID must contain a third section that is the API to call.",
+						e);
+				}
 				catch(DomainException e) {
 					throw new ValidationException(
 						ErrorCode.OMH_INVALID_PAYLOAD_ID,
@@ -95,10 +101,16 @@ public class OmhValidators {
 				try {
 					result = new BodyMediaPayloadId(split[2]);
 				}
+				catch(ArrayIndexOutOfBoundsException e) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The BodyMedia payload ID must contain a third section that is the API to call.",
+						e);
+				}
 				catch(DomainException e) {
 					throw new ValidationException(
 						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The RunKeeper API value is invalid: " + split[2],
+						"The BodyMedia API value is invalid: " + split[2],
 						e);
 				}
 			}

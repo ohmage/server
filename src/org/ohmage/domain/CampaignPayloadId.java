@@ -107,11 +107,19 @@ public class CampaignPayloadId implements PayloadId {
 			final TokenLocation tokenLocation,
 			boolean callClientRequester,
 			final long version,
+			final String owner,
 			final DateTime startDate,
 			final DateTime endDate,
 			final long numToSkip,
 			final long numToReturn)
 			throws DomainException {
+		
+		Collection<String> usernames = 
+			SurveyResponseRequest.URN_SPECIAL_ALL_LIST;
+		if(owner != null) {
+			usernames = new ArrayList<String>(1);
+			usernames.add(owner);
+		}
 		
 		Collection<String> surveyIds = null;
 		Collection<String> promptIds = null;
@@ -131,7 +139,7 @@ public class CampaignPayloadId implements PayloadId {
 					parameters,
 					true,
 					campaignId,
-					SurveyResponseRequest.URN_SPECIAL_ALL_LIST,
+					usernames,
 					surveyIds,
 					promptIds,
 					null,
