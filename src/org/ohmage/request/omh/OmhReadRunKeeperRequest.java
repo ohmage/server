@@ -224,7 +224,7 @@ public class OmhReadRunKeeperRequest
 			
 			// Set the payload ID.
 			StringBuilder payloadIdBuilder = 
-				new StringBuilder("urn:run_keeper:");
+				new StringBuilder("omh:run_keeper:");
 			payloadIdBuilder.append(path);
 			generator.writeStringField(
 				"payload_id", 
