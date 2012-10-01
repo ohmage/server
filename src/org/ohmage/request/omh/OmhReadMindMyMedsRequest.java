@@ -18,17 +18,24 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.OmhServices;
+import org.ohmage.service.UserClassServices;
+import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 
 public class OmhReadMindMyMedsRequest extends UserRequest{
 	private static final Logger LOGGER =
 		Logger.getLogger(OmhReadMindMyMedsRequest.class);
 	
+	private final String owner;
 	private final DateTime startDate;
 	private final DateTime endDate;
 	private final long numToSkip;
@@ -53,6 +60,9 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 	 * 
 	 * @param callClientRequester Refers to the "client" parameter as the
 	 * 							  "requester".
+	 * 
+	 * @param owner The user whose data is being requested. If null, the 
+	 * 				requester is requesting data about themselves.
 	 * 
 	 * @param startDate Limits the results to only those on or after this date.
 	 * 
@@ -79,6 +89,7 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 			final Boolean hashPassword,
 			final TokenLocation tokenLocation,
 			final boolean callClientRequester,
+			final String owner,
 			final DateTime startDate,
 			final DateTime endDate,
 			final long numToSkip,
@@ -96,6 +107,7 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 			LOGGER.info("Creating an OMH read reqeust for Mind My Meds.");
 		}
 
+		this.owner = owner;
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.numToSkip = numToSkip;
@@ -169,17 +181,46 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 		}
 
 		try {
-			// TODO: Verify that the user is allowed to query this data through
+			// Verify that the user is allowed to query this data through 
 			// ohmage.
-			// This is being ignored for now because there is no "user" 
-			// parameter. When the "user" parameter is added, the ACL states
-			// that the requesting user must be a supervisor in any campaign to
-			// which the user is a participant.
-			// Note: This should not be pushed to a public server because, by
-			// default everyone is a participant in every campaign. Therefore,
-			// anyone who manages to elevate their privileges to supervisor of
-			// a campaign will be able to execute this call against everyone
-			// else in the system.
+			if((owner != null) && (! owner.equals(getUser().getUsername()))) {
+				try {
+					LOGGER.info("Checking if the user is an admin.");
+					UserServices.instance().verifyUserIsAdmin(
+						getUser().getUsername());
+				}
+				catch(ServiceException notAdmin) {
+					LOGGER.info("The user is not an admin.");
+
+					LOGGER.info(
+						"Checking if reading data about another user is even allowed.");
+					boolean isPlausible;
+					try {
+						isPlausible = 
+							StringUtils.decodeBoolean(
+								PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_PRIVILEGED_USER_IN_CLASS_CAN_VIEW_MOBILITY_FOR_EVERYONE_IN_CLASS));
+					}
+					catch(CacheMissException e) {
+						throw new ServiceException(e);
+					}
+					
+					if(isPlausible) {
+						LOGGER.info(
+							"Checking if the requester is allowed to read data about this user.");
+						UserClassServices
+							.instance()
+							.userIsPrivilegedInAnotherUserClass(
+								getUser().getUsername(), 
+								owner);
+					}
+					else {
+						throw new ServiceException(
+							ErrorCode.OMH_INSUFFICIENT_PERMISSIONS,
+							"This user is not allowed to query data about the requested user.");
+					}
+				}
+			}
 			
 			// Get the authentication information from the database.
 			LOGGER
@@ -188,24 +229,26 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 			Map<String, String> mindMyMedsCredentials =
 				OmhServices.instance().getCredentials("mind_my_meds");
 			
+			// Switch on either the requester or the given username.
+			String requestee = 
+				((owner == null) ? getUser().getUsername() : owner);
+			
 			// Retrieve the users's Mind My Meds username.
 			String mmmUsername = 
-				mindMyMedsCredentials
-					.get(getUser().getUsername() + "_username");
+				mindMyMedsCredentials.get(requestee + "_username");
 			if(mmmUsername == null) {
 				throw new ServiceException(
 					"This user doesn't have a Mind My Meds username: " +
-						getUser().getUsername());
+						requestee);
 			}
 
 			// Retrieve the users's Mind My Meds password.
 			String mmmPassword = 
-				mindMyMedsCredentials
-					.get(getUser().getUsername() + "_password");
+				mindMyMedsCredentials.get(requestee + "_password");
 			if(mmmPassword == null) {
 				throw new ServiceException(
 					"This user doesn't have a Mind My Meds password: " +
-						getUser().getUsername());
+						requestee);
 			}
 			
 			// Forward the call to the Mind My Meds server.

@@ -28,6 +28,7 @@ import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.validator.ObserverValidators;
 import org.ohmage.validator.OmhValidators;
+import org.ohmage.validator.UserValidators;
 
 public class OmhReadRequest extends Request {
 	private static final Logger LOGGER = 
@@ -211,6 +212,18 @@ public class OmhReadRequest extends Request {
 						ErrorCode.OMH_INVALID_PAYLOAD_ID,
 						"No payload ID was given.");
 				}
+				
+				String owner = null;
+				t = getParameterValues(InputKeys.OMH_OWNER);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_OWNER,
+						"Multiple owner values were given: " +
+							InputKeys.OMH_OWNER);
+				}
+				else if(t.length == 1) {
+					owner = UserValidators.validateUsername(t[0]);
+				}
 			
 				try {
 					LOGGER
@@ -225,6 +238,7 @@ public class OmhReadRequest extends Request {
 								TokenLocation.EITHER, 
 								true,
 								version, 
+								owner,
 								startDate, 
 								endDate, 
 								numToSkip, 

@@ -35,6 +35,9 @@ public abstract interface PayloadId {
 	 * 
 	 * @param version The version of the payload from which to pull data.
 	 * 
+	 * @param owner The user whose data is being requested. If null, the 
+	 * 				requester is requesting data about themselves.
+	 * 
 	 * @param startDate Limits the data to only those points on or after this
 	 * 					date.
 	 * 
@@ -56,6 +59,7 @@ public abstract interface PayloadId {
 		TokenLocation tokenLocation,
 		boolean callClientRequester,
 		long version,
+		String owner,
 		DateTime startDate,
 		DateTime endDate,
 		long numToSkip,
