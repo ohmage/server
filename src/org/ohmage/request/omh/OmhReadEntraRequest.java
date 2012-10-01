@@ -300,7 +300,7 @@ public class OmhReadEntraRequest
 			// Set the payload ID.
 			StringBuilder surveyPayloadIdBuilder = 
 				new StringBuilder("omh:entra:");
-			surveyPayloadIdBuilder.append(method);
+			surveyPayloadIdBuilder.append(getPayloadIdMethod());
 			generator.writeStringField(
 				"payload_id", 
 				surveyPayloadIdBuilder.toString());
@@ -318,6 +318,14 @@ public class OmhReadEntraRequest
 			// End the Entra definition.
 			generator.writeEndObject();
 		}
+		
+		/**
+		 * Returns the name of the method used to construct the payload ID. 
+		 * This may be different than the actual method passed to Entra.
+		 * 
+		 * @return The name of the method used to construct the payload ID.
+		 */
+		public abstract String getPayloadIdMethod();
 		
 		/**
 		 * Generates the Concordia schema for this path.
@@ -788,6 +796,15 @@ public class OmhReadEntraRequest
 		 */
 		public GlucoseMethod() {
 			super(METHOD);
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#getPayloadIdMethod()
+		 */
+		@Override
+		public String getPayloadIdMethod() {
+			return METHOD;
 		}
 
 		/*
@@ -1624,6 +1641,15 @@ public class OmhReadEntraRequest
 			}
 		}
 		private final List<Result> results = new LinkedList<Result>();
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadEntraRequest.EntraMethod#getPayloadIdMethod()
+		 */
+		@Override
+		public String getPayloadIdMethod() {
+			return METHOD;
+		}
 
 		/*
 		 * (non-Javadoc)
