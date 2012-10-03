@@ -280,45 +280,51 @@ public class TextPrompt extends Prompt {
 		return result;
 	}
 
-	/**
-	 * Returns a hash code representing this prompt.
-	 * 
-	 * @return A hash code representing this prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
+		result =
+			prime *
+				result +
+				((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result + (int) (max ^ (max >>> 32));
 		result = prime * result + (int) (min ^ (min >>> 32));
-		result = prime * result + defaultValue.hashCode();
 		return result;
 	}
 
-	/**
-	 * Determines if this bounded prompt and another object are logically 
-	 * equal.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the object is logically equivalent to this bounded 
-	 * 		   prompt; false, otherwise.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof TextPrompt)) {
 			return false;
+		}
 		TextPrompt other = (TextPrompt) obj;
-		if (max != other.max)
+		if(defaultValue == null) {
+			if(other.defaultValue != null) {
+				return false;
+			}
+		}
+		else if(!defaultValue.equals(other.defaultValue)) {
 			return false;
-		if (min != other.min)
+		}
+		if(max != other.max) {
 			return false;
-		if (! defaultValue.equals(other.defaultValue))
+		}
+		if(min != other.min) {
 			return false;
+		}
 		return true;
 	}
 }

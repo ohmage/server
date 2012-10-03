@@ -338,49 +338,51 @@ public abstract class BoundedPrompt extends Prompt {
 		return result;
 	}
 
-	/**
-	 * Returns a hash code representing this prompt.
-	 * 
-	 * @return A hash code representing this prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((defaultValue == null) ? 0 : defaultValue.hashCode());
+		result =
+			prime *
+				result +
+				((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result + (int) (max ^ (max >>> 32));
 		result = prime * result + (int) (min ^ (min >>> 32));
 		return result;
 	}
 
-	/**
-	 * Determines if this bounded prompt and another object are logically 
-	 * equal.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the object is logically equivalent to this bounded 
-	 * 		   prompt; false, otherwise.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof BoundedPrompt)) {
 			return false;
+		}
 		BoundedPrompt other = (BoundedPrompt) obj;
-		if (defaultValue == null) {
-			if (other.defaultValue != null)
+		if(defaultValue == null) {
+			if(other.defaultValue != null) {
 				return false;
-		} else if (!defaultValue.equals(other.defaultValue))
+			}
+		}
+		else if(!defaultValue.equals(other.defaultValue)) {
 			return false;
-		if (max != other.max)
+		}
+		if(max != other.max) {
 			return false;
-		if (min != other.min)
+		}
+		if(min != other.min) {
 			return false;
+		}
 		return true;
 	}
 }

@@ -215,41 +215,44 @@ public abstract class ChoicePrompt extends Prompt {
 		return result;
 	}
 
-	/**
-	 * Generates a hash code for this choice prompt.
-	 * 
-	 * @return A hash code for this choice prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((choices == null) ? 0 : choices.hashCode());
+		result = prime * result + (hasValues ? 1231 : 1237);
 		return result;
 	}
 
-	/**
-	 * Determines if this choice prompt is logically equivalent to some object.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the other object and this choice prompt are logically
-	 * 		   equivalent; false, otherwise.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof ChoicePrompt)) {
 			return false;
+		}
 		ChoicePrompt other = (ChoicePrompt) obj;
-		if (choices == null) {
-			if (other.choices != null)
+		if(choices == null) {
+			if(other.choices != null) {
 				return false;
-		} else if (!choices.equals(other.choices))
+			}
+		}
+		else if(!choices.equals(other.choices)) {
 			return false;
+		}
+		if(hasValues != other.hasValues) {
+			return false;
+		}
 		return true;
 	}
 }

@@ -240,9 +240,8 @@ public class PhotoPrompt extends Prompt {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#hashCode()
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -252,21 +251,24 @@ public class PhotoPrompt extends Prompt {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#equals(java.lang.Object)
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof PhotoPrompt)) {
 			return false;
+		}
 		PhotoPrompt other = (PhotoPrompt) obj;
-		if (verticalResolution != other.verticalResolution)
+		if(verticalResolution != other.verticalResolution) {
 			return false;
+		}
 		return true;
 	}
 }

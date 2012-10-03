@@ -232,42 +232,43 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 		return result;
 	}
 
-	/**
-	 * Generates a hash code for this prompt.
-	 * 
-	 * @return A hash code for this prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((defaultKey == null) ? 0 : defaultKey.hashCode());
+		result =
+			prime *
+				result +
+				((defaultKey == null) ? 0 : defaultKey.hashCode());
 		return result;
 	}
 
-	/**
-	 * Determines if this prompt is logically equivalent to another prompt.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the other object is logically equivalent to this
-	 * 		   prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof SingleChoiceCustomPrompt)) {
 			return false;
+		}
 		SingleChoiceCustomPrompt other = (SingleChoiceCustomPrompt) obj;
-		if (defaultKey == null) {
-			if (other.defaultKey != null)
+		if(defaultKey == null) {
+			if(other.defaultKey != null) {
 				return false;
-		} else if (!defaultKey.equals(other.defaultKey))
+			}
+		}
+		else if(!defaultKey.equals(other.defaultKey)) {
 			return false;
+		}
 		return true;
 	}
 }
