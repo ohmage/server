@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -668,7 +669,7 @@ public class OmhReadBodyMediaRequest
 		 */
 		private static final String PATH = "sleep";
 		
-		private static final class Result {
+		private static final class Result implements Comparable<Result> {
 			private static final String JSON_KEY_DATE = "date";
 			private static final String JSON_KEY_TOTAL_LYING = "totalLying";
 			private static final String JSON_KEY_TOTAL_SLEEP = "totalSleep";
@@ -736,6 +737,22 @@ public class OmhReadBodyMediaRequest
 				
 				// Return the generator.
 				return generator;
+			}
+
+			/**
+			 * Sorts the Result objects in reverse chronological order.
+			 */
+			@Override
+			public int compareTo(Result other) {
+				if(date.isBefore(other.date)) {
+					return 1;
+				}
+				else if(date.isAfter(other.date)) {
+					return -1;
+				}
+				else {
+					return 0;
+				}
 			}
 		}
 		List<Result> results = new LinkedList<Result>();
@@ -894,6 +911,9 @@ public class OmhReadBodyMediaRequest
 					// Otherwise, it was a value we didn't understand or care
 					// about and will ignore it now.
 				}
+				
+				// Sort the results to put them in reverse-chronological order.
+				Collections.sort(results);
 			}
 			catch(JsonParseException e) {
 				throw 
