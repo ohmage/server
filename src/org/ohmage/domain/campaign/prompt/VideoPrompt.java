@@ -266,5 +266,4 @@ public class VideoPrompt extends Prompt {
 		}
 		return true;
 	}
-
 }

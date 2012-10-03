@@ -460,70 +460,82 @@ public class RemoteActivityPrompt extends Prompt {
 		generator.writeEndObject();
 	}
 	
-	/**
-	 * Returns a hash code representing this prompt.
-	 * 
-	 * @return A hash code representing this prompt.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.Prompt#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + ((action == null) ? 0 : action.hashCode());
-		result = prime * result
-				+ ((activity == null) ? 0 : activity.hashCode());
+		result =
+			prime * result + ((activity == null) ? 0 : activity.hashCode());
 		result = prime * result + (autolaunch ? 1231 : 1237);
 		result = prime * result + ((input == null) ? 0 : input.hashCode());
 		result = prime * result + minRuns;
-		result = prime * result
-				+ ((packagee == null) ? 0 : packagee.hashCode());
+		result =
+			prime * result + ((packagee == null) ? 0 : packagee.hashCode());
 		result = prime * result + retries;
 		return result;
 	}
 
-	/**
-	 * Determines if this prompt is logically equivalent to another prompt.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the other object is logically equivalent to this
-	 * 		   prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof RemoteActivityPrompt)) {
 			return false;
+		}
 		RemoteActivityPrompt other = (RemoteActivityPrompt) obj;
-		if (action == null) {
-			if (other.action != null)
+		if(action == null) {
+			if(other.action != null) {
 				return false;
-		} else if (!action.equals(other.action))
+			}
+		}
+		else if(!action.equals(other.action)) {
 			return false;
-		if (activity == null) {
-			if (other.activity != null)
+		}
+		if(activity == null) {
+			if(other.activity != null) {
 				return false;
-		} else if (!activity.equals(other.activity))
+			}
+		}
+		else if(!activity.equals(other.activity)) {
 			return false;
-		if (autolaunch != other.autolaunch)
+		}
+		if(autolaunch != other.autolaunch) {
 			return false;
-		if (input == null) {
-			if (other.input != null)
+		}
+		if(input == null) {
+			if(other.input != null) {
 				return false;
-		} else if (!input.equals(other.input))
+			}
+		}
+		else if(!input.equals(other.input)) {
 			return false;
-		if (minRuns != other.minRuns)
+		}
+		if(minRuns != other.minRuns) {
 			return false;
-		if (packagee == null) {
-			if (other.packagee != null)
+		}
+		if(packagee == null) {
+			if(other.packagee != null) {
 				return false;
-		} else if (!packagee.equals(other.packagee))
+			}
+		}
+		else if(!packagee.equals(other.packagee)) {
 			return false;
-		if (retries != other.retries)
+		}
+		if(retries != other.retries) {
 			return false;
+		}
 		return true;
 	}
 

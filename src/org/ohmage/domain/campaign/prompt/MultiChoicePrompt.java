@@ -382,42 +382,44 @@ public class MultiChoicePrompt extends ChoicePrompt {
 		generator.writeEndObject();
 	}
 
-	/**
-	 * Generates a hash code for this prompt.
-	 * 
-	 * @return A hash code for this prompt.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.prompt.ChoicePrompt#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((defaultKeys == null) ? 0 : defaultKeys.hashCode());
+		result =
+			prime *
+				result +
+				((defaultKeys == null) ? 0 : defaultKeys.hashCode());
 		return result;
 	}
 
-	/**
-	 * Determines if this prompt is logically equivalent to another prompt.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the other object is logically equivalent to this
-	 * 		   prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof MultiChoicePrompt)) {
 			return false;
+		}
 		MultiChoicePrompt other = (MultiChoicePrompt) obj;
-		if (defaultKeys == null) {
-			if (other.defaultKeys != null)
+		if(defaultKeys == null) {
+			if(other.defaultKeys != null) {
 				return false;
-		} else if (!defaultKeys.equals(other.defaultKeys))
+			}
+		}
+		else if(!defaultKeys.equals(other.defaultKeys)) {
 			return false;
+		}
 		return true;
 	}
 }

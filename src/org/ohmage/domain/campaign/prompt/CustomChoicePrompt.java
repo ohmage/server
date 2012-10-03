@@ -294,42 +294,43 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 		return result;
 	}
 
-	/**
-	 * Generates a hash code for this custom choice prompt.
-	 * 
-	 * @return A hash code for this custom choice prompt.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result
-				+ ((customChoices == null) ? 0 : customChoices.hashCode());
+		result =
+			prime *
+				result +
+				((customChoices == null) ? 0 : customChoices.hashCode());
 		return result;
 	}
 
-	/**
-	 * Determines if this custom choice prompt is equivalent to another object.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if the other object logically equals this custom choice;
-	 * 		   false, otherwise.
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if(this == obj) {
 			return true;
-		if (!super.equals(obj))
+		}
+		if(!super.equals(obj)) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if(!(obj instanceof CustomChoicePrompt)) {
 			return false;
+		}
 		CustomChoicePrompt other = (CustomChoicePrompt) obj;
-		if (customChoices == null) {
-			if (other.customChoices != null)
+		if(customChoices == null) {
+			if(other.customChoices != null) {
 				return false;
-		} else if (!customChoices.equals(other.customChoices))
+			}
+		}
+		else if(!customChoices.equals(other.customChoices)) {
 			return false;
+		}
 		return true;
 	}
 }
