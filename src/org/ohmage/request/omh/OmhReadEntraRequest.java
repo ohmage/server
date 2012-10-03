@@ -911,7 +911,7 @@ public class OmhReadEntraRequest
 				// Get the timestamp.
 				String date, time;
 				// First, get the date.
-				Nodes dateNodes = node.query("date");
+				Nodes dateNodes = node.query("testdate");
 				if(dateNodes.size() == 0) {
 					throw
 						new DomainException(
@@ -926,7 +926,7 @@ public class OmhReadEntraRequest
 					date = dateNodes.get(0).getValue().trim();
 				}
 				// Then, get the time.
-				Nodes timeNodes = node.query("time");
+				Nodes timeNodes = node.query("testtime");
 				if(timeNodes.size() == 0) {
 					throw
 						new DomainException(
