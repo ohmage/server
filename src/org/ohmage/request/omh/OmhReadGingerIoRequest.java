@@ -160,12 +160,20 @@ public class OmhReadGingerIoRequest
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_MOBILITY);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The phone is polled every 10 minutes and, as long as you haven't traveled more than a half of a mile, added to the running total for the day. This is that total.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_MOBILITY_RADIUS);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The distance between the farthest two points based on the user's position in a day. This is along the curve of a circle to approximate the globe and not a straight-line distance.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
@@ -174,6 +182,10 @@ public class OmhReadGingerIoRequest
 				"name", 
 				Result.JSON_KEY_MISSED_INTERACTIONS);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The number of missed calls for the day.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
@@ -182,6 +194,10 @@ public class OmhReadGingerIoRequest
 				"name", 
 				Result.JSON_KEY_INTERACTION_DIVERSITY);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The number of unqiue contacts for phone calls and SMS messages for the day, excluding missed calls.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
@@ -190,6 +206,10 @@ public class OmhReadGingerIoRequest
 				"name", 
 				Result.JSON_KEY_INTERACTION_DURATION);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The total number of seconds the user was on the phone plus the number of characters in all of their sent SMS messages.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
@@ -198,18 +218,30 @@ public class OmhReadGingerIoRequest
 				"name", 
 				Result.JSON_KEY_INTERACTION_BALANCE);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The number of received calls, not missed or made, divided by the total number of calls.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_SMS_COUNT);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The number of SMS messages received and sent.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_SMS_LENGTH);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The sum of the length of all SMS messages.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
@@ -218,24 +250,38 @@ public class OmhReadGingerIoRequest
 				"name", 
 				Result.JSON_KEY_AGGREGATE_COMMUNICATION);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The sum of all sent and received SMS messages plus all calls except those that were missed.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_RESPONSIVENESS);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The number of missed calls that the user has not responded to.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_CALL_DURATION);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField("doc", "The number of minutes in calls.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
 			generator.writeStartObject();
 			generator.writeStringField("name", Result.JSON_KEY_CALL_COUNT);
 			generator.writeStringField("type", "number");
+			generator
+				.writeStringField(
+					"doc", 
+					"The total number of calls made and received, excluding missed calls.");
 			generator.writeBooleanField("optional", true);
 			generator.writeEndObject();
 			
