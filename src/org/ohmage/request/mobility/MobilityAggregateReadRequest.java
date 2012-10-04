@@ -484,7 +484,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 									previousPoint.getDate().getMillis();
 							
 							additionalDuration = 
-								(difference <= 3600000) ? difference : 60000;
+								(difference <= 360000) ? difference : 60000;
 						}
 						
 						// Update the duration with the additional duration.
