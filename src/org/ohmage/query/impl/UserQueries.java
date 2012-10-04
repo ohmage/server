@@ -2058,7 +2058,7 @@ public class UserQueries extends Query implements IUserQueries {
 				}
 				catch(org.springframework.dao.DataAccessException e) {
 					transactionManager.rollback(status);
-					throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_PASSWORD + "' with parameters: " + 
+					throw new DataAccessException("Error executing the following SQL '" + SQL_DELETE_USER + "' with parameters: " + 
 							username, e);
 				}
 			}
