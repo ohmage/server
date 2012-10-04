@@ -62,7 +62,7 @@ public class OmhReadRequest extends Request {
 		super(httpRequest, null);
 		
 		UserRequest tUserRequest = null;
-		ColumnNode<String> tColumns = null;
+		ColumnNode<String> tColumns = new ColumnNode<String>();
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH read request.");
