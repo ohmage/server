@@ -115,7 +115,7 @@ public class UserDeletionRequest extends UserRequest {
 			LOGGER.info("Verifying that the users in the list exist.");
 			UserServices.instance().verifyUsersExist(usernames, true);
 			
-			LOGGER.info("Deleteing the user(s).");
+			LOGGER.info("Deleting the user(s).");
 			UserServices.instance().deleteUser(usernames);
 		}
 		catch(ServiceException e) {
