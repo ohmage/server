@@ -267,7 +267,7 @@ public class OmhReadRequest extends Request {
 		LOGGER.info("Responding to an OMH read request.");
 
 		// If either request has failed, set the response's status code.
-		if(isFailed() || streamReadRequest.isFailed()) {
+		if(isFailed()) {
 			if(
 				ErrorCode
 					.SYSTEM_GENERAL_ERROR
@@ -280,13 +280,24 @@ public class OmhReadRequest extends Request {
 				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
 			
-			// Then, force the appropriate request to respond.
-			if(isFailed()) {
-				super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, null);
+			return;
+		}
+		else if(streamReadRequest.isFailed()) {
+			if(
+				ErrorCode
+					.SYSTEM_GENERAL_ERROR
+					.equals(streamReadRequest.getAnnotator().getErrorCode())) {
+					
+				httpResponse
+					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				streamReadRequest.respond(httpRequest, httpResponse);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
+			
+			// Then, force the request to respond.
+			streamReadRequest.respond(httpRequest, httpResponse);
 			return;
 		}
 		
