@@ -288,7 +288,7 @@ public class OmhReadRequest extends Request {
 		handleCORS(httpRequest, httpResponse);
 
 		// If either request has failed, set the response's status code.
-		if(isFailed() || userRequest.isFailed()) {
+		if(isFailed()) {
 			if(
 				ErrorCode
 					.SYSTEM_GENERAL_ERROR
@@ -301,13 +301,25 @@ public class OmhReadRequest extends Request {
 				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 			
-			// Then, force the appropriate request to respond.
-			if(isFailed()) {
-				super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, null);
+			return;
+		}
+		else if(userRequest.isFailed()) {
+			if(
+				ErrorCode
+					.SYSTEM_GENERAL_ERROR
+					.equals(userRequest.getAnnotator().getErrorCode())) {
+					
+				httpResponse
+					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				userRequest.respond(httpRequest, httpResponse);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
+			
+			// Then, force the request to respond.
+			userRequest.respond(httpRequest, httpResponse);
+			return;
 		}
 		else if(userRequest instanceof OmhReadMindMyMedsRequest) {
 			userRequest.respond(httpRequest, httpResponse);

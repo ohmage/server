@@ -87,7 +87,7 @@ public class OmhAuthenticateRequest extends Request {
 		handleCORS(httpRequest, httpResponse);
 		
 		// If either request has failed, set the response's status code.
-		if(isFailed() || authTokenRequest.isFailed()) {
+		if(isFailed()) {
 			if(
 				ErrorCode
 					.SYSTEM_GENERAL_ERROR
@@ -100,13 +100,24 @@ public class OmhAuthenticateRequest extends Request {
 				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
 			
-			// Then, force the appropriate request to respond.
-			if(isFailed()) {
-				super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, null);
+			return;
+		}
+		else if(authTokenRequest.isFailed()) {
+			if(
+				ErrorCode
+					.SYSTEM_GENERAL_ERROR
+					.equals(authTokenRequest.getAnnotator().getErrorCode())) {
+					
+				httpResponse
+					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				authTokenRequest.respond(httpRequest, httpResponse);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
+			
+			// Then, force the request to respond.
+			authTokenRequest.respond(httpRequest, httpResponse);
 			return;
 		}
 		
