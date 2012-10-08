@@ -206,12 +206,7 @@ public class CampaignUpdateRequest extends UserRequest {
 				}
 	
 				byte[] bXml = getMultipartValue(httpRequest, InputKeys.XML);
-				if(bXml == null) {
-					throw new ValidationException(
-						ErrorCode.CAMPAIGN_INVALID_XML,
-						"Missing required campaign XML: " + InputKeys.XML);
-				}
-				else {
+				if(bXml != null) {
 					String xmlString = new String(bXml);
 					
 					Map<String, String> idToName = 
