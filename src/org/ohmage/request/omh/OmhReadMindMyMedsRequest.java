@@ -238,6 +238,7 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 				mindMyMedsCredentials.get(requestee + "_username");
 			if(mmmUsername == null) {
 				throw new ServiceException(
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 					"This user doesn't have a Mind My Meds username: " +
 						requestee);
 			}
@@ -247,13 +248,13 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 				mindMyMedsCredentials.get(requestee + "_password");
 			if(mmmPassword == null) {
 				throw new ServiceException(
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 					"This user doesn't have a Mind My Meds password: " +
 						requestee);
 			}
 			
 			// Forward the call to the Mind My Meds server.
 			HttpClient client = new DefaultHttpClient();
-			
 			
 			// Build the URL.
 			StringBuilder urlBuilder =

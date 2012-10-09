@@ -1344,6 +1344,7 @@ public class OmhReadRunKeeperRequest
 				runKeeperCredentials.get("bearer_" + requestee);
 			if(bearer == null) {
 				throw new ServiceException(
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 					"The user's RunKeeper credentials have not been stored: " +
 						requestee);
 			}

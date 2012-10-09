@@ -2490,6 +2490,7 @@ public class OmhReadHealthVaultRequest
 					.get(requestee + "_record_id");
 			if(recordId == null) {
 				throw new ServiceException(
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 					"The user's HealthVault credentials have not been stored: " +
 						requestee);
 			}
@@ -2500,6 +2501,7 @@ public class OmhReadHealthVaultRequest
 					.get(getUser().getUsername() + "_person_id");
 			if(personId == null) {
 				throw new ServiceException(
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 					"The user's HealthVault credentials have not been stored: " +
 						requestee);
 			}

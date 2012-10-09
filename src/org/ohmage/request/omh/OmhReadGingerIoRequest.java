@@ -485,30 +485,39 @@ public class OmhReadGingerIoRequest
 			LOGGER
 				.info(
 					"Getting the authentication credentials for GingerIO.");
-			Map<String, String> healthVaultCredentials =
+			Map<String, String> gingerIoCredentials =
 				OmhServices.instance().getCredentials("ginger_io");
 			
-			// Retrieve the user's GingerIO ID.
-			String userId = 
-				healthVaultCredentials
-					.get(getUser().getUsername() + "_id");
-			if(userId == null) {
+			// Get the coordinator's username otherwise we get a 403 for 
+			// non-coordinators attempting to retrieve even their own data.
+			String coordinator = gingerIoCredentials.get("coordinator");
+			if(coordinator == null) {
 				throw new ServiceException(
-					"The user's GingerIO ID has not been stored: " +
-						getUser().getUsername());
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
+					"The coordinator is not setup.");
+			}
+			
+			// Retrieve the user's GingerIO authentication token.
+			String authToken = 
+				gingerIoCredentials.get(coordinator + "_token");
+			if(authToken == null) {
+				throw new ServiceException(
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
+					"The user's GingerIO auth token has not been stored: " +
+						coordinator);
 			}
 			
 			// Switch on either the requester or the given username.
 			String requestee = 
 				((owner == null) ? getUser().getUsername() : owner);
 			
-			// Retrieve the user's GingerIO authentication token.
-			String authToken = 
-				healthVaultCredentials.get(requestee + "_token");
-			if(authToken == null) {
+			// Retrieve the user's GingerIO ID.
+			String userId = gingerIoCredentials.get(requestee + "_id");
+			if(userId == null) {
 				throw new ServiceException(
-					"The user's GingerIO auth token has not been stored: " +
-						requestee);
+					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
+					"The user's GingerIO ID has not been stored: " +
+						getUser().getUsername());
 			}
 			
 			// Get the data and massage it into a form we like.

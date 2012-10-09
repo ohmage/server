@@ -1279,6 +1279,7 @@ public class OmhReadBodyMediaRequest
 			if(apiKey == null) {
 				throw 
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The BodyMedia API key is missing from the OMH credentials table in the database.");
 			}
 
@@ -1287,6 +1288,7 @@ public class OmhReadBodyMediaRequest
 			if(sharedSecret == null) {
 				throw 
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The BodyMedia shared secret is missing from the OMH credentials table in the database.");
 			}
 			
@@ -1301,6 +1303,7 @@ public class OmhReadBodyMediaRequest
 			if(username == null) {
 				throw 
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"There is no BodyMedia mapping for the user: " + 
 							requestee);
 			}
@@ -1312,6 +1315,7 @@ public class OmhReadBodyMediaRequest
 			if(password == null) {
 				throw 
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"There is no BodyMedia mapping for the user: " + 
 							requestee);
 			}

@@ -2063,6 +2063,7 @@ public class OmhReadEntraRequest
 			if(appId == null) {
 				throw
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The Entra-supplied app ID is missing.");
 			}
 			
@@ -2071,6 +2072,7 @@ public class OmhReadEntraRequest
 			if(appPassword == null) {
 				throw
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The Entra-supplied app password is missing.");
 			}
 			
@@ -2079,6 +2081,7 @@ public class OmhReadEntraRequest
 			if(appSource == null) {
 				throw
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The Entra-supplied app source is missing.");
 			}
 			
@@ -2092,6 +2095,7 @@ public class OmhReadEntraRequest
 			if(userName == null) {
 				throw
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The user's Entra username is missing: " + requestee);
 			}
 			
@@ -2101,6 +2105,7 @@ public class OmhReadEntraRequest
 			if(userPassword == null) {
 				throw
 					new ServiceException(
+						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
 						"The user's Entra password is missing: " + requestee);
 			}
 			
