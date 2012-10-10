@@ -9,3 +9,4 @@ thirdparty
 /nbproject/
 web/WEB-INF/classes/hv-application.properties
 web/WEB-INF/classes/keystore
+.settings
