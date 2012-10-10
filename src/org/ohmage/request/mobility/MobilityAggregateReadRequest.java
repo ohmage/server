@@ -212,6 +212,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							tStartDate,
 							endDate,
 							null,
+							true,
 							null,
 							Long.MAX_VALUE);
 					
@@ -230,6 +231,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 							tStartDate,
 							endDate,
 							null,
+							true,
 							null,
 							Long.MAX_VALUE);
 				}

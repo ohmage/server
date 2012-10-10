@@ -574,9 +574,13 @@ public class ObserverServices {
 	 * 
 	 * @param endDate The latest point data point to return. Optional.
 	 * 
-	 * @param numToSkip The number of data points to skip. Optional.
+	 * @param chronological If true, the values will be sorted chronologically.
+	 * 						If false, the values will be sorted reverse
+	 * 						chronologically. Required.
 	 * 
-	 * @param numToReturn The number of data points to return. Optional.
+	 * @param numToSkip The number of data points to skip. Required.
+	 * 
+	 * @param numToReturn The number of data points to return. Required.
 	 * 
 	 * @return A list of data points in chronological order that match the 
 	 * 		   query.
@@ -590,6 +594,7 @@ public class ObserverServices {
 			final Long observerVersion,
 			final DateTime startDate,
 			final DateTime endDate,
+			final boolean chronological,
 			final long numToSkip,
 			final long numToReturn) 
 			throws ServiceException {
@@ -603,6 +608,7 @@ public class ObserverServices {
 					observerVersion,
 					startDate,
 					endDate,
+					chronological,
 					numToSkip,
 					numToReturn);
 		}

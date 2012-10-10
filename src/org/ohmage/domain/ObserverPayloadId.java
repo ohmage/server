@@ -106,6 +106,7 @@ public class ObserverPayloadId implements PayloadId {
 					startDate,
 					endDate,
 					null,
+					false,
 					numToSkip,
 					numToReturn);
 		}

@@ -267,6 +267,7 @@ public class MobilityReadRequest extends Request {
 							tStartDate.minusMinutes(10),
 							tStartDate.plusDays(1),
 							null,
+							true,
 							null,
 							null);
 					
@@ -285,6 +286,7 @@ public class MobilityReadRequest extends Request {
 							tStartDate.minusMinutes(10),
 							tStartDate.plusDays(1),
 							null,
+							true,
 							null,
 							null);
 				}
