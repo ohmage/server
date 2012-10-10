@@ -362,6 +362,33 @@ public class ObserverValidators {
 	}
 	
 	/**
+	 * Validates that a 'chronological' parameter is valid.
+	 * 
+	 * @param value The value to validate.
+	 * 
+	 * @return A boolean representing the input. The default is true.
+	 * 
+	 * @throws ValidationException The value is not valid.
+	 */
+	public static final boolean validateChronological(
+			final String value)
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return true;
+		}
+		
+		Boolean result = StringUtils.decodeBoolean(value);
+		if(result == null) {
+			throw new ValidationException(
+				ErrorCode.OBSERVER_INVALID_CHRONOLOGICAL_VALUE,
+				"The chronological value was a valid boolean: " + value);
+		}
+		
+		return result;
+	}
+	
+	/**
 	 * Validates that the number to skip is positive or zero.
 	 * 
 	 * @param value The number to validate.

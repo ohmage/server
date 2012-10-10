@@ -1310,7 +1310,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IObserverQueries#readData(org.ohmage.domain.Observer.Stream, java.lang.Long, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+	 * @see org.ohmage.query.IObserverQueries#readData(org.ohmage.domain.Observer.Stream, java.lang.String, java.lang.String, java.lang.Long, org.joda.time.DateTime, org.joda.time.DateTime, boolean, long, long)
 	 */
 	@Override
 	public List<DataStream> readData(
@@ -1320,6 +1320,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			final Long observerVersion,
 			final DateTime startDate,
 			final DateTime endDate,
+			final boolean chronological,
 			final long numToSkip,
 			final long numToReturn) 
 			throws DataAccessException {
@@ -1371,7 +1372,13 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			parameters.add(endDate.getMillis());
 		}
 		
-		builder.append(" ORDER BY osd.time");
+		// Add the ordering based on whether or not these should be 
+		// chronological or reverse chronological.
+		builder
+			.append(
+				" ORDER BY osd.time " + ((chronological) ? "ASC" : "DESC"));
+		
+		// Limit the number of results based on the paging.
 		builder
 			.append(" LIMIT ")
 			.append(numToSkip)

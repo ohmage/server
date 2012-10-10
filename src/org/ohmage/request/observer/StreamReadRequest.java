@@ -291,6 +291,7 @@ public class StreamReadRequest extends UserRequest {
 	private final ColumnNode<String> columnsRoot;
 	
 	// Optional parameters, but they must be given a value.
+	private final boolean chronological;
 	private final long numToSkip;
 	private final long numToReturn;
 	
@@ -362,6 +363,7 @@ public class StreamReadRequest extends UserRequest {
 			final DateTime startDate,
 			final DateTime endDate,
 			final ColumnNode<String> columns,
+			final Boolean chronological,
 			final Long numToSkip,
 			final Long numToReturn)
 			throws IOException, InvalidRequestException {
@@ -383,6 +385,13 @@ public class StreamReadRequest extends UserRequest {
 		this.startDate = startDate;
 		this.endDate = endDate;
 		this.columnsRoot = columns;
+		
+		if(chronological == null) {
+			this.chronological = true;
+		}
+		else {
+			this.chronological = chronological;
+		}
 		
 		if(numToSkip == null) {
 			this.numToSkip = 0;
@@ -425,6 +434,7 @@ public class StreamReadRequest extends UserRequest {
 		DateTime tStartDate = null;
 		DateTime tEndDate = null;
 		ColumnNode<String> tColumnsRoot = new ColumnNode<String>();
+		boolean tChronological = true;
 		long tNumToSkip = 0;
 		long tNumToReturn = MAX_NUMBER_TO_RETURN;
 		
@@ -543,6 +553,18 @@ public class StreamReadRequest extends UserRequest {
 						ObserverValidators.validateColumnList(t[0]);
 				}
 				
+				t = getParameterValues(InputKeys.CHRONOLOGICAL);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OBSERVER_INVALID_CHRONOLOGICAL_VALUE,
+						"Multiple chronological values were given: " + 
+							InputKeys.NUM_TO_SKIP);
+				}
+				else if(t.length == 1) {
+					tChronological = 
+						ObserverValidators.validateChronological(t[0]);
+				}
+				
 				t = getParameterValues(InputKeys.NUM_TO_SKIP);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -581,6 +603,7 @@ public class StreamReadRequest extends UserRequest {
 		startDate = tStartDate;
 		endDate = tEndDate;
 		columnsRoot = tColumnsRoot;
+		chronological = tChronological;
 		numToSkip = tNumToSkip;
 		numToReturn = tNumToReturn;
 		
@@ -671,6 +694,7 @@ public class StreamReadRequest extends UserRequest {
 					observerVersion,
 					startDate,
 					endDate,
+					chronological,
 					numToSkip,
 					numToReturn));
 			LOGGER.info("Returning " + results.size() + " points.");
