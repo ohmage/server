@@ -1,6 +1,7 @@
 package org.ohmage.request.omh;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class OmhReadGingerIoRequest
 	 *
 	 * @author John Jenkins
 	 */
-	private static class Result {
+	private static class Result implements Comparable<Result> {
 		private static final String JSON_KEY_LOCATION_COUNT = "location_count";
 		private static final String JSON_KEY_MOBILITY = "mobility";
 		private static final String JSON_KEY_MOBILITY_RADIUS = 
@@ -293,6 +294,25 @@ public class OmhReadGingerIoRequest
 			
 			// Return the generator.
 			return generator;
+		}
+
+		/**
+		 * Compares the timestamp for both points and returns a negative value
+		 * if the other point occurred longer ago, a positive value if the 
+		 * other point occurred more recently, and 0 if they are the same. This
+		 * means the points will be sorted in reverse chronological order. 
+		 */
+		@Override
+		public int compareTo(Result other) {
+			if(timestamp.isAfter(other.timestamp)) {
+				return -1;
+			}
+			else if(timestamp.isBefore(other.timestamp)) {
+				return 1;
+			}
+			else {
+				return 0;
+			}
 		}
 	}
 	private final List<Result> results = new LinkedList<Result>();
@@ -743,6 +763,9 @@ public class OmhReadGingerIoRequest
 			throws JsonGenerationException, IOException, DomainException {
 
 		LOGGER.info("Responding to an OMH read request for GingerIO data.");
+		
+		// Sort the data into reverse chronological order.
+		Collections.sort(results);
 		
 		// Keep track of the number of records processed.
 		long numProcessed = 0;
