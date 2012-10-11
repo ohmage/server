@@ -92,5 +92,4 @@ public class RunKeeperPayloadId implements PayloadId {
 				e);
 		}
 	}
-
 }

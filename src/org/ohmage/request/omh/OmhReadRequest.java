@@ -2,6 +2,8 @@ package org.ohmage.request.omh;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,8 +17,12 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.PayloadId;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
@@ -35,13 +41,26 @@ public class OmhReadRequest extends Request {
 		Logger.getLogger(OmhReadRequest.class);
 	
 	/**
+	 * The encoding for the previous and next URLs.
+	 */
+	private static final String URL_ENCODING_UTF_8 = "UTF-8";
+	
+	/**
 	 * The single factory instance for the writer.
 	 */
 	private static final JsonFactory JSON_FACTORY = 
 		(new MappingJsonFactory()).configure(Feature.AUTO_CLOSE_TARGET, true);
 	
-	private final UserRequest userRequest;
+	private final String payloadIdString;
+	private final Long payloadVersion;
+	private final String owner;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	private final ColumnNode<String> columns;
+	private final Long numToSkip;
+	private final Long numToReturn;
+	
+	private final UserRequest userRequest;
 	
 	/**
 	 * Creates an OMH read request.
@@ -61,8 +80,16 @@ public class OmhReadRequest extends Request {
 		
 		super(httpRequest, null);
 		
-		UserRequest tUserRequest = null;
+		String tPayloadIdString = null;
+		Long tPayloadVersion = null;
+		String tOwner = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
 		ColumnNode<String> tColumns = new ColumnNode<String>();
+		Long tNumToSkip = null;
+		Long tNumToReturn = null;
+		
+		UserRequest tUserRequest = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an OMH read request.");
@@ -90,7 +117,62 @@ public class OmhReadRequest extends Request {
 						parameters.get(InputKeys.OMH_REQUESTER));
 				}
 				
-				DateTime startDate = null;
+				PayloadId payloadId = null;
+				t = getParameterValues(InputKeys.OMH_PAYLOAD_ID);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"Multiple payload IDs were given: " +
+							InputKeys.OMH_PAYLOAD_ID);
+				}
+				else if(t.length == 1) {
+					tPayloadIdString = t[0];
+					payloadId = 
+						OmhValidators.validatePayloadId(tPayloadIdString);
+				}
+				if(payloadId == null) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"No payload ID was given.");
+				}
+				
+				String[] versionStrings = 
+					getParameterValues(InputKeys.OMH_PAYLOAD_VERSION);
+				if(versionStrings.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
+						"Multiple payload versions were given: " +
+							InputKeys.OMH_PAYLOAD_VERSION);
+				}
+				else if(versionStrings.length == 1) {
+					try {
+						tPayloadVersion = Long.decode(versionStrings[0]); 
+					}
+					catch(NumberFormatException e) {
+						throw new ValidationException(
+							ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
+							"The payload version was not a number: " +
+								versionStrings[0],
+							e);
+					}
+				}
+				if(tPayloadVersion == null) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
+						"The payload version is unknown.");
+				}
+				
+				t = getParameterValues(InputKeys.OMH_OWNER);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OMH_INVALID_OWNER,
+						"Multiple owner values were given: " +
+							InputKeys.OMH_OWNER);
+				}
+				else if(t.length == 1) {
+					tOwner = UserValidators.validateUsername(t[0]);
+				}
+				
 				t = getParameterValues(InputKeys.OMH_START_TIMESTAMP);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -99,10 +181,9 @@ public class OmhReadRequest extends Request {
 							InputKeys.OMH_START_TIMESTAMP);
 				}
 				else if(t.length == 1) {
-					startDate = ObserverValidators.validateDate(t[0]);
+					tStartDate = ObserverValidators.validateDate(t[0]);
 				}
 				
-				DateTime endDate = null;
 				t = getParameterValues(InputKeys.OMH_END_TIMESTAMP);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -111,41 +192,7 @@ public class OmhReadRequest extends Request {
 							InputKeys.OMH_END_TIMESTAMP);
 				}
 				else if(t.length == 1) {
-					endDate = ObserverValidators.validateDate(t[0]);
-				}
-				
-				Long numToSkip = null;
-				t = getParameterValues(InputKeys.OMH_NUM_TO_SKIP);
-				if(t.length > 1) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_NUM_TO_SKIP,
-						"Multiple \"number of results to skip\" values were given: " +
-							InputKeys.OMH_NUM_TO_SKIP);
-				}
-				else if(t.length == 1) {
-					numToSkip = ObserverValidators.validateNumToSkip(t[0]);
-				}
-				if(numToSkip == null) {
-					numToSkip = 0L;
-				}
-				
-				Long numToReturn = null;
-				t = getParameterValues(InputKeys.OMH_NUM_TO_RETURN);
-				if(t.length > 1) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_NUM_TO_RETURN,
-						"Multiple \"number of results to return\" values were given: " +
-							InputKeys.OMH_NUM_TO_RETURN);
-				}
-				else if(t.length == 1) {
-					numToReturn = 
-						ObserverValidators
-							.validateNumToReturn(
-								t[0], 
-								StreamReadRequest.MAX_NUMBER_TO_RETURN);
-				}
-				if(numToReturn == null) {
-					numToReturn = StreamReadRequest.MAX_NUMBER_TO_RETURN;
+					tEndDate = ObserverValidators.validateDate(t[0]);
 				}
 			
 				t = getParameterValues(InputKeys.OMH_COLUMN_LIST);
@@ -169,60 +216,36 @@ public class OmhReadRequest extends Request {
 					}
 				}
 				
-				Long version = null;
-				String[] versionStrings = 
-					getParameterValues(InputKeys.OMH_PAYLOAD_VERSION);
-				if(versionStrings.length > 1) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
-						"Multiple payload versions were given: " +
-							InputKeys.OMH_PAYLOAD_VERSION);
-				}
-				else if(versionStrings.length == 1) {
-					try {
-						version = Long.decode(versionStrings[0]); 
-					}
-					catch(NumberFormatException e) {
-						throw new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
-							"The payload version was not a number: " +
-								versionStrings[0],
-							e);
-					}
-				}
-				if(version == null) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_VERSION,
-						"The payload version is unknown.");
-				}
-				
-				PayloadId payloadId = null;
-				t = getParameterValues(InputKeys.OMH_PAYLOAD_ID);
+				t = getParameterValues(InputKeys.OMH_NUM_TO_SKIP);
 				if(t.length > 1) {
 					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"Multiple payload IDs were given: " +
-							InputKeys.OMH_PAYLOAD_ID);
+						ErrorCode.OMH_INVALID_NUM_TO_SKIP,
+						"Multiple \"number of results to skip\" values were given: " +
+							InputKeys.OMH_NUM_TO_SKIP);
 				}
 				else if(t.length == 1) {
-					payloadId = OmhValidators.validatePayloadId(t[0]);
+					tNumToSkip = ObserverValidators.validateNumToSkip(t[0]);
 				}
-				if(payloadId == null) {
-					throw new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"No payload ID was given.");
+				if(tNumToSkip == null) {
+					tNumToSkip = 0L;
 				}
 				
-				String owner = null;
-				t = getParameterValues(InputKeys.OMH_OWNER);
+				t = getParameterValues(InputKeys.OMH_NUM_TO_RETURN);
 				if(t.length > 1) {
 					throw new ValidationException(
-						ErrorCode.OMH_INVALID_OWNER,
-						"Multiple owner values were given: " +
-							InputKeys.OMH_OWNER);
+						ErrorCode.OMH_INVALID_NUM_TO_RETURN,
+						"Multiple \"number of results to return\" values were given: " +
+							InputKeys.OMH_NUM_TO_RETURN);
 				}
 				else if(t.length == 1) {
-					owner = UserValidators.validateUsername(t[0]);
+					tNumToReturn = 
+						ObserverValidators
+							.validateNumToReturn(
+								t[0], 
+								StreamReadRequest.MAX_NUMBER_TO_RETURN);
+				}
+				if(tNumToReturn == null) {
+					tNumToReturn = StreamReadRequest.MAX_NUMBER_TO_RETURN;
 				}
 			
 				try {
@@ -237,12 +260,12 @@ public class OmhReadRequest extends Request {
 								true, 
 								TokenLocation.EITHER, 
 								true,
-								version, 
-								owner,
-								startDate, 
-								endDate, 
-								numToSkip, 
-								numToReturn);
+								tPayloadVersion, 
+								tOwner,
+								tStartDate, 
+								tEndDate, 
+								tNumToSkip, 
+								tNumToReturn);
 				}
 				catch(DomainException e) {
 					throw new ValidationException(
@@ -256,8 +279,16 @@ public class OmhReadRequest extends Request {
 			}
 		}
 		
-		userRequest = tUserRequest;
+		payloadIdString = tPayloadIdString;
+		payloadVersion = tPayloadVersion;
+		owner = tOwner;
+		startDate = tStartDate;
+		endDate = tEndDate;
 		columns = tColumns;
+		numToSkip = tNumToSkip;
+		numToReturn = tNumToReturn;
+		
+		userRequest = tUserRequest;
 	}
 	
 	/*
@@ -382,10 +413,108 @@ public class OmhReadRequest extends Request {
 				generator.writeNumberField(
 					"count",
 					omhReadResponder.getNumDataPoints());
-				
-				// TODO: Write the previous.
-				
-				// TODO: Write the next.
+
+				try {
+					// Build the root string for the previous and next 
+					// pointers.
+					StringBuilder rootBuilder = buildRootPreviousNextString();
+					
+					// For the previous pointer, add the number to skip.
+					if(numToSkip > 0) {
+						// Clone the root string for the previous string.
+						StringBuilder previousBuilder =
+							new StringBuilder(rootBuilder);
+						
+						// The number of results to return in the previous page
+						// is either, all of the data points before this page 
+						// or the same number that were returned from this
+						// request.
+						long prevNumToReturn = 
+							Math.min(numToSkip, numToReturn);
+						
+						// Add the number of points to skip.
+						previousBuilder
+							.append('&')
+							.append(
+								URLEncoder
+									.encode(
+										InputKeys.OMH_NUM_TO_SKIP,
+										URL_ENCODING_UTF_8))
+							.append('=')
+							.append(
+								URLEncoder
+									.encode(
+										Long.toString(
+											numToSkip - prevNumToReturn),
+										URL_ENCODING_UTF_8));
+						
+						// Add the number of points to return.
+						previousBuilder
+						.append('&')
+						.append(
+							URLEncoder
+								.encode(
+									InputKeys.OMH_NUM_TO_RETURN,
+									URL_ENCODING_UTF_8))
+						.append('=')
+						.append(
+							URLEncoder
+								.encode(
+									Long.toString(prevNumToReturn),
+									URL_ENCODING_UTF_8));
+						
+						// Write the previous pointer.
+						generator
+							.writeStringField(
+								"previous", 
+								previousBuilder.toString());
+					}
+					
+					// If we filled this page, then there might be another.
+					if(numToReturn == omhReadResponder.getNumDataPoints()) {
+						// Clone the root string for the previous string.
+						StringBuilder nextBuilder = 
+							new StringBuilder(rootBuilder);
+						
+						// For the next pointer, add the number to skip.
+						nextBuilder
+							.append('&')
+							.append(
+								URLEncoder
+									.encode(
+										InputKeys.OMH_NUM_TO_SKIP,
+										URL_ENCODING_UTF_8))
+							.append('=')
+							.append(
+								URLEncoder
+									.encode(
+										Long.toString(numToSkip + numToReturn),
+										URL_ENCODING_UTF_8));
+						
+						// For the next pointer, add the number to return.
+						nextBuilder
+							.append('&')
+							.append(
+								URLEncoder
+									.encode(
+										InputKeys.OMH_NUM_TO_RETURN,
+										URL_ENCODING_UTF_8))
+							.append('=')
+							.append(
+								URLEncoder
+									.encode(
+										Long.toString(numToReturn),
+										URL_ENCODING_UTF_8));
+						
+						// Write the next pointer.
+						generator
+							.writeStringField("next", nextBuilder.toString());
+					}
+				}
+				catch(DomainException e) {
+					LOGGER
+						.warn("There was an error building the root URL.", e);
+				}
 				
 				// End the metadata.
 				generator.writeEndObject();
@@ -424,5 +553,182 @@ public class OmhReadRequest extends Request {
 		else {
 			userRequest.respond(httpRequest, httpResponse);
 		}
+	}
+	
+	/**
+	 * Generates the next and previous URLs' base URL. A caller is expected to
+	 * clone the resulting StringBuilder and append their own paging 
+	 * information.
+	 * 
+	 * @return A StringBuilder that is the base URL for previous and next
+	 * 		   parameters.
+	 * 
+	 * @throws DomainException There was an error building the URL.
+	 */
+	private StringBuilder buildRootPreviousNextString() 
+			throws DomainException {
+		
+		StringBuilder rootBuilder;
+		try {
+			rootBuilder = 
+				new StringBuilder(
+					PreferenceCache
+						.instance()
+							.lookup(
+								PreferenceCache
+									.KEY_FULLY_QUALIFIED_DOMAIN_NAME));
+			if(rootBuilder.charAt(rootBuilder.length() - 1) != '/') {
+				rootBuilder.append('/');
+			}
+		}
+		catch(CacheMissException e) {
+			throw 
+				new DomainException(
+					"The server's fully-qualified domain name is missing.",
+					e);
+		}
+		
+		// Add the path to the Open mHealth read API.
+		rootBuilder.append("app/omh/v1.0/read?");
+			
+		try {
+			// Add the authentication token.
+			rootBuilder
+				.append(
+					URLEncoder
+						.encode(
+							InputKeys.AUTH_TOKEN,
+							URL_ENCODING_UTF_8))
+				.append('=')
+				.append(
+					URLEncoder
+						.encode(
+							userRequest.getUser().getToken(),
+							URL_ENCODING_UTF_8));
+
+			// Add the requester value..
+			rootBuilder
+				.append('&')
+				.append(
+					URLEncoder
+						.encode(
+							InputKeys.OMH_REQUESTER,
+							URL_ENCODING_UTF_8))
+				.append('=')
+				.append(
+					URLEncoder
+						.encode(
+							userRequest.getClient(),
+							URL_ENCODING_UTF_8));
+			
+			// Add the payload ID.
+			rootBuilder
+				.append('&')
+				.append(
+					URLEncoder
+						.encode(
+							InputKeys.OMH_PAYLOAD_ID,
+							URL_ENCODING_UTF_8))
+				.append('=')
+				.append(
+					URLEncoder
+						.encode(
+							payloadIdString,
+							URL_ENCODING_UTF_8));
+			
+			// Add the payload version.
+			rootBuilder
+				.append('&')
+				.append(
+					URLEncoder
+						.encode(
+							InputKeys.OMH_PAYLOAD_VERSION,
+							URL_ENCODING_UTF_8))
+				.append('=')
+				.append(
+					URLEncoder
+						.encode(
+							payloadVersion.toString(),
+							URL_ENCODING_UTF_8));
+			
+			// Add the owner, if given.
+			if(owner != null) {
+				rootBuilder
+					.append('&')
+					.append(
+						URLEncoder
+							.encode(
+								InputKeys.OMH_OWNER,
+								URL_ENCODING_UTF_8))
+					.append('=')
+					.append(
+						URLEncoder
+							.encode(
+								owner,
+								URL_ENCODING_UTF_8));
+			}
+			
+			DateTimeFormatter isoDateTimeFormatter =
+				ISODateTimeFormat.dateTime();
+			
+			// Add the start date, if given.
+			if(startDate != null) {
+				rootBuilder
+					.append('&')
+					.append(
+						URLEncoder
+							.encode(
+								InputKeys.OMH_START_TIMESTAMP,
+								URL_ENCODING_UTF_8))
+					.append('=')
+					.append(
+						URLEncoder
+							.encode(
+								isoDateTimeFormatter.print(startDate),
+								URL_ENCODING_UTF_8));
+			}
+			
+			// Add the end date, if given.
+			if(endDate != null) {
+				rootBuilder
+					.append('&')
+					.append(
+						URLEncoder
+							.encode(
+								InputKeys.OMH_END_TIMESTAMP,
+								URL_ENCODING_UTF_8))
+					.append('=')
+					.append(
+						URLEncoder
+							.encode(
+								isoDateTimeFormatter.print(endDate),
+								URL_ENCODING_UTF_8));
+			}
+			
+			// Add the end date, if given.
+			if((columns != null) && (! columns.isLeaf())) {
+				rootBuilder
+					.append('&')
+					.append(
+						URLEncoder
+							.encode(
+								InputKeys.OMH_COLUMN_LIST,
+								URL_ENCODING_UTF_8))
+					.append('=')
+					.append(
+						URLEncoder
+							.encode(
+								columns.toListString(),
+								URL_ENCODING_UTF_8));
+			}
+		}
+		catch(UnsupportedEncodingException e) {
+			throw
+				new DomainException(
+					"The encoding is unknown: " + URL_ENCODING_UTF_8,
+					e);
+		}
+		
+		return rootBuilder;
 	}
 }

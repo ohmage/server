@@ -298,14 +298,17 @@ public class RequestServlet extends HttpServlet {
 	 */
 	@Override
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		if(RequestBuilder.getInstance().getApiConfigRead().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiImageRead().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiImageBatchZipRead().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiDocumentReadContents().equals(httpRequest.getRequestURI()) ||
-			httpRequest.getRequestURI().startsWith(RequestBuilder.getInstance().getApiVisualization()) ||
-			RequestBuilder.getInstance().getApiUserActivate().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiRegistrationRead().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiStreamRead().equals(httpRequest.getRequestURI())) {
+		String requestUri = httpRequest.getRequestURI();
+		
+		if(RequestBuilder.getInstance().getApiConfigRead().equals(requestUri) ||
+			RequestBuilder.getInstance().getApiImageRead().equals(requestUri) ||
+			RequestBuilder.getInstance().getApiImageBatchZipRead().equals(requestUri) ||
+			RequestBuilder.getInstance().getApiDocumentReadContents().equals(requestUri) ||
+			requestUri.startsWith(RequestBuilder.getInstance().getApiVisualization()) ||
+			RequestBuilder.getInstance().getApiUserActivate().equals(requestUri) ||
+			RequestBuilder.getInstance().getApiRegistrationRead().equals(requestUri) ||
+			RequestBuilder.getInstance().getApiStreamRead().equals(requestUri) ||
+			RequestBuilder.getInstance().getApiOmhRead().equals(requestUri)) {
 			
 			processRequest(httpRequest, httpResponse);
 		}
