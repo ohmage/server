@@ -2489,10 +2489,12 @@ public class OmhReadHealthVaultRequest
 				healthVaultCredentials
 					.get(requestee + "_record_id");
 			if(recordId == null) {
-				throw new ServiceException(
-					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-					"The user's HealthVault credentials have not been stored: " +
-						requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Retrieve the user's person ID.
@@ -2500,10 +2502,12 @@ public class OmhReadHealthVaultRequest
 				healthVaultCredentials
 					.get(getUser().getUsername() + "_person_id");
 			if(personId == null) {
-				throw new ServiceException(
-					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-					"The user's HealthVault credentials have not been stored: " +
-						requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Get the data and massage it into a form we like.

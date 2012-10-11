@@ -1277,19 +1277,23 @@ public class OmhReadBodyMediaRequest
 			// Get the API key.
 			String apiKey = bodyMediaCredentials.get("api_key");
 			if(apiKey == null) {
-				throw 
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The BodyMedia API key is missing from the OMH credentials table in the database.");
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 
 			// Get the API key.
 			String sharedSecret = bodyMediaCredentials.get("shared_secret");
 			if(sharedSecret == null) {
-				throw 
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The BodyMedia shared secret is missing from the OMH credentials table in the database.");
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Switch on either the requester or the given username.
@@ -1301,11 +1305,12 @@ public class OmhReadBodyMediaRequest
 				bodyMediaCredentials
 					.get(requestee + "_username");
 			if(username == null) {
-				throw 
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"There is no BodyMedia mapping for the user: " + 
-							requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Get the BodyMedia password for this ohamge user.
@@ -1313,11 +1318,12 @@ public class OmhReadBodyMediaRequest
 				bodyMediaCredentials
 					.get(requestee + "_password");
 			if(password == null) {
-				throw 
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"There is no BodyMedia mapping for the user: " + 
-							requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Create the service for making the OAuth requests.

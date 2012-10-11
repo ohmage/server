@@ -237,20 +237,24 @@ public class OmhReadMindMyMedsRequest extends UserRequest{
 			String mmmUsername = 
 				mindMyMedsCredentials.get(requestee + "_username");
 			if(mmmUsername == null) {
-				throw new ServiceException(
-					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-					"This user doesn't have a Mind My Meds username: " +
-						requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 
 			// Retrieve the users's Mind My Meds password.
 			String mmmPassword = 
 				mindMyMedsCredentials.get(requestee + "_password");
 			if(mmmPassword == null) {
-				throw new ServiceException(
-					ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-					"This user doesn't have a Mind My Meds password: " +
-						requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Forward the call to the Mind My Meds server.

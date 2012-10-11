@@ -2061,28 +2061,34 @@ public class OmhReadEntraRequest
 			// Get the Entra-generated ohmage ID.
 			String appId = entraCredentials.get("app_id");
 			if(appId == null) {
-				throw
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The Entra-supplied app ID is missing.");
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Get the Entra-generated ohmage password.
 			String appPassword = entraCredentials.get("app_pw");
 			if(appPassword == null) {
-				throw
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The Entra-supplied app password is missing.");
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Get the Entra-generated 'source' value.
 			String appSource = entraCredentials.get("app_source");
 			if(appSource == null) {
-				throw
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The Entra-supplied app source is missing.");
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Switch on either the requester or the given username.
@@ -2093,20 +2099,24 @@ public class OmhReadEntraRequest
 			String userName = 
 				entraCredentials.get(requestee + "_username");
 			if(userName == null) {
-				throw
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The user's Entra username is missing: " + requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			// Get the user's password.
 			String userPassword = 
 				entraCredentials.get(requestee + "_password");
 			if(userPassword == null) {
-				throw
-					new ServiceException(
-						ErrorCode.OMH_ACCOUNT_NOT_LINKED,
-						"The user's Entra password is missing: " + requestee);
+				// If the user is not linked, we treat it as if they have no
+				// data.
+				LOGGER
+					.info(
+						"The user's account is not linked, so we are returning no data.");
+				return;
 			}
 			
 			try {
