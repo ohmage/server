@@ -33,7 +33,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -1065,20 +1064,29 @@ public class OmhReadEntraRequest
 				// Write the data.
 				generator.writeObjectFieldStart("data");
 				
+				// Determine if all columns are being returned.
+				boolean allColumns = (columns == null) || columns.isLeaf();
+				
 				// Write the 'glucose' field.
-				generator
-					.writeNumberField(
-						Result.JSON_KEY_GLUCOSE,
-						result.glucose);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_GLUCOSE)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_GLUCOSE,
+							result.glucose);
+				}
 				
 				// Write the 'test event' field.
-				generator
-					.writeStringField(
-						Result.JSON_KEY_TEST_EVENT,
-						result.testEvent.getValue());
+				if(allColumns || columns.hasChild(Result.JSON_KEY_TEST_EVENT)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_TEST_EVENT,
+							result.testEvent.getValue());
+				}
 				
 				// Write the 'comments' field.
-				if(result.comment != null) {
+				if(	(result.comment != null) && 
+					(allColumns || columns.hasChild(Result.JSON_KEY_COMMENT))) {
+					
 					generator
 						.writeStringField(
 							Result.JSON_KEY_COMMENT,
@@ -1559,15 +1567,10 @@ public class OmhReadEntraRequest
 			private String id;
 			private DateTime timestamp;
 			
-			@JsonProperty(JSON_KEY_TIME_SLOT)
 			private String timeSlot;
-			@JsonProperty(JSON_KEY_COMMENT)
 			private String comment;
-			@JsonProperty(JSON_KEY_HEIGHT)
 			private Double height;
-			@JsonProperty(JSON_KEY_WEIGHT)
 			private double weight;
-			@JsonProperty(JSON_KEY_BODY_FAT)
 			private Double bodyFat;
 
 			/**
@@ -1778,10 +1781,57 @@ public class OmhReadEntraRequest
 				generator.writeEndObject();
 				
 				// Write the data.
-				generator.writeFieldName("data");
+				generator.writeObjectFieldStart("data");
+				
+				// Determine if all columns are being output.
+				boolean allColumns = (columns == null) || columns.isLeaf();
+				
+				// Write the time slot field.
+				if(allColumns || columns.hasChild(Result.JSON_KEY_TIME_SLOT)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_TIME_SLOT,
+							result.timeSlot);
+				}
+				
+				// Write the comment field.
+				if(allColumns || columns.hasChild(Result.JSON_KEY_COMMENT)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_COMMENT,
+							result.comment);
+				}
+				
+				// Write the heigh field.
+				if(	(result.height != null) &&
+					(allColumns || columns.hasChild(Result.JSON_KEY_HEIGHT))) {
+					
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_HEIGHT,
+							result.height);
+				}
+				
+				// Write the weight field.
+				if(allColumns || columns.hasChild(Result.JSON_KEY_WEIGHT)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_WEIGHT,
+							result.weight);
+				}
+				
+				// Write the body fat field.
+				if(	(result.bodyFat != null) &&
+					(allColumns || 
+						columns.hasChild(Result.JSON_KEY_BODY_FAT))) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_BODY_FAT,
+							result.bodyFat);
+				}
 				
 				// Write this data point.
-				generator.writeObject(result);
+				generator.writeEndObject();
 				
 				// End the overall object.
 				generator.writeEndObject();

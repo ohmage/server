@@ -972,29 +972,41 @@ public class OmhReadBodyMediaRequest
 				// Write the data.
 				generator.writeObjectFieldStart("data");
 				
-				// Write the 'duration' field.
-				generator
-					.writeStringField(
-						Result.JSON_KEY_DATE,
-						SLEEP_PARAMETER_DATE_TIME_FORMATTER.print(result.date));
+				// Determine if all columns are being returned.
+				boolean allColumns = (columns == null) || columns.isLeaf();
 				
 				// Write the 'duration' field.
-				generator
-					.writeNumberField(
-						Result.JSON_KEY_TOTAL_LYING,
-						result.totalLying);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_DATE)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_DATE,
+							SLEEP_PARAMETER_DATE_TIME_FORMATTER
+								.print(result.date));
+				}
 				
 				// Write the 'duration' field.
-				generator
-					.writeNumberField(
-						Result.JSON_KEY_TOTAL_SLEEP,
-						result.totalSleep);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_TOTAL_LYING)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_TOTAL_LYING,
+							result.totalLying);
+				}
 				
 				// Write the 'duration' field.
-				generator
-					.writeNumberField(
-						Result.JSON_KEY_EFFICIENCY,
-						result.efficiency);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_TOTAL_SLEEP)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_TOTAL_SLEEP,
+							result.totalSleep);
+				}
+				
+				// Write the 'duration' field.
+				if(allColumns || columns.hasChild(Result.JSON_KEY_EFFICIENCY)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_EFFICIENCY,
+							result.efficiency);
+				}
 				
 				// End the data object.
 				generator.writeEndObject();

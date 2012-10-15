@@ -24,7 +24,6 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -102,31 +101,18 @@ public class OmhReadGingerIoRequest
 		private DateTime timestamp;
 		
 		// The data for this record.
-		@JsonProperty(JSON_KEY_LOCATION_COUNT)
 		private Double locationCount = null;
-		@JsonProperty(JSON_KEY_MOBILITY)
 		private Double mobility = null;
-		@JsonProperty(JSON_KEY_MOBILITY_RADIUS)
 		private Double mobilityRadius = null;
-		@JsonProperty(JSON_KEY_MISSED_INTERACTIONS)
 		private Double missedInteractions = null;
-		@JsonProperty(JSON_KEY_INTERACTION_DIVERSITY)
 		private Double interactionDiversity = null;
-		@JsonProperty(JSON_KEY_INTERACTION_DURATION)
 		private Double interactionDuration = null;
-		@JsonProperty(JSON_KEY_INTERACTION_BALANCE)
 		private Double interactionBalance = null;
-		@JsonProperty(JSON_KEY_SMS_COUNT)
 		private Double smsCount = null;
-		@JsonProperty(JSON_KEY_SMS_LENGTH)
 		private Double smsLength = null;
-		@JsonProperty(JSON_KEY_AGGREGATE_COMMUNICATION)
 		private Double aggregateCommuniaction = null;
-		@JsonProperty(JSON_KEY_RESPONSIVENESS)
 		private Double responsiveness = null;
-		@JsonProperty(JSON_KEY_CALL_DURATION)
 		private Double callDuration = null;
-		@JsonProperty(JSON_KEY_CALL_COUNT)
 		private Double callCount = null;
 		
 		/**
@@ -804,10 +790,154 @@ public class OmhReadGingerIoRequest
 			generator.writeEndObject();
 			
 			// Write the data field name.
-			generator.writeFieldName("data");
+			generator.writeObjectFieldStart("data");
+			
+			// Determine if all columns are being output.
+			boolean allColumns = (columns == null) || columns.isLeaf();
+			
+			// Add the location count field.
+			if(	(result.locationCount != null) && 
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_LOCATION_COUNT))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_LOCATION_COUNT, 
+						result.locationCount);
+			}
+			
+			// Add the mobility field.
+			if(	(result.mobility != null) &&
+				(allColumns || columns.hasChild(Result.JSON_KEY_MOBILITY))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_MOBILITY, 
+						result.mobility);
+			}
+			
+			// Add the mobility radius field.
+			if(	(result.mobilityRadius != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_MOBILITY_RADIUS))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_MOBILITY_RADIUS, 
+						result.mobilityRadius);
+			}
+			
+			// Add the missed interactions field.
+			if(	(result.missedInteractions != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_MISSED_INTERACTIONS))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_MISSED_INTERACTIONS, 
+						result.missedInteractions);
+			}
+			
+			// Add the interaction diversity field.
+			if(	(result.interactionDiversity != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_INTERACTION_DIVERSITY))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_INTERACTION_DIVERSITY, 
+						result.interactionDiversity);
+			}
+			
+			// Add the interaction duration field.
+			if(	(result.interactionDuration != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_INTERACTION_DURATION))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_INTERACTION_DURATION, 
+						result.interactionDuration);
+			}
+			
+			// Add the interaction balance field.
+			if(	(result.interactionBalance != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_INTERACTION_BALANCE))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_INTERACTION_BALANCE, 
+						result.interactionBalance);
+			}
+			
+			// Add the SMS count field.
+			if(	(result.smsCount != null) &&
+				(allColumns || columns.hasChild(Result.JSON_KEY_SMS_COUNT))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_SMS_COUNT, 
+						result.smsCount);
+			}
+			
+			// Add the SMS length field.
+			if(	(result.smsLength != null) &&
+				(allColumns || columns.hasChild(Result.JSON_KEY_SMS_LENGTH))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_SMS_LENGTH, 
+						result.smsLength);
+			}
+			
+			// Add the aggregate communication field.
+			if(	(result.aggregateCommuniaction != null) &&
+				(allColumns || 
+					columns
+						.hasChild(Result.JSON_KEY_AGGREGATE_COMMUNICATION))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_AGGREGATE_COMMUNICATION, 
+						result.aggregateCommuniaction);
+			}
+			
+			// Add the responsiveness field.
+			if(	(result.responsiveness != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_RESPONSIVENESS))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_RESPONSIVENESS, 
+						result.responsiveness);
+			}
+			
+			// Add the call duration field.
+			if(	(result.callDuration != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_CALL_DURATION))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_CALL_DURATION, 
+						result.callDuration);
+			}
+			
+			// Add the call duration field.
+			if(	(result.callDuration != null) &&
+				(allColumns || 
+					columns.hasChild(Result.JSON_KEY_CALL_DURATION))) {
+				
+				generator
+					.writeNumberField(
+						Result.JSON_KEY_CALL_DURATION, 
+						result.callCount);
+			}
 			
 			// Write the data.
-			generator.writeObject(result);
+			generator.writeEndObject();
 			
 			// End the overall object.
 			generator.writeEndObject();

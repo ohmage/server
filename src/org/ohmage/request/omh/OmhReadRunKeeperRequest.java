@@ -1041,35 +1041,49 @@ public class OmhReadRunKeeperRequest
 				// Write the data.
 				generator.writeObjectFieldStart("data");
 				
+				// Determine if all columns are being returned.
+				boolean allColumns = (columns == null) || columns.isLeaf();
+				
 				// Write the 'duration' field.
-				generator
-					.writeNumberField(
-						Result.JSON_KEY_DURATION,
-						result.duration);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_DURATION)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_DURATION,
+							result.duration);
+				}
 				
 				// Write the 'start_time' field.
-				generator
-					.writeStringField(
-						Result.JSON_KEY_START_TIME,
-						DATE_TIME_RESPONSE_FORMATTER.print(result.startTime));
+				if(allColumns || columns.hasChild(Result.JSON_KEY_START_TIME)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_START_TIME,
+							DATE_TIME_RESPONSE_FORMATTER
+								.print(result.startTime));
+				}
 				
 				// Write the 'total_distance' field.
-				generator
-					.writeNumberField(
-						Result.JSON_KEY_TOTAL_DISTANCE,
-						result.totalDistance);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_TOTAL_DISTANCE)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_TOTAL_DISTANCE,
+							result.totalDistance);
+				}
 				
 				// Write the 'type' field.
-				generator
-					.writeStringField(
-						Result.JSON_KEY_TYPE,
-						result.type);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_TYPE)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_TYPE,
+							result.type);
+				}
 				
 				// Write the 'uri' field.
-				generator
-					.writeStringField(
-						Result.JSON_KEY_URI,
-						result.uri);
+				if(allColumns || columns.hasChild(Result.JSON_KEY_URI)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_URI,
+							result.uri);
+				}
 				
 				// End the data object.
 				generator.writeEndObject();
