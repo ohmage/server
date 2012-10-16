@@ -1338,35 +1338,56 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"osd.location_provider, " +
 					"osd.data " +
 				"FROM " +
-					"user u, " +
-					"observer o, " +
-					"observer_stream os, " +
-					"observer_stream_link osl, " +
 					"observer_stream_data osd " +
-				"WHERE u.username = ? " +
-					"AND o.observer_id = ? " +
-					"AND os.stream_id = ? " +
-					"AND os.version = ? " +
-					"AND o.id = osl.observer_id " +
-					"AND os.id = osl.observer_stream_id " +
-					"AND osl.id = osd.observer_stream_link_id " +
-					"AND u.id = osd.user_id");
+				// We use sub-queries here instead of a single join because it
+				// makes the sorting much faster. A single join creates a giant
+				// table of all data points multiplied by the number of users, 
+				// the number of observers, the number of streams, and the
+				// number of links between observers and streams, then that
+				// list is sorted. Sub-queries prune out the data to only the
+				// subset of all data points for a given user, then that list
+				// is sorted.
+				"WHERE " +
+					"osd.user_id = (" +
+						"SELECT id " +
+						"FROM user " +
+						"WHERE username = ?" +
+					")" +
+					"AND osd.observer_stream_link_id = (" +
+						"SELECT osl.id " +
+						"FROM " +
+							"observer o, " +
+							"observer_stream os, " +
+							"observer_stream_link osl " +
+						"WHERE " +
+							"o.observer_id = ? " +
+							"AND os.stream_id = ? " +
+							"AND os.version = ? " +
+							"AND o.id = osl.observer_id " +
+							"AND os.id = osl.observer_stream_id");
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		parameters.add(observerId);
 		parameters.add(stream.getId());
 		parameters.add(stream.getVersion());
 		
+		// If the observer's version is specified, add it to the sub-query.
 		if(observerVersion != null) {
-			builder.append(" AND o.version = ?");
+			builder.append(" AND o.version = ?)");
 			parameters.add(observerVersion);
 		}
+		// Otherwise, end the subquery.
+		else {
+			builder.append(')');
+		}
 		
+		// If a start date is given, add it to the overall query.
 		if(startDate != null) {
 			builder.append(" AND osd.time_adjusted >= ?");
 			parameters.add(startDate.getMillis());
 		}
-		
+
+		// If an end date is given, add it to the overall query.
 		if(endDate != null) {
 			builder.append(" AND osd.time_adjusted <= ?");
 			parameters.add(endDate.getMillis());
@@ -1385,6 +1406,8 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			.append(", ")
 			.append(numToReturn);
 		
+		// Create a JSON factory, which will be used by each data point to
+		// deserialize its data into a JsonNode.
 		final JsonFactory jsonFactory = new MappingJsonFactory();
 		
 		try {
