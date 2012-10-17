@@ -46,7 +46,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.SurveyResponseValidators;
@@ -167,7 +167,7 @@ public class SurveyUploadRequest extends UserRequest {
 					
 					// Make sure it's a valid timestamp
 					try {
-						tCampaignCreationTimestamp = TimeUtils.getDateTimeFromString(t[0]);
+						tCampaignCreationTimestamp = DateTimeUtils.getDateTimeFromString(t[0]);
 					}
 					catch(IllegalArgumentException e) {
 						setFailed(ErrorCode.SERVER_INVALID_DATE, e.getMessage());

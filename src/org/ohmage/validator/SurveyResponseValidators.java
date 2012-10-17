@@ -42,7 +42,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * This class is responsible for validating survey response-based items.
@@ -483,7 +483,7 @@ public final class SurveyResponseValidators {
 		}
 
 		try {
-			return TimeUtils.getDateTimeFromString(startDate);
+			return DateTimeUtils.getDateTimeFromString(startDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
@@ -512,7 +512,7 @@ public final class SurveyResponseValidators {
 		}
 
 		try {
-			return TimeUtils.getDateTimeFromString(endDate);
+			return DateTimeUtils.getDateTimeFromString(endDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(

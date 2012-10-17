@@ -32,7 +32,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * Class to contain the validators for campaign parameters.
@@ -350,7 +350,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(startDate);
+			return DateTimeUtils.getDateTimeFromString(startDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
@@ -379,7 +379,7 @@ public final class CampaignValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(endDate);
+			return DateTimeUtils.getDateTimeFromString(endDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(

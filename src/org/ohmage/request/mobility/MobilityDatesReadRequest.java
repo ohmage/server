@@ -37,7 +37,7 @@ import org.ohmage.service.MobilityServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.MobilityValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -238,7 +238,7 @@ public class MobilityDatesReadRequest extends UserRequest {
 		JSONArray resultJson = new JSONArray();
 		
 		for(DateTime date : dates) {
-			resultJson.put(TimeUtils.getIso8601DateString(date, false));
+			resultJson.put(DateTimeUtils.getIso8601DateString(date, false));
 		}
 		
 		respond(httpRequest, httpResponse, JSON_KEY_DATA, resultJson);

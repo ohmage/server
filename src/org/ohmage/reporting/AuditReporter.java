@@ -38,7 +38,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.RequestBuilder;
 import org.ohmage.service.AuditServices;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * Begins on server startup and creates a daily snapshot of some information
@@ -198,7 +198,7 @@ public final class AuditReporter {
 			
 			try {
 				// Retrieve the output file to write the results.
-				FileWriter fileWriter = new FileWriter(saveLocation + "/" + TimeUtils.getIso8601DateString(startDate, false));
+				FileWriter fileWriter = new FileWriter(saveLocation + "/" + DateTimeUtils.getIso8601DateString(startDate, false));
 				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
 				
 				bufferedWriter.write("invalid_requests=");

@@ -36,7 +36,7 @@ import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -264,7 +264,7 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 				else {
 					
 					try {
-						tTimezone = TimeUtils.getDateTimeZoneFromString(t[0]);
+						tTimezone = DateTimeUtils.getDateTimeZoneFromString(t[0]);
 					}
 					catch(IllegalArgumentException unknownTimezone) {
 						setFailed(ErrorCode.ANNOTATION_INVALID_TIMEZONE, "unknown timezone");

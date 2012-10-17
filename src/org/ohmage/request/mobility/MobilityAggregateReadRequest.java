@@ -34,7 +34,7 @@ import org.ohmage.service.MobilityServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.MobilityValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -439,7 +439,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 					// Compute the starting time stamp for this chunk.
 					currResult.put(
 						JSON_KEY_TIMESTAMP, 
-						TimeUtils.getIso8601DateString(timestamp, false));
+						DateTimeUtils.getIso8601DateString(timestamp, false));
 					
 					// Create the data array.
 					JSONArray data = new JSONArray();

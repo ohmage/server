@@ -26,7 +26,7 @@ import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.TimestampPromptResponse;
 import org.ohmage.exception.DomainException;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * This class represents a timestamp prompt.
@@ -162,7 +162,7 @@ public class TimestampPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return TimeUtils.getDateTimeFromString((String) value);
+					return DateTimeUtils.getDateTimeFromString((String) value);
 				}
 				catch(IllegalArgumentException notOurDateTime) {
 					try {

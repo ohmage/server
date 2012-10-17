@@ -73,7 +73,7 @@ import org.ohmage.request.document.DocumentCreationRequest;
 import org.ohmage.request.mobility.MobilityReadRequest;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * This is the main interface class for the server. 
@@ -433,8 +433,8 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.OUTPUT_FORMAT, outputFormat);
 		parameters.put(InputKeys.USER_ROLE, userRole);
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
+		parameters.put(InputKeys.START_DATE, DateTimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, DateTimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
 		parameters.put(InputKeys.RUNNING_STATE, runningState);
 		if(campaignIds != null) {
@@ -1422,7 +1422,7 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		
 		if(date != null) {
-			parameters.put(InputKeys.DATE, TimeUtils.getIso8601DateString(date, false));
+			parameters.put(InputKeys.DATE, DateTimeUtils.getIso8601DateString(date, false));
 		}
 		
 		parameters.put(
@@ -1520,7 +1520,7 @@ public class OhmageApi {
 		parameters.put(InputKeys.PASSWORD, hashedPassword);
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
-		parameters.put(InputKeys.CAMPAIGN_CREATION_TIMESTAMP, TimeUtils.getIso8601DateString(campaignCreationTimestamp, true));
+		parameters.put(InputKeys.CAMPAIGN_CREATION_TIMESTAMP, DateTimeUtils.getIso8601DateString(campaignCreationTimestamp, true));
 		
 		JSONArray dataArray = new JSONArray();
 		for(SurveyResponse response : surveyResponses) {
@@ -1682,8 +1682,8 @@ public class OhmageApi {
 		
 		parameters.put(InputKeys.COLLAPSE, collapse);
 		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
+		parameters.put(InputKeys.START_DATE, DateTimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, DateTimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.RETURN_ID, returnId);
 		
 		if(privacyState != null) {
@@ -1819,8 +1819,8 @@ public class OhmageApi {
 			}
 		}
 
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
+		parameters.put(InputKeys.START_DATE, DateTimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, DateTimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
 		parameters.put(InputKeys.COLLAPSE, collapse);
 		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
@@ -1965,8 +1965,8 @@ public class OhmageApi {
 			}
 		}
 
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateString(startDate, true));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateString(endDate, true));
+		parameters.put(InputKeys.START_DATE, DateTimeUtils.getIso8601DateString(startDate, true));
+		parameters.put(InputKeys.END_DATE, DateTimeUtils.getIso8601DateString(endDate, true));
 		parameters.put(InputKeys.PRIVACY_STATE, privacyState);
 		parameters.put(InputKeys.COLLAPSE, collapse);
 		parameters.put(InputKeys.SUPPRESS_METADATA, suppressMetadata);
@@ -2046,8 +2046,8 @@ public class OhmageApi {
 		parameters.put(InputKeys.CLIENT, client);
 		parameters.put(InputKeys.CAMPAIGN_URN, campaignId);
 		parameters.put(InputKeys.SURVEY_RESPONSE_OWNER, ownerUsername);
-		parameters.put(InputKeys.START_DATE, TimeUtils.getIso8601DateTimeString(startDate));
-		parameters.put(InputKeys.END_DATE, TimeUtils.getIso8601DateTimeString(endDate));
+		parameters.put(InputKeys.START_DATE, DateTimeUtils.getIso8601DateTimeString(startDate));
+		parameters.put(InputKeys.END_DATE, DateTimeUtils.getIso8601DateTimeString(endDate));
 		parameters.put(InputKeys.SURVEY_FUNCTION_ID, SurveyResponse.Function.STATS);
 		
 		JSONObject response;

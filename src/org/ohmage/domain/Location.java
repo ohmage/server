@@ -31,7 +31,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * This class contains all of the information associated with a location
@@ -412,7 +412,7 @@ public class Location {
 		if(tTimeZoneObject instanceof String) {
 			try {
 				tTimeZone = 
-					TimeUtils.getDateTimeZoneFromString(
+					DateTimeUtils.getDateTimeZoneFromString(
 						(String) tTimeZoneObject);
 			}
 			catch(IllegalArgumentException e) {

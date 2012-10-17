@@ -70,7 +70,7 @@ import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * An immutable representation of a campaign.
@@ -486,7 +486,7 @@ public class Campaign {
 		
 		try {
 			creationTimestamp = 
-					TimeUtils.getDateTimeFromString(
+					DateTimeUtils.getDateTimeFromString(
 						information.getString(JSON_KEY_CREATION_TIMESTAMP));
 			
 			if(creationTimestamp == null) {
@@ -1730,7 +1730,7 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
-		result.put(JSON_KEY_CREATION_TIMESTAMP, TimeUtils.getIso8601DateString(creationTimestamp, true));
+		result.put(JSON_KEY_CREATION_TIMESTAMP, DateTimeUtils.getIso8601DateString(creationTimestamp, true));
 		
 		if(withClasses) {
 			result.put(JSON_KEY_CLASSES, classes);

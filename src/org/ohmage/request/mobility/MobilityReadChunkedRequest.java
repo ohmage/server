@@ -43,7 +43,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.MobilityServices;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.MobilityValidators;
 
 /**
@@ -288,7 +288,7 @@ public class MobilityReadChunkedRequest extends UserRequest {
 					// The first point sets the information.
 					if(timestamp == null) {
 						timestamp = 
-								TimeUtils.getIso8601DateString(
+								DateTimeUtils.getIso8601DateString(
 									mobilityPoint.getDate(), 
 									true);
 						timezone = mobilityPoint.getTimezone();

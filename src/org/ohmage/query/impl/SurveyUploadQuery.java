@@ -62,7 +62,7 @@ import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -500,7 +500,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						
 						Object response = promptResponse.getResponse();
 						if(response instanceof DateTime) {
-							ps.setString(6, TimeUtils.getIso8601DateString((DateTime) response, true));
+							ps.setString(6, DateTimeUtils.getIso8601DateString((DateTime) response, true));
 						}
 						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
 							JSONArray json = new JSONArray();
