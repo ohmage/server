@@ -19,7 +19,7 @@ import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * This class is responsible for validating all values pertaining to 
@@ -154,7 +154,7 @@ public class VisualizationValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(startDate);
+			return DateTimeUtils.getDateTimeFromString(startDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
@@ -183,7 +183,7 @@ public class VisualizationValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(endDate);
+			return DateTimeUtils.getDateTimeFromString(endDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(

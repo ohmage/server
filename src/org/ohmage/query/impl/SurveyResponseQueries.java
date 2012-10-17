@@ -42,7 +42,7 @@ import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.ISurveyResponseQueries;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -610,7 +610,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 											rs.getString("urn"),
 											rs.getString("client"),
 											rs.getLong("epoch_millis"),
-											TimeUtils.getDateTimeZoneFromString(rs.getString("phone_timezone")),
+											DateTimeUtils.getDateTimeZoneFromString(rs.getString("phone_timezone")),
 											new JSONObject(rs.getString("launch_context")),
 											rs.getString("location_status"),
 											locationJson,

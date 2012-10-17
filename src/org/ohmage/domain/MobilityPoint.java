@@ -41,7 +41,7 @@ import org.ohmage.domain.MobilityPoint.SensorData.SensorDataColumnKey;
 import org.ohmage.domain.MobilityPoint.SensorData.WifiData.WifiDataColumnKey;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 import edu.ucla.cens.mobilityclassifier.AccessPoint;
 import edu.ucla.cens.mobilityclassifier.Sample;
@@ -1329,7 +1329,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				DateTimeZone tTimezone;
 				try {
 					tTimezone =
-							TimeUtils.getDateTimeZoneFromString(
+							DateTimeUtils.getDateTimeZoneFromString(
 								wifiData.getString(
 									WifiDataColumnKey.TIMEZONE.toString(
 										false)));
@@ -1337,7 +1337,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 				catch(JSONException noLongTimezone) {
 					try {
 						tTimezone =
-								TimeUtils.getDateTimeZoneFromString(
+								DateTimeUtils.getDateTimeZoneFromString(
 									wifiData.getString(
 										WifiDataColumnKey.TIMEZONE.toString(
 											true)));
@@ -2883,7 +2883,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		DateTimeZone tTimezone;
 		try {
 			tTimezone = 
-					TimeUtils.getDateTimeZoneFromString(
+					DateTimeUtils.getDateTimeZoneFromString(
 							mobilityPoint.getString(
 									MobilityColumnKey.TIMEZONE.toString(
 											false)));
@@ -2891,7 +2891,7 @@ public class MobilityPoint implements Comparable<MobilityPoint> {
 		catch(JSONException outerException) {
 			try {
 				tTimezone = 
-						TimeUtils.getDateTimeZoneFromString(
+						DateTimeUtils.getDateTimeZoneFromString(
 								mobilityPoint.getString(
 										MobilityColumnKey.TIMEZONE.toString(
 												true)));

@@ -26,7 +26,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * A class to represent documents in the database. 
@@ -304,7 +304,7 @@ public class Document {
 		
 		try {
 			lastModified = 
-					TimeUtils.getDateTimeFromString(
+					DateTimeUtils.getDateTimeFromString(
 						documentInfo.getString(JSON_KEY_LAST_MODIFIED));
 		}
 		catch(JSONException e) {
@@ -322,7 +322,7 @@ public class Document {
 		
 		try {
 			creationDate = 
-					TimeUtils.getDateTimeFromString(
+					DateTimeUtils.getDateTimeFromString(
 						documentInfo.getString(JSON_KEY_CREATION_DATE));
 		}
 		catch(JSONException e) {
@@ -679,8 +679,8 @@ public class Document {
 		result.put(JSON_KEY_NAME, name);
 		result.put(JSON_KEY_DESCRIPTION, ((description ==  null) ? "" : description));
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState);
-		result.put(JSON_KEY_LAST_MODIFIED, TimeUtils.getIso8601DateString(lastModified, true));
-		result.put(JSON_KEY_CREATION_DATE, TimeUtils.getIso8601DateString(creationDate, true));
+		result.put(JSON_KEY_LAST_MODIFIED, DateTimeUtils.getIso8601DateString(lastModified, true));
+		result.put(JSON_KEY_CREATION_DATE, DateTimeUtils.getIso8601DateString(creationDate, true));
 		result.put(JSON_KEY_SIZE, size);
 		result.put(JSON_KEY_CREATOR, creator);
 		

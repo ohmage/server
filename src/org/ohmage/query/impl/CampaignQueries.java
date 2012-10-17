@@ -46,8 +46,8 @@ import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IUserCampaignClassQueries;
 import org.ohmage.query.IUserClassQueries;
 import org.ohmage.query.impl.QueryResultsList.QueryResultListBuilder;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -751,11 +751,11 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE,
-					new Object[] { TimeUtils.getIso8601DateString(date, true) },
+					new Object[] { DateTimeUtils.getIso8601DateString(date, true) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + TimeUtils.getIso8601DateString(date, true), e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_AFTER_DATE + "' with parameter: " + DateTimeUtils.getIso8601DateString(date, true), e);
 		}
 	}
 	
@@ -766,11 +766,11 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		try {
 			return getJdbcTemplate().query(
 					SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE,
-					new Object[] { TimeUtils.getIso8601DateString(date, true) },
+					new Object[] { DateTimeUtils.getIso8601DateString(date, true) },
 					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + TimeUtils.getIso8601DateString(date, true), e);
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_ON_OR_BEFORE_DATE + "' with parameter: " + DateTimeUtils.getIso8601DateString(date, true), e);
 		}
 	}
 	
@@ -1186,13 +1186,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			if(startDate != null) {
 				builder.append(" AND creation_timestamp >= ?");
 				
-				parameters.add(TimeUtils.getIso8601DateString(startDate, true));
+				parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
 			}
 			
 			if(endDate != null) {
 				builder.append(" AND creation_timestamp <= ?");
 				
-				parameters.add(TimeUtils.getIso8601DateString(endDate, true));
+				parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
 			}
 			
 			if(runningState != null) {
@@ -1371,13 +1371,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		// Add the start date if one was given.
 		if(startDate != null) {
 			sqlBuilder.append(" AND creation_timestamp >= ?");
-			parameters.add(TimeUtils.getIso8601DateString(startDate, true));
+			parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
 		}
 		
 		// Add the end date if one was given.
 		if(endDate != null) {
 			sqlBuilder.append(" AND creation_timestamp <= ?");
-			parameters.add(TimeUtils.getIso8601DateString(endDate, true));
+			parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
 		}
 		
 		// Add the privacy state if one was given.

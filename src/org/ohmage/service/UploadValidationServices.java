@@ -24,9 +24,9 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.JsonInputKeys;
-import org.ohmage.util.DateUtils;
 import org.ohmage.util.JsonUtils;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * Helper services for working with uploaded data values that span multiple 
@@ -137,7 +137,7 @@ public final class UploadValidationServices {
 					"timezone in upload message is null");
 		}
 		
-		if(! DateUtils.isValidTimezone(timezone)) {
+		if(! DateTimeUtils.isValidTimezone(timezone)) {
 			throw new ServiceException(
 					ErrorCode.SERVER_INVALID_TIMEZONE, 
 					"timezone in upload message is invalid/unknown to the server: " + 

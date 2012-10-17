@@ -23,7 +23,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.servlet.RequestServlet.RequestType;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 public class AuditValidators {
 	/**
@@ -287,7 +287,7 @@ public class AuditValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(startDate);
+			return DateTimeUtils.getDateTimeFromString(startDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
@@ -316,7 +316,7 @@ public class AuditValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(endDate);
+			return DateTimeUtils.getDateTimeFromString(endDate);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(

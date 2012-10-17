@@ -77,7 +77,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.request.omh.OmhReadResponder;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -735,14 +735,14 @@ public final class SurveyResponseReadRequest
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
 							currResult.put(
 									"date", 
-									TimeUtils.getIso8601DateString(
+									DateTimeUtils.getIso8601DateString(
 											surveyResponse.getDate(),
 											false));
 						}
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 							currResult.put(
 									"timestamp", 
-									TimeUtils.getIso8601DateString(
+									DateTimeUtils.getIso8601DateString(
 											surveyResponse.getDate(),
 											true));
 						}
@@ -755,7 +755,7 @@ public final class SurveyResponseReadRequest
 							
 							currResult.put(
 									"utc_timestamp",
-									TimeUtils.getIso8601DateString(
+									DateTimeUtils.getIso8601DateString(
 										new DateTime(
 											surveyResponse.getTime(), 
 											DateTimeZone.UTC),
@@ -1729,17 +1729,17 @@ public final class SurveyResponseReadRequest
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
 			dates.put(
-					TimeUtils.getIso8601DateString(
+					DateTimeUtils.getIso8601DateString(
 						surveyResponse.getDate(), false));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_TIMESTAMP)) {
 			timestamps.put(
-					TimeUtils.getIso8601DateString(
+					DateTimeUtils.getIso8601DateString(
 						surveyResponse.getDate(), true));
 		}
 		if(allColumns || columns.contains(ColumnKey.CONTEXT_UTC_TIMESTAMP)) {
 			utcTimestamps.put(
-					TimeUtils.getIso8601DateString(
+					DateTimeUtils.getIso8601DateString(
 						new DateTime(
 							surveyResponse.getTime(), 
 							DateTimeZone.UTC), 

@@ -39,7 +39,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.VisualizationServices;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
 import org.ohmage.validator.VisualizationValidators;
@@ -282,11 +282,11 @@ public abstract class VisualizationRequest extends UserRequest {
 		Map<String, String> result = new HashMap<String, String>();
 		
 		if(startDate != null) {
-			result.put(VisualizationServices.PARAMETER_KEY_START_DATE, TimeUtils.getIso8601DateString(startDate, false));
+			result.put(VisualizationServices.PARAMETER_KEY_START_DATE, DateTimeUtils.getIso8601DateString(startDate, false));
 		}
 		
 		if(endDate != null) {
-			result.put(VisualizationServices.PARAMETER_KEY_END_DATE, TimeUtils.getIso8601DateString(endDate, false));
+			result.put(VisualizationServices.PARAMETER_KEY_END_DATE, DateTimeUtils.getIso8601DateString(endDate, false));
 		}
 		
 		if(privacyState != null) {

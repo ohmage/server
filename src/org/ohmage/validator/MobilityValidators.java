@@ -35,7 +35,7 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.TimeUtils;
+import org.ohmage.util.DateTimeUtils;
 
 /**
  * This class is responsible for validating information pertaining to Mobility
@@ -176,7 +176,7 @@ public final class MobilityValidators {
 		}
 		
 		try {
-			return TimeUtils.getDateTimeFromString(date);
+			return DateTimeUtils.getDateTimeFromString(date);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
