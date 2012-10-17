@@ -23,6 +23,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.cache.UserBin;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest;
 
@@ -118,7 +119,13 @@ public class AuthTokenRequest extends UserRequest {
 			return;
 		}
 		
-		UserBin.addUser(getUser());
+		try {
+			UserBin.addUser(getUser());
+		}
+		catch(DomainException e) {
+			e.logException(LOGGER);
+			e.failRequest(this);
+		}
 	}
 
 	/**
