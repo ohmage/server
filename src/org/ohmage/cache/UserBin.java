@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -99,7 +98,9 @@ public final class UserBin extends TimerTask implements DisposableBean {
 	 * Adds a user to the bin and returns an Id (token) representing that user. If the user is already resident in the bin, their
 	 * old token is removed and a new one is generated and returned. 
 	 */
-	public static synchronized String addUser(User user) {
+	public static synchronized String addUser(User user) 
+			throws DomainException {
+		
 		if(! initialized) {
 			new UserBin();
 		}
@@ -108,21 +109,12 @@ public final class UserBin extends TimerTask implements DisposableBean {
 			LOGGER.debug("adding user to bin");
 		}
 		
-		String id = findIdForUser(user); 
-		if(null != id) { // user already exists in the bin
-			
-			if(LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Removing a user that already existed in the bin before adding them in again (login attempt for an "
-					+ "already logged in user)");
-			}
-			
-			USERS.remove(id);
-		}
-		
 		String uuid = UUID.randomUUID().toString();
 		UserTime ut = new UserTime(user, System.currentTimeMillis());
 		user.setToken(uuid);
-		USERS.put(uuid, ut);
+		if(USERS.put(uuid, ut) != null) {
+			throw new DomainException("UUID collision: " + uuid);
+		}
 		
 		return uuid;
 	}
@@ -224,20 +216,5 @@ public final class UserBin extends TimerTask implements DisposableBean {
 		if(LOGGER.isDebugEnabled()) {
 			LOGGER.debug("Number of users after expiration: " + USERS.size());
 		}
-	}
-	
-	/**
-	 * Returns the Id for the provided user.
-	 */
-	private static synchronized String findIdForUser(User user) {
-		Iterator<String> iterator = USERS.keySet().iterator();
-		while(iterator.hasNext()) {
-			String key = iterator.next();
-			UserTime userTime = USERS.get(key);
-			if(userTime.user.equals(user)) {
-				return key;
-			}
-		}
-		return null;
 	}
 }
