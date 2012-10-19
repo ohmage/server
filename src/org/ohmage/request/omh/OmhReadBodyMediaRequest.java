@@ -903,9 +903,17 @@ public class OmhReadBodyMediaRequest
 										parser.getNumberValue().doubleValue();
 								}
 							}
-							
-							// Add the Result object to the list of results.
-							results.add(currResult);
+
+							// If it is not before the start date or after the
+							// end date, add it to the results.
+							if(!(	(startDate != null) &&
+									(startDate.isAfter(currResult.date))
+								) ||
+								(	(endDate != null) &&
+									(endDate.isBefore(currResult.date)))) {
+								
+								results.add(currResult);
+							}
 						}
 					}
 					// Otherwise, it was a value we didn't understand or care

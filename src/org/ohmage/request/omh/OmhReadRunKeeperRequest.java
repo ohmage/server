@@ -1,8 +1,10 @@
 package org.ohmage.request.omh;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,8 +20,6 @@ import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
@@ -345,13 +345,41 @@ public class OmhReadRunKeeperRequest
 		 */
 		protected final String makeRequest(
 				final String bearer,
-				final HttpParams params)
+				final Map<String, String> params)
 				throws DomainException {
+
+			StringBuilder uriBuilder = new StringBuilder(getUri().toString());
 			
-			HttpGet httpGet = new HttpGet(getUri());
+			// Add the parameters manually.
+			String encoding = "UTF-8";
+			if(params != null) {
+				boolean firstPass = true;
+				for(String key : params.keySet()) {
+					if(firstPass) {
+						uriBuilder.append('?');
+						firstPass = false;
+					}
+					else {
+						uriBuilder.append('&');
+					}
+					
+					try {
+						uriBuilder.append(URLEncoder.encode(key, encoding));
+						uriBuilder.append('=');
+						uriBuilder
+							.append(
+								URLEncoder.encode(params.get(key), encoding));
+					}
+					catch(UnsupportedEncodingException e) {
+						throw 
+							new DomainException(
+								"The encoding is unknown: " + encoding);
+					}
+				}
+			}
+			
+			HttpGet httpGet = new HttpGet(uriBuilder.toString());
 			httpGet.addHeader("Authorization", "Bearer " + bearer);
-			
-			httpGet.setParams(params);
 			
 			HttpClient httpClient = new DefaultHttpClient();
 			HttpResponse httpResponse;
@@ -558,7 +586,7 @@ public class OmhReadRunKeeperRequest
 				throws DomainException {
 			
 			// Get the API's response.
-			String result = makeRequest(bearer, new BasicHttpParams());
+			String result = makeRequest(bearer, null);
 			
 			// Process the API's response.
 			try {
@@ -876,16 +904,16 @@ public class OmhReadRunKeeperRequest
 				final long numToReturn)
 				throws DomainException {
 			
-			HttpParams params = new BasicHttpParams();
+			Map<String, String> params = new HashMap<String, String>();
 			if(startDate != null) {
 				params
-					.setParameter(
+					.put(
 						"noEarlierThan",
 						DATE_TIME_REQUEST_FORMATTER.print(startDate));
 			}
 			if(endDate != null) {
 				params
-					.setParameter(
+					.put(
 						"noLaterThan",
 						DATE_TIME_REQUEST_FORMATTER.print(endDate));
 			}
@@ -895,12 +923,13 @@ public class OmhReadRunKeeperRequest
 			// will indicate how many to omit.
 			if(numToReturn != 0) {
 				this.numToSkip = numToSkip % numToReturn;
-				params.setLongParameter("page", numToSkip / numToReturn);
+				params.put("page", Long.toString(numToSkip / numToReturn));
 			}
 			else {
-				params.setLongParameter("page", 0);
+				params.put("page", "0");
 			}
-			params.setLongParameter("pageSize", numToReturn + this.numToSkip);
+			params
+				.put("pageSize", Long.toString(numToReturn + this.numToSkip));
 			
 			String resultString = makeRequest(bearer, params);
 			// Process the API's response.
@@ -978,9 +1007,17 @@ public class OmhReadRunKeeperRequest
 										uriParts[uriParts.length - 1];
 								}
 							}
-							
-							// Add the Result object to the list of results.
-							results.add(currResult);
+
+							// If it is not before the start date or after the
+							// end date, add it to the results.
+							if(!(	(startDate != null) &&
+									(startDate.isAfter(currResult.startTime))
+								) ||
+								(	(endDate != null) &&
+									(endDate.isBefore(currResult.startTime)))) {
+								
+								results.add(currResult);
+							}
 						}
 					}
 					// Otherwise, it was a value we didn't understand and will

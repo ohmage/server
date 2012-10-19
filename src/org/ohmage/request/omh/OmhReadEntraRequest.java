@@ -581,6 +581,9 @@ public class OmhReadEntraRequest
 					e);
 			}
 			
+			// Attempt to shut down the connection after we have the response.
+			httpClient.getConnectionManager().shutdown();
+			
 			// Parse the result as XML. 
 			Document document;
 			try {
@@ -890,23 +893,6 @@ public class OmhReadEntraRequest
 				// Create the Result object.
 				Result currResult = new Result();
 				
-				// Convert the node into a Result object.
-				// Get the ID.
-				Nodes idNodes = node.query("id");
-				if(idNodes.size() == 0) {
-					throw
-						new DomainException(
-							"No ID was returned for the record.");
-				}
-				else if(idNodes.size() > 1) {
-					throw
-						new DomainException(
-							"Multiple IDs were returned for the record.");
-				}
-				else {
-					currResult.id = idNodes.get(0).getValue().trim();
-				}
-				
 				// Get the timestamp.
 				String date, time;
 				// First, get the date.
@@ -943,6 +929,34 @@ public class OmhReadEntraRequest
 				currResult.timestamp =
 					DATE_TIME_CONCAT_FORMATTER
 						.parseDateTime(date + "T" + time);
+				
+				// If it is before the start date or after the end date, skip
+				// it.
+				if(	(	(startDate != null) && 
+						(startDate.isAfter(currResult.timestamp))
+					) ||
+					(	(endDate != null) &&
+						(endDate.isBefore(currResult.timestamp)))) {
+					
+					continue;
+				}
+				
+				// Convert the node into a Result object.
+				// Get the ID.
+				Nodes idNodes = node.query("id");
+				if(idNodes.size() == 0) {
+					throw
+						new DomainException(
+							"No ID was returned for the record.");
+				}
+				else if(idNodes.size() > 1) {
+					throw
+						new DomainException(
+							"Multiple IDs were returned for the record.");
+				}
+				else {
+					currResult.id = idNodes.get(0).getValue().trim();
+				}
 				
 				// Get the glucose value.
 				Nodes glucoseNodes = node.query("glucose");
@@ -1031,6 +1045,10 @@ public class OmhReadEntraRequest
 			return results.size();
 		}
 
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator, org.ohmage.request.observer.StreamReadRequest.ColumnNode)
+		 */
 		@Override
 		public void respond(
 				final JsonGenerator generator,
@@ -1221,24 +1239,6 @@ public class OmhReadEntraRequest
 				// Get the node.
 				Node node = records.get((int) i);
 				
-				// Convert the node into a Result object.
-				// Get the ID.
-				String id;
-				Nodes idNodes = node.query("id");
-				if(idNodes.size() == 0) {
-					throw
-						new DomainException(
-							"No ID was returned for the record.");
-				}
-				else if(idNodes.size() > 1) {
-					throw
-						new DomainException(
-							"Multiple IDs were returned for the record.");
-				}
-				else {
-					id = idNodes.get(0).getValue().trim();
-				}
-				
 				// Get the timestamp.
 				DateTime timestamp;
 				String date, time;
@@ -1276,6 +1276,35 @@ public class OmhReadEntraRequest
 				timestamp =
 					DATE_TIME_CONCAT_FORMATTER
 						.parseDateTime(date + "T" + time);
+				
+				// If it is before the start date or after the end date, skip
+				// it.
+				if(	(	(startDate != null) && 
+						(startDate.isAfter(timestamp))
+					) ||
+					(	(endDate != null) &&
+						(endDate.isBefore(timestamp)))) {
+					
+					continue;
+				}
+				
+				// Convert the node into a Result object.
+				// Get the ID.
+				String id;
+				Nodes idNodes = node.query("id");
+				if(idNodes.size() == 0) {
+					throw
+						new DomainException(
+							"No ID was returned for the record.");
+				}
+				else if(idNodes.size() > 1) {
+					throw
+						new DomainException(
+							"Multiple IDs were returned for the record.");
+				}
+				else {
+					id = idNodes.get(0).getValue().trim();
+				}
 				
 				// Get the timeslot.
 				String timeSlot = null;
@@ -2104,7 +2133,7 @@ public class OmhReadEntraRequest
 			
 			// Get the authentication information from the database.
 			LOGGER
-				.info("Getting the authentication credentials for BodyMedia.");
+				.info("Getting the authentication credentials for Entra.");
 			Map<String, String> entraCredentials =
 				OmhServices.instance().getCredentials("entra");
 			
