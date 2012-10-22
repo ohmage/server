@@ -47,6 +47,7 @@ import net.tanesha.recaptcha.ReCaptchaResponse;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
+import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
@@ -1464,6 +1465,11 @@ public final class UserServices {
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
+		}
+		
+		// Remove the users' authentication tokens if any exist.
+		for(String username : usernames) {
+			UserBin.removeUser(username);
 		}
 		
 		// If the transaction succeeded, delete all of the images from the 

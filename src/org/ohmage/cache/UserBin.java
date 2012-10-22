@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.cache;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
@@ -138,6 +139,37 @@ public final class UserBin extends TimerTask implements DisposableBean {
 		}
 		
 		USERS.remove(authToken);
+	}
+	
+	/**
+	 * Removes all of the tokens for some user.
+	 * 
+	 * @param username The user's username.
+	 */
+	public static synchronized void removeUser(String username) {
+		if(! initialized) {
+			new UserBin();
+		}
+		
+		if(username == null) {
+			throw new IllegalArgumentException("The username cannot be null.");
+		}
+		
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Removing the user from the bin.");
+		}
+		
+		Set<String> userTokens = new HashSet<String>();
+		for(String token : USERS.keySet()) {
+			UserTime userTime = USERS.get(token);
+			if(userTime.user.getUsername().equals(username)) {
+				userTokens.add(token);
+			}
+		}
+		
+		for(String token : userTokens) {
+			USERS.remove(token);
+		}
 	}
 	
 	/**
