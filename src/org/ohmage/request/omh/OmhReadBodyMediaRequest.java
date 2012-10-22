@@ -31,6 +31,7 @@ import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -65,6 +66,15 @@ public class OmhReadBodyMediaRequest
 	
 	private static final Logger LOGGER =
 		Logger.getLogger(OmhReadBodyMediaRequest.class);
+	
+	private static final DateTime EARLIEST_TIMESTAMP =
+		new DateTime(
+			2012, 
+			10, 
+			22, 
+			0, 
+			0,
+			DateTimeZone.forID("America/Los_Angeles"));
 	
 	/**
 	 * The base URL for all requests to the BodyMedia API.
@@ -1209,15 +1219,30 @@ public class OmhReadBodyMediaRequest
 		if(endDate == null) {
 			this.endDate = new DateTime();
 		}
+		else if(EARLIEST_TIMESTAMP.isAfter(endDate)) {
+			this.endDate = EARLIEST_TIMESTAMP;
+		}
 		else {
 			this.endDate = endDate;
 		}
-		// The largest time range is one year.
-		if(startDate == null) {
-			this.startDate = this.endDate.minusYears(1).plusDays(1);
+		
+		// Use the default start date and, if given a date before then,
+		// fast-forward to that period.
+		if((startDate == null) || EARLIEST_TIMESTAMP.isAfter(startDate)) {
+			this.startDate = EARLIEST_TIMESTAMP;
 		}
 		else {
 			this.startDate = startDate;
+		}
+		
+		// The maximum time range for a BodyMedia request is one year.
+		if(this.endDate.minusYears(1).plusDays(1).isAfter(this.startDate)) {
+			ValidationException e = 
+				new ValidationException(
+					ErrorCode.OMH_INVALID_START_TIMESTAMP,
+					"The range for BodyMedia cannot exceed one year.");
+			e.failRequest(this);
+			e.logException(LOGGER);
 		}
 		
 		this.numToSkip = numToSkip;
