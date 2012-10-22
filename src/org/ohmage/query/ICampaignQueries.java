@@ -54,11 +54,11 @@ public interface ICampaignQueries {
 	 * @param creatorUsername
 	 *            The username of the creator of this campaign.
 	 */
-	void createCampaign(String campaignId, String name, String xml,
-			String description, String iconUrl, String authoredBy,
-			Campaign.RunningState runningState,
-			Campaign.PrivacyState privacyState, Collection<String> classIds,
-			String creatorUsername) throws DataAccessException;
+	void createCampaign(
+		final Campaign campaign,
+		final Collection<String> classIds,
+		final String creatorUsername) 
+		throws DataAccessException;
 
 	/**
 	 * Returns whether or not a campaign with the unique campaign identifier
@@ -367,6 +367,53 @@ public interface ICampaignQueries {
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)
 			throws DataAccessException;
+	
+	/**
+	 * Queries all of the campaigns in the system limited by the parameters.
+	 * The ordering is by creation timestamp for paging.
+	 * 
+	 * @param campaignIds Limits the campaigns to only those whose ID is in 
+	 * 					  this list.
+	 * 
+	 * @param surveyIds Limits the campaigns to only those that have a survey
+	 * 					whose ID is in this list.
+	 * 
+	 * @param promptIds Limits the campaigns to only those that have a prompt
+	 * 					whose ID is in this list.
+	 * 
+	 * @param startDate Limits the campaigns to only those whose creation 
+	 * 					timestamp is on or after this date.
+	 * 
+	 * @param endDate Limits the campaigns to only those whose creation 
+	 * 				  timestamp is on or before this date.
+	 * 
+	 * @param privacyState Limits the results to only those whose privacy state
+	 * 					   matches this value.
+	 * 
+	 * @param runningState Limits the results to only those whose running state
+	 * 					   matches this value.
+	 * 
+	 * @param numToSkip The number of campaigns to skip.
+	 * 
+	 * @param numToReturn The number of campaigns to return.
+	 * 
+	 * @return The list of campaigns in chronological order based on their
+	 * 		   creation timestamp.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public List<Campaign> getCampaigns(
+		final Collection<String> campaignIds,
+		final Collection<String> surveyIds,
+		final Collection<String> promptIds,
+		final Collection<String> classIds,
+		final DateTime startDate,
+		final DateTime endDate,
+		final Campaign.PrivacyState privacyState,
+		final Campaign.RunningState runningState,
+		final long numToSkip,
+		final long numToReturn)
+		throws DataAccessException;
 
 	/**
 	 * Updates a campaign. The 'request' and 'campaignId' are required; however,

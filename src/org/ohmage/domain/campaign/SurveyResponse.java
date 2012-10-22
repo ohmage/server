@@ -37,8 +37,8 @@ import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class is responsible for converting an uploaded or database-stored copy
@@ -58,19 +58,37 @@ public class SurveyResponse {
 	private static final String JSON_KEY_TIMEZONE = "timezone";
 	private static final String JSON_KEY_LOCATION_STATUS = "location_status";
 	private static final String JSON_KEY_LOCATION = "location";
-	private static final String JSON_KEY_SURVEY_ID = "survey_id";
+	/**
+	 * The survey's unique identifier.
+	 */
+	public static final String JSON_KEY_SURVEY_ID = "survey_id";
 	private static final String JSON_KEY_SURVEY_NAME = "survey_title";
 	private static final String JSON_KEY_SURVEY_DESCRIPTION = "survey_description";
-	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
+	
+	/**
+	 * The survey launch context for the response.
+	 */
+	public static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT = "survey_launch_context";
 	// TODO - I added the short and long keys because that's how the 
 	// original spec worked and the Android app was breaking with only 
 	// survey_launch_context. We can revisit for 2.9. -Josh
 	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT_SHORT = "launch_context_short";
 	private static final String JSON_KEY_SURVEY_LAUNCH_CONTEXT_LONG = "launch_context_long";
-	private static final String JSON_KEY_RESPONSES = "responses";
-	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	
-	private static final String JSON_KEY_SURVEY_RESPONSE_ID = "survey_key";
+	/**
+	 * The individual prompt responses for this survey response.
+	 */
+	public static final String JSON_KEY_RESPONSES = "responses";
+	
+	/**
+	 * The privacy state of this survey response.
+	 */
+	public static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
+	
+	/**
+	 * The unique identifier for this survey response.
+	 */
+	public static final String JSON_KEY_SURVEY_RESPONSE_ID = "survey_key";
 	
 	private static final String JSON_KEY_PROMPT_ID = "prompt_id";
 	private static final String JSON_KEY_REPEATABLE_SET_ID = "repeatable_set_id";
@@ -157,9 +175,18 @@ public class SurveyResponse {
 	 * @author John Jenkins
 	 */
 	public static final class LaunchContext {
-		private static final String JSON_KEY_LAUNCH_TIME = "launch_time";
-		private static final String JSON_KEY_LAUNCH_TIMEZONE = "launch_timezone";
-		private static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
+		/**
+		 * The time the survey was launched.
+		 */
+		public static final String JSON_KEY_LAUNCH_TIME = "launch_time";
+		/**
+		 * The time-zone for the time the survey was launched.
+		 */
+		public static final String JSON_KEY_LAUNCH_TIMEZONE = "launch_timezone";
+		/**
+		 * The active triggers when the survey was launched.
+		 */
+		public static final String JSON_KEY_ACTIVE_TRIGGERS = "active_triggers";
 		
 		private final long time;
 		private final DateTimeZone timezone;

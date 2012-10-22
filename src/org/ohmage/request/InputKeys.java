@@ -216,6 +216,7 @@ public final class InputKeys {
 	public static final String OMH_SUMMARIZE = "summarize";
 	public static final String OMH_NUM_TO_SKIP = "num_to_skip";
 	public static final String OMH_NUM_TO_RETURN = "num_to_return";
+	public static final String OMH_OWNER = "owner";
 	
 	// Separator Constants
 	public static final String LIST_ITEM_SEPARATOR = ",";

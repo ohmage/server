@@ -114,6 +114,10 @@ public class CampaignUpdateRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignUpdateRequest.class);
 	
 	private final String campaignId;
+	// The 'id' and 'name' are from the new XML, if present, and represent the
+	// ID and name in the new XML.
+	private final String id;
+	private final String name;
 	private final String xml;
 	private final String description;
 	private final Campaign.RunningState runningState;
@@ -140,6 +144,8 @@ public class CampaignUpdateRequest extends UserRequest {
 		LOGGER.info("Creating a campaign update request.");
 		
 		String tCampaignId = null;
+		String tId = null;
+		String tName = null;
 		String tXml = null;
 		String tDescription = null;
 		Campaign.RunningState tRunningState = null;
@@ -149,70 +155,109 @@ public class CampaignUpdateRequest extends UserRequest {
 		Map<String, Set<Campaign.Role>> tUsersAndRolesToAdd = null;
 		Map<String, Set<Campaign.Role>> tUsersAndRolesToRemove = null;
 		
-		try {
-			tCampaignId = CampaignValidators.validateCampaignId(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
-			if(tCampaignId == null) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is required: " + InputKeys.CAMPAIGN_URN);
-				throw new ValidationException("The campaign ID is required: " + InputKeys.CAMPAIGN_URN);
-			}
-			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
-				throw new ValidationException("Multiple campaign IDs were found.");
-			}
+		if(! isFailed()) {
+			LOGGER.info("Creating a campaign update request.");
+			String[] t;
 			
-			byte[] pXml = getMultipartValue(httpRequest, InputKeys.XML);
-			if(pXml != null) {
-				tXml = CampaignValidators.validateXml(new String(pXml));
+			try {
+				tCampaignId = CampaignValidators.validateCampaignId(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
+				if(tCampaignId == null) {
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "The campaign ID is required: " + InputKeys.CAMPAIGN_URN);
+					throw new ValidationException("The campaign ID is required: " + InputKeys.CAMPAIGN_URN);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
+					throw new ValidationException("Multiple campaign IDs were found.");
+				}
+				
+				t = getParameterValues(InputKeys.RUNNING_STATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, 
+						"Multiple running states were found: " +
+							InputKeys.RUNNING_STATE);
+				}
+				else if(t.length == 1) {
+					tRunningState = 
+						CampaignValidators.validateRunningState(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.PRIVACY_STATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE,
+						"Multiple privacy states were found: " +
+							InputKeys.PRIVACY_STATE);
+				}
+				else if(t.length == 1) {
+					tPrivacyState = 
+						CampaignValidators.validatePrivacyState(t[0]);
+				}
+				
+				t = getParameterValues(InputKeys.DESCRIPTION);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_DESCRIPTION,
+						"Multiple descriptions were found: " +
+							InputKeys.DESCRIPTION);
+				}
+				if(t.length == 1) {
+					tDescription = CampaignValidators.validateDescription(t[0]);
+				}
+	
+				byte[] bXml = getMultipartValue(httpRequest, InputKeys.XML);
+				if(bXml != null) {
+					String xmlString = new String(bXml);
+					
+					Map<String, String> idToName = 
+						CampaignValidators.validateXml(xmlString);
+					if(idToName != null) {
+						if(idToName.size() != 1) {
+							throw new ValidationException(
+								"The validateXml(String) function did not return a map of size exactly 1.");
+						}
+						
+						tId = idToName.keySet().iterator().next();
+						tName = idToName.get(tId);
+						
+						tXml = xmlString;
+					}
+					
+				}
+				
+				tClassesToAdd = ClassValidators.validateClassIdList(getParameter(InputKeys.CLASS_LIST_ADD));
+				if((tClassesToAdd != null) && (getParameterValues(InputKeys.CLASS_ROLE_LIST_ADD).length > 1)) {
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists to add were found.");
+					throw new ValidationException("Multiple class ID lists to add were found.");
+				}
+				
+				tClassesToRemove = ClassValidators.validateClassIdList(getParameter(InputKeys.CLASS_LIST_REMOVE));
+				if((tClassesToRemove != null) && (getParameterValues(InputKeys.CLASS_LIST_REMOVE).length > 1)) {
+					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists to remove were found.");
+					throw new ValidationException("Multiple class ID lists to remove were found.");
+				}
+				
+				tUsersAndRolesToAdd = UserCampaignValidators.validateUserAndCampaignRole(httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
+				if((tUsersAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ROLE, "Multiple username, campaign role add lists were found.");
+					throw new ValidationException("Multiple username, campaign role lists were found.");
+				}
+				
+				tUsersAndRolesToRemove = UserCampaignValidators.validateUserAndCampaignRole(httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE));
+				if((tUsersAndRolesToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_REMOVE).length > 1)) {
+					setFailed(ErrorCode.CAMPAIGN_INVALID_ROLE, "Multiple username, campaign role remove lists were found.");
+					throw new ValidationException("Multiple username, campaign role remove lists were found.");
+				}
 			}
-			
-			tDescription = CampaignValidators.validateDescription(httpRequest.getParameter(InputKeys.DESCRIPTION));
-			if((tDescription != null) && (httpRequest.getParameterValues(InputKeys.DESCRIPTION).length > 1)) {
-				setFailed(ErrorCode.CLASS_INVALID_DESCRIPTION, "Multiple descriptions were found.");
-				throw new ValidationException("Multiple descriptions were found.");
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
 			}
-			
-			tRunningState = CampaignValidators.validateRunningState(httpRequest.getParameter(InputKeys.RUNNING_STATE));
-			if((tRunningState != null) && (httpRequest.getParameterValues(InputKeys.RUNNING_STATE).length > 1)) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, "Multiple running states were found.");
-				throw new ValidationException("Multiple running states were found.");
-			}
-			
-			tPrivacyState = CampaignValidators.validatePrivacyState(httpRequest.getParameter(InputKeys.PRIVACY_STATE));
-			if((tPrivacyState != null) && (httpRequest.getParameterValues(InputKeys.PRIVACY_STATE).length > 1)) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_PRIVACY_STATE, "Multiple privacy states were found.");
-				throw new ValidationException("Multiple privacy states were found.");
-			}
-			
-			tClassesToAdd = ClassValidators.validateClassIdList(getParameter(InputKeys.CLASS_LIST_ADD));
-			if((tClassesToAdd != null) && (getParameterValues(InputKeys.CLASS_ROLE_LIST_ADD).length > 1)) {
-				setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists to add were found.");
-				throw new ValidationException("Multiple class ID lists to add were found.");
-			}
-			
-			tClassesToRemove = ClassValidators.validateClassIdList(getParameter(InputKeys.CLASS_LIST_REMOVE));
-			if((tClassesToRemove != null) && (getParameterValues(InputKeys.CLASS_LIST_REMOVE).length > 1)) {
-				setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists to remove were found.");
-				throw new ValidationException("Multiple class ID lists to remove were found.");
-			}
-			
-			tUsersAndRolesToAdd = UserCampaignValidators.validateUserAndCampaignRole(httpRequest.getParameter(InputKeys.USER_ROLE_LIST_ADD));
-			if((tUsersAndRolesToAdd != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_ADD).length > 1)) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ROLE, "Multiple username, campaign role add lists were found.");
-				throw new ValidationException("Multiple username, campaign role lists were found.");
-			}
-			
-			tUsersAndRolesToRemove = UserCampaignValidators.validateUserAndCampaignRole(httpRequest.getParameter(InputKeys.USER_ROLE_LIST_REMOVE));
-			if((tUsersAndRolesToRemove != null) && (httpRequest.getParameterValues(InputKeys.USER_ROLE_LIST_REMOVE).length > 1)) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ROLE, "Multiple username, campaign role remove lists were found.");
-				throw new ValidationException("Multiple username, campaign role remove lists were found.");
-			}
-		}
-		catch(ValidationException e) {
-			e.failRequest(this);
-			e.logException(LOGGER);
 		}
 		
 		campaignId = tCampaignId;
+		id = tId;
+		name = tName;
 		xml = tXml;
 		description = tDescription;
 		runningState = tRunningState;
@@ -264,10 +309,7 @@ public class CampaignUpdateRequest extends UserRequest {
 			
 			if(xml != null) {
 				LOGGER.info("Verifying that the user is allowed to update the campaign.");
-				UserCampaignServices.instance().verifyUserCanUpdateCampaignXml(getUser().getUsername(), campaignId);
-				
-				LOGGER.info("Verifying that the ID and name for the XML haven't changed.");
-				CampaignServices.instance().verifyTheNewXmlIdAndNameAreTheSameAsTheCurrentIdAndName(campaignId, xml);
+				UserCampaignServices.instance().verifyUserCanUpdateCampaignXml(getUser().getUsername(), campaignId, id, name);
 			}
 			
 			if((classesToAdd != null) && (classesToRemove != null)) {
