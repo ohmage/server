@@ -33,8 +33,16 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public abstract class PromptResponse extends Response {
-	private static final String JSON_KEY_PROMPT_ID = "prompt_id";
-	private static final String JSON_KEY_RESPONSE = "value";
+	/**
+	 * The name of the JSON object field representing the name of the prompt
+	 * that was used to create this response value. 
+	 */
+	public static final String JSON_KEY_PROMPT_ID = "prompt_id";
+	/**
+	 * The name of the JSON object field representing the value for the 
+	 * response to this prompt.
+	 */
+	public static final String JSON_KEY_RESPONSE = "value";
 	
 	/**
 	 * The prompt that was presented to the user to create this response.

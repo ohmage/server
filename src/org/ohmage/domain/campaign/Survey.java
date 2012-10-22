@@ -15,15 +15,19 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.domain.campaign.SurveyResponse.LaunchContext;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
@@ -497,6 +501,119 @@ public class Survey {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Writes the Concordia definition of a survey response from this survey.
+	 * 
+	 * @param generator The generator to write the definition to.
+	 * 
+	 * @param promptId Limits the list of response values to only the prompt
+	 * 				   with this ID.
+	 * 
+	 * @throws JsonGenerationException There was a problem generating the JSON.
+	 * 
+	 * @throws IOException There was a problem writing to the generator.
+	 */
+	public void toConcordia(
+			final JsonGenerator generator,
+			final String promptId)
+			throws JsonGenerationException, IOException {
+		
+		// Start the object.
+		generator.writeStartObject();
+		generator.writeStringField("type", "object");
+		generator.writeArrayFieldStart("schema");
+		
+		// Survey ID.
+		generator.writeStartObject();
+		generator.writeStringField("name", SurveyResponse.JSON_KEY_SURVEY_ID);
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+
+		// Survey launch context.
+		generator.writeStartObject();
+		generator.writeStringField(
+			"name",
+			SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+		generator.writeStringField("type", "object");
+		generator.writeArrayFieldStart("schema");
+		
+		// Write the launch context's launch time.
+		generator.writeStartObject();
+		generator.writeStringField("name", LaunchContext.JSON_KEY_LAUNCH_TIME);
+		generator.writeStringField("type", "number");
+		generator.writeEndObject();
+		
+		// Write the launch context's launch time-zone.
+		generator.writeStartObject();
+		generator.writeStringField(
+			"name",
+			LaunchContext.JSON_KEY_LAUNCH_TIMEZONE);
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		// Write the launch context's active triggers.
+		generator.writeStartObject();
+		generator.writeStringField("name", LaunchContext.JSON_KEY_ACTIVE_TRIGGERS);
+		generator.writeStringField("type", "array");
+		generator.writeObjectFieldStart("schema");
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		generator.writeEndObject();
+		
+		// End the survey launch context.
+		generator.writeEndArray();
+		generator.writeEndObject();
+		
+		// Array of responses.
+		generator.writeStartObject();
+		generator.writeStringField("name", SurveyResponse.JSON_KEY_RESPONSES);
+		generator.writeStringField("type", "array");
+		generator.writeArrayFieldStart("schema");
+		
+		// If the caller isn't asking about a specific prompt, then list them
+		// all.
+		if(promptId == null) {
+			List<Integer> indices = 
+				new ArrayList<Integer>(surveyItems.keySet());
+			Collections.sort(indices);
+			for(Integer index : indices) {
+				// Retrieves the survey item at the given index.
+				SurveyItem surveyItem = surveyItems.get(index);
+				
+				if(surveyItem instanceof Message) {
+					continue;
+				}
+				
+				// For now, we are not generating Concordia definitions for 
+				// repeatable sets.
+				if(surveyItem instanceof RepeatableSet) {
+					continue;
+				}
+				
+				// Write the definition of the current survey item if it is a 
+				// prompt.
+				if(surveyItem instanceof Prompt) {
+					surveyItem.toConcordia(generator);
+				}
+			}
+		}
+		// Otherwise, output only that prompt's information.
+		else {
+			Prompt prompt = prompts.get(promptId);
+			if(prompt != null) {
+				prompt.toConcordia(generator);
+			}
+		}
+		
+		// End the array of responses.
+		generator.writeEndArray();
+		generator.writeEndObject();
+		
+		// End the object.
+		generator.writeEndArray();
+		generator.writeEndObject();
 	}
 
 	/**

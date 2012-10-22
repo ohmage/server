@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -257,6 +258,146 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 	
 	final long surveyResponsesToSkip;
 	final long surveyResponsesToProcess;
+	
+	/**
+	 * Creates a survey response read request. The 'httpRequest', 'parameters',
+	 * and 'campaignId' parameters are required. The rest are optional and will
+	 * limit the results.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param parameters The parameters from the HTTP request.
+	 * 
+	 * @param callClientRequester Refers to the "client" parameter as the
+	 * 							  "requester".
+	 * 
+	 * @param campaignId The campaign's unique identifier. Required.
+	 * 
+	 * @param usernames A set of usernames.
+	 * 
+	 * @param surveyIds A set of survey IDs.
+	 * 
+	 * @param promptIds A set of prompt IDs.
+	 * 
+	 * @param surveyResponseIds A set of survey response IDs.
+	 * 
+	 * @param startDate Limits the responses to only those on or after this
+	 * 					date.
+	 * 
+	 * @param endDate Limits the responses to only those on or before this 
+	 * 				  date.
+	 * 
+	 * @param privacyState A survey response privacy state.
+	 * 
+	 * @param promptResponseSearchTokens A set of tokens which must match the
+	 * 									 prompt responses.
+	 * 
+	 * @param columns The columns of data to return.
+	 * 
+	 * @param outputFormat The format of the output.
+	 * 
+	 * @param sortOrder How to sort the parameters.
+	 * 
+	 * @param collapse Whether or not to collapse the results.
+	 * 
+	 * @param prettyPrint Whether or not to format the results with whitespace.
+	 * 
+	 * @param returnId Whether or not to return the response's unique 
+	 * 				   identifier with the data.
+	 * 
+	 * @param suppressMetadata Whether or not to suppress the metadata section.
+	 * 
+	 * @param numResponsesToSkip The number of survey responses to skip.
+	 * 
+	 * @param numResponsesToReturn The number of survey responses to return.
+	 * 
+	 * @throws InvalidRequestException Thrown if the parameters cannot be 
+	 * 								   parsed.
+	 * 
+	 * @throws IOException There was an error reading from the request.
+	 * 
+	 * @throws IllegalArgumentException Thrown if a required parameter is 
+	 * 									missing.
+	 */
+	public SurveyResponseReadRequest(
+			final HttpServletRequest httpRequest,
+			final Map<String, String[]> parameters,
+			boolean callClientRequester,
+			final String campaignId,
+			final Collection<String> usernames,
+			final Collection<String> surveyIds,
+			final Collection<String> promptIds,
+			final Set<UUID> surveyResponseIds,
+			final DateTime startDate,
+			final DateTime endDate,
+			final SurveyResponse.PrivacyState privacyState,
+			final Set<String> promptResponseSearchTokens,
+			final Collection<SurveyResponse.ColumnKey> columns,
+			final SurveyResponse.OutputFormat outputFormat,
+			final List<SortParameter> sortOrder,
+			final Boolean collapse,
+			final Boolean prettyPrint,
+			final Boolean returnId,
+			final Boolean suppressMetadata,
+			final Long numResponsesToSkip,
+			final Long numResponsesToReturn)
+			throws IOException, InvalidRequestException {
+		
+		super(
+			httpRequest, 
+			parameters,
+			callClientRequester,
+			campaignId,
+			usernames, 
+			surveyIds, 
+			promptIds, 
+			surveyResponseIds, 
+			startDate, 
+			endDate, 
+			privacyState, 
+			promptResponseSearchTokens);
+		
+		this.columns = columns;
+		this.outputFormat = outputFormat;
+		this.sortOrder = sortOrder;
+		this.collapse = collapse;
+		this.prettyPrint = prettyPrint;
+		this.returnId = returnId;
+		this.suppressMetadata = suppressMetadata;
+		
+		if(numResponsesToSkip == null) {
+			this.surveyResponsesToSkip = 0;
+		}
+		else {
+			this.surveyResponsesToSkip = numResponsesToSkip;
+		}
+		
+		if(numResponsesToReturn == null) {
+			long tNumResponsesToReturn = 0;
+			try {
+				tNumResponsesToReturn = 
+					Long.decode(
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAX_SURVEY_RESPONSE_PAGE_SIZE));
+				
+				if(tNumResponsesToReturn == -1) {
+					tNumResponsesToReturn = Long.MAX_VALUE;
+				}
+			}
+			catch(CacheMissException e) {
+				LOGGER.error("The cache is missing the max page size.", e);
+				setFailed();
+			}
+			catch(NumberFormatException e) {
+				LOGGER.error("The max page size is not a number.", e);
+				setFailed();
+			}
+			this.surveyResponsesToProcess = tNumResponsesToReturn;
+		}
+		else {
+			this.surveyResponsesToProcess = numResponsesToReturn;
+		}
+	}
 	
 	/**
 	 * Creates a survey response read request.

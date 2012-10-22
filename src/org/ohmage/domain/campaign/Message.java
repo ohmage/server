@@ -15,6 +15,10 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign;
 
+import java.io.IOException;
+
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.exception.DomainException;
@@ -101,15 +105,22 @@ public final class Message extends SurveyItem {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		if(result == null) {
-			// FIXME: This should ignore what the parent does and let the
-			// exception propogate.
-			return null;
-		}
-		
 		result.put(JSON_KEY_TEXT, text);
 		
 		return result;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void toConcordia(
+			final JsonGenerator geneartor)
+			throws JsonGenerationException, IOException {
+		
+		throw new UnsupportedOperationException(
+			"Messages have no output format");
 	}
 
 	/**
