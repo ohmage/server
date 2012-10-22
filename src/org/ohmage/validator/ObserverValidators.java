@@ -9,14 +9,15 @@ import java.util.Map;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.ISOW3CDateTimeFormat;
 import org.ohmage.domain.Observer;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
 import org.ohmage.util.StringUtils;
-import org.ohmage.util.DateTimeUtils;
 
 /**
  * This class is responsible for all of the observer validators.
@@ -24,6 +25,9 @@ import org.ohmage.util.DateTimeUtils;
  * @author John Jenkins
  */
 public class ObserverValidators {
+	private static final DateTimeFormatter DATE_TIME_FORMATTER = 
+		ISOW3CDateTimeFormat.any().withOffsetParsed();
+	
 	/**
 	 * Empty default constructor.
 	 */
@@ -289,7 +293,7 @@ public class ObserverValidators {
 		}
 		
 		try {
-			return DateTimeUtils.parseIsoW3CDateTime(value);
+			return DATE_TIME_FORMATTER.parseDateTime(value);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
