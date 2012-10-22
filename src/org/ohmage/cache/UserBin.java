@@ -39,7 +39,7 @@ public final class UserBin extends TimerTask implements DisposableBean {
 	/**
 	 * This is the length of an authentication token.
 	 */
-	public static final int LIFETIME = 1800000;
+	public static final int LIFETIME = 86400000;
 	private static final int EXECUTION_PERIOD = 60000;
 	
 	/**
