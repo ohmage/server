@@ -1242,7 +1242,9 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			
 			Long time = (timestamp == null) ? null : timestamp.getMillis();
 			Integer timeOffset = 
-				(timestamp == null) ? null : timestamp.getZone().getOffset(null);
+				(timestamp == null) ? 
+					null : 
+					timestamp.getZone().getOffset(timestamp);
 			Long timeAdjusted =
 				(timestamp == null) ? null : time + timeOffset;
 			String timeZoneId = 
