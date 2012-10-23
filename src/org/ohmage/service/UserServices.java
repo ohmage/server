@@ -1415,7 +1415,11 @@ public final class UserServices {
 			final String plaintextPassword) throws ServiceException {
 		
 		try {
-			String hashedPassword = BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(13));
+			String hashedPassword = 
+				BCrypt
+					.hashpw(
+						plaintextPassword, 
+						BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
 			userQueries.updateUserPassword(username, hashedPassword, false);
 		}

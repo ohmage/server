@@ -747,24 +747,15 @@ public class ParameterSets {
     // Check the maximum length.
     validPlainTextPasswords.add("aaaaAAAA0000....");
     // Check all of the valid characters.
-    validPlainTextPasswords.add("aA0.abcdefghijkl");
-    validPlainTextPasswords.add("aA0.mnopqrstuvwx");
-    validPlainTextPasswords.add("aA0.yz0123456789");
-    validPlainTextPasswords.add("aA0.,.<>:[]!@#$%");
-    validPlainTextPasswords.add("aA0.^&*+-/=?_{}|");
+    validPlainTextPasswords.add("abcdefghijkl");
+    validPlainTextPasswords.add("mnopqrstuvwx");
+    validPlainTextPasswords.add("yz0123456789");
+    validPlainTextPasswords.add("`~!@#$%^&*()");
+    validPlainTextPasswords.add("-_=+[{]}\\|;");
+    validPlainTextPasswords.add(":'\",<.>/?");
 
     // Too short.
     invalidPlainTextPasswords.add("aA.4567");
-    // Too long.
-    invalidPlainTextPasswords.add("aA.45678901234567");
-    // Missing a lower case character.
-    invalidPlainTextPasswords.add("AAAA00..");
-    // Missing an upper case character.
-    invalidPlainTextPasswords.add("aaaa00..");
-    // Missing a number.
-    invalidPlainTextPasswords.add("aaAAAA..");
-    // Missing a special character.
-    invalidPlainTextPasswords.add("aaAA0000");
 
     // Test all valid characters.
     validHashedPasswords.add("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456");
@@ -774,13 +765,6 @@ public class ParameterSets {
     invalidHashedPasswords.add("12345678901234567890123456789012345678901234567890123456789");
     // Too long.
     invalidHashedPasswords.add("1234567890123456789012345678901234567890123456789012345678901");
-
-    // TODO: We may want to restrict the first character being a '$', 
-    // followed by a plausible version, followed by another '$', followed
-    // by a plausible hash value, followed by a final '$', but in order to
-    // do this we would need to update our hashed password validator. This
-    // may be a good idea, but I am currently only putting down the ground
-    // work and don't want to deal.
 
     System.out.println("Valid plain text passwords generated:");
     for (String validPassword : validPlainTextPasswords) {
