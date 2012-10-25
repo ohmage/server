@@ -40,9 +40,9 @@ public interface ICampaignQueries {
 	 *            The username of the creator of this campaign.
 	 */
 	void createCampaign(
-		Campaign campaign,
-		Collection<String> classIds,
-		String creatorUsername)
+		final Campaign campaign,
+		final Collection<String> classIds,
+		final String creatorUsername) 
 		throws DataAccessException;
 
 	/**

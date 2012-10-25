@@ -30,6 +30,7 @@ import org.codehaus.jackson.map.MappingJsonFactory;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.JavaScriptException;
+import org.mozilla.javascript.RhinoException;
 import org.mozilla.javascript.Scriptable;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream.MetaData;
@@ -626,6 +627,11 @@ public class Observer {
 					ErrorCode.OBSERVER_INVALID_STREAM_DEFINITION,
 					"The schema is invalid: " + e.getMessage(),
 					e);
+			}
+			catch(RhinoException e) {
+				throw new DomainException(
+					ErrorCode.OBSERVER_INVALID_STREAM_DEFINITION, 
+					"A stream definition is not valid JSON.");
 			}
 			finally {
 				Context.exit();

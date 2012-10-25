@@ -798,7 +798,7 @@ public class OmhRegistryReadRequest extends Request {
 								apiString);
 				}
 			}
-			
+		
 			// End the JSON output.
 			generator.writeEndArray();
 		}

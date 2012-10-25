@@ -194,7 +194,7 @@ public class OmhReadRequest extends Request {
 				else if(t.length == 1) {
 					tEndDate = ObserverValidators.validateDate(t[0]);
 				}
-			
+
 				t = getParameterValues(InputKeys.OMH_COLUMN_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -204,9 +204,7 @@ public class OmhReadRequest extends Request {
 				}
 				else if(t.length == 1) {
 					try {
-						tColumns = 
-							ObserverValidators.validateColumnList(
-								t[0]);
+						tColumns = ObserverValidators.validateColumnList(t[0]);
 					}
 					catch(ValidationException e) {
 						throw new ValidationException(
