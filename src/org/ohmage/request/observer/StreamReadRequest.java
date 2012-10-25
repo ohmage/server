@@ -384,7 +384,13 @@ public class StreamReadRequest extends UserRequest {
 		this.streamVersion = streamVersion;
 		this.startDate = startDate;
 		this.endDate = endDate;
-		this.columnsRoot = columns;
+		
+		if(columns == null) {
+			this.columnsRoot = new ColumnNode<String>();
+		}
+		else {
+			this.columnsRoot = columns;
+		}
 		
 		if(chronological == null) {
 			this.chronological = true;

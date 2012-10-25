@@ -1355,7 +1355,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 						"FROM user " +
 						"WHERE username = ?" +
 					")" +
-					"AND osd.observer_stream_link_id = (" +
+					"AND osd.observer_stream_link_id IN (" +
 						"SELECT osl.id " +
 						"FROM " +
 							"observer o, " +
