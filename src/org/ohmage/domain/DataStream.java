@@ -247,7 +247,7 @@ public class DataStream {
 	private final Stream stream;
 	
 	/**
-	 * The data in its Avro object representation.
+	 * The data in its Jackson object representation.
 	 */
 	private final JsonNode data;
 
