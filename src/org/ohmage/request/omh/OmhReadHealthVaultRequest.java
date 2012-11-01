@@ -2500,7 +2500,7 @@ public class OmhReadHealthVaultRequest
 			// Retrieve the user's person ID.
 			String personId = 
 				healthVaultCredentials
-					.get(getUser().getUsername() + "_person_id");
+					.get(requestee + "_person_id");
 			if(personId == null) {
 				// If the user is not linked, we treat it as if they have no
 				// data.
