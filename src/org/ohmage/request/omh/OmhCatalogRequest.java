@@ -247,7 +247,7 @@ public class OmhCatalogRequest extends UserRequest {
 					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 			super.respond(httpRequest, httpResponse, null);
 			return;
