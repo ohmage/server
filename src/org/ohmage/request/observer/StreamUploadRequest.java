@@ -243,13 +243,20 @@ public class StreamUploadRequest extends UserRequest {
 				LOGGER.info("Error closing the data.", e);
 			}
 			
+			long numPoints = dataStreams.size();
 			LOGGER.info("Pruning out the duplicates from previous uploads.");
 			ObserverServices.instance().removeDuplicates(
 				getUser().getUsername(), 
 				observerId,
 				dataStreams);
+			LOGGER
+				.info(
+					"Pruned out " + 
+						(numPoints - dataStreams.size()) + 
+						" points.");
+			numPoints = dataStreams.size();
 			
-			LOGGER.info("Storing the uploaded data.");
+			LOGGER.info("Storing the uploaded data: " + numPoints + " points");
 			ObserverServices.instance().storeData(
 				getUser().getUsername(), 
 				observer,
