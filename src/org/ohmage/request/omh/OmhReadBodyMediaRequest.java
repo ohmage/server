@@ -26,6 +26,7 @@ import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonGenerator.Feature;
+import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonToken;
@@ -637,11 +638,14 @@ public class OmhReadBodyMediaRequest
 				.append(
 					BodyMediaApi
 						.SLEEP_PARAMETER_DATE_TIME_FORMATTER.print(startDate));
-			uriBuilder.append('/');
-			uriBuilder
-				.append(
-					BodyMediaApi
-						.SLEEP_PARAMETER_DATE_TIME_FORMATTER.print(endDate));
+			if(endDate != null) {
+				uriBuilder.append('/');
+				uriBuilder
+					.append(
+						BodyMediaApi
+							.SLEEP_PARAMETER_DATE_TIME_FORMATTER
+								.print(endDate));
+			}
 			uriBuilder.append("?api_key=");
 			uriBuilder.append(apiKey);
 			
@@ -849,7 +853,12 @@ public class OmhReadBodyMediaRequest
 			
 			// Get the result as a string.
 			String result = 
-				makeRequest(service, apiKey, accessToken, startDate, endDate);
+				makeRequest(
+					service, 
+					apiKey, 
+					accessToken, 
+					startDate,
+					((endDate == null) ? new DateTime() : endDate));
 			
 			try {
 				// Pass the results into the JSON parser.
@@ -1036,6 +1045,452 @@ public class OmhReadBodyMediaRequest
 	}
 	
 	/**
+	 * A {@link BodyMediaApi} for the user's detailed sleep data.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class SleepDetailsApi extends BodyMediaApi {
+		/**
+		 * The URL's path to the profile. Should be used in conjunction with 
+		 * the {@link #API_BASE_URL base URL}.
+		 */
+		private static final String PATH = "sleepDetails";
+		
+		private static final class Result implements Comparable<Result> {
+			private static final String JSON_KEY_DATE = "date";
+			private static final String JSON_KEY_DURATION = "duration";
+			private static final String JSON_KEY_STATE = "state";
+			
+			private static enum State {
+				LYING,
+				ASLEEP;
+			}
+			
+			private DateTime date;
+			private int duration;
+			private State state;
+			
+			/**
+			 * Generates the Concordia schema for this path.
+			 * 
+			 * @param generator The generator to use to write the definition.
+			 * 
+			 * @return The 'generator' that was passed in to facilitate
+			 * 		   chaining.
+			 * 
+			 * @throws JsonGenerationException There was a problem generating 
+			 * 								   the JSON.
+			 * 
+			 * @throws IOException There was a problem writing to the 
+			 * 					   generator.
+			 */
+			public static JsonGenerator toConcordia(
+					final JsonGenerator generator)
+					throws JsonGenerationException, IOException {
+				
+				// Start the definition.
+				generator.writeStartObject();
+				
+				// The data will always be a JSON object.
+				generator.writeStringField("type", "object");
+				generator.writeArrayFieldStart("schema");
+				
+				// Add the 'duration' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_DURATION);
+				generator.writeStringField("type", "number");
+				generator.writeEndObject();
+				
+				// Add the 'state' field.
+				generator.writeStartObject();
+				generator.writeStringField("name", JSON_KEY_STATE);
+				generator.writeStringField("type", "string");
+				generator.writeEndObject();
+				
+				// End the overall schema array.
+				generator.writeEndArray();
+				
+				// End the definition.
+				generator.writeEndObject();
+				
+				// Return the generator.
+				return generator;
+			}
+
+			/**
+			 * Sorts the Result objects in reverse chronological order.
+			 */
+			@Override
+			public int compareTo(Result other) {
+				if(date.isBefore(other.date)) {
+					return 1;
+				}
+				else if(date.isAfter(other.date)) {
+					return -1;
+				}
+				else {
+					return 0;
+				}
+			}
+		}
+		List<Result> results = new LinkedList<Result>();
+		
+		/**
+		 * Creates a {@link BodyMediaApi} to the user's BodyMedia sleep data.
+		 */
+		public SleepDetailsApi() {
+			super(PATH);
+		}
+
+		/**
+		 * @return False, sleep data points are based on their timestamp not an
+		 * 		   ID.
+		 */
+		@Override
+		public boolean hasId() {
+			return false;
+		}
+
+		/**
+		 * @return True, each point has a timestamp based on a day.
+		 */
+		@Override
+		public boolean hasTimestamp() {
+			return true;
+		}
+
+		/**
+		 * @return False, BodyMedia does not collection location information.
+		 */
+		@Override
+		public boolean hasLocation() {
+			return false;
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApi#toConcordia(org.codehaus.jackson.JsonGenerator)
+		 */
+		@Override
+		public JsonGenerator toConcordia(
+				final JsonGenerator generator)
+				throws JsonGenerationException, IOException {
+			
+			// Return the generator.
+			return Result.toConcordia(generator);
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApi#getUri()
+		 */
+		@Override
+		public URI getUri() throws DomainException {
+			// Build the URI string.
+			String uri = API_BASE_URL + "/sleep/day/period";
+			
+			// Build the URI object and return it.
+			try {
+				return new URI(uri);
+			}
+			catch(URISyntaxException e) {
+				throw new DomainException(
+					"The URL and/or path don't form a valid URI: " + uri);
+			}
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadBodyMediaRequest.BodyMediaApi#makeRequest(org.scribe.oauth.OAuthService, org.scribe.model.Token, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+		 */
+		@Override
+		protected void makeRequest(
+				final OAuthService service,
+				final String apiKey,
+				final Token accessToken,
+				final DateTime startDate,
+				final DateTime endDate,
+				final long numToSkip,
+				final long numToReturn)
+				throws DomainException {
+			
+			// Start with the start date from the request.
+			DateTime currDate = startDate;
+		
+			// Basically, we rate limit requests to one every 501 milliseconds.
+			DateTime nextRequest = new DateTime();
+			
+			// Continue while the current date is before the end date.
+			while(
+				currDate.isBefore(endDate) &&
+				(results.size() < (numToSkip + numToReturn))) {
+				
+				// Busy wait. Yeah, it's inefficient.
+				while(nextRequest.isAfter(new DateTime())) {}
+				// Set a timer for the next request to be half a second after
+				// this one.
+				nextRequest = (new DateTime().plusMillis(501));
+				
+				// Request the data for the current date.
+				handleResponse(
+					startDate,
+					endDate,
+					makeRequest(service, apiKey, accessToken, currDate, null));
+				
+				// Increment the current date by a day.
+				currDate = currDate.plusDays(1);
+			}
+			
+			// Sort the results to put them in reverse-chronological order.
+			Collections.sort(results);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+		 */
+		@Override
+		public long getNumDataPoints() {
+			return results.size();
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator, org.ohmage.request.observer.StreamReadRequest.ColumnNode)
+		 */
+		@Override
+		public void respond(
+				final JsonGenerator generator,
+				final ColumnNode<String> columns)
+				throws JsonGenerationException, IOException, DomainException {
+			
+			// Create the reusable DateTimeFormatter. 
+			DateTimeFormatter isoDateTimeFormatter = 
+				ISODateTimeFormat.dateTime();
+			
+			// For each object,
+			for(Result result : results) {
+				// Start the overall object.
+				generator.writeStartObject();
+				
+				// Write the metadata.
+				generator.writeObjectFieldStart("metadata");
+				
+				// Write the timestamp.
+				generator
+					.writeStringField(
+						"timestamp", 
+						isoDateTimeFormatter.print(result.date));
+				
+				// End the metadata object.
+				generator.writeEndObject();
+				
+				// Write the data.
+				generator.writeObjectFieldStart("data");
+				
+				// Determine if all columns are being returned.
+				boolean allColumns = (columns == null) || columns.isLeaf();
+				
+				// Write the 'duration' field.
+				if(allColumns || columns.hasChild(Result.JSON_KEY_DURATION)) {
+					generator
+						.writeNumberField(
+							Result.JSON_KEY_DURATION,
+							result.duration);
+				}
+				
+				// Write the 'duration' field.
+				if(allColumns || columns.hasChild(Result.JSON_KEY_STATE)) {
+					generator
+						.writeStringField(
+							Result.JSON_KEY_STATE,
+							result.state.toString());
+				}
+				
+				// End the data object.
+				generator.writeEndObject();
+				
+				// End the overall object.
+				generator.writeEndObject();
+			}
+		}
+		
+		/**
+		 * Processes the response from the server.
+		 * 
+		 * @param startDate The start date from the request.
+		 * 
+		 * @param endDate The end date from the request.
+		 * 
+		 * @param result The result string from the query.
+		 * 
+		 * @throws DomainException There was a problem interpreting the 
+		 * 						   response.
+		 */
+		private void handleResponse(
+			final DateTime startDate,
+			final DateTime endDate,
+			final String result)
+			throws DomainException {
+			
+			LOGGER.debug(result);
+			
+			try {
+				// Pass the results into the JSON parser.
+				JsonParser parser = JSON_FACTORY.createJsonParser(result);
+				
+				// Get the root of the JSON.
+				JsonNode root = parser.readValueAsTree();
+				// Ensure that the response is a JSON object.
+				if(! root.isObject()) {
+					throw 
+						new DomainException(
+							"The response was not a JSON object.");
+				}
+				
+				// Get the 'days' field.
+				JsonNode days = root.get("days");
+				// Ensure that the 'days' value is an array.
+				if(! days.isArray()) {
+					throw new DomainException(
+						"The 'items' field was not a JSON array.");
+				}
+				
+				// Iterate over the 'days'.
+				int numDays = days.size();
+				for(int i = 0; i < numDays; i++) {
+					// Get the day.
+					JsonNode day = days.get(i);
+					// Ensure that the day is an object.
+					if(! day.isObject()) {
+						throw new DomainException(
+							"The array element is not a JSON object: " +
+								day.toString());
+					}
+					
+					// Create a pointer to this days date.
+					DateTime date;
+					
+					// Get the date for this day.
+					JsonNode dateNode = day.get(Result.JSON_KEY_DATE);
+					// Ensure that the date node is a string.
+					if(dateNode.isTextual()) {
+						// Decode the date and set it to noon on that day.
+						date =
+							SLEEP_PARAMETER_DATE_TIME_FORMATTER
+								.parseDateTime(dateNode.asText())
+								.plusHours(12);
+					}
+					else {
+						throw new DomainException(
+							"The '" + 
+								Result.JSON_KEY_DATE + 
+								"' is not a string: " +
+								dateNode.toString());
+					}
+					
+					// Get the sleep periods.
+					JsonNode sleepPeriods = day.get("sleepPeriods");
+					// Ensure that the 'sleepPeriods' value is an array.
+					if(! sleepPeriods.isArray()) {
+						throw new DomainException(
+							"The 'sleepPeriods' field was not a JSON array.");
+					}
+					
+					// Iterate over the sleep periods.
+					int numSleepPeriods = sleepPeriods.size();
+					for(int j = 0; j < numSleepPeriods; j++) {
+						// Get the sleep period.
+						JsonNode sleepPeriod = sleepPeriods.get(j);
+						// Ensure that the sleep period is an object.
+						if(! sleepPeriod.isObject()) {
+							throw new DomainException(
+								"The array element is not a JSON object: " +
+									sleepPeriod.toString());
+						}
+						
+						// Create the data point.
+						Result currResult = new Result();
+						
+						// Get the state.
+						JsonNode state =
+							sleepPeriod.get(Result.JSON_KEY_STATE);
+						// Ensure that the state is a string.
+						if(state.isTextual()) {
+							currResult.state =
+								Result.State.valueOf(state.asText());
+						}
+						else {
+							throw new DomainException(
+								"The '" + 
+									Result.JSON_KEY_STATE + 
+									"' is not a string: " +
+									state.toString());
+						}
+						
+						// Get the duration.
+						JsonNode duration =
+							sleepPeriod.get(Result.JSON_KEY_DURATION);
+						// Ensure that the duration is a number.
+						if(duration.isNumber()) {
+							currResult.duration = duration.asInt();
+						}
+						else {
+							throw new DomainException(
+								"The '" + 
+									Result.JSON_KEY_DURATION + 
+									"' is not a number: " +
+									duration.toString());
+						}
+						
+						// Get the minute index.
+						JsonNode minuteIndexNode =
+							sleepPeriod.get("minuteIndex");
+						// Ensure that the minute index is a number.
+						if(minuteIndexNode.isNumber()) {
+							// Save the date based on the given date and the
+							// minute index.
+							currResult.date =
+								date.plusMinutes(minuteIndexNode.asInt());
+						}
+						else {
+							throw new DomainException(
+								"The '" + 
+									"minuteIndex" + 
+									"' is not a number: " +
+									minuteIndexNode.toString());
+						}
+
+						// If it is not before the start date or after the end
+						// date, add it to the results.
+						if(!(	(startDate != null) &&
+								(startDate.isAfter(currResult.date))
+							) ||
+							(	(endDate != null) &&
+								(endDate.isBefore(currResult.date)))) {
+							
+							results.add(currResult);
+						}
+					}
+				}
+			}
+			catch(JsonParseException e) {
+				throw 
+					new DomainException(
+						"There was an error generating the JSON.",
+						e);
+			}
+			catch(IOException e) {
+				throw 
+					new DomainException(
+						"There was an error writing to the generator.",
+						e);
+			}
+			
+		}
+	}
+	
+	/**
 	 * A factory class for generating {@link BodyMediaApi} objects. Each path
 	 * subclass must register with the factory in order to be built in that
 	 * fashion.
@@ -1043,7 +1498,8 @@ public class OmhReadBodyMediaRequest
 	 * @author John Jenkins
 	 */
 	public static enum BodyMediaApiFactory {
-		SLEEP (SleepApi.PATH, SleepApi.class);
+		SLEEP (SleepApi.PATH, SleepApi.class),
+		SLEEP_DETAILS (SleepDetailsApi.PATH, SleepDetailsApi.class);
 		
 		private final String apiString;
 		private final Class<? extends BodyMediaApi> apiClass;
@@ -1216,15 +1672,9 @@ public class OmhReadBodyMediaRequest
 		this.owner = owner;
 
 		// Calculate / save the start and end date based on the given values.
-		if(endDate == null) {
-			this.endDate = new DateTime();
-		}
-		else if(EARLIEST_TIMESTAMP.isAfter(endDate)) {
-			this.endDate = EARLIEST_TIMESTAMP;
-		}
-		else {
-			this.endDate = endDate;
-		}
+		// Thanks to our addition of an earliest timestamp, we now know that
+		// this will not exceed a year during the life of this code.
+		this.endDate = endDate;
 		
 		// Use the default start date and, if given a date before then,
 		// fast-forward to that period.
@@ -1233,16 +1683,6 @@ public class OmhReadBodyMediaRequest
 		}
 		else {
 			this.startDate = startDate;
-		}
-		
-		// The maximum time range for a BodyMedia request is one year.
-		if(this.endDate.minusYears(1).plusDays(1).isAfter(this.startDate)) {
-			ValidationException e = 
-				new ValidationException(
-					ErrorCode.OMH_INVALID_START_TIMESTAMP,
-					"The range for BodyMedia cannot exceed one year.");
-			e.failRequest(this);
-			e.logException(LOGGER);
 		}
 		
 		this.numToSkip = numToSkip;
