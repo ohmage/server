@@ -2,6 +2,7 @@ package org.ohmage.request.observer;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParser;
+import org.json.JSONArray;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
@@ -62,10 +64,18 @@ import org.ohmage.validator.ObserverValidators;
 public class StreamUploadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(StreamUploadRequest.class);
+	
+	private static final String JSON_KEY_INVALID_INDICIES = "invalid_indicies";
+	
+	private static final String AUDIT_INVALID_POINTS = 
+		"observer_stream_data_upload_invalid_point";
 
 	private final String observerId;
 	private final Long observerVersion;
 	private final JsonParser data;
+	
+	private final Map<Integer, String> invalidPoints =
+		new HashMap<Integer, String>();
 	
 	/**
 	 * Creates a stream upload request from the set of parameters.
@@ -233,8 +243,10 @@ public class StreamUploadRequest extends UserRequest {
 					observerVersion);
 			
 			LOGGER.info("Validating the uploaded data.");
+			
 			Collection<DataStream> dataStreams =
-				ObserverServices.instance().validateData(observer, data);
+				ObserverServices
+					.instance().validateData(observer, data, invalidPoints);
 			
 			try {
 				data.close();
@@ -277,6 +289,59 @@ public class StreamUploadRequest extends UserRequest {
 			HttpServletRequest httpRequest,
 			HttpServletResponse httpResponse) {
 		
-		super.respond(httpRequest, httpResponse, null);
+		super.respond(
+			httpRequest,
+			httpResponse,
+			JSON_KEY_INVALID_INDICIES,
+			new JSONArray(invalidPoints.keySet()));
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.UserRequest#getAuditInformation()
+	 */
+	@Override
+	public Map<String, String[]> getAuditInformation() {
+		// Get the parent's audit information.
+		Map<String, String[]> result = super.getAuditInformation();
+		
+		// Get the index that we will use when adding our stuff.
+		int i;
+		// Get the parent's array, so that we don't overwrite theirs.
+		String[] auditInvalidPoints = result.get(AUDIT_INVALID_POINTS);
+		// If one did not exist, create it from our list of invalid points.
+		if(auditInvalidPoints == null) {
+			// The initial index will be 0.
+			i = 0;
+			auditInvalidPoints = new String[invalidPoints.size()];
+		}
+		// If one did exist, create a new array prepended with the old data.
+		else {
+			// The initial index will be after all of the old data.
+			i = auditInvalidPoints.length;
+			
+			// Create a temporary array that contains enough space for the old
+			// data and the new data.
+			String[] tempAuditInvalidPoints = 
+				new String[i + invalidPoints.size()];
+			
+			// Add the old data to the temporary array.
+			for(int j = 0; j < i; j++) {
+				tempAuditInvalidPoints[j] = auditInvalidPoints[j];
+			}
+			
+			// Set our array to the temporary array.
+			auditInvalidPoints = tempAuditInvalidPoints;
+		}
+		// Be sure to save our new array over the old one now that we have
+		// preserved the old data.
+		result.put(AUDIT_INVALID_POINTS, auditInvalidPoints);
+		
+		// Add our data.
+		for(String invalidPoint : invalidPoints.values()) {
+			auditInvalidPoints[i++] = invalidPoint;
+		}
+		
+		return result;
 	}
 }

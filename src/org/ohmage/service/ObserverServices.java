@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
@@ -25,6 +26,9 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IObserverQueries;
 
 public class ObserverServices {
+	private static final Logger LOGGER = 
+		Logger.getLogger(ObserverServices.class);
+	
 	private static ObserverServices instance;
 	private IObserverQueries observerQueries;
 	
@@ -411,6 +415,9 @@ public class ObserverServices {
 	 * 
 	 * @param data The data to validate.
 	 * 
+	 * @param invalid A map of the index of an invalid point to its string
+	 * 				  representation.
+	 * 
 	 * @return A collection of DataStreams where each stream represents a 
 	 * 		   different piece of data.
 	 * 
@@ -418,7 +425,8 @@ public class ObserverServices {
 	 */
 	public Collection<DataStream> validateData(
 			final Observer observer,
-			final JsonParser data)
+			final JsonParser data,
+			final Map<Integer, String> invalid)
 			throws ServiceException {
 		
 		JsonNode nodes;
@@ -445,13 +453,20 @@ public class ObserverServices {
 				result.add(observer.getDataStream(nodes.get(i)));
 			}
 			catch(DomainException e) {
-				throw new ServiceException(
-					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
-					"The data was malformed: " + e.getMessage(),
-					e);
+				if(invalid == null) {
+					throw new ServiceException(
+						ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+						"The data was malformed: " + e.getMessage(),
+						e);
+				}
+				else {
+					LOGGER
+						.warn(
+							"An invalid observer-stream point was detected.");
+					invalid.put(i, nodes.get(i).toString());
+				}
 			}
 		}
-		
 		
 		return result;
 	}
