@@ -221,6 +221,7 @@ public class ImageReadRequest extends UserRequest {
 		// output stream. 
 		try {
 			if(isFailed()) {
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				super.respond(httpRequest, httpResponse, null);
 			}
 			else {
