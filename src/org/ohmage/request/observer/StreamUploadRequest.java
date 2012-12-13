@@ -69,6 +69,8 @@ public class StreamUploadRequest extends UserRequest {
 
 	private static final String AUDIT_NUM_VALID_POINTS = 
 		"observer_stream_data_num_valid_points";
+	private static final String AUDIT_NUM_DUPLICATE_POINTS = 
+		"observer_stream_data_num_duplicate_points";
 	private static final String AUDIT_NUM_INVALID_POINTS =
 		"observer_stream_data_num_invalid_points";
 	private static final String AUDIT_INVALID_POINT_ID =
@@ -79,8 +81,9 @@ public class StreamUploadRequest extends UserRequest {
 	private final String observerId;
 	private final Long observerVersion;
 	private final JsonParser data;
-	
-	private int numValidPoints;
+
+	private long numValidPoints = 0;
+	private long numDuplicatePoints = 0;
 	private final Map<Integer, String> invalidPoints =
 		new HashMap<Integer, String>();
 	
@@ -262,17 +265,14 @@ public class StreamUploadRequest extends UserRequest {
 				LOGGER.info("Error closing the data.", e);
 			}
 			
-			long numPoints = dataStreams.size();
+			long numPoints = numValidPoints = dataStreams.size();
 			LOGGER.info("Pruning out the duplicates from previous uploads.");
 			ObserverServices.instance().removeDuplicates(
 				getUser().getUsername(), 
 				observerId,
 				dataStreams);
-			LOGGER
-				.info(
-					"Pruned out " + 
-						(numPoints - dataStreams.size()) + 
-						" points.");
+			numDuplicatePoints = numPoints - dataStreams.size();
+			LOGGER.info("Pruned out " + numDuplicatePoints + " points.");
 			numPoints = dataStreams.size();
 			
 			LOGGER.info("Storing the uploaded data: " + numPoints + " points");
@@ -319,7 +319,13 @@ public class StreamUploadRequest extends UserRequest {
 		result
 			.put(
 				AUDIT_NUM_VALID_POINTS, 
-				new String[] { Integer.toString(numValidPoints) });
+				new String[] { Long.toString(numValidPoints) });
+		
+		// Put the number of dupliate points.
+		result
+			.put(
+				AUDIT_NUM_DUPLICATE_POINTS, 
+				new String[] { Long.toString(numDuplicatePoints) });
 		
 		// Put the number of invalid points.
 		result
