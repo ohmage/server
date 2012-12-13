@@ -201,6 +201,7 @@ public class SurveyUploadRequest extends UserRequest {
 							InputKeys.IMAGES);
 				}
 				else if(t.length == 1) {
+					LOGGER.debug("Validating the BASE64-encoded images.");
 					Map<String, BufferedImage> images = 
 							SurveyResponseValidators.validateImages(t[0]);
 					
@@ -217,25 +218,25 @@ public class SurveyUploadRequest extends UserRequest {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
 					for(Part p : parts) {
+						String name = p.getName();
 						try {
-							String name = p.getName();
 							UUID.fromString(name);
-							
-							String contentType = p.getContentType();
-							if(contentType.startsWith("image")) {
-								imageIds.add(name);
-							}
-							else if(contentType.startsWith("video/")) {
-								tVideoContentsMap.put(
-									name, 
-									new Video(
-										UUID.fromString(name),
-										contentType.split("/")[1],
-										getMultipartValue(httpRequest, name)));
-							}
 						}
 						catch (IllegalArgumentException e) {
-							// ignore because there may not be any UUIDs/images
+							continue;
+						}
+							
+						String contentType = p.getContentType();
+						if(contentType.startsWith("image")) {
+							imageIds.add(name);
+						}
+						else if(contentType.startsWith("video/")) {
+							tVideoContentsMap.put(
+								name, 
+								new Video(
+									UUID.fromString(name),
+									contentType.split("/")[1],
+									getMultipartValue(httpRequest, name)));
 						}
 					}
 				}
@@ -255,9 +256,14 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 
 				for(String imageId : imageIds) {
+					LOGGER.debug("Validating image ID: " + imageId);
 					BufferedImage bufferedImage = ImageValidators.validateImageContents(getMultipartValue(httpRequest, imageId));
 					if(bufferedImage == null) {
+						LOGGER.debug("Image is null.");
 						throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "The image data is missing: " + imageId);
+					}
+					else {
+						LOGGER.debug("Image is not null.");
 					}
 					tImageContentsMap.put(imageId, bufferedImage);
 					
@@ -268,7 +274,7 @@ public class SurveyUploadRequest extends UserRequest {
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
-				e.logException(LOGGER);
+				e.logException(LOGGER, true);
 			}
 		}
 
@@ -338,7 +344,7 @@ public class SurveyUploadRequest extends UserRequest {
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
-			e.logException(LOGGER);
+			e.logException(LOGGER, true);
 		}
 	}
 

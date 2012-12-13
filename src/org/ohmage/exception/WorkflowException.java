@@ -179,8 +179,26 @@ public abstract class WorkflowException extends Exception {
 	 * @param logger The Logger to which this exception should be output.
 	 */
 	public void logException(final Logger logger) {
+		logException(logger, false);
+	}
+	
+	/**
+	 * Logs this exception into some 'logger'. This is preferable to passing 
+	 * the exception to the logger as this will keep track of the seriousness
+	 * of the exception and will limit what is output to the log when it is not
+	 * a serious exception.
+	 * 
+	 * @param logger The Logger to which this exception should be output.
+	 * 
+	 * @param asWarn Logs the exception at the WARN level instead of the INFO
+	 * 				 level.
+	 */
+	public void logException(final Logger logger, final boolean asWarn) {
 		if(annotator == null) {
 			logger.error(toString(), this);
+		}
+		else if(asWarn) {
+			logger.warn(toString(), this);
 		}
 		else {
 			logger.info(toString(), this);
