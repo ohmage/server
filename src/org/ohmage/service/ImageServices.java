@@ -152,6 +152,9 @@ public final class ImageServices {
 				
 				imageUrl = new URL(imageUrlString);
 			}
+			else if(Image.Size.ICON.equals(size)) {
+				imageUrl = new URL(imageUrl + "-i");
+			}
 			
 			Map<Image.Size, URL> sizeToUrlMap = new HashMap<Image.Size, URL>();
 			sizeToUrlMap.put(size, imageUrl);

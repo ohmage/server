@@ -40,7 +40,8 @@ public class Image {
 	 */
 	public static enum Size { 
 		ORIGINAL,
-		SMALL;
+		SMALL,
+		ICON;
 		
 		public static Size getValue(final String value) {
 			if(value == null) {
