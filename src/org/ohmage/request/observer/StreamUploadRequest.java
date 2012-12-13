@@ -66,7 +66,13 @@ public class StreamUploadRequest extends UserRequest {
 		Logger.getLogger(StreamUploadRequest.class);
 	
 	private static final String JSON_KEY_INVALID_INDICIES = "invalid_indicies";
-	
+
+	private static final String AUDIT_NUM_VALID_POINTS = 
+		"observer_stream_data_num_valid_points";
+	private static final String AUDIT_NUM_INVALID_POINTS =
+		"observer_stream_data_num_invalid_points";
+	private static final String AUDIT_INVALID_POINT_ID =
+		"observer_stream_data_invalid_point_id";
 	private static final String AUDIT_INVALID_POINTS = 
 		"observer_stream_data_upload_invalid_point";
 
@@ -74,6 +80,7 @@ public class StreamUploadRequest extends UserRequest {
 	private final Long observerVersion;
 	private final JsonParser data;
 	
+	private int numValidPoints;
 	private final Map<Integer, String> invalidPoints =
 		new HashMap<Integer, String>();
 	
@@ -307,6 +314,19 @@ public class StreamUploadRequest extends UserRequest {
 		
 		// Get the index that we will use when adding our stuff.
 		int i;
+		
+		// Put the number of valid points.
+		result
+			.put(
+				AUDIT_NUM_VALID_POINTS, 
+				new String[] { Integer.toString(numValidPoints) });
+		
+		// Put the number of invalid points.
+		result
+			.put(
+				AUDIT_NUM_INVALID_POINTS, 
+				new String[] { Integer.toString(invalidPoints.size()) });
+		
 		// Get the parent's array, so that we don't overwrite theirs.
 		String[] auditInvalidPoints = result.get(AUDIT_INVALID_POINTS);
 		// If one did not exist, create it from our list of invalid points.
