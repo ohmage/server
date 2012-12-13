@@ -87,7 +87,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	
 	public static final String IMAGE_STORE_FORMAT = "jpg";
 	public static final String IMAGE_SCALED_EXTENSION = "-s";
-	private static final double IMAGE_SCALED_MAX_DIMENSION = 150.0;
+	private static final double IMAGE_SCALED_MAX_DIMENSION = 128.0;
 	
 	/**
 	 * Filters the sub-directories in a directory to only return those that
