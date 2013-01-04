@@ -223,6 +223,7 @@ public class SurveyUploadRequest extends UserRequest {
 							UUID.fromString(name);
 						}
 						catch (IllegalArgumentException e) {
+							LOGGER.info("Ignoring part: " + name);
 							continue;
 						}
 							
@@ -256,14 +257,15 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 
 				for(String imageId : imageIds) {
-					LOGGER.debug("Validating image ID: " + imageId);
-					BufferedImage bufferedImage = ImageValidators.validateImageContents(getMultipartValue(httpRequest, imageId));
+					BufferedImage bufferedImage = 
+						ImageValidators
+							.validateImageContents(
+								getMultipartValue(httpRequest, imageId));
 					if(bufferedImage == null) {
-						LOGGER.debug("Image is null.");
-						throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "The image data is missing: " + imageId);
-					}
-					else {
-						LOGGER.debug("Image is not null.");
+						throw
+							new ValidationException(
+								ErrorCode.IMAGE_INVALID_DATA, 
+								"The image data is missing: " + imageId);
 					}
 					tImageContentsMap.put(imageId, bufferedImage);
 					
