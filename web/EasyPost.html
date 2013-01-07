@@ -175,6 +175,22 @@
 								            </div>
 								        </div>
 								    </div>
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseWhoAmI">
+                                                <i class="icon-plus"></i> Who Am I
+                                            </a>
+                                        </div>
+                                        <div id="collapseWhoAmI" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"   >
+                                                <form action="user/whoami" method="post" class="well" target="outputframe">
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <br>
+                                                    <input class="btn" type="submit" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>								    
 							        <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseLogout">

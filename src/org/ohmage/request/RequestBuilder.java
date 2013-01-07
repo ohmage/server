@@ -26,6 +26,7 @@ import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenLogoutRequest;
 import org.ohmage.request.auth.AuthTokenRequest;
+import org.ohmage.request.auth.AuthTokenWhoAmIRequest;
 import org.ohmage.request.campaign.CampaignCreationRequest;
 import org.ohmage.request.campaign.CampaignDeletionRequest;
 import org.ohmage.request.campaign.CampaignReadRequest;
@@ -125,6 +126,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserAuth;
 	private String apiUserAuthToken;
 	private String apiUserLogout;
+	private String apiUserWhoAmI;
 	
 	// Campaign
 	private String apiCampaignCreate;
@@ -260,6 +262,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserAuth = apiRoot + "/user/auth";
 		apiUserAuthToken = apiRoot + "/user/auth_token";
 		apiUserLogout = apiRoot + "/user/logout";
+		apiUserWhoAmI = apiRoot + "/user/whoami";
 		
 		// Campaign
 		apiCampaignCreate = apiRoot + "/campaign/create";
@@ -388,6 +391,9 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		else if(apiUserLogout.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
+		}
+		else if(apiUserWhoAmI.equals(requestUri)) {
+			return new AuthTokenWhoAmIRequest(httpRequest);
 		}
 		// Annotation
 		else if(apiAnnotationPromptResponseCreate.equals(requestUri)) {
