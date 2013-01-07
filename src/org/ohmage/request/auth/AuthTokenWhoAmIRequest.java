@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest;
 
