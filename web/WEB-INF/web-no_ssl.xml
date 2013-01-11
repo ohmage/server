@@ -6,7 +6,7 @@
   <!--  Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
 
   <!--
-    Allow Cross-Origin-Resource-Sharing for everything except authentication
+    Handle Cross-Origin-Resource-Sharing
   -->
   <filter>
     <filter-name>CORSFilter</filter-name>
