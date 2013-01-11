@@ -35,6 +35,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -115,7 +116,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final String campaignUrn;
 	private final DateTime campaignCreationTimestamp;
 	private List<JSONObject> jsonData;
-	private final Map<String, BufferedImage> imageContentsMap;
+	private final Map<UUID, Image> imageContentsMap;
 	private final Map<String, Video> videoContentsMap;
 	
 	private Collection<UUID> surveyResponseIds;
@@ -139,7 +140,7 @@ public class SurveyUploadRequest extends UserRequest {
 		String tCampaignUrn = null;
 		DateTime tCampaignCreationTimestamp = null;
 		List<JSONObject> tJsonData = null;
-		Map<String, BufferedImage> tImageContentsMap = null;
+		Map<UUID, Image> tImageContentsMap = null;
 		Map<String, Video> tVideoContentsMap = null;
 		
 		if(! isFailed()) {
@@ -192,7 +193,7 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
-				tImageContentsMap = new HashMap<String, BufferedImage>();
+				tImageContentsMap = new HashMap<UUID, Image>();
 				t = getParameterValues(InputKeys.IMAGES);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -202,7 +203,7 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 				else if(t.length == 1) {
 					LOGGER.debug("Validating the BASE64-encoded images.");
-					Map<String, BufferedImage> images = 
+					Map<UUID, Image> images = 
 							SurveyResponseValidators.validateImages(t[0]);
 					
 					if(images != null) {
@@ -211,16 +212,17 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 				
 				// Retrieve and validate images and videos.
-				List<String> imageIds = new ArrayList<String>();
+				List<UUID> imageIds = new ArrayList<UUID>();
 				tVideoContentsMap = new HashMap<String, Video>();
 				Collection<Part> parts = null;
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
 					for(Part p : parts) {
+						UUID id;
 						String name = p.getName();
 						try {
-							UUID.fromString(name);
+							id = UUID.fromString(name);
 						}
 						catch (IllegalArgumentException e) {
 							LOGGER.info("Ignoring part: " + name);
@@ -229,7 +231,7 @@ public class SurveyUploadRequest extends UserRequest {
 							
 						String contentType = p.getContentType();
 						if(contentType.startsWith("image")) {
-							imageIds.add(name);
+							imageIds.add(id);
 						}
 						else if(contentType.startsWith("video/")) {
 							tVideoContentsMap.put(
@@ -250,24 +252,27 @@ public class SurveyUploadRequest extends UserRequest {
 					throw new ValidationException(e);
 				}
 				
-				Set<String> stringSet = new HashSet<String>(imageIds);
+				Set<UUID> stringSet = new HashSet<UUID>(imageIds);
 				
 				if(stringSet.size() != imageIds.size()) {
 					throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
 				}
 
-				for(String imageId : imageIds) {
-					BufferedImage bufferedImage = 
+				for(UUID imageId : imageIds) {
+					Image image = 
 						ImageValidators
 							.validateImageContents(
-								getMultipartValue(httpRequest, imageId));
-					if(bufferedImage == null) {
+								imageId,
+								getMultipartValue(
+									httpRequest, 
+									imageId.toString()));
+					if(image == null) {
 						throw
 							new ValidationException(
 								ErrorCode.IMAGE_INVALID_DATA, 
 								"The image data is missing: " + imageId);
 					}
-					tImageContentsMap.put(imageId, bufferedImage);
+					tImageContentsMap.put(imageId, image);
 					
 					if(LOGGER.isDebugEnabled()) {
 						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
@@ -329,7 +334,7 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
 			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
-			LOGGER.info("Validating that all video prompt responses have their corresponding images attached.");
+			LOGGER.info("Validating that all video prompt responses have their corresponding videos attached.");
 			SurveyResponseServices.instance().verifyVideosExistForVideoPromptResponses(surveyResponses, videoContentsMap);
 			
 			LOGGER.info("Inserting the data into the database.");

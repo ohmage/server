@@ -15,9 +15,6 @@
  ******************************************************************************/
 package org.ohmage.query.impl;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -34,9 +31,9 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
@@ -45,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.VideoDirectoryCache;
+import org.ohmage.domain.Image;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.Video;
@@ -163,7 +161,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final String client,
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
-			final Map<String, BufferedImage> bufferedImageMap,
+			final Map<UUID, Image> bufferedImageMap,
 			final Map<String, Video> videoContentsMap)
 			throws DataAccessException {
 		
@@ -456,7 +454,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final List<File> videoList,
 			final Collection<Response> promptUploadList,
 			final Integer repeatableSetIteration,
-            final Map<String, BufferedImage> bufferedImageMap,
+            final Map<UUID, Image> bufferedImageMap,
             final Map<String, Video> videoContentsMap, 
             final DataSourceTransactionManager transactionManager,
             final TransactionStatus status) 
@@ -523,72 +521,30 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			if(promptResponse instanceof PhotoPromptResponse) {
 				// Grab the associated image and save it
 				String imageId = promptResponse.getResponse().toString();
-				BufferedImage imageContents = bufferedImageMap.get(imageId);
 				
+				// If it wasn't skipped and it was displayed, save the
+				// associated images.
 				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && 
 					! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
 					
-					// getDirectory() is used as opposed to accessing the current leaf
-					// directory class variable as it will do sanitation in case it hasn't
-					// been initialized or is full.
-					File imageDirectory = getDirectory();
-					File regularImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId);
-					regularImageList.add(regularImage);
-					File scaledImage = new File(imageDirectory.getAbsolutePath() + "/" + imageId + IMAGE_SCALED_EXTENSION);
-					scaledImageList.add(scaledImage);
-					
-					// Write the original to the file system.
+					// Get the directory to save the image and save it.
+					File originalFile;
 					try {
-						ImageIO.write(imageContents, IMAGE_STORE_FORMAT, regularImage);
+						originalFile =
+							bufferedImageMap
+								.get(UUID.fromString(imageId))
+								.saveImage(getDirectory());
 					}
-					catch(IOException e) {
-						
+					catch(DomainException e) {
 						rollback(transactionManager, status);
-						throw new DataAccessException("Error writing the regular image to the system.", e);
-					}
-					catch(IllegalArgumentException e) {
-						rollback(transactionManager, status);
-						throw new DataAccessException("The image contents are null.", e);
-					}
-					
-					// Write the scaled image to the file system.
-					try {
-						// Get the percentage to scale the image.
-						Double scalePercentage;
-						if(imageContents.getWidth() > imageContents.getHeight()) {
-							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
-						}
-						else {
-							scalePercentage = IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
-						}
-						
-						// Calculate the scaled image's width and height.
-						int width = (new Double(imageContents.getWidth() * scalePercentage)).intValue();
-						int height = (new Double(imageContents.getHeight() * scalePercentage)).intValue();
-						
-						// Create the new image of the same type as the original and of the
-						// scaled dimensions.
-						BufferedImage scaledContents = new BufferedImage(width, height, imageContents.getType());
-						
-						// Paint the original image onto the scaled canvas.
-						Graphics2D graphics2d = scaledContents.createGraphics();
-						graphics2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-						graphics2d.drawImage(imageContents, 0, 0, width, height, null);
-						
-						// Cleanup.
-						graphics2d.dispose();
-						
-						// Write the scaled image to the filesystem.
-						ImageIO.write(scaledContents, IMAGE_STORE_FORMAT, scaledImage);
-					}
-					catch(IOException e) {
-						regularImage.delete();
-						rollback(transactionManager, status);
-						throw new DataAccessException("Error writing the scaled image to the system.", e);
+						throw
+							new DataAccessException(
+								"Error saving the images.",
+								e);
 					}
 					
 					// Get the image's URL.
-					String url = "file://" + regularImage.getAbsolutePath();
+					String url = "file://" + originalFile.getAbsolutePath();
 					// Insert the image URL into the database.
 					try {
 						getJdbcTemplate().update(
@@ -597,11 +553,16 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
-						regularImage.delete();
-						scaledImage.delete();
 						transactionManager.rollback(status);
-						throw new DataAccessException("Error executing SQL '" + SQL_INSERT_IMAGE + "' with parameters: " +
-								username + ", " + client + ", " + imageId + ", " + url, e);
+						throw new DataAccessException(
+							"Error executing SQL '" + 
+								SQL_INSERT_IMAGE + 
+								"' with parameters: " +
+								username + ", " + 
+								client + ", " + 
+								imageId + ", " + 
+								url,
+							e);
 					}
 				}
 			}

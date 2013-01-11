@@ -15,16 +15,13 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
-import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.util.UUID;
-
-import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Image;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
 
@@ -92,11 +89,11 @@ public final class ImageValidators {
 		LOGGER.info("Validating an image size value.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(imageSize)) {
-			return Image.Size.ORIGINAL;
+			return Image.ORIGINAL;
 		}
 		
 		try {
-			return Image.Size.getValue(imageSize.trim());
+			return Image.getSize(imageSize.trim());
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
@@ -109,6 +106,8 @@ public final class ImageValidators {
 	/**
 	 * Validates that an image's contents as a byte array are decodable as an 
 	 * image.
+	 * 
+	 * @param imageId The ID for this image.
 	 *  
 	 * @param imageContents The image's contents as a byte array.
 	 * 
@@ -120,38 +119,29 @@ public final class ImageValidators {
 	 * 							   length greater than 0, and isn't decodable 
 	 * 							   as any type of known image.
 	 */
-	public static BufferedImage validateImageContents(
+	public static Image validateImageContents(
+			final UUID imageId,
 			final byte[] imageContents) throws ValidationException {
 		
+		if(imageId == null) {
+			throw new ValidationException("The image ID is null.");
+		}
 		if((imageContents == null) || (imageContents.length == 0)) {
 			return null;
 		}
 		
 		try {
-			BufferedImage bufferedImage = 
-				ImageIO.read(new ByteArrayInputStream(imageContents));
-			
-			if(bufferedImage == null) {
-				throw new ValidationException(
-						ErrorCode.IMAGE_INVALID_DATA,
-						"The image data was not valid image data.");
-			}
-			else {
-				return bufferedImage;
-			}
+			return
+				new Image(
+					imageId, 
+					new ByteArrayInputStream(imageContents), 
+					true);
 		}
-		catch(IOException e) {
+		catch(DomainException e) {
 			throw new ValidationException(
-					ErrorCode.IMAGE_INVALID_DATA, 
-					"There was an error while reading the image's contents.", 
-					e);
-		}
-		catch(IndexOutOfBoundsException e) {
-			throw new ValidationException(
-					ErrorCode.IMAGE_INVALID_DATA,
-					"There was an error reading the contents of the image. " +
-						"This particular error suggests that the '+'s in the image's BASE64 representation are not being properly URL encoded.",
-					e);
+				ErrorCode.IMAGE_INVALID_DATA,
+				"The image data was not valid image data.",
+				e);
 		}
 	}
 }

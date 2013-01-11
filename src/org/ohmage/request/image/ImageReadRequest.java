@@ -101,7 +101,7 @@ public class ImageReadRequest extends UserRequest {
 		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		UUID tImageId = null;
-		Image.Size tSize = Image.Size.ORIGINAL;
+		Image.Size tSize = Image.ORIGINAL;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating an image read request.");
@@ -206,7 +206,7 @@ public class ImageReadRequest extends UserRequest {
 		InputStream imageStream = null;
 		try {
 			if(image != null) {
-				imageStream = image.openStream(size);
+				imageStream = image.getInputStream(size);
 			}
 		}
 		catch(DomainException e) {

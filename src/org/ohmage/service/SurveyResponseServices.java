@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.service;
 
-import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +23,7 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Response;
@@ -131,7 +131,7 @@ public final class SurveyResponseServices {
 	public List<Integer> createSurveyResponses(final String user, 
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
-            final Map<String, BufferedImage> bufferedImageMap,
+            final Map<UUID, Image> bufferedImageMap,
             final Map<String, Video> videoContentsMap) 
             throws ServiceException {
 		
@@ -180,7 +180,7 @@ public final class SurveyResponseServices {
 	 */
 	public void verifyImagesExistForPhotoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, BufferedImage> images) 
+			final Map<UUID, Image> images) 
 			throws ServiceException {
 		
 		for(SurveyResponse surveyResponse : surveyResponses) {
@@ -188,7 +188,7 @@ public final class SurveyResponseServices {
 				if(promptResponse instanceof PhotoPromptResponse) {
 					Object responseValue = promptResponse.getResponse();
 					if((responseValue instanceof UUID) && 
-							(! images.containsKey(responseValue.toString()))) {
+							(! images.containsKey(responseValue))) {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"An image was missing for a photo prompt response: " + responseValue.toString());

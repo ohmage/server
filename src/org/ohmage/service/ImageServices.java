@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.service;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,11 +22,11 @@ import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Image;
+import org.ohmage.domain.Image.Size;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
-import org.ohmage.query.impl.ImageQueries;
 
 /**
  * This class is responsible for all operations pertaining only to images. The
@@ -128,44 +127,12 @@ public final class ImageServices {
 				return null;
 			}
 			
-			if(Image.Size.SMALL.equals(size)) {
-				String imageUrlString = imageUrl.toString();
-				int imageUrlLength = imageUrlString.length();
-				
-				// If it is saved in the old format with the extension, then 
-				// we need to place the scaled extension before the file
-				// extension.
-				if((imageUrlLength >= 4) && 
-						(imageUrlString.charAt(imageUrlLength - 4) == '.')) {
-					
-					imageUrlString = 
-							imageUrlString.substring(0, imageUrlLength - 4) + 
-							ImageQueries.IMAGE_SCALED_EXTENSION + 
-							imageUrlString.substring(
-									imageUrlLength - 4, imageUrlLength);
-				}
-				// If it is saved in the new format without the extension, then
-				// we only need to attach the extension to the end of the URL.
-				else {
-					imageUrlString += ImageQueries.IMAGE_SCALED_EXTENSION;
-				}
-				
-				imageUrl = new URL(imageUrlString);
-			}
-			else if(Image.Size.ICON.equals(size)) {
-				imageUrl = new URL(imageUrl + "-i");
-			}
-			
-			Map<Image.Size, URL> sizeToUrlMap = new HashMap<Image.Size, URL>();
-			sizeToUrlMap.put(size, imageUrl);
-			
-			return new Image(imageId, sizeToUrlMap);
+			Map<Size, URL> urlMapping = new HashMap<Size, URL>();
+			urlMapping.put(Image.ORIGINAL, imageUrl);
+			return new Image(imageId, urlMapping);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
-		}
-		catch(MalformedURLException e) {
-			throw new ServiceException("The stored URL invalid.", e);
 		}
 		catch(DomainException e) {
 			throw new ServiceException(

@@ -69,7 +69,7 @@ public class ImageValidatorsTest extends TestCase {
 	public void testValidateImageSize() {
 		try {
 			for(String emptyValue : ParameterSets.getEmptyValues()) {
-				Assert.assertEquals(Image.Size.ORIGINAL, ImageValidators.validateImageSize(emptyValue));
+				Assert.assertEquals(Image.ORIGINAL, ImageValidators.validateImageSize(emptyValue));
 			}
 			
 			try {
@@ -79,10 +79,22 @@ public class ImageValidatorsTest extends TestCase {
 			catch(ValidationException e) {
 				// Passed.
 			}
-			
-			for(Image.Size imageSize : Image.Size.values()) {
-				Assert.assertEquals(imageSize, ImageValidators.validateImageSize(imageSize.toString()));
-			}
+
+			Assert
+				.assertEquals(
+					Image.ORIGINAL,
+					ImageValidators
+						.validateImageSize(Image.ORIGINAL.getName()));
+			Assert
+				.assertEquals(
+					Image.SMALL,
+					ImageValidators
+						.validateImageSize(Image.SMALL.getName()));
+			Assert
+				.assertEquals(
+					Image.ICON,
+					ImageValidators
+						.validateImageSize(Image.ICON.getName()));
 		}
 		catch(ValidationException e) {
 			fail("A validation exception was thrown: " + e.getMessage());
@@ -95,11 +107,28 @@ public class ImageValidatorsTest extends TestCase {
 	@Test
 	public void testValidateImageContents() {
 		try {
-			Assert.assertNull(ImageValidators.validateImageContents(null));
-			Assert.assertNull(ImageValidators.validateImageContents(new byte[0]));
+			try {
+				Assert
+					.assertNull(
+						ImageValidators.validateImageContents(null, null));
+				fail("The image ID was null.");
+			}
+			catch(ValidationException e) {
+				// Passed.
+			}
+			
+			Assert
+				.assertNull(
+					ImageValidators
+						.validateImageContents(
+							UUID.randomUUID(),
+							new byte[0]));
 			
 			try {
-				ImageValidators.validateImageContents("Invalid value.".getBytes());
+				ImageValidators
+					.validateImageContents(
+						UUID.randomUUID(), 
+						"Invalid value.".getBytes());
 				fail("The image contents were invalid.");
 			}
 			catch(ValidationException e) {

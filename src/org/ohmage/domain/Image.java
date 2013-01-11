@@ -15,15 +15,23 @@
  ******************************************************************************/
 package org.ohmage.domain;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+
+import javax.imageio.ImageIO;
 
 import org.ohmage.exception.DomainException;
 
@@ -34,40 +42,569 @@ import org.ohmage.exception.DomainException;
  */
 public class Image {
 	/**
-	 * These are the different possible values for an image's size.
+	 * These are the different possible values for an image's size. It also
+	 * defines the functionality for each size including how to store and read
+	 * its data.
 	 * 
 	 * @author John Jenkins
 	 */
-	public static enum Size { 
-		ORIGINAL,
-		SMALL,
-		ICON;
+	public abstract static class Size {
+		public static final String IMAGE_STORE_FORMAT = "jpg";
+		public static final double IMAGE_SCALED_MAX_DIMENSION = 128.0;
 		
-		public static Size getValue(final String value) {
-			if(value == null) {
-				throw new IllegalArgumentException("The value is null.");
+		private final String name;
+		private final String extension;
+		
+		/**
+		 * Creates a new Size object with the given name and extension.
+		 * 
+		 * @param name The user-friendly name of this size.
+		 * 
+		 * @param extension The extension to use place on the end of each
+		 *					image.
+		 */
+		protected Size(final String name, final String extension) {
+			if(name == null) {
+				throw new IllegalArgumentException("The name is null.");
+			}
+			if(extension == null) {
+				throw new IllegalArgumentException("The extension is null.");
 			}
 			
-			for(Size imageSize : values()) {
-				if(imageSize.name().toLowerCase().equals(value.toLowerCase())) {
-					return imageSize;
+			this.name = name;
+			this.extension = extension;
+		}
+		
+		/**
+		 * Returns the user-friendly name of this image size.
+		 * 
+		 * @return The user-friendly name of this image size.
+		 */
+		public String getName() {
+			return name;
+		}
+		
+		/**
+		 * Returns the file extension appended to the filename when writing a
+		 * file of this size.
+		 * 
+		 * @return The file extension appended to the filename when writing a
+		 * 		   file of this size.
+		 */
+		public String getExtension() {
+			return extension;
+		}
+		
+		/**
+		 * Returns the URL for this size image.
+		 * 
+		 * @param originalUrl The URL for the original image.
+		 * 
+		 * @return The URL for the image of this size.
+		 * 
+		 * @throws DomainException The new URL was malformed.
+		 */
+		public static URL getUrl(
+			final Size size,
+			final URL originalUrl)
+			throws DomainException {
+			
+			try {
+				return new URL(originalUrl.toString() + size.getExtension());
+			}
+			catch(MalformedURLException e) {
+				throw new DomainException("The URL is malformed.", e);
+			}
+		}
+
+		/**
+		 * Outputs the name of this size.
+		 */
+		@Override
+		public String toString() {
+			return name;
+		}
+		
+		/**
+		 * Performs a transformation on image data by converting it to this
+		 * type of image.
+		 * 
+		 * @param original The original image data to be transformed.
+		 * 
+		 * @return The image data transformed to be this type of image.
+		 * 
+		 * @throws DomainException There was an error reading the image or
+		 * 						   transforming it.
+		 */
+		public abstract ImageData transform(
+			final ImageData original)
+			throws DomainException;
+	};
+	
+	/**
+	 * An original image's contents, including metadata.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class Original extends Size {
+		public static final String NAME = "original";
+		public static final String EXTENSION = "";
+		
+		private static final Original SELF = new Original();
+		
+		/**
+		 * Constructor for the single, static instance of this class.
+		 */
+		protected Original() {
+			super(NAME, EXTENSION);
+		}
+		
+		/**
+		 * Returns the single, static instance of this class.
+		 * 
+		 * @return The single, static instance of this class.
+		 */
+		public static Original getInstance() {
+			return SELF;
+		}
+
+		/** 
+		 * Performs no actual transformation of the data.
+		 */
+		@Override
+		public ImageData transform(
+			final ImageData original) 
+			throws DomainException {
+			
+			return original;
+		}
+	}
+	
+	/**
+	 * A thumbnail version of the image scaled down to have its maximum
+	 * dimension not exceed {@link Size#IMAGE_SCALED_MAX_DIMENSION}.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class Small extends Size {
+		public static final String NAME = "small";
+		public static final String EXTENSION = "-s";
+		
+		private static final Small SELF = new Small();
+		
+		/**
+		 * Constructor for the single, static instance of this class.
+		 */
+		protected Small() {
+			super(NAME, EXTENSION);
+		}
+		
+		/**
+		 * Returns the single, static instance of this class.
+		 * 
+		 * @return The single, static instance of this class.
+		 */
+		public static Small getInstance() {
+			return SELF;
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.domain.Image.Size#transform(org.ohmage.domain.Image.ImageData)
+		 */
+		@Override
+		public ImageData transform(
+			final ImageData original)
+			throws DomainException {
+			
+			// Get the BufferedImage from the image data.
+			BufferedImage imageContents = original.getBufferedImage();
+
+			// Get the percentage to scale the image.
+			Double scalePercentage;
+			if(imageContents.getWidth() > imageContents.getHeight()) {
+				scalePercentage =
+					IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+			}
+			else {
+				scalePercentage =
+					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+			}
+			
+			// Calculate the scaled image's width and height.
+			int width = 
+				(new Double(
+					imageContents.getWidth() * scalePercentage)).intValue();
+			int height =
+				(new Double(
+					imageContents.getHeight() * scalePercentage)).intValue();
+			
+			// Create the new image of the same type as the original and of the
+			// scaled dimensions.
+			BufferedImage scaledContents =
+				new BufferedImage(width, height, imageContents.getType());
+			
+			// Paint the original image onto the scaled canvas.
+			Graphics2D graphics2d = scaledContents.createGraphics();
+			graphics2d
+				.setRenderingHint(
+					RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			graphics2d.drawImage(imageContents, 0, 0, width, height, null);
+			
+			// Cleanup.
+			graphics2d.dispose();
+			
+			// Create a buffer stream to read the result of the transformation.
+			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+			
+			// Write the scaled image to the buffer.
+			try {
+				ImageIO
+					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+			}
+			catch(IOException e) {
+				throw new DomainException("Error writing the image.", e);
+			}
+			
+			// Create an input stream to use to create the image data.
+			ByteArrayInputStream resultStream =
+				new ByteArrayInputStream(bufferStream.toByteArray());
+			
+			// Create the image data and return it.
+			return new ImageData(resultStream);
+		}
+	}
+
+	/**
+	 * A cropped version of the image scaled down to have its dimensions be a
+	 * square of length {@link Size#IMAGE_SCALED_MAX_DIMENSION}.
+	 *
+	 * @author John Jenkins
+	 */
+	public static class Icon extends Size {
+		public static final String NAME = "icon";
+		public static final String EXTENSION = "-i";
+		
+		private static final Icon SELF = new Icon();
+
+		/**
+		 * Constructor for the single, static instance of this class.
+		 */
+		protected Icon() {
+			super(NAME, EXTENSION);
+		}
+		
+		/**
+		 * Returns the single, static instance of this class.
+		 * 
+		 * @return The single, static instance of this class.
+		 */
+		public static Icon getInstance() {
+			return SELF;
+		}
+		
+		/*
+		 * (non-Javadoc)
+		 * @see org.ohmage.domain.Image.Size#transform(org.ohmage.domain.Image.ImageData)
+		 */
+		@Override
+		public ImageData transform(
+			final ImageData original)
+			throws DomainException {
+			
+			// Get the BufferedImage from the image data.
+			BufferedImage imageContents = original.getBufferedImage();
+			
+			// Get the original image's width and height and the offset from
+			// the corner for the smaller image.
+			int originalWidth = imageContents.getWidth();
+			int originalHeight = imageContents.getHeight();
+			int buffer = Math.abs(originalWidth - originalHeight) / 2;
+			
+			// Create the cropped image from the center image.
+			BufferedImage croppedContents;
+			if(originalWidth < originalHeight) {
+				croppedContents =
+					imageContents
+						.getSubimage(0, buffer, originalWidth, originalWidth);
+			}
+			else {
+				croppedContents =
+					imageContents
+						.getSubimage(
+							buffer, 
+							0, 
+							originalHeight, 
+							originalHeight);
+			}
+			
+			// Create the new image of the same type as the original and of the
+			// scaled dimensions.
+			BufferedImage scaledContents =
+				new BufferedImage(
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					imageContents.getType());
+			
+			// Paint the original image onto the scaled canvas.
+			Graphics2D graphics2d = scaledContents.createGraphics();
+			graphics2d
+				.setRenderingHint(
+					RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			graphics2d
+				.drawImage(
+					croppedContents, 
+					0, 
+					0, 
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					null);
+			
+			// Cleanup.
+			graphics2d.dispose();
+			
+			// Create a buffer stream to read the result of the transformation.
+			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+			
+			// Write the scaled image to the buffer.
+			try {
+				ImageIO
+					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+			}
+			catch(IOException e) {
+				throw new DomainException("Error writing the image.", e);
+			}
+			
+			// Create an input stream to use to create the image data.
+			ByteArrayInputStream resultStream =
+				new ByteArrayInputStream(bufferStream.toByteArray());
+			
+			// Create the image data and return it.
+			return new ImageData(resultStream);
+		}
+	}
+	public static final Size ORIGINAL = Original.getInstance();
+	public static final Size SMALL = Small.getInstance();
+	public static final Size ICON = Icon.getInstance();
+	
+	/**
+	 * A lookup table of user-friendly names for the sizes to their actual Size
+	 * object.
+	 */
+	private static final Map<String, Size> SIZES = new HashMap<String, Size>();
+	static {
+		SIZES.put(ORIGINAL.getName(), ORIGINAL);
+		SIZES.put(SMALL.getName(), SMALL);
+		SIZES.put(ICON.getName(), ICON);
+	}
+	
+	/**
+	 * The actual image data.
+	 *
+	 * @author John Jenkins
+	 */
+	private static class ImageData {
+		private final InputStream inputStream;
+		private final URL url;
+		
+		// A memoized version of the image that has already been validated.
+		private BufferedImage bufferedImage = null;
+		
+		/**
+		 * Stores the InputStream used to reference the image data.
+		 * 
+		 * @param inputStream An InputStream that points to the image data.
+		 * 
+		 * @throws DomainException The InputStream was null.
+		 */
+		public ImageData(
+			final InputStream inputStream)
+			throws DomainException {
+			
+			if(inputStream == null) {
+				throw new DomainException("The InputStream is null.");
+			}
+			
+			this.inputStream = inputStream;
+			this.url = null;
+		}
+		
+		/**
+		 * Stores the URL used to reference the image data.
+		 * 
+		 * @param url A URL that references the image data.
+		 * 
+		 * @throws DomainException The URL was null.
+		 */
+		public ImageData(final URL url) throws DomainException {
+			if(url == null) {
+				throw new DomainException("The URL is null.");
+			}
+			
+			this.inputStream = null;
+			this.url = url;
+		}
+		
+		/**
+		 * Returns the size of the image data.
+		 * 
+		 * @return The size of the image data.
+		 */
+		public long getSize() throws DomainException {
+			// If it's a URL, just ask for the content length.
+			if(url != null) {
+				try {
+					return url.openConnection().getContentLength();
+				}
+				catch(IOException e) {
+					throw
+						new DomainException(
+							"There was an error connecting to the URL.",
+							e);
+				}
+			}
+			// If it's an InputStream, mark where we are in the contents, read
+			// the number of bytes until the end, and then reset the mark.
+			else if(inputStream != null) {
+				long result = 0;
+				
+				inputStream.mark(Integer.MAX_VALUE);
+				
+				try {
+					int amountRead;
+					byte[] chunk = new byte[4096];
+					while((amountRead = inputStream.read(chunk)) != -1) {
+						result += amountRead;
+					}
+				}
+				catch(IOException e) {
+					throw
+						new DomainException(
+							"There was an error reading from the input stream.",
+							e);
+				}
+				finally {
+					try {
+						inputStream.reset();
+					}
+					catch(IOException e) {
+						throw
+							new DomainException(
+								"There was an error resetting the stream.",
+								e);
+					}
+				}
+				
+				return result;
+			}
+			
+			// If we have added a new type of image data, we need to have a way
+			// to report how long the data stream that represents the data is.
+			throw 
+				new IllegalArgumentException(
+					"The new data format needs to have its size read.");
+		}
+		
+		/**
+		 * Returns the URL for this image data. If no URL exists, null is
+		 * returned.
+		 * 
+		 * @return The URL for this image data or null.
+		 */
+		public URL getUrl() {
+			return url;
+		}
+		
+		/**
+		 * Returns an InputStream to the data.
+		 * 
+		 * @return An InputStream to the data.
+		 * 
+		 * @throws DomainException There was an error opening a connection to
+		 * 						   the data.
+		 */
+		public InputStream getInputStream() throws DomainException {
+			if(inputStream != null) {
+				return inputStream;
+			}
+			else if(url != null) {
+				try {
+					return url.openStream();
+				}
+				catch(IOException e) {
+					throw
+						new DomainException(
+							"Error opening the stream to the URL.",
+							e);
 				}
 			}
 			
-			throw new IllegalArgumentException(
-					"The value is unknown: " + value);
+			// If we have added a new type of image data, we need to have a way
+			// to report how long the data stream that represents the data is.
+			throw 
+				new IllegalStateException(
+					"The new data format needs to have an InputStream generated.");
 		}
 		
-		public String toString() {
-			return name().toLowerCase();
+		/**
+		 * Creates a BufferedImage from the image data.
+		 * 
+		 * @return A BufferedImage from the image data.
+		 * 
+		 * @throws DomainException There was an error reading the image data or
+		 * 						   the image data did not define an image.
+		 */
+		public BufferedImage getBufferedImage() throws DomainException {
+			// If we have already memoized the BufferedImage, return it.
+			if(bufferedImage == null) {
+				// Get an InputStream for the image data.
+				InputStream imageStream = getInputStream();
+				
+				// Mark
+				inputStream.mark(Integer.MAX_VALUE);
+				
+				// Memoize the BufferedImage.
+				try {
+					bufferedImage = ImageIO.read(imageStream);
+					
+					// If the image was not a valid image, we should get null
+					// for the buffered image and should throw an exception.
+					if(bufferedImage == null) {
+						throw
+							new DomainException(
+								"The image contents are invalid.");
+					}
+				}
+				catch(IOException e) {
+					throw
+						new DomainException("The image could not be read.", e);
+				}
+				finally {
+					// Reset
+					try {
+						inputStream.reset();
+					}
+					catch(IOException e) {
+						throw
+							new DomainException(
+								"Could not reset the image input stream.",
+								e);
+					}
+				}
+			}
+			
+			return bufferedImage;
 		}
-	};
+	}
 	
+	// The unique identifier for this image.
 	private final UUID id;
 	
-	// For this image, this maps the different sized images to their unique,
-	// although probably similar, URLs.
-	private final Map<Size, URL> sizeToUrlMap;
+	// The map of image sizes to their corresponding data.
+	private final Map<Size, ImageData> imageData =
+		new HashMap<Size, ImageData>();
 	
 	/**
 	 * Creates a new Image object from a URL object.
@@ -84,6 +621,7 @@ public class Image {
 		if(id == null) {
 			throw new DomainException("The image's ID is null.");
 		}
+		this.id = id;
 		
 		if(sizeToUrlMap == null) {
 			throw new DomainException("The size to URL is null.");
@@ -91,9 +629,49 @@ public class Image {
 		else if(sizeToUrlMap.isEmpty()) {
 			throw new DomainException("The size to URL map is empty.");
 		}
+		// Ensure that the original size is always present. If this requirement
+		// is removed, be sure to audit the rest of the code which may depened
+		// on its existance.
+		else if(! sizeToUrlMap.containsKey(ORIGINAL)) {
+			throw
+				new DomainException(
+					"The size to URL map is missing the required original size.");
+		}
+		
+		for(Size size : sizeToUrlMap.keySet()) {
+			imageData.put(size, new ImageData(sizeToUrlMap.get(size)));
+		}
+	}
+	
+	/**
+	 * Creates an original image from the image's contents.
+	 * 
+	 * @param id The unique identifier for this image.
+	 * 
+	 * @param contents The original image data.
+	 * 
+	 * @throws DomainException The ID and/or data are null.
+	 */
+	public Image(
+			final UUID id, 
+			final InputStream contents,
+			final boolean validate)
+			throws DomainException {
+		
+		if(id == null) {
+			throw new DomainException("The image's ID is null.");
+		}
+		if(contents == null) {
+			throw new DomainException("The image's data is null.");
+		}
 		
 		this.id = id;
-		this.sizeToUrlMap = new HashMap<Size, URL>(sizeToUrlMap);
+		
+		ImageData originalImageData = new ImageData(contents);
+		if(validate) {
+			originalImageData.getBufferedImage();
+		}
+		imageData.put(ORIGINAL, originalImageData);
 	}
 	
 	/**
@@ -103,59 +681,6 @@ public class Image {
 	 */
 	public UUID getId() {
 		return id;
-	}
-	
-	/**
-	 * Returns the set of image sizes for this image.
-	 * 
-	 * @return The set of sizes for this image.
-	 */
-	public Set<Size> getSizes() {
-		return Collections.unmodifiableSet(sizeToUrlMap.keySet());
-	}
-	
-	/**
-	 * Returns the URL for the image with the given size.
-	 * 
-	 * @param size The size of the image for which the URL is requested.
-	 * 
-	 * @return The URL for the image with the given size.
-	 * 
-	 * @throws DomainException The image does not have a URL for the given 
-	 * 						   size.
-	 */
-	public URL getUrl(final Size size) throws DomainException {
-		URL url = sizeToUrlMap.get(size);
-		if(url == null) {
-			throw new DomainException(
-					"The image does not have a URL for the given size: " +
-						size.toString());
-		}
-		else {
-			return url;
-		}
-	}
-	
-	/**
-	 * Returns a URLConnection connected to the image.
-	 * 
-	 * @param size Which size of the file to connect to.
-	 * 
-	 * @return A URLConnection to the image with the given size.
-	 * 
-	 * @throws DomainException The image doesn't have a URL for that size or 
-	 * 						   there was a problem connecting to the image.
-	 */
-	public URLConnection openConnection(
-			final Size size) 
-			throws DomainException {
-		
-		try {
-			return getUrl(size).openConnection();
-		}
-		catch(IOException e) {
-			throw new DomainException("Error opening connection.", e);
-		}
 	}
 	
 	/**
@@ -169,26 +694,249 @@ public class Image {
 	 * 						   there was a problem connecting to the image.
 	 */
 	public long getSizeBytes(final Size size) throws DomainException {
-		return openConnection(size).getContentLength();
+		return getImageData(size).getSize();
 	}
 	
 	/**
-	 * Returns an InputStream connected to the image. It is the caller's 
-	 * responsibility to close the stream when they are done.
+	 * Returns an InputStream connected to the image.
 	 * 
-	 * @param size Which size of the file to connect to.
+	 * @param size The desired {@link Size} of the image.
 	 * 
-	 * @return An InputStream to the file with the given size.
+	 * @return An InputStream connected to the image of the given size.
 	 * 
-	 * @throws DomainException The image doesn't have a URL for that size or 
-	 * 						   there was a problem connecting to the image.
+	 * @throws DomainException There was an error connecting to the image.
 	 */
-	public InputStream openStream(final Size size) throws DomainException {
+	public InputStream getInputStream(final Size size) throws DomainException {
+		return getImageData(size).getInputStream();
+	}
+	
+	/**
+	 * <p>Saves the images contents to disk in the given directory. This
+	 * includes one file for each {@link Size}. The original file will be named
+	 * with the  To
+	 * save only a specific file size, use the
+	 * {@link #saveImage(Size, File, boolean)} function. 
+	 * 
+	 * @param rootFile The location to save the original file. The different
+	 * 				   file sizes will be saved in the same directory with a
+	 * 				   filename of their {@link #getId() ID} and their 
+	 * 				   respective {@link Size#getExtension() extensions}
+	 * 				   appended.
+	 *  
+	 * @throws DomainException There was an error reading the image contents or
+	 * 						   writing the file.
+	 */
+	public File saveImage(final File directory) throws DomainException {
+		// This will keep track of the images as we create them.
+		Map<Size, File> files = new HashMap<Size, File>();
+		
+		// Create all of the files for their specific sizes.
 		try {
-			return openConnection(size).getInputStream();
+			for(Size size : SIZES.values()) {
+				files.put(size, saveImage(size, directory, false));
+			}
+		}
+		// If something happens, roll back and delete the files.
+		catch(DomainException e) {
+			for(File file : files.values()) {
+				file.delete();
+			}
+			
+			throw e;
+		}
+		
+		// Return only the original file.
+		return files.get(ORIGINAL);
+	}
+	
+	/**
+	 * <p>Saves a single size of this image into the desired destination.</p>
+	 * 
+	 * <p>If the destination is a directory, it will construct a filename for
+	 * this image based on its ID and the file size. If the destination is a
+	 * specific filename, it will save the image in that file. If 'absolute' is
+	 * 'true', the filename will not be modified, but, if it is 'false', the
+	 * filename will be appended with the size's
+	 * {@link Size#getExtension() extension}.</p>
+	 * 
+	 * @param size The size of the image to save.
+	 * 
+	 * @param destination The destination to save the image's contents.
+	 * 
+	 * @param absolute Whether or not to append the extension onto the
+	 * 				   filename.
+	 * 
+	 * @return The file where the image's contents were written.
+	 * 
+	 * @throws DomainException There was an error reading the image or writing
+	 * 						   the file.
+	 */
+	private File saveImage(
+		final Size size,
+		final File destination,
+		final boolean absolute)
+		throws DomainException {
+		
+		// Create a file reference to the destination for this file.
+		File fileDestination;
+		// If it's a directory, create a file in the directory whose value is
+		// the ID of the image and with the appropriate size extension.
+		if(destination.isDirectory()) {
+			fileDestination = 
+				new File(
+					destination.getAbsolutePath() + 
+					id.toString() + 
+					size.getExtension());
+		}
+		else {
+			StringBuilder destinationBuilder = 
+				new StringBuilder(destination.getAbsolutePath());
+			
+			if(! absolute) {
+				destinationBuilder.append(size.extension);
+			}
+			
+			fileDestination = new File(destinationBuilder.toString());
+		}
+		
+		// If a file already exists at this destination, throw an error to
+		// prevent overwriting an existing image.
+		if(fileDestination.exists()) {
+			throw
+				new DomainException(
+					"A file already exists at this destination: " + 
+						fileDestination.getAbsolutePath());
+		}
+		
+		// Write the file.
+		writeFile(getImageData(size), fileDestination);
+		
+		// Return the reference to the file.
+		return fileDestination;
+	}
+	
+	/**
+	 * Retrieves the {@link Size} object that is associated with the
+	 * user-friendly size parameter.
+	 * 
+	 * @param size The user-friendly name for the desired size.
+	 * 
+	 * @return The Size object that is associated with the given user-friendly
+	 * 		   size parameter.
+	 * 
+	 * @throws IllegalArgumentException The size is unknown.
+	 * 
+	 * @see #ORIGINAL
+	 * @see #SMALL
+	 * @see #ICON
+	 */
+	public static Size getSize(final String size) {
+		Size result = SIZES.get(size);
+		
+		if(result == null) {
+			throw new IllegalArgumentException("The size is unknown.");
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Retrieves the image data for this image of a given size.
+	 * 
+	 * @param size The size of the desired image.
+	 * 
+	 * @return The image data for the desired size.
+	 * 
+	 * @throws DomainException There was an error retrieving the image data.
+	 */
+	private ImageData getImageData(final Size size) throws DomainException {
+		// Attempt to get the image data from the map of image data.
+		ImageData result = imageData.get(size);
+		
+		// If the map didn't have the image data, create it and add it to the
+		// map.
+		if(result == null) {
+			// Get the image data for the original image.
+			ImageData originalData = imageData.get(ORIGINAL);
+			
+			// Get the image data for the new size of the image.
+			if(originalData.getUrl() == null) {
+				result = size.transform(originalData);
+			}
+			else {
+				result =
+					new ImageData(Size.getUrl(size, originalData.getUrl()));
+			}
+			
+			// Save the new image data in the map.
+			imageData.put(size, result);
+		}
+		
+		// Return the image data.
+		return result;
+	}
+	
+	/**
+	 * Writes the image data to the given file. This file *should* end with
+	 * the string given by the {@link #getExtension()} function.
+	 * 
+	 * @param imageData The image data to be written.
+	 * 
+	 * @param destination The file to write the image to.
+	 * 
+	 * @throws DomainException There was an error reading the image data
+	 * 						   or writing the file.
+	 * 
+	 * @see {@link #getExtension()}
+	 */
+	private final void writeFile(
+		final ImageData imageData,
+		final File destination)
+		throws DomainException {
+		
+		if(imageData == null) {
+			throw new DomainException("The contents parameter is null.");
+		}
+		
+		// Get the image data.
+		InputStream contents = imageData.getInputStream();
+		
+		// Connect to the file that should write it.
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(destination);
+		}
+		catch(SecurityException e) {
+			throw
+				new DomainException(
+					"The file is not allowed to be created.",
+					e);
+		}
+		catch(FileNotFoundException e) {
+			throw new DomainException("The file cannot be created.", e);
+		}
+		
+		// Write the image data.
+		try {
+			int bytesRead;
+			byte[] buffer = new byte[4096];
+			while((bytesRead = contents.read(buffer)) != -1) {
+				fos.write(buffer, 0, bytesRead);
+			}
 		}
 		catch(IOException e) {
-			throw new DomainException("Error opening stream.", e);
+			throw
+				new DomainException(
+					"Error reading or writing the data.",
+					e);
+		}
+		finally {
+			try {
+				fos.close();
+			}
+			catch(IOException e) {
+				throw new DomainException("Could not close the file.", e);
+			}
 		}
 	}
 }

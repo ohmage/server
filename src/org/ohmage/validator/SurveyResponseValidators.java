@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.validator;
 
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +31,7 @@ import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Image;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.Function;
@@ -41,8 +41,8 @@ import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.survey.SurveyResponseRequest;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * This class is responsible for validating survey response-based items.
@@ -705,13 +705,13 @@ public final class SurveyResponseValidators {
 	 * 
 	 * @param value The value to be validated.
 	 * 
-	 * @return The map of image IDs to BufferedImages.
+	 * @return The map of image IDs to Images.
 	 * 
 	 * @throws ValidationException The value was not valid JSON, an image's ID
 	 * 							   was not a valid UUID, or an image's contents
 	 * 							   was not a valid BASE64-encoded image.
 	 */
-	public static Map<String, BufferedImage> validateImages(
+	public static Map<UUID, Image> validateImages(
 			final String value) 
 			throws ValidationException {
 		
@@ -730,16 +730,16 @@ public final class SurveyResponseValidators {
 				e);
 		}
 
-		Map<String, BufferedImage> results = 
-			new HashMap<String, BufferedImage>();
+		Map<UUID, Image> results = new HashMap<UUID, Image>();
 		
 		Iterator<?> imageIds = imagesJson.keys();
 		int numImageIds = imagesJson.length();
 		for(int i = 0; i < numImageIds; i++) {
+			UUID imageUuid;
 			String imageId = (String) imageIds.next();
 			
 			try {
-				UUID.fromString(imageId);
+				imageUuid = UUID.fromString(imageId);
 			}
 			catch(IllegalArgumentException e) {
 				throw new ValidationException(
@@ -748,10 +748,11 @@ public final class SurveyResponseValidators {
 					e);
 			}
 			
-			BufferedImage image;
+			Image image;
 			try {
 				image = 
 					ImageValidators.validateImageContents(
+						imageUuid,
 						DatatypeConverter.parseBase64Binary(
 							imagesJson.getString(imageId)));
 			}
@@ -768,7 +769,7 @@ public final class SurveyResponseValidators {
 					e);
 			}
 			
-			results.put(imageId, image);
+			results.put(imageUuid, image);
 		}
 		
 		return results;
