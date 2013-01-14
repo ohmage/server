@@ -65,6 +65,7 @@ import org.ohmage.query.IUserImageQueries;
 import org.ohmage.query.IUserQueries;
 import org.ohmage.query.impl.QueryResultsList;
 import org.ohmage.request.InputKeys;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 
 import com.sun.mail.smtp.SMTPTransport;
@@ -266,19 +267,14 @@ public final class UserServices {
 			// Compute the registration link.
 			StringBuilder registrationLink = 
 					new StringBuilder("<a href=\"");
-			// Get this machine's hostname.
+			// Get this machine's root URL.
 			try {
-				registrationLink
-					.append(
-						PreferenceCache
-							.instance()
-							.lookup(
-								PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME));
+				registrationLink.append(CookieUtils.buildServerRootUrl());
 			}
-			catch(CacheMissException e) {
-				throw new ServiceException(
-						"The preference table is missing its fully qualified domain name: " +
-							PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME,
+			catch(DomainException e) {
+				throw
+					new ServiceException(
+						"Could not build the root server URL.",
 						e);
 			}
 			registrationLink.append(ACTIVATION_FUNCTION);

@@ -20,9 +20,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.PayloadId;
-import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
@@ -32,6 +30,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ObserverValidators;
 import org.ohmage.validator.OmhValidators;
 import org.ohmage.validator.UserValidators;
@@ -554,28 +553,13 @@ public class OmhReadRequest extends Request {
 	private StringBuilder buildRootPreviousNextString() 
 			throws DomainException {
 		
-		StringBuilder rootBuilder;
-		try {
-			rootBuilder = 
-				new StringBuilder(
-					PreferenceCache
-						.instance()
-							.lookup(
-								PreferenceCache
-									.KEY_FULLY_QUALIFIED_DOMAIN_NAME));
-			if(rootBuilder.charAt(rootBuilder.length() - 1) != '/') {
-				rootBuilder.append('/');
-			}
-		}
-		catch(CacheMissException e) {
-			throw 
-				new DomainException(
-					"The server's fully-qualified domain name is missing.",
-					e);
-		}
+		StringBuilder rootBuilder = new StringBuilder();
+		
+		// Adds the default URL without a path.
+		rootBuilder.append(CookieUtils.buildServerRootUrl());
 		
 		// Add the path to the Open mHealth read API.
-		rootBuilder.append("app/omh/v1.0/read?");
+		rootBuilder.append("/app/omh/v1.0/read?");
 			
 		try {
 			// Add the authentication token.

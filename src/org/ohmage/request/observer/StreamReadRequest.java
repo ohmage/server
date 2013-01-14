@@ -42,6 +42,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.ObserverValidators;
 import org.ohmage.validator.UserValidators;
@@ -808,7 +809,7 @@ public class StreamReadRequest extends UserRequest {
 			
 			// If the number of entries skipped was non-zero, add a previous
 			// pointer.
-			if(numToSkip != 0) {
+			if((prevAndNextUrlBuilder != null) && (numToSkip != 0)) {
 				// Create a copy of the existing string builder.
 				StringBuilder prevUrl = 
 					new StringBuilder(prevAndNextUrlBuilder);
@@ -841,7 +842,9 @@ public class StreamReadRequest extends UserRequest {
 			// Generate and add the "next" URL if the number of results is 
 			// to the number requested. The only reason it would be less is if
 			// there weren't that many to return. If there were more than that
-			if(numToReturn == results.size()) {
+			if((prevAndNextUrlBuilder != null) &&
+				(numToReturn == results.size())) {
+				
 				StringBuilder nextUrl = prevAndNextUrlBuilder;
 				
 				// Calculate the number to skip.
@@ -961,26 +964,14 @@ public class StreamReadRequest extends UserRequest {
 	private StringBuilder buildNextAndPrevUrl() {
 		StringBuilder result = new StringBuilder();
 		
-		// Get the server's fully qualified domain name.
-		String fqdn;
+		// Add the protocol and FQDN.
 		try {
-			fqdn =
-				PreferenceCache.instance().lookup(
-					PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME);
+			result.append(CookieUtils.buildServerRootUrl().toString());
 		}
-		catch(CacheMissException e) {
-			LOGGER.warn(
-				"Error retrieving the system's fully qualified domain name.",
-				e);
+		catch(DomainException e) {
+			LOGGER.error("Error building the next and previous URLs.");
 			return null;
 		}
-		// Trim any tailing '/'s.
-		while(fqdn.endsWith("/")) {
-			fqdn = fqdn.substring(0, fqdn.length() - 1);
-		}
-		
-		// Add the fully qualified domain name.
-		result.append(fqdn);
 		
 		// Add the stream/read URI.
 		result.append(RequestBuilder.getInstance().getApiStreamRead());

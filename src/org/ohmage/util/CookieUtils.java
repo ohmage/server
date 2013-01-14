@@ -15,12 +15,17 @@
  ******************************************************************************/
 package org.ohmage.util;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import org.ohmage.cache.PreferenceCache;
+import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.request.RequestBuilder;
 
 /**
@@ -106,5 +111,53 @@ public final class CookieUtils {
 		authTokenCookie.setMaxAge(lifetimeInSeconds);
 		authTokenCookie.setPath(RequestBuilder.getInstance().getRoot());
 		httpResponse.addCookie(authTokenCookie);
+	}
+	
+	/**
+	 * Creates a new base URL for the current domain with no path. 
+	 * 
+	 * @return The base URL for the current domain without a path.
+	 * 
+	 * @throws DomainException There was an error creating the URL.
+	 */
+	public static URL buildServerRootUrl() throws DomainException {
+		// Create a string builder to use to build the URL.
+		StringBuilder urlBuilder = new StringBuilder();
+		
+		// Determine if HTTPS is being used on this server.
+		try {
+			if(StringUtils.decodeBoolean(
+				PreferenceCache.instance().lookup(
+					PreferenceCache.KEY_SSL_ENABLED))) {
+				urlBuilder.append("https://");
+			}
+			else {
+				urlBuilder.append("http://");
+			}
+		}
+		catch(CacheMissException e) {
+			throw
+				new DomainException("Error reading the SSL enabled value.", e);
+		}
+		
+		// Append the server's fully qualified domain name.
+		try {
+			urlBuilder.append(
+				PreferenceCache.instance().lookup(
+					PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME));
+		}
+		catch(CacheMissException e) {
+			throw
+				new DomainException(
+					"Error reading the fully qualified domain name value.",
+					e);
+		}
+		
+		try {
+			return new URL(urlBuilder.toString());
+		}
+		catch(MalformedURLException e) {
+			throw new DomainException("The URL is not valid.");
+		}
 	}
 }

@@ -29,8 +29,10 @@ import java.util.Map;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.exception.CacheMissException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.RequestBuilder;
+import org.ohmage.util.CookieUtils;
 
 /**
  * This class contains the services for visualization requests.
@@ -174,23 +176,18 @@ public class VisualizationServices {
 				.append(URLEncoder.encode(PARAMETER_KEY_SERVER, ENCODING))
 				.append("='");
 			
-			// Get this machine's hostname.
+			// Get this machine's default URL.
 			try {
 				parameterBuilder
 					.append(
 						URLEncoder
 							.encode(
-								PreferenceCache
-									.instance()
-										.lookup(
-											PreferenceCache
-												.KEY_FULLY_QUALIFIED_DOMAIN_NAME),
+								CookieUtils.buildServerRootUrl().toString(),
 								ENCODING));
 			}
-			catch(CacheMissException e) {
+			catch(DomainException e) {
 				throw new ServiceException(
-						"The FQDN preference is missing: " +
-							PreferenceCache.KEY_FULLY_QUALIFIED_DOMAIN_NAME,
+						"Error building the root URL.",
 						e);
 			}
 			parameterBuilder
