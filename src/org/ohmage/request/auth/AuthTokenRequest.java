@@ -16,16 +16,21 @@
 package org.ohmage.request.auth;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ValidationException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.validator.ServerValidators;
 
 /**
  * <p>Uses the username and password parameters to create a request for an
@@ -61,6 +66,8 @@ public class AuthTokenRequest extends UserRequest {
 	
 	public static final String KEY_AUTH_TOKEN = "token";
 	
+	private final URL redirect;
+	
 	/**
 	 * Creates a new authentication token request with a preset map of 
 	 * parameters.
@@ -80,14 +87,29 @@ public class AuthTokenRequest extends UserRequest {
 	public AuthTokenRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
-			final boolean callClientRequester)
+			final boolean callClientRequester,
+			final String redirect)
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, true, null, parameters, callClientRequester);
 		
+		URL tRedirect = null;
+		
 		if(! isFailed()) {
 			LOGGER.info("Building an authentication token request.");
+			
+			try {
+				if(redirect != null) {
+					tRedirect = ServerValidators.validateRedirect(redirect);
+				}
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				LOGGER.info(e.toString());
+			}
 		}
+		
+		this.redirect = tRedirect;
 	}
 	
 	/**
@@ -100,10 +122,39 @@ public class AuthTokenRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public AuthTokenRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public AuthTokenRequest(
+		final HttpServletRequest httpRequest)
+		throws IOException, InvalidRequestException {
+		
 		super(httpRequest, true, null, null);
 		
-		LOGGER.info("Building an authentication token request.");
+		URL tRedirect = null;
+		
+		if(! isFailed()) {
+			LOGGER.info("Building an authentication token request.");
+			String[] t;
+			
+			try {
+				t = getParameterValues(InputKeys.REDIRECT);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_REDIRECT,
+							"Multiple redirects were given: " +
+								InputKeys.REDIRECT);
+				}
+				else if(t.length == 1) {
+					LOGGER.debug("Redirect: " + t[0]);
+					
+					tRedirect = ServerValidators.validateRedirect(t[0]);
+				}
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				LOGGER.info(e.toString());
+			}
+		}
+		
+		redirect = tRedirect;
 	}
 
 	/**
@@ -136,6 +187,15 @@ public class AuthTokenRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the authentication token request.");
 		
-		respond(httpRequest, httpResponse, KEY_AUTH_TOKEN, (getUser() == null) ? null : getUser().getToken());
+		if((! isFailed()) && (redirect != null)) {
+			respond(httpRequest, httpResponse, redirect);
+		}
+		else {
+			respond(
+				httpRequest, 
+				httpResponse, 
+				KEY_AUTH_TOKEN,
+				(getUser() == null) ? null : getUser().getToken());
+		}
 	}
 }

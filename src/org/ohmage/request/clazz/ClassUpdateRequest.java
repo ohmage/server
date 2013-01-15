@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.InvalidRequestException;
@@ -206,6 +207,6 @@ public class ClassUpdateRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		super.respond(httpRequest, httpResponse, null);
+		super.respond(httpRequest, httpResponse, (JSONObject) null);
 	}
 }

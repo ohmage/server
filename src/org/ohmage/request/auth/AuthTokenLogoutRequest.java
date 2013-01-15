@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest;
@@ -86,6 +87,6 @@ public class AuthTokenLogoutRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the logout request.");
 		
-		respond(httpRequest, httpResponse, null);
+		respond(httpRequest, httpResponse, (JSONObject) null);
 	}
 }

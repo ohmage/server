@@ -25,6 +25,7 @@ import org.codehaus.jackson.node.ArrayNode;
 import org.codehaus.jackson.node.ObjectNode;
 import org.joda.time.DateTime;
 import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DataStream;
@@ -723,7 +724,7 @@ public class StreamReadRequest extends UserRequest {
 
 		// Check for failure.
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 			return;
 		}
 		

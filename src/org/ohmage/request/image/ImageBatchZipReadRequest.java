@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
@@ -182,7 +183,7 @@ public class ImageBatchZipReadRequest extends SurveyResponseRequest {
 		
 		// Check for failure.
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 			return;
 		}
 		

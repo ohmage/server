@@ -165,6 +165,7 @@ public final class InputKeys {
 	public static final String NUM_TO_RETURN = "num_to_return";
 	public static final String CAPTCHA_CHALLENGE = "recaptcha_challenge_field";
 	public static final String CAPTCHA_RESPONSE = "recaptcha_response_field";
+	public static final String REDIRECT = "redirect";
 	
 	// Document Constants
 	public static final String DOCUMENT = "document";

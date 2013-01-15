@@ -641,7 +641,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		LOGGER.info("Responding to the survey response read request.");
 		
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 			return;
 		}
 		
@@ -963,7 +963,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 										super.respond(
 												httpRequest, 
 												httpResponse, 
-												null);
+												(JSONObject) null);
 									}
 									currNumPrompts++;
 								}
@@ -999,7 +999,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 									"There was a problem aggregating the responses.",
 									e);
 							setFailed();
-							super.respond(httpRequest, httpResponse, null);
+							super.respond(httpRequest, httpResponse, (JSONObject) null);
 						}
 					}
 					

@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTimeZone;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -32,8 +33,8 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserAnnotationServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -229,6 +230,6 @@ public class AnnotationUpdateRequest extends UserRequest {
 	@Override
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the annotation update request.");
-		super.respond(httpRequest, httpResponse, null);
+		super.respond(httpRequest, httpResponse, (JSONObject) null);
 	}
 }

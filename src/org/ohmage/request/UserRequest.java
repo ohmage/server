@@ -16,6 +16,7 @@
 package org.ohmage.request;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
@@ -327,6 +328,46 @@ public abstract class UserRequest extends Request {
 		}
 		
 		super.respond(httpRequest, httpResponse, response);
+	}
+
+	/**
+	 * Redirects the user to a different URL. If the request failed, setting
+	 * the status code fails, or the redirect URL is null, a standard JSON
+	 * respnose is returned.
+	 * 
+	 * @param httpRequest The HTTP request that began this exchange.
+	 * 
+	 * @param httpResponse The HTTP response back to the requester.
+	 * 
+	 * @param redirect The URL to redirect the user to if the request was
+	 * 				   successful.
+	 */
+	protected void respond(
+			final HttpServletRequest httpRequest, 
+			final HttpServletResponse httpResponse,
+			final URL redirect) {
+		
+		refreshTokenCookie(httpResponse);
+
+		boolean respond = true;
+		if(redirect == null) {
+			LOGGER.error("A null redirect was given.");
+			setFailed();
+		}
+		else {
+			try {
+				httpResponse.sendRedirect(redirect.toString());
+				respond = false;
+			}
+			catch(IOException e) {
+				LOGGER.info("Could not respond to the user.", e);
+				setFailed();
+			}
+		}
+		
+		if(respond) {
+			super.respond(httpRequest, httpResponse, null);
+		}
 	}
 	
 	/**

@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Image;
@@ -213,7 +214,7 @@ public class ImageReadRequest extends UserRequest {
 			LOGGER.error("Could not connect to the image.", e);
 			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "Image not found.");
 			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 			return;
 		}
 		
@@ -222,7 +223,7 @@ public class ImageReadRequest extends UserRequest {
 		try {
 			if(isFailed()) {
 				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				super.respond(httpRequest, httpResponse, null);
+				super.respond(httpRequest, httpResponse, (JSONObject) null);
 			}
 			else {
 				// Set the type of the value.

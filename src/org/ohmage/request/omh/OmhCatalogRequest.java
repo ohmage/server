@@ -15,6 +15,7 @@ import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonGenerator.Feature;
 import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.map.MappingJsonFactory;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.InvalidRequestException;
@@ -246,7 +247,7 @@ public class OmhCatalogRequest extends UserRequest {
 			else {
 				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
 			}
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 			return;
 		}
 		

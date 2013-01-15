@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.request.survey;
 
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -109,7 +108,8 @@ import org.ohmage.validator.SurveyResponseValidators;
  * @author Joshua Selsky
  */
 public class SurveyUploadRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(SurveyUploadRequest.class);
+	private static final Logger LOGGER =
+		Logger.getLogger(SurveyUploadRequest.class);
 	
 	// The campaign creation timestamp is stored as a String because it is 
 	// never used in any kind of calculation.
@@ -363,7 +363,7 @@ public class SurveyUploadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the survey upload request.");
 		
-		super.respond(httpRequest, httpResponse, null);
+		super.respond(httpRequest, httpResponse, (JSONObject) null);
 	}
 	
 	/**

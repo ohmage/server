@@ -161,7 +161,7 @@ public class SurveyResponseAnnotationReadRequest extends UserRequest {
 		LOGGER.info("Responding to the survey response annotation read request.");
 		
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 			return;
 		}
 		
@@ -181,7 +181,7 @@ public class SurveyResponseAnnotationReadRequest extends UserRequest {
 		catch(JSONException e) {
 			LOGGER.error("There was a problem creating the response.", e);
 			setFailed();
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 		}		
 	}
 }

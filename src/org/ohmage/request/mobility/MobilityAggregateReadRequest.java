@@ -511,7 +511,7 @@ public class MobilityAggregateReadRequest extends UserRequest {
 		}
 		
 		if(isFailed()) {
-			super.respond(httpRequest, httpResponse, null);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
 		}
 	}
 }
