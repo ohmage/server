@@ -181,9 +181,9 @@ public class ObserverQueries extends Query implements IObserverQueries {
 							ps.setLong(2, stream.getVersion());
 							ps.setString(3, stream.getName());
 							ps.setString(4, stream.getDescription());
-							ps.setBoolean(5, stream.getWithId());
-							ps.setBoolean(6, stream.getWithTimestamp());
-							ps.setBoolean(7, stream.getWithLocation());
+							ps.setObject(5, stream.getWithId());
+							ps.setObject(6, stream.getWithTimestamp());
+							ps.setObject(7, stream.getWithLocation());
 							
 							try {
 								ps.setString(
@@ -647,15 +647,33 @@ public class ObserverQueries extends Query implements IObserverQueries {
 									final int rowNum)
 									throws SQLException {
 								
+								// Because the with_* values are optional and
+								// may be null, they must be retrieve in this
+								// special way.
+								Boolean withId, withTimestamp, withLocation;
+								withId = rs.getBoolean("with_id");
+								if(rs.wasNull()) {
+									withId = null;
+								}
+								withTimestamp =
+									rs.getBoolean("with_timestamp");
+								if(rs.wasNull()) {
+									withTimestamp = null;
+								}
+								withLocation = rs.getBoolean("with_location");
+								if(rs.wasNull()) {
+									withLocation = null;
+								}
+								
 								try {
 									return new Observer.Stream(
 										rs.getString("stream_id"), 
 										rs.getLong("version"), 
 										rs.getString("name"), 
 										rs.getString("description"), 
-										rs.getBoolean("with_id"),
-										rs.getBoolean("with_timestamp"), 
-										rs.getBoolean("with_location"), 
+										withId,
+										withTimestamp, 
+										withLocation, 
 										rs.getString("stream_schema"));
 								}
 								catch(DomainException e) {

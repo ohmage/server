@@ -480,18 +480,24 @@ public class Observer {
 				// Add the description.
 				generator.writeStringField(KEY_JSON_DESCRIPTION, description);
 
-				// Add the "with ID" boolean.
-				generator.writeBooleanField(KEY_JSON_WITH_ID, withId);
+				// Add the "with ID" boolean if it was given..
+				if(withId != null) {
+					generator.writeBooleanField(KEY_JSON_WITH_ID, withId);
+				}
 				
 				// Add the "with timestamp" boolean.
-				generator.writeBooleanField(
-					KEY_JSON_WITH_TIMESTAMP, 
-					withTimestamp);
+				if(withTimestamp != null) {
+					generator.writeBooleanField(
+						KEY_JSON_WITH_TIMESTAMP, 
+						withTimestamp);
+				}
 				
 				// Add the "with location" boolean.
-				generator.writeBooleanField(
-					KEY_JSON_WITH_LOCATION, 
-					withLocation);
+				if(withLocation != null) {
+					generator.writeBooleanField(
+						KEY_JSON_WITH_LOCATION, 
+						withLocation);
+				}
 				
 				// Add the schema.
 				generator.writeObjectField(
