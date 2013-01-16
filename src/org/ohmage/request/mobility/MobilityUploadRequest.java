@@ -36,10 +36,12 @@ import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.observer.StreamUploadRequest;
+import org.ohmage.service.ObserverServices;
 
 /**
  * <p>Creates a new Mobility data point. There are no restrictions on who can
@@ -156,6 +158,9 @@ import org.ohmage.request.observer.StreamUploadRequest;
  */
 public class MobilityUploadRequest extends Request {
 	private static final Logger LOGGER = Logger.getLogger(MobilityUploadRequest.class);
+	
+	private static final String OBSERVER_ID = "edu.ucla.cens.Mobility";
+	private static final long OBSERVER_VERSION = 2012061300;
 
 	private static final String AUDIT_KEY_VALID_POINT_IDS = "accepted_point_id";
 	private static final String AUDIT_KEY_INVALID_POINTS = "invalid_mobility_point";
@@ -321,8 +326,8 @@ public class MobilityUploadRequest extends Request {
 						new StreamUploadRequest(
 							httpRequest,
 							getParameterMap(),
-							"edu.ucla.cens.Mobility",
-							2012061300,
+							OBSERVER_ID,
+							OBSERVER_VERSION,
 							resultDataArray.toString());
 				}
 			}
@@ -343,6 +348,18 @@ public class MobilityUploadRequest extends Request {
 		LOGGER.info("Servicing the Mobility upload request.");
 		
 		if(! streamUploadRequest.isFailed()) {
+			
+			try {
+				LOGGER.info("Verifying that the Mobility observer exists.");
+				ObserverServices
+					.instance().getObserver(OBSERVER_ID, OBSERVER_VERSION);
+			}
+			catch(ServiceException e) {
+				e.failRequest(this);
+				e.logException(LOGGER, true);
+			}
+				
+			LOGGER.info("Delegating to the stream upload service layer.");
 			streamUploadRequest.service();
 		}
 	}
