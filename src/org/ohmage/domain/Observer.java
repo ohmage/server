@@ -140,11 +140,12 @@ public class Observer {
 		private final String name;
 		private final String description;
 		
-		// NULL or true means that it should be checked for, however, false
-		// means that it should explicitly be ignored.
-		private final boolean withId;
-		private final boolean withTimestamp;
-		private final boolean withLocation;
+		// 'true' means that a field must be present, 'false' means that a
+		// field cannot be present, and 'null' means that the it may or may
+		// not be there.
+		private final Boolean withId;
+		private final Boolean withTimestamp;
+		private final Boolean withLocation;
 
 		private final String schemaString;
 		private final JsonParser schema;
@@ -179,9 +180,9 @@ public class Observer {
 				final long version,
 				final String name,
 				final String description,
-				final boolean withId,
-				final boolean withTimestamp,
-				final boolean withLocation,
+				final Boolean withId,
+				final Boolean withTimestamp,
+				final Boolean withLocation,
 				final String schema) 
 				throws DomainException {
 
@@ -294,7 +295,7 @@ public class Observer {
 					}
 				}
 				else {
-					this.withId = false;
+					this.withId = null;
 				}
 				
 				Nodes timestamps = metadata.query("timestamp");
@@ -327,7 +328,7 @@ public class Observer {
 					}
 				}
 				else {
-					withTimestamp = false;
+					withTimestamp = null;
 				}
 				
 				Nodes locations = metadata.query("location");
@@ -360,13 +361,13 @@ public class Observer {
 					}
 				}
 				else {
-					withLocation = false;
+					withLocation = null;
 				}
 			}
 			else {
-				withId = false;
-				withTimestamp = false;
-				withLocation = false;
+				withId = null;
+				withTimestamp = null;
+				withLocation = null;
 			}
 			
 			schemaString = 
@@ -416,7 +417,7 @@ public class Observer {
 		 * 
 		 * @return Whether or not records may contain an ID.
 		 */
-		public boolean getWithId() {
+		public Boolean getWithId() {
 			return withId;
 		}
 		
@@ -425,7 +426,7 @@ public class Observer {
 		 * 
 		 * @return Whether or not records may contain a time stamp.
 		 */
-		public boolean getWithTimestamp() {
+		public Boolean getWithTimestamp() {
 			return withTimestamp;
 		}
 		
@@ -434,7 +435,7 @@ public class Observer {
 		 * 
 		 * @return Whether or not records may contain a location.
 		 */
-		public boolean getWithLocation() {
+		public Boolean getWithLocation() {
 			return withLocation;
 		}
 
@@ -1048,16 +1049,43 @@ public class Observer {
 
 			MetaData.Builder metaDataBuilder = new MetaData.Builder();
 			
-			if(currStream.getWithId()) {
-				metaDataBuilder.setId(metaDataNode);
+			Boolean withId = currStream.getWithId();
+			metaDataBuilder.setId(metaDataNode); 
+			if((withId == true) && (! metaDataBuilder.hasId())) {
+				throw
+					new DomainException(
+						"An ID must be supplied with each point per the definition.");
+			}
+			else if((withId == false) && metaDataBuilder.hasId()) {
+				throw
+					new DomainException(
+						"An ID cannot be supplied for any point per the definition.");
 			}
 			
-			if(currStream.getWithTimestamp()) {
-				metaDataBuilder.setTimestamp(metaDataNode);
+			Boolean withTimestamp = currStream.getWithTimestamp();
+			metaDataBuilder.setTimestamp(metaDataNode);
+			if((withTimestamp == true) && (! metaDataBuilder.hasTimestamp())) {
+				throw
+					new DomainException(
+						"A timestamp must be supplied with each point per the definition.");
+			}
+			else if((withId == false) && metaDataBuilder.hasId()) {
+				throw
+					new DomainException(
+						"A timestamp cannot be supplied for any point per the definition.");
 			}
 			
-			if(currStream.getWithLocation()) {
-				metaDataBuilder.setLocation(metaDataNode);
+			Boolean withLocation = currStream.getWithLocation();
+			metaDataBuilder.setLocation(metaDataNode);
+			if((withLocation == true) && (! metaDataBuilder.hasLocation())) {
+				throw
+					new DomainException(
+						"A location must be supplied with each point per the definition.");
+			}
+			else if((withLocation == false) && metaDataBuilder.hasLocation()) {
+				throw
+					new DomainException(
+						"A location cannot be supplied for any point per the definition.");
 			}
 			
 			metaData = metaDataBuilder.build();

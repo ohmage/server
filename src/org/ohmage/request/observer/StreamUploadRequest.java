@@ -2,7 +2,8 @@ package org.ohmage.request.observer;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,6 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonParser;
 import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
 import org.ohmage.domain.Observer;
@@ -20,6 +23,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
+import org.ohmage.service.ObserverServices.InvalidPoint;
 import org.ohmage.validator.ObserverValidators;
 
 /**
@@ -65,7 +69,10 @@ public class StreamUploadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(StreamUploadRequest.class);
 	
-	private static final String JSON_KEY_INVALID_INDICIES = "invalid_indicies";
+	private static final String JSON_KEY_INVALID_POINTS = "invalid_points";
+	private static final String JSON_KEY_INVALID_POINT_INDEX = "index";
+	private static final String JSON_KEY_INVALID_POINT_PERSISTED = "persisted";
+	private static final String JSON_KEY_INVALID_POINT_COMMENT = "comment";
 
 	private static final String AUDIT_NUM_VALID_POINTS = 
 		"observer_stream_data_num_valid_points";
@@ -73,8 +80,6 @@ public class StreamUploadRequest extends UserRequest {
 		"observer_stream_data_num_duplicate_points";
 	private static final String AUDIT_NUM_INVALID_POINTS =
 		"observer_stream_data_num_invalid_points";
-	private static final String AUDIT_INVALID_POINT_ID =
-		"observer_stream_data_invalid_point_id";
 	private static final String AUDIT_INVALID_POINTS = 
 		"observer_stream_data_upload_invalid_point";
 
@@ -84,8 +89,8 @@ public class StreamUploadRequest extends UserRequest {
 
 	private long numValidPoints = 0;
 	private long numDuplicatePoints = 0;
-	private final Map<Integer, String> invalidPoints =
-		new HashMap<Integer, String>();
+	private final List<InvalidPoint> invalidPoints =
+		new LinkedList<InvalidPoint>();
 	
 	/**
 	 * Creates a stream upload request from the set of parameters.
@@ -299,8 +304,8 @@ public class StreamUploadRequest extends UserRequest {
 		super.respond(
 			httpRequest,
 			httpResponse,
-			JSON_KEY_INVALID_INDICIES,
-			new JSONArray(invalidPoints.keySet()));
+			JSON_KEY_INVALID_POINTS,
+			buildInvalidPoints());
 	}
 	
 	/*
@@ -364,8 +369,44 @@ public class StreamUploadRequest extends UserRequest {
 		result.put(AUDIT_INVALID_POINTS, auditInvalidPoints);
 		
 		// Add our data.
-		for(String invalidPoint : invalidPoints.values()) {
-			auditInvalidPoints[i++] = invalidPoint;
+		for(InvalidPoint invalidPoint : invalidPoints) {
+			auditInvalidPoints[i++] = invalidPoint.getData();
+		}
+		
+		return result;
+	}
+	
+	/**
+	 * Builds the JSONArray of invalid point JSONObjects to be returned to the
+	 * user.
+	 * 
+	 * @return A JSONArray of JSONObjects where each JSONObject represents the
+	 * 		   relevant information as to why a point was rejected.
+	 */
+	private JSONArray buildInvalidPoints() {
+		JSONArray result = new JSONArray();
+		
+		for(InvalidPoint invalidPoint : invalidPoints) {
+			JSONObject point = new JSONObject();
+
+			try {
+				point
+					.put(
+						JSON_KEY_INVALID_POINT_INDEX, 
+						invalidPoint.getIndex());
+				point.put(JSON_KEY_INVALID_POINT_PERSISTED, false);
+				point
+					.put(
+						JSON_KEY_INVALID_POINT_COMMENT, 
+						invalidPoint.getReason());
+			}
+			catch(JSONException e) {
+				LOGGER.error("Error building point information.", e);
+				setFailed();
+				return null;
+			}
+			
+			result.put(point);
 		}
 		
 		return result;

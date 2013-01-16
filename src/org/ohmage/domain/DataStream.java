@@ -1,9 +1,12 @@
 package org.ohmage.domain;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.codehaus.jackson.JsonNode;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.joda.time.format.ISODateTimeFormat;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DomainException;
 
@@ -14,6 +17,26 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class DataStream {
+	public static class InvalidDataException extends DomainException {
+		/**
+		 * Randomly generated serial version UID used for serialization.
+		 */
+		private static final long serialVersionUID = -5437115762710099279L;
+		
+		public InvalidDataException(
+			final String reason) {
+			
+			this(reason, null);
+		}
+
+		public InvalidDataException(
+			final String reason,
+			final Throwable cause) {
+			
+			super(reason, cause);
+		}
+	}
+	
 	/**
 	 * This class represents the meta-data for a data stream. All fields are 
 	 * optional. This class is immutable and, therefore, thread-safe.
@@ -28,6 +51,17 @@ public class DataStream {
 		 * @author John Jenkins
 		 */
 		public static class Builder {
+			// ID
+			public static final String JSON_KEY_ID = "id";
+			
+			// Time
+			public static final String JSON_KEY_TIME = "time"; 
+			public static final String JSON_KEY_TIMEZONE = "timezone";
+			public static final String JSON_KEY_TIMESTAMP = "timestamp";
+			
+			// Location
+			public static final String JSON_KEY_LOCATION = "location";
+			
 			private String id = null;
 			private DateTime timestamp = null;
 			private Location location = null;
@@ -36,6 +70,15 @@ public class DataStream {
 			 * Creates an empty builder.
 			 */
 			public Builder() {};
+			
+			/**
+			 * Returns true if an ID has been set; false, otherwise.
+			 * 
+			 * @return True if an ID has been set; false, otherwise.
+			 */
+			public boolean hasId() {
+				return id != null;
+			}
 			
 			/**
 			 * Sets the ID.
@@ -61,17 +104,26 @@ public class DataStream {
 					return;
 				}
 				
-				if(metaDataNode.has("id")) {
-					JsonNode idNode = metaDataNode.get("id");
+				if(metaDataNode.has(JSON_KEY_ID)) {
+					JsonNode idNode = metaDataNode.get(JSON_KEY_ID);
 					
 					if(idNode.isValueNode()) {
 						this.id = idNode.asText();
 					}
 					else {
 						throw new DomainException(
-							"The 'id' is not a value.");
+							"The ID JSON is not a value.");
 					}
 				}
+			}
+			
+			/**
+			 * Returns true if a time stamp has been set; false, otherwise.
+			 * 
+			 * @return True if a time stamp has been set; false, otherwise.
+			 */
+			public boolean hasTimestamp() {
+				return timestamp != null;
 			}
 			
 			/**
@@ -99,27 +151,13 @@ public class DataStream {
 					return;
 				}
 				
-				if(metaDataNode.has("timestamp")) {
-					JsonNode timestampNode = metaDataNode.get("timestamp");
-					
-					if(! timestampNode.isTextual()) {
-						throw new DomainException(
-							"The timestamp value was not a string.");
-					}
-					
-					try {
-						timestamp = 
-							ISODateTimeFormat.dateTime().parseDateTime(
-								timestampNode.getTextValue());
-					}
-					catch(IllegalArgumentException e) {
-						throw new DomainException(
-							"The timestamp was not a valid ISO 8601 timestamp.",
-							e);
-					}
-				}
-				else if(metaDataNode.has("time")) {
-					JsonNode timeNode = metaDataNode.get("time");
+				List<DateTime> timestampRepresentations =
+					new LinkedList<DateTime>();
+
+				// Get the timestamp if the time and timezone fields were
+				// specified.
+				if(metaDataNode.has(JSON_KEY_TIME)) {
+					JsonNode timeNode = metaDataNode.get(JSON_KEY_TIME);
 					
 					if(! timeNode.isNumber()) {
 						throw new DomainException("The time isn't a number.");
@@ -127,8 +165,9 @@ public class DataStream {
 					long time = timeNode.getNumberValue().longValue();
 					
 					DateTimeZone timeZone = DateTimeZone.UTC;
-					if(metaDataNode.has("timezone")) {
-						JsonNode timeZoneNode = metaDataNode.get("timezone");
+					if(metaDataNode.has(JSON_KEY_TIMEZONE)) {
+						JsonNode timeZoneNode =
+							metaDataNode.get(JSON_KEY_TIMEZONE);
 						
 						if(! timeZoneNode.isTextual()) {
 							throw new DomainException(
@@ -146,8 +185,68 @@ public class DataStream {
 						}
 					}
 					
-					timestamp = new DateTime(time, timeZone);
+					timestampRepresentations.add(new DateTime(time, timeZone));
 				}
+				
+				// Get the timestamp if the timestamp field was specified.
+				if(metaDataNode.has(JSON_KEY_TIMESTAMP)) {
+					JsonNode timestampNode =
+						metaDataNode.get(JSON_KEY_TIMESTAMP);
+					
+					if(! timestampNode.isTextual()) {
+						throw new DomainException(
+							"The timestamp value was not a string.");
+					}
+					
+					try {
+						timestampRepresentations
+							.add( 
+								ISOW3CDateTimeFormat
+									.any()
+										.parseDateTime(
+											timestampNode.getTextValue()));
+					}
+					catch(IllegalArgumentException e) {
+						throw new DomainException(
+							"The timestamp was not a valid ISO 8601 timestamp.",
+							e);
+					}
+				}
+				
+				// Ensure that all representations of time are equal.
+				if(timestampRepresentations.size() > 0) {
+					// Create an iterator to cycle through the representations.
+					Iterator<DateTime> timestampRepresentationsIter =
+						timestampRepresentations.iterator();
+					
+					// The first timestamp will be set as the result. 
+					DateTime timestamp = timestampRepresentationsIter.next();
+					
+					// Check against all subsequent timestamps to ensure that
+					// they represent the same point in time.
+					while(timestampRepresentationsIter.hasNext()) {
+						if(timestamp.getMillis() != 
+							timestampRepresentationsIter.next().getMillis()) {
+							
+							throw
+								new DomainException(
+									"Multiple representations of the timestamp were given, and they are not equal.");
+						}
+					}
+					
+					// If we checked out all of the timestamps and they are
+					// equal, then save this timestamp.
+					this.timestamp = timestamp;
+				}
+			}
+			
+			/**
+			 * Returns true if a location has been set; false, otherwise.
+			 * 
+			 * @return True if a location has been set; false, otherwise.
+			 */
+			public boolean hasLocation() {
+				return location != null;
 			}
 			
 			/**
@@ -175,9 +274,9 @@ public class DataStream {
 					return;
 				}
 				
-				JsonNode locationNode = metaDataNode.get("location");
-				if(locationNode != null) {
-					location = new Location(locationNode);
+				if(metaDataNode.has(JSON_KEY_LOCATION)) {
+					location =
+						new Location(metaDataNode.get(JSON_KEY_LOCATION));
 				}
 			}
 			
@@ -186,7 +285,7 @@ public class DataStream {
 			 * 
 			 * @return The MetaData object.
 			 */
-			public MetaData build() {
+			public MetaData build() throws DomainException {
 				return new MetaData(id, timestamp, location);
 			}
 		}
@@ -205,10 +304,21 @@ public class DataStream {
 		public MetaData(
 				final String id,
 				final DateTime timestamp, 
-				final Location location) {
+				final Location location)
+				throws DomainException{
 			
+			// Validate the ID and then save it.
 			this.id = id;
+			
+			// Validate the timestamp and then save it.
+			if((timestamp != null) && timestamp.isAfterNow()) {
+				throw
+					new DomainException(
+						"The timestamp cannot be in the future.");
+			}
 			this.timestamp = timestamp;
+			
+			// Validate the location and then save it.
 			this.location = location;
 		}
 		

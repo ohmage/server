@@ -29,6 +29,61 @@ public class ObserverServices {
 	private static final Logger LOGGER = 
 		Logger.getLogger(ObserverServices.class);
 	
+	public static class InvalidPoint {
+		private final long index;
+		private final String data;
+		private final String reason;
+		private final Throwable cause;
+		
+		public InvalidPoint(
+			final long index, 
+			final String data, 
+			final String reason, 
+			final Throwable cause) {
+			
+			this.index = index;
+			this.data = data;
+			this.reason = reason;
+			this.cause = cause;
+		}
+
+		/**
+		 * Returns the index.
+		 *
+		 * @return The index.
+		 */
+		public long getIndex() {
+			return index;
+		}
+
+		/**
+		 * Returns the data.
+		 *
+		 * @return The data.
+		 */
+		public String getData() {
+			return data;
+		}
+
+		/**
+		 * Returns the reason.
+		 *
+		 * @return The reason.
+		 */
+		public String getReason() {
+			return reason;
+		}
+
+		/**
+		 * Returns the cause.
+		 *
+		 * @return The cause.
+		 */
+		public Throwable getCause() {
+			return cause;
+		}
+	}
+	
 	private static ObserverServices instance;
 	private IObserverQueries observerQueries;
 	
@@ -415,8 +470,8 @@ public class ObserverServices {
 	 * 
 	 * @param data The data to validate.
 	 * 
-	 * @param invalid A map of the index of an invalid point to its string
-	 * 				  representation.
+	 * @param invalidPoints A list of InvalidPoint objects that dictate which
+	 * 						points are not entirely valid and why.
 	 * 
 	 * @return A collection of DataStreams where each stream represents a 
 	 * 		   different piece of data.
@@ -426,7 +481,7 @@ public class ObserverServices {
 	public Collection<DataStream> validateData(
 			final Observer observer,
 			final JsonParser data,
-			final Map<Integer, String> invalid)
+			final List<InvalidPoint> invalidPoints)
 			throws ServiceException {
 		
 		JsonNode nodes;
@@ -449,11 +504,13 @@ public class ObserverServices {
 		
 		Collection<DataStream> result = new ArrayList<DataStream>(numNodes);
 		for(int i = 0; i < numNodes; i++) {
+			JsonNode node = nodes.get(i);
+			
 			try {
-				result.add(observer.getDataStream(nodes.get(i)));
+				result.add(observer.getDataStream(node));
 			}
 			catch(DomainException e) {
-				if(invalid == null) {
+				if(invalidPoints == null) {
 					throw new ServiceException(
 						ErrorCode.OBSERVER_INVALID_STREAM_DATA,
 						"The data was malformed: " + e.getMessage(),
@@ -463,7 +520,13 @@ public class ObserverServices {
 					LOGGER
 						.warn(
 							"An invalid observer-stream point was detected.");
-					invalid.put(i, nodes.get(i).toString());
+					invalidPoints
+						.add(
+							new InvalidPoint(
+								i, 
+								node.toString(), 
+								e.getMessage(), 
+								e));
 				}
 			}
 		}
