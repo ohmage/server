@@ -1057,12 +1057,16 @@ public class Observer {
 			
 			Boolean withId = currStream.getWithId();
 			metaDataBuilder.setId(metaDataNode); 
-			if((withId == true) && (! metaDataBuilder.hasId())) {
+			if((withId != null) && 
+				(withId == true) && (! metaDataBuilder.hasId())) {
+				
 				throw
 					new DomainException(
 						"An ID must be supplied with each point per the definition.");
 			}
-			else if((withId == false) && metaDataBuilder.hasId()) {
+			else if((withId != null) && 
+				(withId == false) && metaDataBuilder.hasId()) {
+				
 				throw
 					new DomainException(
 						"An ID cannot be supplied for any point per the definition.");
@@ -1070,12 +1074,17 @@ public class Observer {
 			
 			Boolean withTimestamp = currStream.getWithTimestamp();
 			metaDataBuilder.setTimestamp(metaDataNode);
-			if((withTimestamp == true) && (! metaDataBuilder.hasTimestamp())) {
+			if((withTimestamp != null) && 
+				(withTimestamp == true) && 
+				(! metaDataBuilder.hasTimestamp())) {
+				
 				throw
 					new DomainException(
 						"A timestamp must be supplied with each point per the definition.");
 			}
-			else if((withId == false) && metaDataBuilder.hasId()) {
+			else if((withTimestamp != null) && 
+				(withTimestamp == false) && metaDataBuilder.hasTimestamp()) {
+				
 				throw
 					new DomainException(
 						"A timestamp cannot be supplied for any point per the definition.");
@@ -1083,12 +1092,16 @@ public class Observer {
 			
 			Boolean withLocation = currStream.getWithLocation();
 			metaDataBuilder.setLocation(metaDataNode);
-			if((withLocation == true) && (! metaDataBuilder.hasLocation())) {
+			if((withLocation != null) && 
+				(withLocation == true) && (! metaDataBuilder.hasLocation())) {
+				
 				throw
 					new DomainException(
 						"A location must be supplied with each point per the definition.");
 			}
-			else if((withLocation == false) && metaDataBuilder.hasLocation()) {
+			else if((withLocation != null) && 
+				(withLocation == false) && metaDataBuilder.hasLocation()) {
+				
 				throw
 					new DomainException(
 						"A location cannot be supplied for any point per the definition.");

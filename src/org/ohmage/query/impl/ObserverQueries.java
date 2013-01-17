@@ -352,164 +352,6 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				e);
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IObserverQueries#getObserver(java.lang.String, long)
-	 */
-	@Override
-	public Observer getObserver(
-			final String id, 
-			final Long version)
-			throws DataAccessException {
-		
-		if(id == null) {
-			return null;
-		}
-		
-		StringBuilder observerSql =
-			new StringBuilder(
-				"SELECT " +
-					"id, " +
-					"observer_id, " +
-					"version, " +
-					"name, " +
-					"description, " +
-					"version_string " +
-				"FROM observer o " +
-				"WHERE o.observer_id = ? ");
-		List<Object> parameters = new LinkedList<Object>();
-		parameters.add(id);
-		
-		if(version == null) {
-			observerSql.append("ORDER BY version DESC LIMIT 1");
-		}
-		else {
-			observerSql.append("AND o.version = ?");
-			parameters.add(version);
-		}
-		
-		final Long observerId;
-		final Observer.Builder observerBuilder = new Observer.Builder();
-		try {
-			List<Long> observerIds =
-				getJdbcTemplate().query(
-					observerSql.toString(), 
-					parameters.toArray(),
-					new RowMapper<Long> () {
-						/**
-						 * Maps the row of data to a new observer.
-						 */
-						@Override
-						public Long mapRow(
-								final ResultSet rs, 
-								final int rowNum)
-								throws SQLException {
-						
-							observerBuilder
-								.setId(rs.getString("observer_id"))
-								.setVersion(rs.getLong("version"))
-								.setName(rs.getString("name"))
-								.setDescription(rs.getString("description"))
-								.setVersionString(
-									rs.getString("version_string"));
-		
-							return rs.getLong("id");
-						}
-				
-					}
-				);
-			
-			if(observerIds.size() == 0) {
-				return null;
-			}
-			else if(observerIds.size() > 1) {
-				throw new DataAccessException(
-					"Multiple observers have the same ID ('" +
-						id +
-						"') and version ('" +
-						version +
-						"').");
-			}
-			else {
-				observerId = observerIds.get(0);
-			}
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" +
-					observerSql.toString() + 
-					"' with parameters: " +
-					parameters,
-				e);
-		}
-		
-		String streamSql = 
-			"SELECT " +
-				"os.stream_id, " +
-				"os.version, " +
-				"os.name, " +
-				"os.description, " +
-				"os.with_id, " +
-				"os.with_timestamp, " +
-				"os.with_location, " +
-				"os.stream_schema " +
-			"FROM observer_stream os, observer_stream_link osl " +
-			"WHERE osl.observer_id = ? " +
-			"AND osl.observer_stream_id = os.id";
-		
-		try {
-			observerBuilder.addStreams(
-				getJdbcTemplate().query(
-					streamSql, 
-					new Object[] { observerId },
-					new RowMapper<Observer.Stream>() {
-						/**
-						 * Maps the row of data to a new stream.
-						 */
-						@Override
-						public Stream mapRow(
-								final ResultSet rs, 
-								final int rowNum)
-								throws SQLException {
-							
-							try {
-								return new Observer.Stream(
-									rs.getString("stream_id"), 
-									rs.getLong("version"), 
-									rs.getString("name"), 
-									rs.getString("description"), 
-									rs.getBoolean("with_id"),
-									rs.getBoolean("with_timestamp"), 
-									rs.getBoolean("with_location"), 
-									rs.getString("stream_schema"));
-							}
-							catch(DomainException e) {
-								throw new SQLException(e);
-							}
-						}
-						
-					}
-				)
-			);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" +
-					streamSql + 
-					"' with parameters: " +
-					id + ", " + 
-					version,
-				e);
-		}
-		
-		try {
-			return observerBuilder.build();
-		}
-		catch(DomainException e) {
-			throw new DataAccessException(e);
-		}
-	}
 	
 	/*
 	 * (non-Javadoc)
@@ -737,116 +579,6 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				e);
 		}
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IObserverQueries#getStream(java.lang.String, java.lang.String, long)
-	 */
-	@Override
-	public Stream getStream(
-			final String observerId,
-			final String streamId,
-			final Long streamVersion) 
-			throws DataAccessException {
-		
-		if(observerId == null) {
-			return null;
-		}
-		else if(streamId == null) {
-			return null;
-		}
-		
-		StringBuilder streamSqlBuilder = 
-			new StringBuilder(
-				"SELECT " +
-					"os.stream_id, " +
-					"os.version, " +
-					"os.name, " +
-					"os.description, " +
-					"os.with_id, " +
-					"os.with_timestamp, " +
-					"os.with_location, " +
-					"os.stream_schema " +
-				"FROM " +
-					"observer o, " +
-					"observer_stream os, " +
-					"observer_stream_link osl " +
-				"WHERE o.observer_id = ? " +
-				"AND o.id = osl.observer_id " +
-				"AND osl.observer_stream_id = os.id " +
-				"AND os.stream_id = ? ");
-		List<Object> parameters = new LinkedList<Object>();
-		parameters.add(observerId);
-		parameters.add(streamId);
-		
-		if(streamVersion == null) {
-			streamSqlBuilder.append("ORDER BY os.version LIMIT 1 ");
-		}
-		else {
-			streamSqlBuilder.append("AND os.version = ? ");
-			parameters.add(streamVersion);
-		}
-		
-		streamSqlBuilder.append("GROUP BY os.stream_id, os.version");
-		
-		try {
-			return 
-				getJdbcTemplate().queryForObject(
-					streamSqlBuilder.toString(), 
-					parameters.toArray(),
-					new RowMapper<Observer.Stream>() {
-						/**
-						 * Maps the row of data to a new stream.
-						 */
-						@Override
-						public Stream mapRow(
-								final ResultSet rs, 
-								final int rowNum)
-								throws SQLException {
-							
-							try {
-								return new Observer.Stream(
-									rs.getString("stream_id"), 
-									rs.getLong("version"), 
-									rs.getString("name"), 
-									rs.getString("description"), 
-									rs.getBoolean("with_id"),
-									rs.getBoolean("with_timestamp"), 
-									rs.getBoolean("with_location"), 
-									rs.getString("stream_schema"));
-							}
-							catch(DomainException e) {
-								throw new SQLException(e);
-							}
-						}
-						
-					}
-				);
-		}
-		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
-			if(e.getActualSize() == 0) {
-				return null;
-			}
-			
-			throw new DataAccessException(
-				"Multiple streams in an observer ('" +
-					observerId +
-					"') have the same ID ('" + 
-					streamId +
-					"') and version ('" +
-					streamVersion +
-					"').",
-				e);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" +
-					streamSqlBuilder.toString() + 
-					"' with parameters: " +
-					parameters,
-				e);
-		}
-	}
 	
 	/*
 	 * (non-Javadoc)
@@ -885,7 +617,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"observer_stream os, " +
 					"observer_stream_link osl " +
 				"WHERE o.id = osl.observer_id " +
-				"AND osl.observer_stream_id = os.id");
+				"AND os.id = osl.observer_stream_id");
 
 		// Create the default set of parameters.
 		List<Object> parameters = new LinkedList<Object>();
@@ -973,6 +705,24 @@ public class ObserverQueries extends Query implements IObserverQueries {
 							result.put(observerId, streams);
 						}
 						
+						// Because the with_* values are optional and
+						// may be null, they must be retrieve in this
+						// special way.
+						Boolean withId, withTimestamp, withLocation;
+						withId = rs.getBoolean("with_id");
+						if(rs.wasNull()) {
+							withId = null;
+						}
+						withTimestamp =
+							rs.getBoolean("with_timestamp");
+						if(rs.wasNull()) {
+							withTimestamp = null;
+						}
+						withLocation = rs.getBoolean("with_location");
+						if(rs.wasNull()) {
+							withLocation = null;
+						}
+						
 						// Add the stream to its respective result list.
 						try {
 							streams
@@ -982,9 +732,9 @@ public class ObserverQueries extends Query implements IObserverQueries {
 										rs.getLong("version"), 
 										rs.getString("name"), 
 										rs.getString("description"), 
-										rs.getBoolean("with_id"),
-										rs.getBoolean("with_timestamp"), 
-										rs.getBoolean("with_location"), 
+										withId,
+										withTimestamp, 
+										withLocation, 
 										rs.getString("stream_schema")));
 						}
 						catch(DomainException e) {
@@ -1044,92 +794,6 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					streamId,
 				e);
 		}
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.query.IObserverQueries#getObserverIdToStreamsMap(long, long)
-	 */
-	@Override
-	public Map<String, Collection<Stream>> getObserverIdToStreamsMap(
-			final long numToSkip,
-			final long numToReturn)
-			throws DataAccessException {
-		
-		final Map<String, Collection<Stream>> result = 
-			new HashMap<String, Collection<Stream>>();
-		
-		final String sql =
-			"SELECT " +
-				"o.observer_id, " +
-				"os.stream_id, " +
-				"os.version, " +
-				"os.name, " +
-				"os.description, " +
-				"os.with_id, " +
-				"os.with_timestamp, " +
-				"os.with_location, " +
-				"os.stream_schema " +
-			"FROM observer o, observer_stream os, observer_stream_link osl " +
-			"WHERE o.id = osl.observer_id " +
-			"AND os.id = osl.observer_stream_id " +
-			"GROUP BY os.stream_id, os.version " +
-			"LIMIT ?, ?";
-		
-		try {
-			getJdbcTemplate().query(
-				sql,
-				new Object[] { numToSkip, numToReturn },
-				new RowMapper<Object>() {
-					/**
-					 * Adds each of the streams to their corresponding list.
-					 */
-					@Override
-					public Object mapRow(
-							final ResultSet rs,
-							final int rowNum)
-							throws SQLException {
-
-						String observerId = rs.getString("observer_id");
-						
-						Stream stream;
-						try {
-							stream = 
-								new Observer.Stream(
-									rs.getString("stream_id"), 
-									rs.getLong("version"), 
-									rs.getString("name"), 
-									rs.getString("description"), 
-									rs.getBoolean("with_id"),
-									rs.getBoolean("with_timestamp"), 
-									rs.getBoolean("with_location"), 
-									rs.getString("stream_schema"));
-						}
-						catch(DomainException e) {
-							throw new SQLException(e);
-						}
-						
-						Collection<Stream> streams = result.get(observerId);
-						if(streams == null) {
-							streams = new LinkedList<Stream>();
-							result.put(observerId, streams);
-						}
-						streams.add(stream);
-						
-						return null;
-					}
-				}
-			);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" +
-					sql +
-					"'.",
-				e);
-		}
-		
-		return result;
 	}
 
 	/*

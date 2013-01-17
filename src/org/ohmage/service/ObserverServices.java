@@ -302,18 +302,26 @@ public class ObserverServices {
 			throws ServiceException {
 		
 		try {
-			Observer result = 
-				observerQueries.getObserver(observerId, observerVersion);
-			
-			if(result == null) {
+			Collection<Observer> result = 
+				observerQueries
+					.getObservers(observerId, observerVersion, 0, 2);
+		
+			if(result.size() == 0) {
 				throw new ServiceException(
 					ErrorCode.OBSERVER_INVALID_ID,
 					"No such observer exists: " + 
 						"ID: " + observerId + ", " + 
 						"Version: " + observerVersion);
 			}
+			else if(result.size() > 1) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INVALID_ID,
+					"Multiple observers exist: " + 
+						"ID: " + observerId + ", " + 
+						"Version: " + observerVersion);
+			}
 			
-			return result;
+			return result.iterator().next();
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -374,9 +382,64 @@ public class ObserverServices {
 			final Long streamVersion)
 			throws ServiceException {
 		
+		if(observerId == null) {
+			throw new ServiceException("The observer ID is null.");
+		}
+		if(streamId == null) {
+			throw new ServiceException("The stream ID is null.");
+		}
+		if(streamVersion == null) {
+			throw new ServiceException("The stream version is null.");
+		}
+		
 		try {
-			return 
-				observerQueries.getStream(observerId, streamId, streamVersion);
+			// Get all of the streams for the observers. This should have only
+			// 0 or 1 elements.
+			Collection<Collection<Observer.Stream>> streamCollection =
+				observerQueries
+					.getStreams(
+						null, 
+						observerId, 
+						null, 
+						streamId, 
+						streamVersion, 
+						0, 
+						2).values();
+			
+			// If the observer doesn't exist, its stream cannot exist.
+			if(streamCollection.size() == 0) {
+				return null;
+			}
+			// No two observers should have the same ID.
+			else if(streamCollection.size() > 1) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INVALID_ID,
+					"Multiple observers exist with the same ID: " + 
+						observerId);
+			}
+			
+			// Get the collection of streams for the observer. This should only
+			// 0 or 1 elements.
+			Collection<Observer.Stream> streams =
+				streamCollection.iterator().next();
+			
+			// If there are no elements, return null.
+			if(streams.size() == 0) {
+				return null;
+			}
+			// No two streams for the same observer should have the same
+			// ID-version pair.
+			else if(streams.size() > 1) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INVALID_ID,
+					"Multiple streams for the same observer ('" + 
+						observerId + 
+						"') have the same ID-version pair: " + 
+						"Stream ID: " + streamId + " " +
+						"Stream Version: " + streamVersion);
+			}
+			
+			return streams.iterator().next();
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -430,32 +493,6 @@ public class ObserverServices {
 					streamVersion,
 					numToSkip,
 					numToReturn);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
-	
-	/**
-	 * Retrieves a map of observer IDs to all versions of all of their streams.
-	 * 
-	 * @param The number of streams to skip.
-	 * 
-	 * @param The number of streams to return.
-	 * 
-	 * @return The map of observer IDs to their streams.
-	 * 
-	 * @throws ServiceException There was an error.
-	 */
-	public Map<String, Collection<Stream>> getObserverIdToStreamsMap(
-			final long numToSkip,
-			final long numToReturn) 
-			throws ServiceException {
-		
-		try {
-			return 
-				observerQueries
-					.getObserverIdToStreamsMap(numToSkip, numToReturn);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

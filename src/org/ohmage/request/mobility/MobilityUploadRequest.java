@@ -401,6 +401,48 @@ public class MobilityUploadRequest extends Request {
 	public Map<String, String[]> getAuditInformation() {
 		Map<String, String[]> result = super.getAuditInformation();
 		
+		// If the stream upload request was created, add its audit information
+		// to the current information.
+		if(streamUploadRequest != null) {
+			// Get the stream upload request's audit information.
+			Map<String, String[]> streamAuditInfo =
+				streamUploadRequest.getAuditInformation();
+			
+			// Combine this audit information with the stream upload request's
+			// audit information.
+			for(String key : streamAuditInfo.keySet()) {
+				String[] previousArray = result.get(key);
+				String[] currArray = streamAuditInfo.get(key);
+				
+				// If this audit information doesn't have values for the
+				// current key, just save the stream upload request's audit
+				// information by itself.
+				if(previousArray == null) {
+					previousArray = currArray;
+				}
+				// If this audit information does have value for the current
+				// key, create a new array that is the concatenation of the
+				// current array and the stream upload request's array.
+				else {
+					String[] newArray =
+						new String[previousArray.length + currArray.length];
+					
+					for(int i = 0; i < previousArray.length; i++) {
+						newArray[i] = previousArray[i];
+					}
+					for(int i = 0; i < currArray.length; i++) {
+						newArray[previousArray.length + i] = currArray[i];
+					}
+					
+					previousArray = newArray;
+				}
+				
+				// Save the "previous" array, which should now include all
+				// values.
+				result.put(key, previousArray);
+			}
+		}
+		
 		result.put(AUDIT_KEY_VALID_POINT_IDS, validIds.toArray(new String[0]));
 		
 		if(invalidPointsJson != null) {

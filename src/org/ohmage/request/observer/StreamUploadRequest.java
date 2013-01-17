@@ -82,6 +82,8 @@ public class StreamUploadRequest extends UserRequest {
 		"observer_stream_data_num_invalid_points";
 	private static final String AUDIT_INVALID_POINTS = 
 		"observer_stream_data_upload_invalid_point";
+	private static final String AUDIT_INVALID_POINT_REASON =
+		"observer_stream_data_upload_invalid_point_reason";
 
 	private final String observerId;
 	private final Long observerVersion;
@@ -317,9 +319,6 @@ public class StreamUploadRequest extends UserRequest {
 		// Get the parent's audit information.
 		Map<String, String[]> result = super.getAuditInformation();
 		
-		// Get the index that we will use when adding our stuff.
-		int i;
-		
 		// Put the number of valid points.
 		result
 			.put(
@@ -337,6 +336,9 @@ public class StreamUploadRequest extends UserRequest {
 			.put(
 				AUDIT_NUM_INVALID_POINTS, 
 				new String[] { Integer.toString(invalidPoints.size()) });
+		
+		// Get the index that we will use when adding our stuff.
+		int i;
 		
 		// Get the parent's array, so that we don't overwrite theirs.
 		String[] auditInvalidPoints = result.get(AUDIT_INVALID_POINTS);
@@ -371,6 +373,42 @@ public class StreamUploadRequest extends UserRequest {
 		// Add our data.
 		for(InvalidPoint invalidPoint : invalidPoints) {
 			auditInvalidPoints[i++] = invalidPoint.getData();
+		}
+		
+		// This will be used to record the reason that some points were
+		// rejected.
+		String[] auditInvalidPointReason = 
+			result.get(AUDIT_INVALID_POINT_REASON);
+		if(auditInvalidPointReason == null) {
+			// The initial index will be 0.
+			i = 0;
+			auditInvalidPointReason = new String[invalidPoints.size()];
+		}
+		// If one did exist, create a new array prepended with the old data.
+		else {
+			// The initial index will be after all of the old data.
+			i = auditInvalidPointReason.length;
+			
+			// Create a temporary array that contains enough space for the old
+			// data and the new data.
+			String[] tempAuditInvalidPointReason = 
+				new String[i + invalidPoints.size()];
+			
+			// Add the old data to the temporary array.
+			for(int j = 0; j < i; j++) {
+				tempAuditInvalidPointReason[j] = auditInvalidPointReason[j];
+			}
+			
+			// Set our array to the temporary array.
+			auditInvalidPointReason = tempAuditInvalidPointReason;
+		}
+		// Be sure to save our new array over the old one now that we have
+		// preserved the old data.
+		result.put(AUDIT_INVALID_POINT_REASON, auditInvalidPointReason);
+		
+		// Add our data.
+		for(InvalidPoint invalidPoint : invalidPoints) {
+			auditInvalidPointReason[i++] = invalidPoint.getReason();
 		}
 		
 		return result;

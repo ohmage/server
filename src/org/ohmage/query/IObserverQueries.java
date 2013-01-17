@@ -54,23 +54,6 @@ public interface IObserverQueries {
 		throws DataAccessException;
 	
 	/**
-	 * Retrieves the observer.
-	 * 
-	 * @param id The observer's unique identifier.
-	 * 
-	 * @param version The observer's version. If this is null, the latest 
-	 * 				  version is returned.
-	 * 
-	 * @return The Observer or null if no observer with that ID/version exists.
-	 * 
-	 * @throws DataAccessException There was an error.
-	 */
-	public Observer getObserver(
-		final String id, 
-		final Long version) 
-		throws DataAccessException;
-	
-	/**
 	 * Gathers all observers that match the given criteria. If all parameters
 	 * are null, then all parameters visible to the user are returned.
 	 * 
@@ -105,26 +88,6 @@ public interface IObserverQueries {
 	 */
 	public Long getGreatestObserverVersion(
 		final String id) 
-		throws DataAccessException;
-	
-	/**
-	 * Retrieves the stream.
-	 * 
-	 * @param observerId The observer's unique identifier.
-	 * 
-	 * @param streamId The stream's unique identifier.
-	 * 
-	 * @param streamVersion The stream's version.
-	 * 
-	 * @return The Stream or null if no stream with that observer/ID/version 
-	 * 		   exists.
-	 * 
-	 * @throws DataAccessException There was an error.
-	 */
-	public Observer.Stream getStream(
-		final String observerId,
-		final String streamId, 
-		final Long streamVersion) 
 		throws DataAccessException;
 	
 	/**
@@ -178,22 +141,6 @@ public interface IObserverQueries {
 	public Long getGreatestStreamVersion(
 		final String observerId,
 		final String streamId)
-		throws DataAccessException;
-	
-	/**
-	 * Returns a map of observer IDs to all versions of all of their streams.
-	 * 
-	 * @param numToSkip The number of streams to skip.
-	 * 
-	 * @param numToReturn The number of streams to return.
-	 * 
-	 * @return The map of observer IDs to their streams.
-	 * 
-	 * @throws DataAccessException There was an error.
-	 */
-	public Map<String, Collection<Stream>> getObserverIdToStreamsMap(
-		final long numToSkip,
-		final long numToReturn)
 		throws DataAccessException;
 	
 	/**
