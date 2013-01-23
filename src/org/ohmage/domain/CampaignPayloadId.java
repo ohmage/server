@@ -1,18 +1,29 @@
 package org.ohmage.domain;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonGenerator.Feature;
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseRequest;
+import org.ohmage.request.survey.SurveyUploadRequest;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -21,6 +32,13 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class CampaignPayloadId implements PayloadId {
+	private static final JsonFactory JSON_FACTORY = 
+		// Create a mapping JSON factory.
+		(new MappingJsonFactory())
+			// Ask the writer to always close the content even when there is an
+			// error.
+			.configure(Feature.AUTO_CLOSE_JSON_CONTENT, true);
+	
 	private final String campaignId;
 	private final String surveyId;
 	private final String promptId;
@@ -100,7 +118,7 @@ public class CampaignPayloadId implements PayloadId {
 	 * @return A survey_response/read request.
 	 */
 	@Override
-	public SurveyResponseReadRequest generateSubRequest(
+	public SurveyResponseReadRequest generateReadRequest(
 			final HttpServletRequest httpRequest,
 			final Map<String, String[]> parameters,
 			final Boolean hashPassword,
@@ -170,6 +188,297 @@ public class CampaignPayloadId implements PayloadId {
 		catch(IllegalArgumentException e) {
 			throw new DomainException(
 				"One of the parameters was invalid.",
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.PayloadId#generateWriteRequest(javax.servlet.http.HttpServletRequest, java.util.Map, java.lang.Boolean, org.ohmage.request.UserRequest.TokenLocation, boolean, long, java.lang.String)
+	 */
+	@Override
+	public UserRequest generateWriteRequest(
+		final HttpServletRequest httpRequest,
+		final Map<String, String[]> parameters,
+		final Boolean hashPassword,
+		final TokenLocation tokenLocation,
+		final boolean callClientRequester,
+		final long version,
+		final String data)
+		throws DomainException {
+		
+		// We don't allow writes for specific prompts. The user is only allowed
+		// to write to surveys.
+		if(promptId != null) {
+			throw
+				new DomainException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"Write is disallowed for prompt-specific payload IDs.");
+		}
+		
+		// Create a parser for the desired data.
+		JsonNode dataNode;
+		try {
+			dataNode =
+				JSON_FACTORY.createJsonParser(data).readValueAsTree();
+		}
+		catch(JsonProcessingException e) {
+			throw
+				new DomainException(
+					ErrorCode.OMH_INVALID_DATA,
+					"The data was not valid JSON.",
+					e);
+		}
+		catch(IOException e) {
+			throw new DomainException("Could not read the uploaded data.", e);
+		}
+		
+		// Be sure that it is an array.
+		if(! dataNode.isArray()) {
+			throw
+				new DomainException(
+					ErrorCode.OMH_INVALID_DATA,
+					"The data is not an array.");
+		}
+		
+		// The writer that will be used to write the result.
+		StringWriter resultWriter = new StringWriter();
+		
+		// Create a new JSON array to hold the rest of the data.
+		JsonGenerator generator = null;
+		try {
+			// Create a generator to generate the results for our writer.
+			generator = JSON_FACTORY.createJsonGenerator(resultWriter);
+			
+			// Start the array of points.
+			generator.writeStartArray();
+			
+			// Cycle through the objects
+			int numElements = dataNode.size();
+			for(int i = 0; i < numElements; i++) {
+				// Get the current point.
+				JsonNode currPoint = dataNode.get(i);
+				
+				// Make sure the current point is an object.
+				if(! currPoint.isObject()) {
+					throw
+						new DomainException(
+							ErrorCode.OMH_INVALID_DATA,
+							"A data point is not an object.");
+				}
+				
+				// Write the beginning of this point.
+				generator.writeStartObject();
+				
+				// Get the metadata and validate that it is an object or null.
+				JsonNode metadata = currPoint.get("metadata");
+				if(metadata == null) {
+					throw
+						new DomainException(
+							ErrorCode.OMH_INVALID_DATA,
+							"The metadata is missing.");
+				}
+				else if(! metadata.isObject()) {
+					throw 
+						new DomainException(
+							ErrorCode.OMH_INVALID_DATA,
+							"The metadata for a data point is not an object.");
+				}
+				else {	
+					// Get the ID and save it in the new point.
+					JsonNode id = metadata.get("id");
+					if(id == null) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The required ID is missing.");
+					}
+					else if(! id.isTextual()) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The ID is not a string.");
+					}
+					else {
+						generator
+							.writeStringField(
+								"survey_key",
+								id.getTextValue());
+					}
+					
+					// Get the timestamp and save it in the new point.
+					JsonNode timestampNode = metadata.get("timestamp");
+					if(timestampNode == null) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The required timestamp is missing.");
+					}
+					else if(! timestampNode.isTextual()) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The timestamp is not a string.");
+					}
+					else {
+						DateTime timestamp;
+						try {
+							timestamp =
+								ISOW3CDateTimeFormat
+									.any()
+										.parseDateTime(
+											timestampNode.getTextValue());
+						}
+						catch(IllegalArgumentException e) {
+							throw
+								new DomainException(
+									ErrorCode.OMH_INVALID_DATA,
+									"The timestamp is malformed.");
+						}
+						
+						generator
+							.writeNumberField(
+								"time",
+								timestamp.getMillis());
+						generator
+							.writeStringField(
+								"timezone",
+								timestamp
+									.getZone()
+										.getName(timestamp.getMillis()));
+					}
+					
+					// Get the location and save it in the new point.
+					JsonNode location = metadata.get("location");
+					if(location == null) {
+						generator
+							.writeStringField(
+								"location_status",
+								"unavailable");
+					}
+					else if(! location.isObject()) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The location is not an object.");
+					}
+					else {
+						generator
+							.writeStringField(
+								"location_status",
+								"valid");
+						generator
+							.writeObjectField(
+								"location",
+								location);
+					}
+				}
+				
+				// Add the survey ID.
+				generator.writeStringField("survey_id", surveyId);
+				
+				// Get the data and save it in the new point as is.
+				JsonNode pointData = currPoint.get("data");
+				if(pointData == null) {
+					throw
+						new DomainException(
+							ErrorCode.OMH_INVALID_DATA,
+							"The data is missing.");
+				}
+				else {
+					// Pull out the survey launch context and put it in the
+					// result.
+					JsonNode launchContext =
+						pointData
+							.get(
+								SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+					if(launchContext == null) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA, 
+								"The launch context is missing.");
+					}
+					else if(! launchContext.isObject()) {
+						throw 
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA, 
+								"The launch context was not an object.");
+					}
+					else {
+						generator
+							.writeObjectField(
+								SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT,
+								launchContext);
+					}
+					
+					// Get the responses array and put it in the result.
+					JsonNode responses = 
+						pointData.get(SurveyResponse.JSON_KEY_RESPONSES);
+					if(responses == null) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The responses were missing.");
+					}
+					else if(! responses.isArray()) {
+						throw
+							new DomainException(
+								ErrorCode.OMH_INVALID_DATA,
+								"The responses value is not an array.");
+					}
+					else {
+						generator
+							.writeObjectField(
+								SurveyResponse.JSON_KEY_RESPONSES,
+								responses);
+					}
+				}
+				
+				// Close this point.
+				generator.writeEndObject();
+			}
+			
+			// End the overall array.
+			generator.writeEndArray();
+		}
+		// This should never happen as we are always writing to our own writer.
+		catch(IOException e) {
+			throw
+				new DomainException(
+					"Could not write to my own string writer.",
+					e);
+		}
+		finally {
+			// Always be sure to close the generator as long as it was created.
+			// This will ensure that any unclosed arrays or objects are closed.
+			if(generator != null) {
+				try {
+					generator.close();
+				}
+				catch(IOException e) {
+					// This will only ever happen if it cannot close the 
+					// underlying stream, which will never happen, or if an
+					// error already took place. 
+				}
+			}
+		}
+		
+		try {
+			return
+				new SurveyUploadRequest(
+					httpRequest,
+					parameters,
+					campaignId,
+					resultWriter.toString());
+		}
+		catch(IOException e) {
+			throw new DomainException(
+				"There was an error reading the HTTP request.",
+				e);
+		}
+		catch(InvalidRequestException e) {
+			throw new DomainException(
+				"Error parsing the parameters.",
 				e);
 		}
 	}

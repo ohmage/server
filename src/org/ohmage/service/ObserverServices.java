@@ -29,12 +29,32 @@ public class ObserverServices {
 	private static final Logger LOGGER = 
 		Logger.getLogger(ObserverServices.class);
 	
+	/**
+	 * An invalid point in an upload. This represents the index in the upload
+	 * array, the data for that index, the reason it was rejected, and, 
+	 * optionally, an exception which triggered the rejection.
+	 *
+	 * @author John Jenkins
+	 */
 	public static class InvalidPoint {
 		private final long index;
 		private final String data;
 		private final String reason;
 		private final Throwable cause;
 		
+		/**
+		 * Creates an invalid point with the necessary parameters.
+		 * 
+		 * @param index The index in the upload array.
+		 * 
+		 * @param data The data for the index as a string.
+		 * 
+		 * @param reason A user-friendly string representing why this point was
+		 * 				 invalid.
+		 * 
+		 * @param cause An optional exception which may have been thrown to
+		 * 				cause the error.
+		 */
 		public InvalidPoint(
 			final long index, 
 			final String data, 

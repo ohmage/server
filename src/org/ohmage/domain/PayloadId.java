@@ -16,7 +16,7 @@ import org.ohmage.request.UserRequest.TokenLocation;
  */
 public abstract interface PayloadId {
 	/**
-	 * Creates a UserRequest object from the given parameters.
+	 * Creates a UserRequest object from the given parameters for reading data.
 	 * 
 	 * @param httpRequest The HTTP request.
 	 * 
@@ -52,7 +52,7 @@ public abstract interface PayloadId {
 	 * 
 	 * @throws DomainException There was an error building the request.
 	 */
-	UserRequest generateSubRequest(
+	UserRequest generateReadRequest(
 		HttpServletRequest httpRequest,
 		Map<String, String[]> parameters,
 		Boolean hashPassword,
@@ -64,5 +64,41 @@ public abstract interface PayloadId {
 		DateTime endDate,
 		long numToSkip,
 		long numToReturn)
+		throws DomainException;
+	
+	/**
+	 * Creates a UserRequest object from the given parameters for writing data.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @param parameters The parameters already decoded from the HTTP request.
+	 * 
+	 * @param hashPassword If null, a username and password are not allowed for
+	 * 					   this request. If true, the password will be hashed
+	 * 					   before it is used.
+	 * 
+	 * @param tokenLocation If null, an authentication token is not allowed for
+	 * 						this request. Otherwise, it describes where to look
+	 * 						for the token.
+	 * 
+	 * @param callClientRequester Refers to the "client" parameter as the
+	 * 							  "requester".
+	 * 
+	 * @param version The version of the payload from which to pull data.
+	 * 
+	 * @param data The Open mHealth data being uploaded.
+	 * 
+	 * @return The UserRequest object.
+	 * 
+	 * @throws DomainException There was an error building the request.
+	 */
+	UserRequest generateWriteRequest(
+		HttpServletRequest httpRequest,
+		Map<String, String[]> parameters,
+		Boolean hashPassword,
+		TokenLocation tokenLocation,
+		boolean callClientRequester,
+		long version,
+		String data)
 		throws DomainException;
 }

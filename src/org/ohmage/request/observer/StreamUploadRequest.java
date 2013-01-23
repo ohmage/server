@@ -114,7 +114,7 @@ public class StreamUploadRequest extends UserRequest {
 			final HttpServletRequest httpRequest, 
 			final Map<String, String[]> parameters,
 			final String observerId,
-			final long observerVersion,
+			final Long observerVersion,
 			final String data)
 			throws IOException, InvalidRequestException {
 		
@@ -254,13 +254,25 @@ public class StreamUploadRequest extends UserRequest {
 		
 		try {
 			LOGGER.info("Getting the observer definition.");
-			Observer observer = 
-				ObserverServices.instance().getObserver(
+			Collection<Observer> observers = 
+				ObserverServices.instance().getObservers(
 					observerId, 
-					observerVersion);
+					observerVersion,
+					0,
+					1);
+			
+			// Determine if the observer exists.
+			if(observers.size() == 0) {
+				throw new ServiceException(
+					ErrorCode.OBSERVER_INVALID_ID,
+					"No observer exists with teh given ID-version pair: " + 
+						"Observer ID: " + observerId + " " +
+						"Observer Version: " + observerVersion);
+			}
+			// Get the first observer which should be the most recent.
+			Observer observer = observers.iterator().next();
 			
 			LOGGER.info("Validating the uploaded data.");
-			
 			Collection<DataStream> dataStreams =
 				ObserverServices
 					.instance().validateData(observer, data, invalidPoints);

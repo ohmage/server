@@ -64,6 +64,7 @@ import org.ohmage.request.omh.OmhReadRequest;
 import org.ohmage.request.omh.OmhRegistryCreateRequest;
 import org.ohmage.request.omh.OmhRegistryReadRequest;
 import org.ohmage.request.omh.OmhRegistryUpdateRequest;
+import org.ohmage.request.omh.OmhWriteRequest;
 import org.ohmage.request.registration.RegistrationReadRequest;
 import org.ohmage.request.survey.SurveyResponseDeleteRequest;
 import org.ohmage.request.survey.SurveyResponseFunctionReadRequest;
@@ -181,6 +182,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiOmhRegistryUpdate;
 	private String apiOmhCatalog;
 	private String apiOmhRead;
+	private String apiOmhWrite;
 	
 	// Survey
 	private String apiSurveyUpload;
@@ -317,6 +319,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiOmhRegistryUpdate = apiRoot + "/omh/v1.0/registry/update";
 		apiOmhCatalog = apiRoot + "/omh/v1.0/catalog";
 		apiOmhRead = apiRoot + "/omh/v1.0/read";
+		apiOmhWrite = apiRoot + "/omh/v1.0/write";
 		
 		// Survey
 		apiSurveyUpload = apiRoot + "/survey/upload";
@@ -536,6 +539,9 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiOmhRead.equals(requestUri)) {
 			return new OmhReadRequest(httpRequest);
 		}
+		else if(apiOmhWrite.equals(requestUri)) {
+			return new OmhWriteRequest(httpRequest);
+		}
 		// Survey
 		else if(apiSurveyUpload.equals(requestUri)) {
 			return new SurveyUploadRequest(httpRequest);
@@ -689,6 +695,7 @@ public final class RequestBuilder implements ServletContextAware {
 				apiOmhRegistryUpdate.equals(uri) ||
 				apiOmhCatalog.equals(uri) ||
 				apiOmhRead.equals(uri) ||
+				apiOmhWrite.equals(uri) ||
 				// Survey
 				apiSurveyUpload.equals(uri) ||
 				apiSurveyResponseRead.equals(uri) ||

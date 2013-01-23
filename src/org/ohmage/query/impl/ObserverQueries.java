@@ -406,7 +406,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			observerSql.append(whereClause);
 		}
 		
-		observerSql.append(" ORDER BY o.observer_id, o.version");
+		observerSql.append(" ORDER BY o.observer_id ASC, o.version DESC");
 		
 		observerSql.append(" LIMIT ?, ?");
 		parameters.add(numToSkip);

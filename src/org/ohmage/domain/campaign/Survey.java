@@ -524,12 +524,6 @@ public class Survey {
 		generator.writeStartObject();
 		generator.writeStringField("type", "object");
 		generator.writeArrayFieldStart("schema");
-		
-		// Survey ID.
-		generator.writeStartObject();
-		generator.writeStringField("name", SurveyResponse.JSON_KEY_SURVEY_ID);
-		generator.writeStringField("type", "string");
-		generator.writeEndObject();
 
 		// Survey launch context.
 		generator.writeStartObject();

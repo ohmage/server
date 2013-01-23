@@ -18,6 +18,7 @@ package org.ohmage.request.survey;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -120,6 +121,52 @@ public class SurveyUploadRequest extends UserRequest {
 	private final Map<String, Video> videoContentsMap;
 	
 	private Collection<UUID> surveyResponseIds;
+	
+	public SurveyUploadRequest(
+		final HttpServletRequest httpRequest,
+		final Map<String, String[]> parameters,
+		final String campaignId,
+		final String data)
+		throws IOException, InvalidRequestException {
+
+		super(httpRequest, false, TokenLocation.PARAMETER, parameters);
+		
+		String tCampaignUrn = null;
+		List<JSONObject> tJsonData = null;
+		
+		if(! isFailed()) {
+			LOGGER.info("Creating a survey response upload request.");
+			
+			try {
+				if(campaignId == null) {
+					throw
+						new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID,
+							"The campaign ID was null.");
+				}
+				if(data == null) {
+					throw
+						new ValidationException(
+							ErrorCode.SURVEY_INVALID_RESPONSES,
+							"The list of survey responses was null.");
+				}
+				
+				tCampaignUrn = 
+					CampaignValidators.validateCampaignId(campaignId);
+				tJsonData = CampaignValidators.validateUploadedJson(data);
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
+			}
+		}
+		
+		campaignUrn = tCampaignUrn;
+		campaignCreationTimestamp = null;
+		jsonData = tJsonData;
+		imageContentsMap = Collections.emptyMap();
+		videoContentsMap = Collections.emptyMap();
+	}
 	
 	/**
 	 * Creates a new image upload request.
@@ -312,8 +359,10 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Verifying that the campaign is running.");
 			CampaignServices.instance().verifyCampaignIsRunning(campaignUrn);
 			
-			LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
-			CampaignServices.instance().verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
+			if(campaignCreationTimestamp != null) {
+				LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
+				CampaignServices.instance().verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
+			}
 			
 			LOGGER.info("Generating the campaign object.");
 			Campaign campaign = CampaignServices.instance().getCampaign(campaignUrn);
