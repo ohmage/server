@@ -236,8 +236,6 @@ public class VisualizationServices {
 					e);
 		}
 		
-		System.out.println(parameterBuilder.toString());
-		
 		try {
 			// Connect to the visualization server.
 			URL url = new URL(urlString);
