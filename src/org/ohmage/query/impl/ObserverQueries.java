@@ -1426,9 +1426,9 @@ public class ObserverQueries extends Query implements IObserverQueries {
 								ps.setLong(2, stream.getVersion());
 								ps.setString(3, stream.getName());
 								ps.setString(4, stream.getDescription());
-								ps.setBoolean(5, stream.getWithId());
-								ps.setBoolean(6, stream.getWithTimestamp());
-								ps.setBoolean(7, stream.getWithLocation());
+								ps.setObject(5, stream.getWithId());
+								ps.setObject(6, stream.getWithTimestamp());
+								ps.setObject(7, stream.getWithLocation());
 								ps.setString(8, schema);
 								
 								return ps;
