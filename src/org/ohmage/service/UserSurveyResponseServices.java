@@ -125,7 +125,7 @@ public class UserSurveyResponseServices {
 			
 			throw new ServiceException(
 					ErrorCode.SURVEY_INSUFFICIENT_PERMISSIONS, 
-					"The user does not have sufficient permissions to delete this survey response.");
+					"The user does not have sufficient permissions to modify this survey response.");
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

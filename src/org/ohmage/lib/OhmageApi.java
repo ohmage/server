@@ -2851,8 +2851,6 @@ public class OhmageApi {
 					e);
 		}
 		
-		System.out.println(jsonResponse.toString());
-		
 		boolean success;
 		try {
 			success = Request.RESULT_SUCCESS.equals(
