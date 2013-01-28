@@ -166,13 +166,17 @@ public class SurveyUploadRequest extends UserRequest {
 				} 
 				else {
 					
-					// Make sure it's a valid timestamp
+					// Make sure it's a valid timestamp.
 					try {
-						tCampaignCreationTimestamp = DateTimeUtils.getDateTimeFromString(t[0]);
+						tCampaignCreationTimestamp =
+							DateTimeUtils.getDateTimeFromString(t[0]);
 					}
 					catch(IllegalArgumentException e) {
-						setFailed(ErrorCode.SERVER_INVALID_DATE, e.getMessage());
-						throw e;
+						throw 
+							new ValidationException(
+								ErrorCode.SERVER_INVALID_DATE,
+								e.getMessage(),
+								e);
 					}
 				}
 				
