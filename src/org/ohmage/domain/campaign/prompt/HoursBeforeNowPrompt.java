@@ -24,8 +24,9 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  * 
  * @deprecated This should no longer be used in favor of a numeric or 
- * time-based representation. For the 3.0 release, this should no longer be
- * present.
+ * time-based representation. This has been officially removed from the 
+ * specification, but it is being kept around until the end of the 2.x release.
+ * For the 3.0 release, this should no longer be present.
  */
 public class HoursBeforeNowPrompt extends BoundedPrompt {
 	/**

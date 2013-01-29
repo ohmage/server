@@ -236,7 +236,8 @@ public class RemoteActivityPrompt extends Prompt {
 	}
 	
 	/**
-	 * Conditions are not allowed for remote activity prompts.
+	 * Conditions are not allowed for remote activity prompts unless they are
+	 * {@link NoResponse} values.
 	 * 
 	 * @param pair The pair to validate.
 	 * 
@@ -247,6 +248,12 @@ public class RemoteActivityPrompt extends Prompt {
 	public void validateConditionValuePair(
 			final ConditionValuePair pair)
 			throws DomainException {
+		
+		// If the value is a valid NoResponse value, then it is acceptable to
+		// compare against this prompt.
+		if(checkNoResponseConditionValuePair(pair)) {
+			return;
+		}
 		
 		throw new DomainException("Conditions are not allowed for remote activity prompts.");
 	}

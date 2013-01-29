@@ -118,7 +118,8 @@ public class TextPrompt extends Prompt {
 	}
 	
 	/**
-	 * Conditions are not allowed for text prompts.
+	 * Conditions are not allowed for text prompts unless they are
+	 * {@link NoResponse} values.
 	 * 
 	 * @param pair The pair to validate.
 	 * 
@@ -130,7 +131,15 @@ public class TextPrompt extends Prompt {
 			final ConditionValuePair pair)
 			throws DomainException {
 		
-		throw new DomainException("Conditions are not allowed for text prompts.");
+		// If the value is a valid NoResponse value, then it is acceptable to
+		// compare against this prompt.
+		if(checkNoResponseConditionValuePair(pair)) {
+			return;
+		}
+		
+		throw
+			new DomainException(
+				"Conditions are not allowed for text prompts.");
 	}
 
 	/**

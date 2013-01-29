@@ -181,6 +181,12 @@ public abstract class BoundedPrompt extends Prompt {
 			final ConditionValuePair pair)
 			throws DomainException {
 		
+		// If the value is a valid NoResponse value, then it is acceptable to
+		// compare against this prompt.
+		if(checkNoResponseConditionValuePair(pair)) {
+			return;
+		}
+		
 		try {
 			long value = Long.decode(pair.getValue());
 			
@@ -200,12 +206,10 @@ public abstract class BoundedPrompt extends Prompt {
 			}
 		}
 		catch(NumberFormatException e) {
-			if(! checkNoResponseConditionValuePair(pair)) {
-				throw new DomainException(
-						"The value of the condition is not a number: " + 
-							pair.getValue(),
-						e);
-			}
+			throw new DomainException(
+					"The value of the condition is not a number: " + 
+						pair.getValue(),
+					e);
 		}
 	}
 

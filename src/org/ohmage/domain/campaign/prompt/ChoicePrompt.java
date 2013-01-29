@@ -176,6 +176,12 @@ public abstract class ChoicePrompt extends Prompt {
 			final ConditionValuePair pair)
 			throws DomainException {
 		
+		// If the value is a valid NoResponse value, then it is acceptable to
+		// compare against this prompt.
+		if(checkNoResponseConditionValuePair(pair)) {
+			return;
+		}
+		
 		try {
 			int key = Integer.decode(pair.getValue());
 			
@@ -186,12 +192,10 @@ public abstract class ChoicePrompt extends Prompt {
 			}
 		}
 		catch(NumberFormatException e) {
-			if(! checkNoResponseConditionValuePair(pair)) {
-				throw new DomainException(
-						"The value of the condition is not a number: " + 
-							pair.getValue(),
-						e);
-			}
+			throw new DomainException(
+					"The value of the condition is not a number: " + 
+						pair.getValue(),
+					e);
 		}
 	}
 	

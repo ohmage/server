@@ -111,12 +111,19 @@ public class VideoPrompt extends Prompt {
 	}
 
 	/**
-	 * Conditions are not allowed for this prompt type.
+	 * Conditions are not allowed for this prompt type unless they are
+	 * {@link NoResponse} values.
 	 */
 	@Override
 	public void validateConditionValuePair(
 			final ConditionValuePair pair)
 			throws DomainException {
+		
+		// If the value is a valid NoResponse value, then it is acceptable to
+		// compare against this prompt.
+		if(checkNoResponseConditionValuePair(pair)) {
+			return;
+		}
 		
 		throw new DomainException(
 			"Conditions are not allowed for video prompts.");
