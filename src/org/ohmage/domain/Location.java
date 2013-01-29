@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -213,8 +214,11 @@ public class Location {
 	private final double longitude;
 	private final double accuracy;
 	private final String provider;
+	private final DateTime timestamp;
+	/*
 	private final long time;
 	private final DateTimeZone timeZone;
+	*/
 	
 	/**
 	 * Creates a new Location object.
@@ -252,8 +256,11 @@ public class Location {
 		this.longitude = longitude;
 		this.accuracy = accuracy;
 		this.provider = provider;
+		this.timestamp = timestamp;
+		/*
 		this.time = timestamp.getMillis();
 		this.timeZone = timestamp.getZone();
+		*/
 	}
 	
 	/**
@@ -271,6 +278,98 @@ public class Location {
 			throw new DomainException("The location node is null.");
 		}
 		
+		List<DateTime> timestampRepresentations =
+			new LinkedList<DateTime>();
+
+		// Get the timestamp if the time and timezone fields were
+		// specified.
+		if(locationNode.has("time")) {
+			JsonNode timeNode = locationNode.get("time");
+			
+			if(! timeNode.isNumber()) {
+				throw new DomainException("The time isn't a number.");
+			}
+			long time = timeNode.getNumberValue().longValue();
+			
+			DateTimeZone timeZone = DateTimeZone.UTC;
+			if(locationNode.has("timezone")) {
+				JsonNode timeZoneNode =
+					locationNode.get("timezone");
+				
+				if(! timeZoneNode.isTextual()) {
+					throw new DomainException(
+						"The time zone is not a string.");
+				}
+				
+				try {
+					timeZone = 
+						DateTimeZone.forID(
+							locationNode.getTextValue());
+				}
+				catch(IllegalArgumentException e) {
+					throw new DomainException(
+						"The time zone is unknown.");
+				}
+			}
+			
+			timestampRepresentations.add(new DateTime(time, timeZone));
+		}
+		
+		// Get the timestamp if the timestamp field was specified.
+		if(locationNode.has("timestamp")) {
+			JsonNode timestampNode =
+				locationNode.get("timestamp");
+			
+			if(! timestampNode.isTextual()) {
+				throw new DomainException(
+					"The timestamp value was not a string.");
+			}
+			
+			try {
+				timestampRepresentations
+					.add( 
+						ISOW3CDateTimeFormat
+							.any()
+								.parseDateTime(
+									timestampNode.getTextValue()));
+			}
+			catch(IllegalArgumentException e) {
+				throw new DomainException(
+					"The timestamp was not a valid ISO 8601 timestamp.",
+					e);
+			}
+		}
+		
+		// Ensure that all representations of time are equal.
+		if(timestampRepresentations.size() > 0) {
+			// Create an iterator to cycle through the representations.
+			Iterator<DateTime> timestampRepresentationsIter =
+				timestampRepresentations.iterator();
+			
+			// The first timestamp will be set as the result. 
+			DateTime timestamp = timestampRepresentationsIter.next();
+			
+			// Check against all subsequent timestamps to ensure that
+			// they represent the same point in time.
+			while(timestampRepresentationsIter.hasNext()) {
+				if(timestamp.getMillis() != 
+					timestampRepresentationsIter.next().getMillis()) {
+					
+					throw
+						new DomainException(
+							"Multiple representations of the timestamp were given, and they are not equal.");
+				}
+			}
+			
+			// If we checked out all of the timestamps and they are
+			// equal, then save this timestamp.
+			this.timestamp = timestamp;
+		}
+		else {
+			throw new DomainException("The timestamp is missing.");
+		}
+		
+		/*
 		// Get the time.
 		JsonNode timeNode = locationNode.get("time");
 		if(timeNode == null) {
@@ -295,6 +394,7 @@ public class Location {
 		catch(IllegalArgumentException e) {
 			throw new DomainException("The time zone is unknown.");
 		}
+		*/
 		
 		// Get the latitude.
 		JsonNode latitudeNode = locationNode.get("latitude");
@@ -356,78 +456,127 @@ public class Location {
 			final DateTimeZone defaultTimeZone) 
 			throws DomainException {
 		
-		Long tTime;
+		// The two possible representations of a timestamp.
+		DateTime fromTimeTimezone = null, fromTimestamp = null;
+		
+		// Get the time.
+		Long time = null;
 		try {
-			tTime = 
+			if(locationData.has(LocationColumnKey.TIME.toString(false))) {
+				time = 
 					locationData.getLong(
 							LocationColumnKey.TIME.toString(false));
-		}
-		catch(JSONException noRegular) {
-			try {
-				tTime = 
-						locationData.getLong(
-								LocationColumnKey.TIME.toString(true));
 			}
-			catch(JSONException noShort) {
-				throw new DomainException(
-						ErrorCode.SERVER_INVALID_TIMESTAMP, 
-						"The timestamp is missing.", 
-						noShort);
+			else if(locationData.has(LocationColumnKey.TIME.toString(true))) {
+				time = 
+					locationData.getLong(
+							LocationColumnKey.TIME.toString(true));
 			}
 		}
-		time = tTime;
-		
-		Object tTimeZoneObject;
-		if(locationData.has(LocationColumnKey.TIMEZONE.toString(false))) {
-			try {
-				tTimeZoneObject = 
-					locationData.get(
-						LocationColumnKey.TIMEZONE.toString(false));
-			}
-			catch(JSONException e) {
-				throw new DomainException(
-					"There is a concurrency issue. We just checked for existence.",
-					e);
-			}
-		}
-		else if(locationData.has(LocationColumnKey.TIMEZONE.toString(true))) {
-			try {
-				tTimeZoneObject = 
-					locationData.get(
-						LocationColumnKey.TIMEZONE.toString(true));
-			}
-			catch(JSONException e) {
-				throw new DomainException(
-					"There is a concurrency issue. We just checked for existence.",
-					e);
-			}
-		}
-		else {
+		catch(JSONException e) {
 			throw new DomainException(
-				ErrorCode.SERVER_INVALID_TIMEZONE, 
-				"The time zone is missing.");
+				ErrorCode.SERVER_INVALID_TIME,
+				"The time isn't a long.",
+				e);
 		}
-
-		DateTimeZone tTimeZone = defaultTimeZone;
-		if(tTimeZoneObject instanceof String) {
-			try {
-				tTimeZone = 
+		
+		// Get the timezone.
+		DateTimeZone timeZone = null;
+		try {
+			if(locationData.has(LocationColumnKey.TIMEZONE.toString(false))) {
+				timeZone = 
 					DateTimeUtils.getDateTimeZoneFromString(
-						(String) tTimeZoneObject);
+						locationData.getString(
+							LocationColumnKey.TIMEZONE.toString(false)));
+			}
+			else if(locationData.has(LocationColumnKey.TIMEZONE.toString(true))) {
+				timeZone =
+					DateTimeUtils.getDateTimeZoneFromString(
+						locationData.getString(
+							LocationColumnKey.TIMEZONE.toString(true)));
+			}
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+				ErrorCode.SERVER_INVALID_TIMEZONE,
+				"The timezone isn't a string.",
+				e);
+		}
+		catch(IllegalArgumentException e) {
+			throw new DomainException(
+					ErrorCode.SERVER_INVALID_TIMEZONE,
+					"The time zone is unknown.",
+					e);
+		}
+		
+		// Validate that either both were given or neither were given, and, if
+		// both were given, create a DateTime for it.
+		if((time == null) && (timeZone != null)) {
+			throw
+				new DomainException(
+					ErrorCode.SERVER_INVALID_TIME,
+					"A 'timezone' was given, but the 'time' was not.");
+		}
+		else if((time != null) && (timeZone == null)) {
+			throw
+				new DomainException(
+					ErrorCode.SERVER_INVALID_TIMEZONE,
+					"A 'time' was given, but the 'timezone' was not.");
+		}
+		else if((time != null) && (timeZone != null)) {
+			fromTimeTimezone = new DateTime(time, timeZone);
+		}
+		
+		// Get the timestamp.
+		if(locationData.has("timestamp")) {
+			try {
+				fromTimestamp =
+					ISOW3CDateTimeFormat
+						.any()
+							.parseDateTime(
+								locationData.getString("timestamp"));
+			}
+			catch(JSONException e) {
+				throw new DomainException(
+					ErrorCode.SERVER_INVALID_TIMESTAMP,
+					"The timestamp isn't a string.",
+					e);
 			}
 			catch(IllegalArgumentException e) {
 				throw new DomainException(
-						ErrorCode.SERVER_INVALID_TIMEZONE,
-						"The time zone is unknown.",
-						e);
+					"The timestamp was not a valid ISO 8601 timestamp.",
+					e);
 			}
 		}
-		if(tTimeZone == null) {
-			throw new DomainException(
-				ErrorCode.SERVER_INVALID_TIMEZONE,
-				"The time zone is unknown.");
+		
+		// Get the appropriate timestamp.
+		// If none was given, thrown an exception.
+		if((fromTimeTimezone == null) && (fromTimestamp == null)) {
+			throw
+				new DomainException(
+					ErrorCode.SERVER_INVALID_TIMESTAMP,
+					"The time information was missing.");
 		}
-		timeZone = tTimeZone;
+		// If multiple were given, validate that they are they represent the
+		// same time and timezone.
+		else if((fromTimeTimezone != null) && (fromTimestamp != null)) {
+			if(! fromTimeTimezone.equals(fromTimestamp)) {
+				throw
+					new DomainException(
+						ErrorCode.SERVER_INVALID_TIMESTAMP,
+						"Multiple, differing timestamps were given.");
+			}
+			else {
+				timestamp = fromTimestamp;
+			}
+		}
+		// If only one format was given, use that.
+		else if(fromTimeTimezone != null) {
+			timestamp = fromTimeTimezone;
+		}
+		else {
+			timestamp = fromTimestamp;
+		}
 		
 		double tLatitude;
 		try {
@@ -557,7 +706,7 @@ public class Location {
 	 * @return The time for when this information was gathered.
 	 */
 	public final Long getTime() {
-		return time;
+		return timestamp.getMillis();
 	}
 	
 	/**
@@ -566,7 +715,7 @@ public class Location {
 	 * @return The time zone for when this information was gathered.
 	 */
 	public final DateTimeZone getTimeZone() {
-		return timeZone;
+		return timestamp.getZone();
 	}
 	
 	/**
@@ -600,13 +749,13 @@ public class Location {
 		if(columns.contains(LocationColumnKey.TIME)) {
 			generator.writeNumberField(
 				LocationColumnKey.TIME.toString(abbreviated), 
-				time);
+				getTime());
 		}
 			
 		if(columns.contains(LocationColumnKey.TIMEZONE)) {
 			generator.writeStringField(
 				LocationColumnKey.TIMEZONE.toString(abbreviated), 
-				timeZone.getID());
+				getTimeZone().getID());
 		}
 			
 		if(columns.contains(LocationColumnKey.LATITUDE)) {
@@ -670,13 +819,13 @@ public class Location {
 		if(columns.contains(LocationColumnKey.TIME)) {
 			result.put(
 					LocationColumnKey.TIME.toString(abbreviated), 
-					time);
+					getTime());
 		}
 			
 		if(columns.contains(LocationColumnKey.TIMEZONE)) {
 			result.put(
 					LocationColumnKey.TIMEZONE.toString(abbreviated), 
-					timeZone.getID());
+					getTimeZone().getID());
 		}
 			
 		if(columns.contains(LocationColumnKey.LATITUDE)) {
@@ -744,11 +893,11 @@ public class Location {
 		int index;
 		
 		if((index = columns.indexOf(LocationColumnKey.TIME)) != -1) {
-			result.set(index, time);
+			result.set(index, getTime());
 		}
 		
 		if((index = columns.indexOf(LocationColumnKey.TIMEZONE)) != -1) {
-			result.set(index, timeZone.getID());
+			result.set(index, getTimeZone().getID());
 		}
 		
 		if((index = columns.indexOf(LocationColumnKey.LATITUDE)) != -1) {
@@ -782,9 +931,10 @@ public class Location {
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		temp = Double.doubleToLongBits(longitude);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result
-				+ ((provider == null) ? 0 : provider.hashCode());
-		result = prime * result + (int) (time ^ (time >>> 32));
+		result =
+			prime * result + ((provider == null) ? 0 : provider.hashCode());
+		result =
+			prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
 		return result;
 	}
 
@@ -793,36 +943,42 @@ public class Location {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj) {
+		if(this == obj) {
 			return true;
 		}
-		if (obj == null) {
+		if(obj == null) {
 			return false;
 		}
-		if (!(obj instanceof Location)) {
+		if(!(obj instanceof Location)) {
 			return false;
 		}
 		Location other = (Location) obj;
-		if (Double.doubleToLongBits(accuracy) != Double
-				.doubleToLongBits(other.accuracy)) {
+		if(Double.doubleToLongBits(accuracy) != Double
+			.doubleToLongBits(other.accuracy)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(latitude) != Double
-				.doubleToLongBits(other.latitude)) {
+		if(Double.doubleToLongBits(latitude) != Double
+			.doubleToLongBits(other.latitude)) {
 			return false;
 		}
-		if (Double.doubleToLongBits(longitude) != Double
-				.doubleToLongBits(other.longitude)) {
+		if(Double.doubleToLongBits(longitude) != Double
+			.doubleToLongBits(other.longitude)) {
 			return false;
 		}
-		if (provider == null) {
-			if (other.provider != null) {
+		if(provider == null) {
+			if(other.provider != null) {
 				return false;
 			}
-		} else if (!provider.equals(other.provider)) {
+		}
+		else if(!provider.equals(other.provider)) {
 			return false;
 		}
-		if (time != other.time) {
+		if(timestamp == null) {
+			if(other.timestamp != null) {
+				return false;
+			}
+		}
+		else if(!timestamp.equals(other.timestamp)) {
 			return false;
 		}
 		return true;
