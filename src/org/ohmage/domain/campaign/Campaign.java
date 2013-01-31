@@ -2182,26 +2182,28 @@ public class Campaign {
 		int numSurveys = surveys.size();
 		List<Survey> result = new ArrayList<Survey>(numSurveys);
 		
-		List<String> surveyItemIds = new LinkedList<String>();
+		// TODO: Remove this code if we decide to remove the restriction of
+		// prompt IDs across surveys.
+//		List<String> surveyItemIds = new LinkedList<String>();
 		
 		for(int i = 0; i < numSurveys; i++) {
 			Node survey = surveys.get(i);
 			Survey currSurvey = processSurvey(survey);
 			
-			surveyItemIds.addAll( 
-					getSurveyItemIds(currSurvey.getSurveyItems().values()));
+//			surveyItemIds.addAll( 
+//					getSurveyItemIds(currSurvey.getSurveyItems().values()));
 			
 			result.add(currSurvey);
 		}
 		
-		Set<String> surveyItemIdsSet = new HashSet<String>();
-		for(String surveyItemId : surveyItemIds) {
-			if(! surveyItemIdsSet.add(surveyItemId)) {
-				throw new DomainException(
-					"Multiple survey items have the same unique identifier: " + 
-						surveyItemId);
-			}
-		}
+//		Set<String> surveyItemIdsSet = new HashSet<String>();
+//		for(String surveyItemId : surveyItemIds) {
+//			if(! surveyItemIdsSet.add(surveyItemId)) {
+//				throw new DomainException(
+//					"Multiple survey items have the same unique identifier: " + 
+//						surveyItemId);
+//			}
+//		}
 		
 		return result;
 	}
