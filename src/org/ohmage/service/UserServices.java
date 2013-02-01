@@ -29,7 +29,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.NoSuchProviderException;
@@ -37,9 +36,7 @@ import javax.mail.SendFailedException;
 import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
@@ -265,8 +262,7 @@ public final class UserServices {
 			}
 
 			// Compute the registration link.
-			StringBuilder registrationLink = 
-					new StringBuilder("<a href=\"");
+			StringBuilder registrationLink = new StringBuilder("<a href=\"");
 			// Get this machine's root URL.
 			try {
 				registrationLink.append(CookieUtils.buildServerRootUrl());
@@ -288,19 +284,15 @@ public final class UserServices {
 							MAIL_REGISTRATION_TEXT_REGISTRATION_LINK, 
 							registrationLink);
 			
-			// Split based on the TOS flag.
-			String[] registrationParts = null;
-			if(registrationText.contains(MAIL_REGISTRATION_TEXT_TOS)) {
-				registrationParts = 
-					registrationText.split(MAIL_REGISTRATION_TEXT_TOS);
-			}
-			
 			// Get the terms of service.
 			String termsOfService;
 			try {
 				termsOfService =
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_TERMS_OF_SERVICE);
+					"<tt>" +
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_TERMS_OF_SERVICE)
+						+ "</tt>";
+				termsOfService = termsOfService.replace("\n", "<br />");
 			}
 			catch(CacheMissException e) {
 				throw new ServiceException(
@@ -308,6 +300,12 @@ public final class UserServices {
 						PreferenceCache.KEY_TERMS_OF_SERVICE,
 					e);
 			}
+			// Add the terms of service to the email.
+			registrationText =
+				registrationText
+					.replace(MAIL_REGISTRATION_TEXT_TOS, termsOfService);
+			
+			System.out.println(registrationText);
 			
 			// Get the session.
 			Session smtpSession = getMailSession();
@@ -372,7 +370,12 @@ public final class UserServices {
 						"Could not set the subject on the message.",
 						e);
 			}
+			
 			try {
+				// Set the content of the message.
+				message.setContent(registrationText, "text/html");
+				
+				/*
 				// There is no TOS.
 				if(registrationParts == null) {
 					try {
@@ -405,6 +408,7 @@ public final class UserServices {
 					
 					message.setContent(multipart);
 				}
+				*/
 			}
 			catch(MessagingException e) {
 				throw new ServiceException(
