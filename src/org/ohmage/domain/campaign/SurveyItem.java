@@ -21,6 +21,8 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -180,6 +182,37 @@ public abstract class SurveyItem {
 	}
 	
 	/**
+	 * Validates that a condition-value pair is valid for the given prompt.
+	 * 
+	 * @param pair The condition-value pair to validate.
+	 * 
+	 * @throws DomainException The value was not applicable for the prompt or
+	 * 						   was invalid for some constraint on the prompt.
+	 */
+	public final void validateCondition(
+			final ConditionValuePair pair)
+			throws DomainException {
+
+		
+		// If the value is a valid NoResponse value, then it is acceptable to
+		// compare against this prompt.
+		if(checkNoResponseConditionValuePair(pair)) {
+			return;
+		}
+		
+		validateConditionValuePair(pair);
+	}
+	
+	/**
+	 * Returns whether or not this survey item may be skipped.
+	 * 
+	 * @return Whether or not this survey item may be skipped.
+	 */
+	public boolean skippable() {
+		return false;
+	}
+	
+	/**
 	 * Generates a JSONObject that represents this survey item.
 	 * 
 	 * @return A JSONObject representing this survey item.
@@ -266,11 +299,72 @@ public abstract class SurveyItem {
 	}
 	
 	/**
+	 * Validates that a condition-value pair is valid for the given prompt. The
+	 * check against {@link NoResponse} values has already been done, so this
+	 * should check against type-specific survey items.
+	 * 
+	 * @param pair The condition-value pair to validate.
+	 * 
+	 * @throws DomainException The value was not applicable for the prompt or
+	 * 						   was invalid for some constraint on the prompt.
+	 */
+	protected abstract void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException;
+	
+	/**
 	 * Sets the parent of this survey item which must be a repeatable set.
 	 * 
 	 * @param parent The repeatable set that contains this survey item.
 	 */
 	protected void setParent(final RepeatableSet parent) {
 		this.parent = parent;
+	}
+	
+	/**
+	 * Checks if the value of the pair is a {@link NoResponse} value and, if 
+	 * so, verifies that that is a valid value for this prompt. If it is a
+	 * {@link NoResponse} value, then true will be returned or an exception 
+	 * will be thrown indicating that it wasn't valid for this prompt. If it is
+	 * not a {@link NoResponse} value, false is returned.
+	 * 
+	 * @param pair The condition-value pair to check.
+	 * 
+	 * @return True if this is a {@link NoResponse} value; false, otherwise.
+	 * 
+	 * @throws DomainException The value of the pair was a {@link NoResponse}
+	 * 						   value and isn't valid for this prompt.
+	 */
+	protected final boolean checkNoResponseConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		try {
+			NoResponse noResponse = NoResponse.valueOf(pair.getValue().toUpperCase());
+			
+			switch(noResponse) {
+			case SKIPPED:
+				if(skippable()) {
+					return true;
+				}
+				else {
+					throw new DomainException(
+							"The response '" + 
+								getId() +
+								"' cannot be skipped, so the condition is invalid.");
+				}
+			
+			case NOT_DISPLAYED:
+				return true;
+				
+			default:
+				throw new DomainException("Unknown 'no response' value.");
+			}
+				
+		}
+		// It is not a NoResponse value.
+		catch(IllegalArgumentException e) {
+			return false;
+		}
 	}
 }

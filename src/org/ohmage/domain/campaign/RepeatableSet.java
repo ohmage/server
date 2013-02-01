@@ -27,6 +27,8 @@ import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
@@ -281,6 +283,20 @@ public class RepeatableSet extends SurveyItem {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * Conditions are not allowed for repeatable sets unless they are
+	 * {@link NoResponse} values.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		throw
+			new DomainException(
+				"Conditions are not allowed for remote activity prompts.");
 	}
 	
 	/**

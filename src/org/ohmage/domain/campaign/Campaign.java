@@ -43,8 +43,6 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -71,8 +69,8 @@ import org.ohmage.domain.campaign.prompt.TimestampPrompt;
 import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * An immutable representation of a campaign.
@@ -2182,57 +2180,8 @@ public class Campaign {
 		int numSurveys = surveys.size();
 		List<Survey> result = new ArrayList<Survey>(numSurveys);
 		
-		// TODO: Remove this code if we decide to remove the restriction of
-		// prompt IDs across surveys.
-//		List<String> surveyItemIds = new LinkedList<String>();
-		
 		for(int i = 0; i < numSurveys; i++) {
-			Node survey = surveys.get(i);
-			Survey currSurvey = processSurvey(survey);
-			
-//			surveyItemIds.addAll( 
-//					getSurveyItemIds(currSurvey.getSurveyItems().values()));
-			
-			result.add(currSurvey);
-		}
-		
-//		Set<String> surveyItemIdsSet = new HashSet<String>();
-//		for(String surveyItemId : surveyItemIds) {
-//			if(! surveyItemIdsSet.add(surveyItemId)) {
-//				throw new DomainException(
-//					"Multiple survey items have the same unique identifier: " + 
-//						surveyItemId);
-//			}
-//		}
-		
-		return result;
-	}
-	
-	/**
-	 * Retrieves the identifiers for all of the survey items in the parameter.
-	 * The identifiers may not be unique if the campaign has not yet been 
-	 * validated.
-	 *  
-	 * @param items The survey items and, if containing repeatable sets,  
-	 *				sub-items whose identifiers are desired.
-	 * 
-	 * @return A list of, possibly not unique, survey item IDs.
-	 */
-	private static List<String> getSurveyItemIds(
-			final Collection<SurveyItem> items) {
-		
-		List<String> result = new LinkedList<String>();
-		
-		for(SurveyItem surveyItem : items) {
-			result.add(surveyItem.getId());
-			
-			if(surveyItem instanceof RepeatableSet) {
-				result.addAll(
-						getSurveyItemIds(
-								((RepeatableSet) surveyItem)
-									.getSurveyItems()
-									.values()));
-			}
+			result.add(processSurvey(surveys.get(i)));
 		}
 		
 		return result;
@@ -3139,21 +3088,20 @@ public class Campaign {
 			// Validate that the prompt exists and comes before this prompt. 
 			// This can only, and must, be true if we have already validated 
 			// it.
-			Prompt conditionPrompt = null;
+			SurveyItem conditionSurveyItem = null;
 			for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
 				if(surveyItem.getId().equals(promptId)) {
-					if(surveyItem instanceof Prompt) {
-						conditionPrompt = (Prompt) surveyItem;
+//					if(surveyItem instanceof Prompt) {
+					conditionSurveyItem = surveyItem;
 						break;
-					}
-					else {
-						throw new DomainException(
-							"Only prompts values may be part of a condition.");
-					}
+//					}
+//					else {
+//						throw new DomainException(
+//							"Only prompts values may be part of a condition.");
+//					}
 				}
 			}
-			
-			if(conditionPrompt == null) {
+			if(conditionSurveyItem == null) {
 				throw new DomainException(
 						"The prompt is unknown: " + promptId);
 			}
@@ -3161,7 +3109,7 @@ public class Campaign {
 			// Validate all of the condition-valid pairs for the prompt.
 			for(ConditionValuePair pair : promptIdAndConditionValues.get(promptId)) {
 				try {
-					conditionPrompt.validateConditionValuePair(pair);
+					conditionSurveyItem.validateCondition(pair);
 				}
 				catch(DomainException e) {
 					throw new DomainException(

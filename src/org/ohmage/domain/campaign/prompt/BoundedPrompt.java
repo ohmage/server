@@ -181,12 +181,6 @@ public abstract class BoundedPrompt extends Prompt {
 			final ConditionValuePair pair)
 			throws DomainException {
 		
-		// If the value is a valid NoResponse value, then it is acceptable to
-		// compare against this prompt.
-		if(checkNoResponseConditionValuePair(pair)) {
-			return;
-		}
-		
 		try {
 			long value = Long.decode(pair.getValue());
 			

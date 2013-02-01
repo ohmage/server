@@ -176,12 +176,6 @@ public abstract class ChoicePrompt extends Prompt {
 			final ConditionValuePair pair)
 			throws DomainException {
 		
-		// If the value is a valid NoResponse value, then it is acceptable to
-		// compare against this prompt.
-		if(checkNoResponseConditionValuePair(pair)) {
-			return;
-		}
-		
 		try {
 			int key = Integer.decode(pair.getValue());
 			

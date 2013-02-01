@@ -21,6 +21,8 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.config.grammar.custom.ConditionValuePair;
+import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
@@ -70,6 +72,20 @@ public final class Message extends SurveyItem {
 	 */
 	public String getText() {
 		return text;
+	}
+	
+	/**
+	 * Conditions are not allowed for messages unless they are
+	 * {@link NoResponse} values.
+	 */
+	@Override
+	public void validateConditionValuePair(
+			final ConditionValuePair pair)
+			throws DomainException {
+		
+		throw
+			new DomainException(
+				"Conditions are not allowed for remote activity prompts.");
 	}
 	
 	/**

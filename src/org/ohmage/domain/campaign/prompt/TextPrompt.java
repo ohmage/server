@@ -131,12 +131,6 @@ public class TextPrompt extends Prompt {
 			final ConditionValuePair pair)
 			throws DomainException {
 		
-		// If the value is a valid NoResponse value, then it is acceptable to
-		// compare against this prompt.
-		if(checkNoResponseConditionValuePair(pair)) {
-			return;
-		}
-		
 		throw
 			new DomainException(
 				"Conditions are not allowed for text prompts.");
