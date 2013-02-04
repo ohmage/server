@@ -35,15 +35,15 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class PhotoPrompt extends Prompt {
-	private static final String JSON_KEY_VERTICAL_RESOLUTION = "vertical_resolution";
+	private static final String JSON_KEY_MAXIMUM_DIMENSION = "max_dimension";
 	
 	/**
-	 * The campaign configuration property key for the desired vertical
-	 * resolution of the image.
+	 * The campaign configuration property key for the maximum allowed
+	 * dimension for a photo.
 	 */
-	public static final String XML_KEY_VERTICAL_RESOLUTION = "res";
+	public static final String XML_KEY_MAXIMUM_DIMENSION = "maxDimension";
 	
-	private final int verticalResolution;
+	private final Integer maximumDimension;
 	
 	/**
 	 * Creates a photo prompt.
@@ -74,7 +74,7 @@ public class PhotoPrompt extends Prompt {
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
-	 * @param verticalResolution The desired vertical resolution of the image.
+	 * @param maximumDimension The maximum allowed dimension for a photo.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -92,7 +92,7 @@ public class PhotoPrompt extends Prompt {
 			final String skipLabel,
 			final DisplayType displayType, 
 			final String displayLabel,
-			final int verticalResolution, 
+			final Integer maximumDimension, 
 			final int index) 
 			throws DomainException {
 		
@@ -100,21 +100,22 @@ public class PhotoPrompt extends Prompt {
 				skippable, skipLabel, displayType, displayLabel, 
 				Type.PHOTO, index);
 		
-		if(verticalResolution < 0) {
+		if((maximumDimension != null) && (maximumDimension < 0)) {
 			throw new DomainException(
-					"The vertical resolution cannot be negative.");
+					"The maximum dimension cannot be negative.");
 		}
 		
-		this.verticalResolution = verticalResolution;
+		this.maximumDimension = maximumDimension;
 	}
 	
 	/**
-	 * Returns the desired vertical resolution of the image.
+	 * Returns the maximum allowed dimension of an image.
 	 * 
-	 * @return The desired vertical resolution of the image.
+	 * @return The maximum allowed dimension of an image or null if it
+	 * 		   was not given.
 	 */
-	public int getVerticalResolution() {
-		return verticalResolution;
+	public Integer getMaximumDimension() {
+		return maximumDimension;
 	}
 	
 	/**
@@ -242,7 +243,9 @@ public class PhotoPrompt extends Prompt {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		result.put(JSON_KEY_VERTICAL_RESOLUTION, verticalResolution);
+		if(maximumDimension != null) {
+			result.put(JSON_KEY_MAXIMUM_DIMENSION, maximumDimension);
+		}
 		
 		return result;
 	}
@@ -290,7 +293,7 @@ public class PhotoPrompt extends Prompt {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + verticalResolution;
+		result = prime * result + maximumDimension;
 		return result;
 	}
 
@@ -309,7 +312,7 @@ public class PhotoPrompt extends Prompt {
 			return false;
 		}
 		PhotoPrompt other = (PhotoPrompt) obj;
-		if(verticalResolution != other.verticalResolution) {
+		if(maximumDimension != other.maximumDimension) {
 			return false;
 		}
 		return true;
