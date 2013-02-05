@@ -69,7 +69,7 @@ public class VideoPrompt extends Prompt {
 			final boolean skippable,
 			final String skipLabel,
 			final String displayLabel,
-			final int maxSeconds,
+			final Integer maxSeconds,
 			final int index) 
 			throws DomainException {
 		
@@ -85,7 +85,7 @@ public class VideoPrompt extends Prompt {
 			Type.VIDEO,
 			index);
 		
-		if(maxSeconds <= 0) {
+		if((maxSeconds != null) && (maxSeconds <= 0)) {
 			throw new DomainException(
 				"The maximum number of seconds must be a positive integer.");
 		}
@@ -94,9 +94,10 @@ public class VideoPrompt extends Prompt {
 	
 	/**
 	 * Returns the maximum number of seconds of video allowed.
-	 * @return
+	 * 
+	 * @return The maximum number of seconds of video allowed.
 	 */
-	public int getMaxSeconds() {
+	public Integer getMaxSeconds() {
 		return maxSeconds;
 	}
 

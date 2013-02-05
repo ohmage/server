@@ -39,7 +39,7 @@ public class PhotoPrompt extends Prompt {
 	
 	/**
 	 * The campaign configuration property key for the maximum allowed 
-	 * dimension of an image.
+	 * dimension of an photo.
 	 */
 	public static final String XML_KEY_MAX_DIMENSION = "maxDimension";
 	
@@ -68,7 +68,7 @@ public class PhotoPrompt extends Prompt {
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
-	 * @param maxDimension The maximum dimension for an image.
+	 * @param maxDimension The maximum dimension for an photo.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -109,11 +109,11 @@ public class PhotoPrompt extends Prompt {
 	}
 	
 	/**
-	 * Returns the desired vertical resolution of the image.
+	 * Returns the maximum allowed dimension of the photo.
 	 * 
-	 * @return The desired vertical resolution of the image.
+	 * @return The maximum allowed dimension of the photo.
 	 */
-	public int getVerticalResolution() {
+	public Integer getMaximumDimension() {
 		return maxDimension;
 	}
 	

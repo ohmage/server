@@ -4269,19 +4269,14 @@ public class Campaign {
 				"Default values aren't allowed for video prompts: " + id);
 		}
 		
-		int maxSeconds;
+		Integer maxSeconds = null;
 		try {
 			LabelValuePair maxSecondsVlp = 
 				properties.get(VideoPrompt.XML_MAX_SECONDS);
 			
-			if(maxSecondsVlp == null) {
-				throw new DomainException(
-						"Missing the '" +
-							VideoPrompt.XML_MAX_SECONDS +
-							"' property: " +
-							id);
+			if(maxSecondsVlp != null) {
+				maxSeconds = Integer.decode(maxSecondsVlp.getLabel());
 			}
-			maxSeconds = Integer.decode(maxSecondsVlp.getLabel());
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(
