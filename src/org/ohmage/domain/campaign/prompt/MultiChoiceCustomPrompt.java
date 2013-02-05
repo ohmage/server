@@ -58,9 +58,6 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -91,7 +88,6 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			final String condition, 
 			final String unit, 
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
@@ -103,11 +99,21 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			final int index) 
 			throws DomainException {
 		
-		super(id, condition, unit, text, abbreviatedText, explanationText,
-				skippable, skipLabel, displayType, displayLabel, 
-				choices, customChoices, 
-				Type.MULTI_CHOICE_CUSTOM, index);
-		
+		super(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			choices,
+			customChoices,
+			Type.MULTI_CHOICE_CUSTOM,
+			index);
+
 		if(defaultKeys != null) {
 			Collection<Integer> availableKeys = getChoices().keySet();
 			for(Integer defaultKey : defaultKeys) {

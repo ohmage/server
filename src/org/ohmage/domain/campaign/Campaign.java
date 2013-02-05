@@ -92,9 +92,6 @@ public class Campaign {
 	private static final String XML_SURVEY_DESCRIPTION = "description";
 	private static final String XML_SURVEY_INTRO_TEXT = "introText";
 	private static final String XML_SURVEY_SUBMIT_TEXT = "submitText";
-	private static final String XML_SURVEY_SHOW_SUMMARY = "showSummary";
-	private static final String XML_SURVEY_EDIT_SUMMARY = "editSummary";
-	private static final String XML_SURVEY_SUMMARY_TEXT = "summaryText";
 	private static final String XML_SURVEY_ANYTIME = "anytime";
 	private static final String XML_SURVEY_CONTENT_LIST = "contentList";
 	private static final String XML_CONTENT_LIST_ITEMS = "prompt | repeatableSet | message";
@@ -103,7 +100,6 @@ public class Campaign {
 	private static final String XML_PROMPT_CONDITION = "condition";
 	private static final String XML_PROMPT_UNIT = "unit";
 	private static final String XML_PROMPT_TEXT = "promptText";
-	private static final String XML_PROMPT_ABBREVIATED_TEXT = "abbreviatedText";
 	private static final String XML_PROMPT_EXPLANATION_TEXT = "explanationText";
 	private static final String XML_PROMPT_SKIPPABLE = "skippable";
 	private static final String XML_PROMPT_SKIP_LABEL = "skipLabel";
@@ -1746,9 +1742,6 @@ public class Campaign {
 								true,	// Description
 								true,	// Intro Text
 								true,	// Submit Text
-								true,	// Show Summary
-								true,	// Edit Summary
-								true,	// Summary Text
 								true,	// Anytime
 								true	// Prompts
 							)
@@ -2252,61 +2245,6 @@ public class Campaign {
 						id);
 		}
 		
-		Nodes showSummarys = survey.query(XML_SURVEY_SHOW_SUMMARY);
-		if(showSummarys.size() == 0) {
-			throw new DomainException("The survey show summary is missing.");
-		}
-		else if(showSummarys.size() > 1) {
-			throw new DomainException(
-					"Multiple survey show summarys were found for the same survey: " + 
-						id);
-		}
-		Boolean showSummary = StringUtils.decodeBoolean(showSummarys.get(0).getValue().trim());
-		if(showSummary == null) {
-			throw new DomainException(
-					"The show summary value is not a valid boolean value: " + 
-						id);
-		}
-		
-		Boolean editSummary = null;
-		Nodes editSummarys = survey.query(XML_SURVEY_EDIT_SUMMARY);
-		if((editSummarys.size() == 0) && (showSummary)) {
-			throw new DomainException(
-					"The edit summary is required if the show summary is true: " +
-						id);
-		}
-		else if(editSummarys.size() > 1) {
-			throw new DomainException(
-					"Multiple survey edit summarys were found for the same survey: " + 
-						id);
-		}
-		else if(editSummarys.size() == 1) {
-			editSummary = StringUtils.decodeBoolean(editSummarys.get(0).getValue().trim());
-			
-			if(editSummary == null) {
-				throw new DomainException(
-						"The edit summary value is not a valid boolean value: " + 
-							id);
-			}
-		}
-		
-		String summaryText = null;
-		Nodes summaryTexts = survey.query(XML_SURVEY_SUMMARY_TEXT);
-		if(summaryTexts.size() > 1) {
-			throw new DomainException(
-					"Multiple survey summary texts were found for the same survey: " + 
-						id);
-		}
-		else if(summaryTexts.size() == 1) {
-			summaryText = summaryTexts.get(0).getValue();
-			
-			if(summaryText.length() == 0) {
-				throw new DomainException(
-						"The campaign's summary text cannot be only whitespace: " +
-							id);
-			}
-		}
-		
 		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);
 		if(anytimes.size() == 0) {
 			throw new DomainException(
@@ -2350,8 +2288,15 @@ public class Campaign {
 			}
 		}
 		
-		return new Survey(id, title, description, introText, submitText,
-				showSummary, editSummary, summaryText, anytime, prompts);
+		return
+			new Survey(
+				id, 
+				title, 
+				description, 
+				introText, 
+				submitText,
+				anytime,
+				prompts);
 	}
 	
 	/**
@@ -2801,22 +2746,6 @@ public class Campaign {
 					"The prompt's text cannot be whitespace only: " + id);
 		}
 		
-		String abbreviatedText = null;
-		Nodes abbreviatedTexts = prompt.query(XML_PROMPT_ABBREVIATED_TEXT);
-		if(abbreviatedTexts.size() > 1) {
-			throw new DomainException(
-					"Multiple prompt abbreviated texts were found: " + id);
-		}
-		else if(abbreviatedTexts.size() == 1) {
-			abbreviatedText = abbreviatedTexts.get(0).getValue().trim();
-			
-			if(abbreviatedText.length() == 0) {
-				throw new DomainException(
-						"The prompt's abbreviated text cannot be whitespace only: " + 
-							id);
-			}
-		}
-		
 		String explanationText = null;
 		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);
 		if(explanationTexts.size() > 1) {
@@ -2946,67 +2875,166 @@ public class Campaign {
 
 		switch(type) {
 		case HOURS_BEFORE_NOW:
-			return processHoursBeforeNow(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case MULTI_CHOICE:
-			return processMultiChoice(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case MULTI_CHOICE_CUSTOM:
-			return processMultiChoiceCustom(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case NUMBER:
-			return processNumber(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case PHOTO:
-			return processPhoto(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case REMOTE_ACTIVITY:
-			return processRemoteActivity(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case SINGLE_CHOICE:
-			return processSingleChoice(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case SINGLE_CHOICE_CUSTOM:
-			return processSingleChoiceCustom(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case TEXT:
-			return processText(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case TIMESTAMP:
-			return processTimestamp(id, condition, unit, text, 
-					abbreviatedText, explanationText, skippable, skipLabel, 
-					displayType, displayLabel, defaultValue, properties, index);
-			
-		case VIDEO:
-			return processVideo(
-				id, 
-				condition, 
-				unit, 
-				text, 
-				abbreviatedText,
+			return processHoursBeforeNow(
+				id,
+				condition,
+				unit,
+				text,
 				explanationText,
 				skippable,
 				skipLabel,
 				displayType,
 				displayLabel,
+				defaultValue,
+				properties,
+				index);
+			
+		case MULTI_CHOICE:
+			return processMultiChoice(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case MULTI_CHOICE_CUSTOM:
+			return processMultiChoiceCustom(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case NUMBER:
+			return processNumber(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case PHOTO:
+			return processPhoto(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case REMOTE_ACTIVITY:
+			return processRemoteActivity(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case SINGLE_CHOICE:
+			return processSingleChoice(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case SINGLE_CHOICE_CUSTOM:
+			return processSingleChoiceCustom(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case TEXT:
+			return processText(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case TIMESTAMP:
+			return processTimestamp(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
+		case VIDEO:
+			return processVideo(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayType,
+	displayLabel,
 				defaultValue,
 				properties,
 				index);
@@ -3216,8 +3244,6 @@ public class Campaign {
 	 * 
 	 * @param text The prompt's text value.
 	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
-	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
 	 * @param skippable Whether or not this prompt is skippable.
@@ -3244,7 +3270,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3313,9 +3338,16 @@ public class Campaign {
 						id);
 		}
 		
-		return new HoursBeforeNowPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, min, max, defaultValueLong, index);
+		return new HoursBeforeNowPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel, min, max, defaultValueLong, index);
 	}
 	
 	/**
@@ -3328,8 +3360,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -3357,7 +3387,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3411,10 +3440,20 @@ public class Campaign {
 				}
 			}
 		}
-		
-		return new MultiChoicePrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, choices, defaultValues, index);
+
+		return new MultiChoicePrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			choices,
+			defaultValues,
+			index);
 	}
 	
 	/**
@@ -3428,8 +3467,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -3457,7 +3494,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3511,11 +3547,21 @@ public class Campaign {
 				}
 			}
 		}
-		
-		return new MultiChoiceCustomPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, choices, 
-				new HashMap<Integer, LabelValuePair>(), defaultValues, index);
+
+		return new MultiChoiceCustomPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			choices,
+			new HashMap<Integer, LabelValuePair>(),
+			defaultValues,
+			index);
 	}
 	
 	/**
@@ -3528,8 +3574,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -3557,7 +3601,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3625,10 +3668,21 @@ public class Campaign {
 					"The default value is not a valid integer: " +
 						id);
 		}
-		
-		return new NumberPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, min, max, defaultValueLong, index);
+
+		return new NumberPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			min,
+			max,
+			defaultValueLong,
+			index);
 	}
 	
 	/**
@@ -3641,8 +3695,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -3670,7 +3722,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3710,10 +3761,19 @@ public class Campaign {
 					"Default values are not allowed for photo prompts: " +
 						id);
 		}
-		
-		return new PhotoPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, verticalResolution, index);
+
+		return new PhotoPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			verticalResolution,
+			index);
 	}
 	
 	/**
@@ -3727,8 +3787,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -3756,7 +3814,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3874,11 +3931,25 @@ public class Campaign {
 					"Default values aren't allowed for remote activity prompts: " +
 					id);
 		}
-		
-		return new RemoteActivityPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, packagee, activity, action, 
-				autolaunch, retries, minRuns, input, index);
+
+		return new RemoteActivityPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			packagee,
+			activity,
+			action,
+			autolaunch,
+			retries,
+			minRuns,
+			input,
+			index);
 	}
 	
 	/**
@@ -3892,8 +3963,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -3921,7 +3990,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -3965,10 +4033,20 @@ public class Campaign {
 				throw new DomainException("The default key is not an integer.");
 			}
 		}
-		
-		return new SingleChoicePrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, choices, defaultKey, index);
+
+		return new SingleChoicePrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			choices,
+			defaultKey,
+			index);
 	}
 	
 	/**
@@ -3982,8 +4060,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -4011,7 +4087,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -4055,11 +4130,21 @@ public class Campaign {
 				throw new DomainException("The default key is not an integer.");
 			}
 		}
-		
-		return new SingleChoiceCustomPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, choices, 
-				new HashMap<Integer, LabelValuePair>(), defaultKey, index);
+
+		return new SingleChoiceCustomPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			choices,
+			new HashMap<Integer, LabelValuePair>(),
+			defaultKey,
+			index);
 	}
 	
 	/**
@@ -4072,8 +4157,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -4100,8 +4183,7 @@ public class Campaign {
 			final String id,
 			final String condition, 
 			final String unit, 
-			final String text,
-			final String abbreviatedText, 
+			final String text, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -4157,10 +4239,21 @@ public class Campaign {
 						id, 
 					e);
 		}
-		
-		return new TextPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, min, max, defaultValue, index);
+
+		return new TextPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			min,
+			max,
+			defaultValue,
+			index);
 	}
 	
 	/**
@@ -4173,8 +4266,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -4202,7 +4293,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -4218,10 +4308,18 @@ public class Campaign {
 					"Default values aren't allowed for timestamp prompts. The offending prompt id is: " +
 						id);
 		}
-		
-		return new TimestampPrompt(id, condition, unit, text, 
-				abbreviatedText, explanationText, skippable, skipLabel, 
-				displayType, displayLabel, index);
+
+		return new TimestampPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			index);
 	}
 	
 	/**
@@ -4234,8 +4332,6 @@ public class Campaign {
 	 * @param unit The prompt's visualization unit.
 	 * 
 	 * @param text The prompt's text value.
-	 * 
-	 * @param abbreviatedText The prompt's abbreviated text value.
 	 * 
 	 * @param explanationText The prompt's explanation text value.
 	 * 
@@ -4263,7 +4359,6 @@ public class Campaign {
 			final String condition, 
 			final String unit, 
 			final String text,
-			final String abbreviatedText, 
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
@@ -4307,7 +4402,6 @@ public class Campaign {
 			condition,
 			unit,
 			text,
-			abbreviatedText,
 			explanationText,
 			skippable,
 			skipLabel,

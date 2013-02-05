@@ -55,9 +55,6 @@ public abstract class ChoicePrompt extends Prompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -88,7 +85,6 @@ public abstract class ChoicePrompt extends Prompt {
 			final String condition, 
 			final String unit, 
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
@@ -99,10 +95,18 @@ public abstract class ChoicePrompt extends Prompt {
 			final int index) 
 			throws DomainException {
 
-		super(id, condition, unit, text, abbreviatedText, explanationText,
-				skippable, skipLabel, displayType, displayLabel, 
-				type, index);
-		
+		super(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			type,
+			index);
 
 		boolean tHasValues = false;
 		Set<String> labels = new HashSet<String>();

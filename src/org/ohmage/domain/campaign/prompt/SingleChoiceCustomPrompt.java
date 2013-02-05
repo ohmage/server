@@ -54,9 +54,6 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -87,7 +84,6 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			final String condition, 
 			final String unit, 
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
@@ -98,11 +94,22 @@ public class SingleChoiceCustomPrompt extends CustomChoicePrompt {
 			final Integer defaultKey, 
 			final int index) 
 			throws DomainException {
-		
-		super(id, condition, unit, text, abbreviatedText, explanationText,
-				skippable, skipLabel, displayType, displayLabel, 
-				choices, customChoices, Type.SINGLE_CHOICE_CUSTOM, index);
-		
+
+		super(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayType,
+			displayLabel,
+			choices,
+			customChoices,
+			Type.SINGLE_CHOICE_CUSTOM,
+			index);
+
 		if((defaultKey != null) &&
 				(! getAllChoices().containsKey(defaultKey))) {
 			throw new DomainException("The default key does not exist.");

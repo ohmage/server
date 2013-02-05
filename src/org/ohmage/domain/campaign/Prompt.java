@@ -31,7 +31,6 @@ import org.ohmage.util.StringUtils;
 public abstract class Prompt extends SurveyItem {
 	public static final String JSON_KEY_UNIT = "unit";
 	public static final String JSON_KEY_TEXT = "text";
-	public static final String JSON_KEY_ABBREVIATED_TEXT = "abbreviated_text";
 	public static final String JSON_KEY_EXPLANATION_TEXT = "explanation_text";
 	public static final String JSON_KEY_SKIPPABLE = "skippable";
 	public static final String JSON_KEY_SKIP_LABEL = "skip_label";
@@ -42,7 +41,6 @@ public abstract class Prompt extends SurveyItem {
 	private final String unit;
 	
 	private final String text;
-	private final String abbreviatedText;
 	private final String explanationText;
 	
 	private final boolean skippable;
@@ -239,9 +237,6 @@ public abstract class Prompt extends SurveyItem {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -267,7 +262,6 @@ public abstract class Prompt extends SurveyItem {
 			final String condition, 
 			final String unit,
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
@@ -296,7 +290,6 @@ public abstract class Prompt extends SurveyItem {
 		this.unit = unit;
 		
 		this.text = text;
-		this.abbreviatedText = abbreviatedText;
 		this.explanationText = explanationText;
 		
 		this.skippable = skippable;
@@ -324,15 +317,6 @@ public abstract class Prompt extends SurveyItem {
 	 */
 	public String getText() {
 		return text;
-	}
-	
-	/**
-	 * Returns the prompt's abbreviated text.
-	 * 
-	 * @return The prompt's abbreviated text.
-	 */
-	public String getAbbreviatedText() {
-		return abbreviatedText;
 	}
 	
 	/**
@@ -431,7 +415,6 @@ public abstract class Prompt extends SurveyItem {
 		
 		result.put(JSON_KEY_UNIT, unit);
 		result.put(JSON_KEY_TEXT, text);
-		result.put(JSON_KEY_ABBREVIATED_TEXT, abbreviatedText);
 		result.put(JSON_KEY_EXPLANATION_TEXT, explanationText);
 		result.put(JSON_KEY_SKIPPABLE, skippable);
 		result.put(JSON_KEY_SKIP_LABEL, skipLabel);
@@ -510,8 +493,6 @@ public abstract class Prompt extends SurveyItem {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((abbreviatedText == null) ? 0 : abbreviatedText.hashCode());
-		result = prime * result
 				+ ((displayLabel == null) ? 0 : displayLabel.hashCode());
 		result = prime * result
 				+ ((displayType == null) ? 0 : displayType.hashCode());
@@ -541,11 +522,6 @@ public abstract class Prompt extends SurveyItem {
 		if (getClass() != obj.getClass())
 			return false;
 		Prompt other = (Prompt) obj;
-		if (abbreviatedText == null) {
-			if (other.abbreviatedText != null)
-				return false;
-		} else if (!abbreviatedText.equals(other.abbreviatedText))
-			return false;
 		if (displayLabel == null) {
 			if (other.displayLabel != null)
 				return false;
