@@ -35,15 +35,15 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class PhotoPrompt extends Prompt {
-	private static final String JSON_KEY_VERTICAL_RESOLUTION = "vertical_resolution";
+	private static final String JSON_KEY_MAX_DIMENSION = "max_dimension";
 	
 	/**
-	 * The campaign configuration property key for the desired vertical
-	 * resolution of the image.
+	 * The campaign configuration property key for the maximum allowed 
+	 * dimension of an image.
 	 */
-	public static final String XML_KEY_VERTICAL_RESOLUTION = "res";
+	public static final String XML_KEY_MAX_DIMENSION = "maxDimension";
 	
-	private final int verticalResolution;
+	private final Integer maxDimension;
 	
 	/**
 	 * Creates a photo prompt.
@@ -71,7 +71,7 @@ public class PhotoPrompt extends Prompt {
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
-	 * @param verticalResolution The desired vertical resolution of the image.
+	 * @param maxDimension The maximum dimension for an image.
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -88,7 +88,7 @@ public class PhotoPrompt extends Prompt {
 			final String skipLabel,
 			final DisplayType displayType, 
 			final String displayLabel,
-			final int verticalResolution, 
+			final Integer maxDimension, 
 			final int index) 
 			throws DomainException {
 		
@@ -105,12 +105,12 @@ public class PhotoPrompt extends Prompt {
 			Type.PHOTO,
 			index);
 		
-		if(verticalResolution < 0) {
+		if((maxDimension != null) && (maxDimension <= 0)) {
 			throw new DomainException(
-					"The vertical resolution cannot be negative.");
+					"The maximum dimension cannot be negative.");
 		}
 		
-		this.verticalResolution = verticalResolution;
+		this.maxDimension = maxDimension;
 	}
 	
 	/**
@@ -119,7 +119,7 @@ public class PhotoPrompt extends Prompt {
 	 * @return The desired vertical resolution of the image.
 	 */
 	public int getVerticalResolution() {
-		return verticalResolution;
+		return maxDimension;
 	}
 	
 	/**
@@ -244,7 +244,9 @@ public class PhotoPrompt extends Prompt {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		result.put(JSON_KEY_VERTICAL_RESOLUTION, verticalResolution);
+		if(maxDimension != null) {
+			result.put(JSON_KEY_MAX_DIMENSION, maxDimension);
+		}
 		
 		return result;
 	}
@@ -284,15 +286,17 @@ public class PhotoPrompt extends Prompt {
 		generator.writeEndObject();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#hashCode()
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + verticalResolution;
+		result =
+			prime *
+				result +
+				((maxDimension == null) ? 0 : maxDimension.hashCode());
 		return result;
 	}
 
@@ -311,7 +315,12 @@ public class PhotoPrompt extends Prompt {
 			return false;
 		}
 		PhotoPrompt other = (PhotoPrompt) obj;
-		if(verticalResolution != other.verticalResolution) {
+		if(maxDimension == null) {
+			if(other.maxDimension != null) {
+				return false;
+			}
+		}
+		else if(!maxDimension.equals(other.maxDimension)) {
 			return false;
 		}
 		return true;

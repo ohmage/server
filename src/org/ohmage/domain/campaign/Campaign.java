@@ -3732,25 +3732,20 @@ public class Campaign {
 			final int index) 
 			throws DomainException {
 		
-		int verticalResolution;
+		Integer maxDimension = null;
 		try {
-			LabelValuePair verticalResolutionVlp = 
-				properties.get(PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION);
+			LabelValuePair maxDimensionVlp = 
+				properties.get(PhotoPrompt.XML_KEY_MAX_DIMENSION);
 			
-			if(verticalResolutionVlp == null) {
-				throw new DomainException(
-						"Missing the '" +
-							PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION +
-							"' property: " +
-							id);
+			if(maxDimensionVlp != null) {
+				maxDimension = 
+					Integer.decode(maxDimensionVlp.getLabel());
 			}
-			verticalResolution = 
-					Integer.decode(verticalResolutionVlp.getLabel());
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(
 					"The '" +
-						PhotoPrompt.XML_KEY_VERTICAL_RESOLUTION +
+						PhotoPrompt.XML_KEY_MAX_DIMENSION +
 						"' property is not an integer: " +
 						id, 
 					e);
@@ -3772,7 +3767,7 @@ public class Campaign {
 			skipLabel,
 			displayType,
 			displayLabel,
-			verticalResolution,
+			maxDimension,
 			index);
 	}
 	
