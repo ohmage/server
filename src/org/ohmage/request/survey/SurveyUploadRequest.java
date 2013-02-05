@@ -122,7 +122,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private Collection<UUID> surveyResponseIds;
 	
 	/**
-	 * Creates a new image upload request.
+	 * Creates a new survey upload request.
 	 * 
 	 * @param httpRequest The HttpServletRequest with the parameters for this
 	 * 					  request.
@@ -133,7 +133,7 @@ public class SurveyUploadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public SurveyUploadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, false, null, null);
+		super(httpRequest, false, TokenLocation.PARAMETER, null);
 		
 		LOGGER.info("Creating a survey upload request.");
 
