@@ -66,9 +66,6 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param choices The static choices as defined in the XML.
@@ -91,7 +88,6 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices,
@@ -107,7 +103,6 @@ public class MultiChoiceCustomPrompt extends CustomChoicePrompt {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			choices,
 			customChoices,

@@ -50,9 +50,6 @@ public class VideoPrompt extends Prompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param maxSeconds The maximum number of seconds allowed for this video.
@@ -71,7 +68,6 @@ public class VideoPrompt extends Prompt {
 			final String explanationText,
 			final boolean skippable,
 			final String skipLabel,
-			final DisplayType displayType,
 			final String displayLabel,
 			final int maxSeconds,
 			final int index) 
@@ -85,7 +81,6 @@ public class VideoPrompt extends Prompt {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			Type.VIDEO,
 			index);

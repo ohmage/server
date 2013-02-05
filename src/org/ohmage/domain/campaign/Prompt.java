@@ -35,51 +35,16 @@ public abstract class Prompt extends SurveyItem {
 	public static final String JSON_KEY_SKIPPABLE = "skippable";
 	public static final String JSON_KEY_SKIP_LABEL = "skip_label";
 	public static final String JSON_KEY_PROMPT_TYPE = "prompt_type";
-	public static final String JSON_KEY_DISPLAY_TYPE = "display_type";
 	public static final String JSON_KEY_DISPLAY_LABEL = "display_label";
 
 	private final String unit;
 	
 	private final String text;
+	private final String displayLabel;
 	private final String explanationText;
 	
 	private final boolean skippable;
 	private final String skipLabel;
-	
-	/**
-	 * The display types to be used by data consumers to help them better 
-	 * understand how the data is composed.
-	 * 
-	 * @author John Jenkins
-	 */
-	public static enum DisplayType {
-		// Most data consumers will already have a fair context on what 
-		// primitives like, integer, double, and string are. They will either 
-		// have enough context about the data to know that it is an integer 
-		// that represents the number of, say, naps a person took per day or
-		// they won't have any context in which case just telling them that it
-		// is an integer value is good enough. These intermediate values seem
-		// to attempt to give context without giving a good definition on what
-		// the data actually is. Is a measurement an integer or double, or 
-		// could it be something like a JSONObject representing a WiFi scan 
-		// where each key is the WiFi point's unique identifier and each value
-		// is a double representing the strength of the signal. Ultimately, I
-		// feel that these values are not sufficient to an end user and that
-		// values like integer, double, JSONObject create a more beneficial
-		// representation.
-		MEASUREMENT,
-		EVENT,
-		COUNT,
-		CATEGORY,
-		METADATA;
-		
-		@Override
-		public String toString() {
-			return name().toLowerCase();
-		}
-	}
-	private final DisplayType displayType;
-	private final String displayLabel;
 	
 	/**
 	 * The type of the prompt.
@@ -245,8 +210,6 @@ public abstract class Prompt extends SurveyItem {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's {@link DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param type This prompt's {@link Type}.
@@ -265,7 +228,6 @@ public abstract class Prompt extends SurveyItem {
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final Type type, 
 			final int index) 
@@ -280,9 +242,6 @@ public abstract class Prompt extends SurveyItem {
 			throw new DomainException(
 					"The prompt is skippable, but the skip label is null.");
 		}
-		if(displayType == null) {
-			throw new DomainException("The display type cannot be null.");
-		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(displayLabel)) {
 			throw new DomainException("The display label cannot be null.");
 		}
@@ -290,13 +249,11 @@ public abstract class Prompt extends SurveyItem {
 		this.unit = unit;
 		
 		this.text = text;
+		this.displayLabel = displayLabel;
 		this.explanationText = explanationText;
 		
 		this.skippable = skippable;
 		this.skipLabel = skipLabel;
-		
-		this.displayType = displayType;
-		this.displayLabel = displayLabel;
 		
 		this.type = type;
 	}
@@ -344,17 +301,6 @@ public abstract class Prompt extends SurveyItem {
 	 */
 	public String getSkipLabel() {
 		return skipLabel;
-	}
-	
-	/**
-	 * Returns the prompt's display type.
-	 * 
-	 * @return The prompt's {@link DisplayType}.
-	 * 
-	 * @see DisplayType
-	 */
-	public DisplayType getDisplayType() {
-		return displayType;
 	}
 
 	/**
@@ -419,7 +365,6 @@ public abstract class Prompt extends SurveyItem {
 		result.put(JSON_KEY_SKIPPABLE, skippable);
 		result.put(JSON_KEY_SKIP_LABEL, skipLabel);
 		result.put(JSON_KEY_PROMPT_TYPE, type.toString());
-		result.put(JSON_KEY_DISPLAY_TYPE, displayType.toString());
 		result.put(JSON_KEY_DISPLAY_LABEL, displayLabel);
 		
 		return result;
@@ -495,8 +440,6 @@ public abstract class Prompt extends SurveyItem {
 		result = prime * result
 				+ ((displayLabel == null) ? 0 : displayLabel.hashCode());
 		result = prime * result
-				+ ((displayType == null) ? 0 : displayType.hashCode());
-		result = prime * result
 				+ ((explanationText == null) ? 0 : explanationText.hashCode());
 		result = prime * result
 				+ ((skipLabel == null) ? 0 : skipLabel.hashCode());
@@ -526,8 +469,6 @@ public abstract class Prompt extends SurveyItem {
 			if (other.displayLabel != null)
 				return false;
 		} else if (!displayLabel.equals(other.displayLabel))
-			return false;
-		if (displayType != other.displayType)
 			return false;
 		if (explanationText == null) {
 			if (other.explanationText != null)

@@ -66,9 +66,6 @@ public class PhotoPrompt extends Prompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param maxDimension The maximum dimension for an image.
@@ -86,7 +83,6 @@ public class PhotoPrompt extends Prompt {
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final Integer maxDimension, 
 			final int index) 
@@ -100,7 +96,6 @@ public class PhotoPrompt extends Prompt {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			Type.PHOTO,
 			index);

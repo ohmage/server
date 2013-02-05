@@ -65,9 +65,6 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param choices A map of choices from their integer key value to their
@@ -93,7 +90,6 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices, 
@@ -109,7 +105,6 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			choices,
 			type,

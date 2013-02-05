@@ -51,7 +51,6 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.config.grammar.custom.ConditionParseException;
 import org.ohmage.config.grammar.custom.ConditionValidator;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
-import org.ohmage.domain.campaign.Prompt.DisplayType;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.Prompt.Type;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
@@ -103,7 +102,6 @@ public class Campaign {
 	private static final String XML_PROMPT_EXPLANATION_TEXT = "explanationText";
 	private static final String XML_PROMPT_SKIPPABLE = "skippable";
 	private static final String XML_PROMPT_SKIP_LABEL = "skipLabel";
-	private static final String XML_PROMPT_DISPLAY_TYPE = "displayType";
 	private static final String XML_PROMPT_DISPLAY_LABEL = "displayLabel";
 	private static final String XML_PROMPT_TYPE = "promptType";
 	private static final String XML_PROMPT_PROPERTIES = "properties";
@@ -1420,35 +1418,6 @@ public class Campaign {
 		else {
 			return prompt.getText();
 		}
-	}
-
-	/**
-	 * Retrieves the display type for some prompt in some survey.
-	 * 
-	 * @param surveyId The survey's configuration-unique identifier.
-	 * 
-	 * @param promptId The prompt's configuration-unique identifier.
-	 * 
-	 * @return The display type for the prompt in the survey.
-	 * 
-	 * @throws DomainException Thrown if the survey ID or repeatable set ID are
-	 * 						   null or if the survey doesn't exist in this 
-	 * 						   configuration or if the prompt doesn't exist in 
-	 * 						   that survey.
-	 */
-	public DisplayType getDisplayTypeFor(
-			final String surveyId, 
-			final String promptId) 
-			throws DomainException {
-		
-		Prompt prompt = getPrompt(surveyId, promptId);
-		if(prompt == null) {
-			throw new DomainException(
-					"No prompt with the given ID: " + promptId);
-		}
-		else {
-			return prompt.getDisplayType();
-		}	
 	}
 
 	/**
@@ -2799,25 +2768,6 @@ public class Campaign {
 			}
 		}
 		
-		Nodes displayTypes = prompt.query(XML_PROMPT_DISPLAY_TYPE);
-		if(displayTypes.size() == 0) {
-			throw new DomainException(
-					"The prompt display type is missing: " + id);
-		}
-		else if(displayTypes.size() > 1) {
-			throw new DomainException(
-					"Multiple prompt display types were found: " + id);
-		}
-		DisplayType displayType;
-		try {
-			displayType = DisplayType.valueOf(displayTypes.get(0).getValue().trim().toUpperCase());
-		}
-		catch(IllegalArgumentException e) {
-			throw new DomainException(
-					"The display type is unknown: " + id, 
-					e);
-		}
-		
 		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);
 		if(displayLabels.size() == 0) {
 			throw new DomainException(
@@ -2883,7 +2833,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2898,7 +2847,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2913,7 +2861,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2928,7 +2875,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2943,7 +2889,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2958,7 +2903,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2973,7 +2917,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -2988,7 +2931,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -3003,7 +2945,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -3018,7 +2959,6 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
 				displayLabel,
 				defaultValue,
 				properties,
@@ -3033,8 +2973,7 @@ public class Campaign {
 				explanationText,
 				skippable,
 				skipLabel,
-				displayType,
-	displayLabel,
+				displayLabel,
 				defaultValue,
 				properties,
 				index);
@@ -3250,8 +3189,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -3272,8 +3209,7 @@ public class Campaign {
 			final String text,
 			final String explanationText, 
 			final boolean skippable, 
-			final String skipLabel,
-			final DisplayType displayType, 
+			final String skipLabel, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -3346,8 +3282,11 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
-			displayLabel, min, max, defaultValueLong, index);
+			displayLabel,
+			min,
+			max,
+			defaultValueLong,
+			index);
 	}
 	
 	/**
@@ -3366,8 +3305,6 @@ public class Campaign {
 	 * @param skippable Whether or not this prompt is skippable.
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
-	 * 
-	 * @param displayType The display type of this prompt.
 	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
@@ -3390,7 +3327,6 @@ public class Campaign {
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -3449,7 +3385,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			choices,
 			defaultValues,
@@ -3474,8 +3409,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -3497,7 +3430,6 @@ public class Campaign {
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -3556,7 +3488,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			choices,
 			new HashMap<Integer, LabelValuePair>(),
@@ -3581,8 +3512,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -3604,7 +3533,6 @@ public class Campaign {
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -3677,7 +3605,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			min,
 			max,
@@ -3702,8 +3629,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -3725,7 +3650,6 @@ public class Campaign {
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -3765,7 +3689,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			maxDimension,
 			index);
@@ -3789,8 +3712,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -3811,8 +3732,7 @@ public class Campaign {
 			final String text,
 			final String explanationText, 
 			final boolean skippable, 
-			final String skipLabel,
-			final DisplayType displayType, 
+			final String skipLabel, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -3935,7 +3855,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			packagee,
 			activity,
@@ -3965,8 +3884,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -3988,7 +3905,6 @@ public class Campaign {
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -4037,7 +3953,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			choices,
 			defaultKey,
@@ -4062,8 +3977,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -4084,8 +3997,7 @@ public class Campaign {
 			final String text,
 			final String explanationText, 
 			final boolean skippable, 
-			final String skipLabel,
-			final DisplayType displayType, 
+			final String skipLabel, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -4134,7 +4046,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			choices,
 			new HashMap<Integer, LabelValuePair>(),
@@ -4159,8 +4070,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -4181,8 +4090,7 @@ public class Campaign {
 			final String text, 
 			final String explanationText, 
 			final boolean skippable, 
-			final String skipLabel,
-			final DisplayType displayType, 
+			final String skipLabel, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -4243,7 +4151,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			min,
 			max,
@@ -4268,8 +4175,6 @@ public class Campaign {
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
 	 * 
-	 * @param displayType The display type of this prompt.
-	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
 	 * @param defaultValue The default value given in the XML.
@@ -4290,8 +4195,7 @@ public class Campaign {
 			final String text,
 			final String explanationText, 
 			final boolean skippable, 
-			final String skipLabel,
-			final DisplayType displayType, 
+			final String skipLabel, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -4312,7 +4216,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			index);
 	}
@@ -4333,8 +4236,6 @@ public class Campaign {
 	 * @param skippable Whether or not this prompt is skippable.
 	 * 
 	 * @param skipLabel The label to show to skip this prompt.
-	 * 
-	 * @param displayType The display type of this prompt.
 	 * 
 	 * @param displayLabel The label for this display type.
 	 * 
@@ -4357,7 +4258,6 @@ public class Campaign {
 			final String explanationText, 
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String defaultValue,
 			final Map<String, LabelValuePair> properties, 
@@ -4400,7 +4300,6 @@ public class Campaign {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			maxSeconds,
 			index);

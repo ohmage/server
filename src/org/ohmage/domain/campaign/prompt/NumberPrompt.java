@@ -45,9 +45,6 @@ public class NumberPrompt extends BoundedPrompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param min The lower bound for a response to this prompt.
@@ -71,7 +68,6 @@ public class NumberPrompt extends BoundedPrompt {
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final long min, 
 			final long max, 
@@ -87,7 +83,6 @@ public class NumberPrompt extends BoundedPrompt {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			min,
 			max,

@@ -84,9 +84,6 @@ public class RemoteActivityPrompt extends Prompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
 	 * @param packagee The remote Activity's package.
@@ -121,7 +118,6 @@ public class RemoteActivityPrompt extends Prompt {
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final String packagee, 
 			final String activity, 
@@ -141,7 +137,6 @@ public class RemoteActivityPrompt extends Prompt {
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			Type.REMOTE_ACTIVITY,
 			index);
