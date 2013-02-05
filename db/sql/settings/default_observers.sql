@@ -158,7 +158,7 @@ INSERT INTO
             true,
             true,
             NULL,
-            '{"type":"object","doc":"Only requires the user\'s mode, which must be \"error\".","schema":[{"name":"mode","type":"string","doc":"The user\'s mode."}]}'
+            '{"type":"object","doc":"Only requires the user\'s mode, which must be \\"error\\".","schema":[{"name":"mode","type":"string","doc":"The user\'s mode."}]}'
         ),
         (
             @mobility_extended_stream_id,
