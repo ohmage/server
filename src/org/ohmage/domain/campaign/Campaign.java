@@ -43,8 +43,6 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -71,8 +69,8 @@ import org.ohmage.domain.campaign.prompt.TimestampPrompt;
 import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * An immutable representation of a campaign.
@@ -84,7 +82,6 @@ public class Campaign {
 	private static final String XML_ID = "/campaign/campaignUrn";
 	private static final String XML_NAME = "/campaign/campaignName";
 	
-	private static final String XML_SERVER_URL = "/campaign/serverUrl";
 	private static final String XML_ICON_URL = "/campaign/iconUrl";
 	private static final String XML_AUTHORED_BY = "/campaign/authoredBy";
 	
@@ -191,11 +188,6 @@ public class Campaign {
 	 */
 	private final String xml;
 	
-	/**
-	 * The URL of the server that should be used to update this configuration
-	 * and upload the survey responses to.
-	 */
-	private final URL serverUrl;
 	/**
 	 * The URL of an image that can be displayed as an icon to the user for 
 	 * this campaign.
@@ -385,8 +377,7 @@ public class Campaign {
 	public Campaign(
 			final String id, 
 			final String name, 
-			final String description, 
-			final URL serverUrl, 
+			final String description,
 			final URL iconUrl, 
 			final String authoredBy, 
 			final RunningState runningState, 
@@ -419,7 +410,6 @@ public class Campaign {
 		this.name = name;
 		this.description = description;
 		
-		this.serverUrl = serverUrl;
 		this.iconUrl = iconUrl;
 		this.authoredBy = authoredBy;
 		
@@ -552,7 +542,6 @@ public class Campaign {
 		// is missing, attempt to retrieve it from the JSON.
 		String tId = null;
 		String tName = null;
-		URL tServerUrl = null;
 		URL tIconUrl = null;
 		String tAuthoredBy = null;
 		String tXml = null;
@@ -584,7 +573,6 @@ public class Campaign {
 			tId = getId(root);
 			tName = getName(root);
 
-			tServerUrl = getServerUrl(root);
 			tIconUrl = getIconUrl(root);
 			tAuthoredBy = getAuthoredBy(root);
 			
@@ -598,16 +586,6 @@ public class Campaign {
 			}
 			catch(JSONException e) {
 				throw new DomainException("The campaign's name was missing from the JSON.", e);
-			}
-			
-			try {
-				tServerUrl = new URL(information.getString(JSON_KEY_SERVER_URL));
-			}
-			catch(JSONException e) {
-				// The server URL is optional.
-			}
-			catch(MalformedURLException e) {
-				throw new DomainException("The server URL is not a valid URL.", e);
 			}
 			
 			try {
@@ -630,7 +608,6 @@ public class Campaign {
 		this.id = tId;
 		name = tName;
 		
-		serverUrl = tServerUrl;
 		iconUrl = tIconUrl;
 		authoredBy = tAuthoredBy;
 		
@@ -700,7 +677,6 @@ public class Campaign {
 		name = getName(root);
 		this.description = description;
 		
-		serverUrl = getServerUrl(root);
 		iconUrl = getIconUrl(root);
 		authoredBy = getAuthoredBy(root);
 		
@@ -756,7 +732,6 @@ public class Campaign {
 		
 		String id = getId(root);
 		String name = getName(root);
-		getServerUrl(root);
 		getIconUrl(root);
 		getAuthoredBy(root);
 		getSurveys(root);
@@ -791,15 +766,6 @@ public class Campaign {
 	 */
 	public String getDescription() {
 		return description;
-	}
-	
-	/**
-	 * Returns the server's URL.
-	 * 
-	 * @return The server's URL. This may be null.
-	 */
-	public URL getServerUrl() {
-		return serverUrl;
 	}
 	
 	/**
@@ -1736,7 +1702,6 @@ public class Campaign {
 		}
 		result.put(JSON_KEY_NAME, name);
 		result.put(JSON_KEY_DESCRIPTION, (description == null) ? "" : description);
-		result.put(JSON_KEY_SERVER_URL, serverUrl);
 		result.put(JSON_KEY_ICON_URL, iconUrl);
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
@@ -2013,44 +1978,6 @@ public class Campaign {
 				return name;
 			}
 		}
-	}
-	
-	/**
-	 * Checks that the campaign URL exists and is a valid URL.
-	 * 
-	 * @param root The root of the XML being validated.
-	 * 
-	 * @return The campaign's server's URL or null if one wasn't present.
-	 * 
-	 * @throws DomainException Thrown if the server URL is missing, there are 
-	 * 						   multiple of them, or it is not a valid URL.
-	 */
-	private static URL getServerUrl(final Node root) throws DomainException {
-		Nodes serverUrls = root.query(XML_SERVER_URL);
-		if(serverUrls.size() > 1) {
-			throw new DomainException("Multiple server URLs were found.");
-		}
-		else if(serverUrls.size() == 1) {
-			String serverUrlString = serverUrls.get(0).getValue().trim();
-			
-			try {
-				URL result = new URL(serverUrlString);
-				
-				if(serverUrlString.length() > MAX_SERVER_URL_LENGTH) {
-					throw new DomainException(
-							"The server URL cannot be longer than " +
-								MAX_SERVER_URL_LENGTH +
-								" characters.");
-				}
-				
-				return result;
-			}
-			catch(MalformedURLException e) {
-				throw new DomainException("The server URL is not a valid URL.");
-			}
-		}
-		
-		return null;
 	}
 	
 	/**
