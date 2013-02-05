@@ -374,41 +374,6 @@ public final class UserServices {
 			try {
 				// Set the content of the message.
 				message.setContent(registrationText, "text/html");
-				
-				/*
-				// There is no TOS.
-				if(registrationParts == null) {
-					try {
-						message.setContent(registrationText, "text/html");
-					}
-					catch(MessagingException e) {
-						throw new ServiceException(
-								"Could not add the content to the message.",
-								e);
-					}
-				}
-				else {
-					MimeMultipart multipart = new MimeMultipart();
-					
-					boolean firstPass = true;
-					for(int i = 0; i < registrationParts.length; i++) {
-						if(firstPass) {
-							firstPass = false;
-						}
-						else {
-							BodyPart plainPart = new MimeBodyPart();
-							plainPart.setContent(termsOfService, "text/plain");
-							multipart.addBodyPart(plainPart);
-						}
-						
-						BodyPart htmlPart = new MimeBodyPart();
-						htmlPart.setContent(registrationParts[i], "text/html");
-						multipart.addBodyPart(htmlPart);
-					}
-					
-					message.setContent(multipart);
-				}
-				*/
 			}
 			catch(MessagingException e) {
 				throw new ServiceException(
