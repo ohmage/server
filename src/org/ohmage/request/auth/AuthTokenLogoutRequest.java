@@ -17,13 +17,16 @@ package org.ohmage.request.auth;
 
 import java.io.IOException;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 
 /**
@@ -87,6 +90,33 @@ public class AuthTokenLogoutRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the logout request.");
 		
-		respond(httpRequest, httpResponse, (JSONObject) null);
+		if(getUser() != null) {
+			final String token = getUser().getToken(); 
+			
+			if(token != null) {
+				
+				Cookie authTokenCookie = new Cookie(InputKeys.AUTH_TOKEN, token);
+				authTokenCookie.setHttpOnly(false);
+				authTokenCookie.setMaxAge(0);
+				authTokenCookie.setPath("/");
+				httpResponse.addCookie(authTokenCookie);
+				
+			}
+			UserBin.expireUser(token);
+		}
+		
+		JSONObject response = new JSONObject();
+		try {
+			
+			response.put(JSON_KEY_METADATA, JSONObject.NULL);
+			response.put(JSON_KEY_DATA, JSONObject.NULL);
+		}
+		catch(JSONException e) {
+			LOGGER.error("There was an error building the response.", e);
+			setFailed();
+			
+		}
+		
+		super.respond(httpRequest, httpResponse, response);
 	}
 }
