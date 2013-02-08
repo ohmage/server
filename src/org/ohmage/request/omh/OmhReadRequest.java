@@ -85,8 +85,8 @@ public class OmhReadRequest extends Request {
 		DateTime tStartDate = null;
 		DateTime tEndDate = null;
 		ColumnNode<String> tColumns = new ColumnNode<String>();
-		Long tNumToSkip = null;
-		Long tNumToReturn = null;
+		Long tNumToSkip = 0L;
+		Long tNumToReturn = StreamReadRequest.MAX_NUMBER_TO_RETURN;
 		
 		UserRequest tUserRequest = null;
 		
