@@ -20,7 +20,6 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -425,53 +424,6 @@ public abstract class UserRequest extends Request {
 		super.respond(httpRequest, httpResponse, response);
 	}
 	
-	/**
-	 * Generates the response for the user that contains metadata and the 
-	 * actual data to return to the user. Also expires the auth_token
-	 * cookie.
-	 * 
-	 * @param httpRequest The HTTP request that began this request.
-	 * 
-	 * @param httpResponse The HTTP response back to the requester.
-	 * 
-	 * @param metadata The metadata to include in the response with the key
-	 * 				   {@link Request#JSON_KEY_METADATA}.
-	 * 
-	 * @param data The data to include in the response with the key
-	 * 			   {@link Request#JSON_KEY_DATA}.
-	 */
-	protected void respondAndExpireUser(
-			final HttpServletRequest httpRequest, 
-			final HttpServletResponse httpResponse, 
-			final JSONObject metadata, 
-			final JSONObject data) {
-		
-		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				
-				Cookie authTokenCookie = new Cookie(InputKeys.AUTH_TOKEN, token);
-				authTokenCookie.setHttpOnly(false);
-				authTokenCookie.setMaxAge(0);
-				authTokenCookie.setPath("/");
-				httpResponse.addCookie(authTokenCookie);
-				
-			}
-			UserBin.expireUser(token);
-		}
-		
-		JSONObject response = new JSONObject();
-		try {
-			response.put(JSON_KEY_METADATA, metadata);
-			response.put(JSON_KEY_DATA, data);
-		}
-		catch(JSONException e) {
-			LOGGER.error("There was an error building the response.", e);
-			setFailed();
-		}
-		super.respond(httpRequest, httpResponse, response);
-	}
-
 	/**************************************************************************
 	 *  End JEE Requirements
 	 *************************************************************************/
