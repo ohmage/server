@@ -18,6 +18,7 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -222,6 +223,10 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 			final String username, 
 			final Set<String> classIds) 
 			throws DataAccessException {
+		
+		if((classIds == null) || (classIds.size() == 0)) {
+			return Collections.emptySet();
+		}
 		
 		String sql = 
 				SQL_GET_DISTINCT_USER_ROLES + 
