@@ -69,7 +69,9 @@ public class OmhAuthenticateRequest extends Request {
 	public void service() {
 		LOGGER.info("Servicing the OMH authenticate request.");
 		
-		authTokenRequest.service();
+		if((authTokenRequest != null) && (! authTokenRequest.isFailed())) {
+			authTokenRequest.service();
+		}
 	}
 
 	/*
