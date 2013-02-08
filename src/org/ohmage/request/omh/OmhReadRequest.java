@@ -317,7 +317,7 @@ public class OmhReadRequest extends Request {
 					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 			
 			super.respond(httpRequest, httpResponse, null);
@@ -333,7 +333,7 @@ public class OmhReadRequest extends Request {
 					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 			
 			// Then, force the request to respond.

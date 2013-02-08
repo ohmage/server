@@ -259,7 +259,7 @@ public class OmhRegistryReadRequest extends Request {
 					.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 			else {
-				httpResponse.setStatus(HttpServletResponse.SC_BAD_GATEWAY);
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			}
 			
 			// Then, force the appropriate request to respond.

@@ -107,7 +107,6 @@ public class AuthTokenLogoutRequest extends UserRequest {
 		
 		JSONObject response = new JSONObject();
 		try {
-			
 			response.put(JSON_KEY_METADATA, JSONObject.NULL);
 			response.put(JSON_KEY_DATA, JSONObject.NULL);
 		}
