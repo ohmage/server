@@ -698,6 +698,31 @@ public class Image {
 	}
 	
 	/**
+	 * Gets the content type of the image.
+	 * 
+	 * @param size The size of the image for which the content type is desired.
+	 * 
+	 * @return The MIME-type of this image.
+	 * 
+	 * @throws DomainException There was an error reading the image's content
+	 * 						   type.
+	 */
+	public String getType(final Size size) throws DomainException {
+		if(! size.equals(ORIGINAL)) {
+			return "image/" + Size.IMAGE_STORE_FORMAT;
+		}
+		
+		try {
+			return
+				getImageData(size).getUrl().openConnection().getContentType();
+		}
+		catch(IOException e) {
+			throw
+				new DomainException("Error reading the image's content type.");
+		}
+	}
+	
+	/**
 	 * Returns an InputStream connected to the image.
 	 * 
 	 * @param size The desired {@link Size} of the image.

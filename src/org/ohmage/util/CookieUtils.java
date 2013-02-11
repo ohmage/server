@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
-import org.ohmage.request.RequestBuilder;
 
 /**
  * Utilities to help get or set information from and to cookies.

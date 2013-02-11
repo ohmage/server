@@ -423,6 +423,7 @@ public abstract class UserRequest extends Request {
 		}
 		super.respond(httpRequest, httpResponse, response);
 	}
+	
 	/**************************************************************************
 	 *  End JEE Requirements
 	 *************************************************************************/

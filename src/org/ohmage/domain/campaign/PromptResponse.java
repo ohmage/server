@@ -146,7 +146,6 @@ public abstract class PromptResponse extends Response {
 		else {
 			result.put("prompt_text", prompt.getText());
 			result.put("prompt_type", prompt.getType().toString());
-			result.put("prompt_display_type", prompt.getDisplayType().toString());
 			result.put("prompt_index", prompt.getIndex());
 			result.put("prompt_unit", prompt.getUnit());
 			

@@ -42,9 +42,6 @@ public class VideoPrompt extends Prompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -52,9 +49,6 @@ public class VideoPrompt extends Prompt {
 	 * 
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
-	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
@@ -71,13 +65,11 @@ public class VideoPrompt extends Prompt {
 			final String condition,
 			final String unit,
 			final String text,
-			final String abbreviatedText,
 			final String explanationText,
 			final boolean skippable,
 			final String skipLabel,
-			final DisplayType displayType,
 			final String displayLabel,
-			final int maxSeconds,
+			final Integer maxSeconds,
 			final int index) 
 			throws DomainException {
 		
@@ -86,16 +78,14 @@ public class VideoPrompt extends Prompt {
 			condition,
 			unit,
 			text,
-			abbreviatedText,
 			explanationText,
 			skippable,
 			skipLabel,
-			displayType,
 			displayLabel,
 			Type.VIDEO,
 			index);
 		
-		if(maxSeconds <= 0) {
+		if((maxSeconds != null) && (maxSeconds <= 0)) {
 			throw new DomainException(
 				"The maximum number of seconds must be a positive integer.");
 		}
@@ -104,9 +94,10 @@ public class VideoPrompt extends Prompt {
 	
 	/**
 	 * Returns the maximum number of seconds of video allowed.
-	 * @return
+	 * 
+	 * @return The maximum number of seconds of video allowed.
 	 */
-	public int getMaxSeconds() {
+	public Integer getMaxSeconds() {
 		return maxSeconds;
 	}
 

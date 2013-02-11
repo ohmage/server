@@ -58,9 +58,6 @@ public class PhotoPrompt extends Prompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -69,12 +66,13 @@ public class PhotoPrompt extends Prompt {
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
 	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
-	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
+<<<<<<< HEAD
 	 * @param maximumDimension The maximum allowed dimension for a photo.
+=======
+	 * @param maxDimension The maximum dimension for an photo.
+>>>>>>> 6cf314261b8a649979da0b8616d76272e6353e6f
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
@@ -86,19 +84,25 @@ public class PhotoPrompt extends Prompt {
 			final String condition, 
 			final String unit, 
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
-			final Integer maximumDimension, 
+			final Integer maximumDimension,
 			final int index) 
 			throws DomainException {
 		
-		super(id, condition, unit, text, abbreviatedText, explanationText,
-				skippable, skipLabel, displayType, displayLabel, 
-				Type.PHOTO, index);
+		super(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayLabel,
+			Type.PHOTO,
+			index);
 		
 		if((maximumDimension != null) && (maximumDimension < 0)) {
 			throw new DomainException(
@@ -285,15 +289,17 @@ public class PhotoPrompt extends Prompt {
 		generator.writeEndObject();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#hashCode()
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + maximumDimension;
+		result =
+			prime *
+				result +
+				((maximumDimension == null) ? 0 : maximumDimension.hashCode());
 		return result;
 	}
 
@@ -312,7 +318,12 @@ public class PhotoPrompt extends Prompt {
 			return false;
 		}
 		PhotoPrompt other = (PhotoPrompt) obj;
-		if(maximumDimension != other.maximumDimension) {
+		if(maximumDimension == null) {
+			if(other.maximumDimension != null) {
+				return false;
+			}
+		}
+		else if(!maximumDimension.equals(other.maximumDimension)) {
 			return false;
 		}
 		return true;

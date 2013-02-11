@@ -57,9 +57,6 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -67,9 +64,6 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 	 * 
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
-	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
@@ -93,11 +87,9 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 			final String condition, 
 			final String unit, 
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final Map<Integer, LabelValuePair> choices,
 			final Map<Integer, LabelValuePair> customChoices, 
@@ -105,9 +97,18 @@ public abstract class CustomChoicePrompt extends ChoicePrompt {
 			final int index) 
 			throws DomainException {
 		
-		super(id, condition, unit, text, abbreviatedText, explanationText,
-				skippable, skipLabel, displayType, displayLabel, 
-				choices, type, index);
+		super(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayLabel,
+			choices,
+			type,
+			index);
 		
 		Set<String> labels = new HashSet<String>();
 		Collection<LabelValuePair> currChoices = 

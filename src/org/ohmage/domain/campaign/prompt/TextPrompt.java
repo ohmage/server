@@ -65,9 +65,6 @@ public class TextPrompt extends Prompt {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -75,9 +72,6 @@ public class TextPrompt extends Prompt {
 	 * 
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
-	 * 
-	 * @param displayType This prompt's
-	 * 					 {@link org.ohmage.domain.campaign.Prompt.DisplayType}.
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
@@ -96,11 +90,9 @@ public class TextPrompt extends Prompt {
 			final String condition, 
 			final String unit, 
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final long min, 
 			final long max, 
@@ -108,9 +100,17 @@ public class TextPrompt extends Prompt {
 			final int index) 
 			throws DomainException {
 		
-		super(id, condition, unit, text, abbreviatedText, explanationText,
-				skippable, skipLabel, displayType, displayLabel, 
-				Type.TEXT, index);
+		super(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayLabel,
+			Type.TEXT,
+			index);
 		
 		this.min = min;
 		this.max = max;

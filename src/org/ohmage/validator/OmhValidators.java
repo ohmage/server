@@ -170,6 +170,15 @@ public class OmhValidators {
 						trimmedValue);
 			}
 			
+			// Ensure that a stream ID exists.
+			if(split.length < 5) {
+				throw new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"Missing the stream ID for the observer payload ID." +
+						"Observer payload IDs must be of the form: " +
+						"omh:ohmage:observer:<observer_id>:<stream_id>");
+			}
+			
 			String streamId;
 			try {
 				streamId = ObserverValidators.validateStreamId(split[4]);

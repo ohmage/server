@@ -43,9 +43,6 @@ public class Survey {
 	private static final String JSON_KEY_DESCRIPTION = "description";
 	private static final String JSON_KEY_INTRO_TEXT = "intro_text";
 	private static final String JSON_KEY_SUBMIT_TEXT = "submit_text";
-	private static final String JSON_KEY_SHOW_SUMMARY = "show_summary";
-	private static final String JSON_KEY_EDIT_SUMMARY = "edit_summary";
-	private static final String JSON_KEY_SUMMARY_TEXT = "summary_text";
 	private static final String JSON_KEY_ANYTIME = "anytime";
 	private static final String JSON_KEY_PROMPTS = "prompts";
 	
@@ -70,19 +67,6 @@ public class Survey {
 	 * The text to be displayed to the user just before they submit the survey.
 	 */
 	private final String submitText;
-	
-	/**
-	 * Whether or not to show the summary text.
-	 */
-	private final boolean showSummary;
-	/**
-	 * Whether or not the user is allowed to edit the summary.
-	 */
-	private final Boolean editSummary;
-	/**
-	 * The text that is displayed to the user upon completing the survey.
-	 */
-	private final String summaryText;
 	
 	/**
 	 * Whether or not this survey may be taken at any time or only when a 
@@ -112,13 +96,6 @@ public class Survey {
 	 * @param submitText The text to be displayed to the user just before they
 	 * 					 submit the survey.
 	 * 
-	 * @param showSummary Whether or not to show the summary.
-	 * 
-	 * @param editSummary Whether or not the user is allowed to edit the 
-	 * 					  summary.
-	 * 
-	 * @param summaryText The survey's summary text.
-	 * 
 	 * @param anytime Whether the user is allowed to take this survey at any
 	 * 				  time or if they may only take it when a trigger has made
 	 * 				  it available.
@@ -139,9 +116,6 @@ public class Survey {
 			final String description,
 			final String introText, 
 			final String submitText,
-			final boolean showSummary, 
-			final Boolean editSummary, 
-			final String summaryText,
 			final boolean anytime, 
 			final Map<Integer, SurveyItem> surveyItems) 
 			throws DomainException {
@@ -155,14 +129,6 @@ public class Survey {
 		if(StringUtils.isEmptyOrWhitespaceOnly(submitText)) {
 			throw new DomainException("The submit text cannot be null.");
 		}
-		if(showSummary && (editSummary == null)) {
-			throw new DomainException(
-					"Edit summary cannot be null if show summary is true.");
-		}
-		if(showSummary && StringUtils.isEmptyOrWhitespaceOnly(summaryText)) {
-			throw new DomainException(
-					"The summary text cannot be null if show summary is true.");
-		}
 		if((surveyItems == null) || (surveyItems.size() == 0)) {
 			throw new DomainException(
 					"The surveyItems list cannot be null or empty.");
@@ -173,9 +139,6 @@ public class Survey {
 		this.description = description;
 		this.introText = introText;
 		this.submitText = submitText;
-		this.showSummary = showSummary;
-		this.editSummary = editSummary;
-		this.summaryText = summaryText;
 		this.anytime = anytime;
 
 		this.surveyItems = new HashMap<Integer, SurveyItem>(surveyItems);
@@ -234,39 +197,6 @@ public class Survey {
 	 */
 	public String getSubmitText() {
 		return submitText;
-	}
-	
-	/**
-	 * Returns whether or not to show the summary for this survey.
-	 * 
-	 * @return Whether or not to show this survey's summary.
-	 */
-	public boolean showSummary() {
-		return showSummary;
-	}
-	
-	/**
-	 * Returns whether or not to allow the user to edit the summary for this
-	 * survey.
-	 * 
-	 * @return Whether or not to allow the user to edit this survey's summary
-	 * 		   or null if the 'showSummary' is set to false.
-	 * 
-	 * @see #showSummary()
-	 */
-	public Boolean editSummary() {
-		return editSummary;
-	}
-	
-	/**
-	 * Returns the summary text for this survey.
-	 * 
-	 * @return This survey's summary text or null if 'showSummary' is false.
-	 * 
-	 * @see #showSummary()
-	 */
-	public String summaryText() {
-		return summaryText;
 	}
 	
 	/**
@@ -418,14 +348,6 @@ public class Survey {
 	 * @param withSubmitText Whether or not to include the survey's submit
 	 * 						 text.
 	 * 
-	 * @param withShowSummary Whether or not to include if the survey is going
-	 * 						  to show a summary.
-	 * 
-	 * @param withEditSummary Whether or not to include if the survey allows 
-	 * 						  the user to edit the summary.
-	 * 
-	 * @param withSummaryText Whether or not to include the summary text.
-	 * 
 	 * @param withAnytime Whether or not to include if the survey allows the 
 	 * 					  user to take the survey anytime.
 	 * 
@@ -442,9 +364,6 @@ public class Survey {
 			final boolean withDescription, 
 			final boolean withIntroText,
 			final boolean withSubmitText, 
-			final boolean withShowSummary,
-			final boolean withEditSummary, 
-			final boolean withSummaryText,
 			final boolean withAnytime, 
 			final boolean withSurveyItems) 
 			throws JSONException {
@@ -469,18 +388,6 @@ public class Survey {
 
 		if(withSubmitText) {
 			result.put(JSON_KEY_SUBMIT_TEXT, submitText);
-		}
-
-		if(withShowSummary) {
-			result.put(JSON_KEY_SHOW_SUMMARY, showSummary);
-		}
-
-		if(withEditSummary) {
-			result.put(JSON_KEY_EDIT_SUMMARY, editSummary);
-		}
-
-		if(withSummaryText) {
-			result.put(JSON_KEY_SUMMARY_TEXT, summaryText);
 		}
 
 		if(withAnytime) {

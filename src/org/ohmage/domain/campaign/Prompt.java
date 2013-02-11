@@ -30,57 +30,20 @@ import org.ohmage.util.StringUtils;
 public abstract class Prompt extends SurveyItem {
 	public static final String JSON_KEY_UNIT = "unit";
 	public static final String JSON_KEY_TEXT = "text";
-	public static final String JSON_KEY_ABBREVIATED_TEXT = "abbreviated_text";
 	public static final String JSON_KEY_EXPLANATION_TEXT = "explanation_text";
 	public static final String JSON_KEY_SKIPPABLE = "skippable";
 	public static final String JSON_KEY_SKIP_LABEL = "skip_label";
 	public static final String JSON_KEY_PROMPT_TYPE = "prompt_type";
-	public static final String JSON_KEY_DISPLAY_TYPE = "display_type";
 	public static final String JSON_KEY_DISPLAY_LABEL = "display_label";
 
 	private final String unit;
 	
 	private final String text;
-	private final String abbreviatedText;
+	private final String displayLabel;
 	private final String explanationText;
 	
 	private final boolean skippable;
 	private final String skipLabel;
-	
-	/**
-	 * The display types to be used by data consumers to help them better 
-	 * understand how the data is composed.
-	 * 
-	 * @author John Jenkins
-	 */
-	public static enum DisplayType {
-		// Most data consumers will already have a fair context on what 
-		// primitives like, integer, double, and string are. They will either 
-		// have enough context about the data to know that it is an integer 
-		// that represents the number of, say, naps a person took per day or
-		// they won't have any context in which case just telling them that it
-		// is an integer value is good enough. These intermediate values seem
-		// to attempt to give context without giving a good definition on what
-		// the data actually is. Is a measurement an integer or double, or 
-		// could it be something like a JSONObject representing a WiFi scan 
-		// where each key is the WiFi point's unique identifier and each value
-		// is a double representing the strength of the signal. Ultimately, I
-		// feel that these values are not sufficient to an end user and that
-		// values like integer, double, JSONObject create a more beneficial
-		// representation.
-		MEASUREMENT,
-		EVENT,
-		COUNT,
-		CATEGORY,
-		METADATA;
-		
-		@Override
-		public String toString() {
-			return name().toLowerCase();
-		}
-	}
-	private final DisplayType displayType;
-	private final String displayLabel;
 	
 	/**
 	 * The type of the prompt.
@@ -238,9 +201,6 @@ public abstract class Prompt extends SurveyItem {
 	 * 
 	 * @param text The text to be displayed to the user for this prompt.
 	 * 
-	 * @param abbreviatedText An abbreviated version of the text to be 
-	 * 						  displayed to the user for this prompt.
-	 * 
 	 * @param explanationText A more-verbose version of the text to be 
 	 * 						  displayed to the user for this prompt.
 	 * 
@@ -248,8 +208,6 @@ public abstract class Prompt extends SurveyItem {
 	 * 
 	 * @param skipLabel The text to show to the user indicating that the prompt
 	 * 					may be skipped.
-	 * 
-	 * @param displayType This prompt's {@link DisplayType}.
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
@@ -266,11 +224,9 @@ public abstract class Prompt extends SurveyItem {
 			final String condition, 
 			final String unit,
 			final String text, 
-			final String abbreviatedText, 
 			final String explanationText,
 			final boolean skippable, 
 			final String skipLabel,
-			final DisplayType displayType, 
 			final String displayLabel,
 			final Type type, 
 			final int index) 
@@ -285,9 +241,6 @@ public abstract class Prompt extends SurveyItem {
 			throw new DomainException(
 					"The prompt is skippable, but the skip label is null.");
 		}
-		if(displayType == null) {
-			throw new DomainException("The display type cannot be null.");
-		}
 		if(StringUtils.isEmptyOrWhitespaceOnly(displayLabel)) {
 			throw new DomainException("The display label cannot be null.");
 		}
@@ -295,14 +248,11 @@ public abstract class Prompt extends SurveyItem {
 		this.unit = unit;
 		
 		this.text = text;
-		this.abbreviatedText = abbreviatedText;
+		this.displayLabel = displayLabel;
 		this.explanationText = explanationText;
 		
 		this.skippable = skippable;
 		this.skipLabel = skipLabel;
-		
-		this.displayType = displayType;
-		this.displayLabel = displayLabel;
 		
 		this.type = type;
 	}
@@ -323,15 +273,6 @@ public abstract class Prompt extends SurveyItem {
 	 */
 	public String getText() {
 		return text;
-	}
-	
-	/**
-	 * Returns the prompt's abbreviated text.
-	 * 
-	 * @return The prompt's abbreviated text.
-	 */
-	public String getAbbreviatedText() {
-		return abbreviatedText;
 	}
 	
 	/**
@@ -358,17 +299,6 @@ public abstract class Prompt extends SurveyItem {
 	 */
 	public String getSkipLabel() {
 		return skipLabel;
-	}
-	
-	/**
-	 * Returns the prompt's display type.
-	 * 
-	 * @return The prompt's {@link DisplayType}.
-	 * 
-	 * @see DisplayType
-	 */
-	public DisplayType getDisplayType() {
-		return displayType;
 	}
 
 	/**
@@ -429,12 +359,10 @@ public abstract class Prompt extends SurveyItem {
 		
 		result.put(JSON_KEY_UNIT, unit);
 		result.put(JSON_KEY_TEXT, text);
-		result.put(JSON_KEY_ABBREVIATED_TEXT, abbreviatedText);
 		result.put(JSON_KEY_EXPLANATION_TEXT, explanationText);
 		result.put(JSON_KEY_SKIPPABLE, skippable);
 		result.put(JSON_KEY_SKIP_LABEL, skipLabel);
 		result.put(JSON_KEY_PROMPT_TYPE, type.toString());
-		result.put(JSON_KEY_DISPLAY_TYPE, displayType.toString());
 		result.put(JSON_KEY_DISPLAY_LABEL, displayLabel);
 		
 		return result;
@@ -494,11 +422,7 @@ public abstract class Prompt extends SurveyItem {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result
-				+ ((abbreviatedText == null) ? 0 : abbreviatedText.hashCode());
-		result = prime * result
 				+ ((displayLabel == null) ? 0 : displayLabel.hashCode());
-		result = prime * result
-				+ ((displayType == null) ? 0 : displayType.hashCode());
 		result = prime * result
 				+ ((explanationText == null) ? 0 : explanationText.hashCode());
 		result = prime * result
@@ -525,17 +449,10 @@ public abstract class Prompt extends SurveyItem {
 		if (getClass() != obj.getClass())
 			return false;
 		Prompt other = (Prompt) obj;
-		if (abbreviatedText == null) {
-			if (other.abbreviatedText != null)
-				return false;
-		} else if (!abbreviatedText.equals(other.abbreviatedText))
-			return false;
 		if (displayLabel == null) {
 			if (other.displayLabel != null)
 				return false;
 		} else if (!displayLabel.equals(other.displayLabel))
-			return false;
-		if (displayType != other.displayType)
 			return false;
 		if (explanationText == null) {
 			if (other.explanationText != null)

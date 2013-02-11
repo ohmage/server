@@ -17,6 +17,7 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.DataStream;
@@ -33,8 +34,8 @@ import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.service.MobilityServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.MobilityValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -312,11 +313,19 @@ public class MobilityAggregateReadRequest extends UserRequest {
 			// Service the read requests.
 			regularReadRequest.service();
 			if(regularReadRequest.isFailed()) {
-				return;
+				Annotator annotator = regularReadRequest.getAnnotator();
+				throw
+					new ServiceException(
+						annotator.getErrorCode(),
+						annotator.getErrorText());
 			}
 			extendedReadRequest.service();
 			if(extendedReadRequest.isFailed()) {
-				return;
+				Annotator annotator = extendedReadRequest.getAnnotator();
+				throw
+					new ServiceException(
+						annotator.getErrorCode(),
+						annotator.getErrorText());
 			}
 			
 			LOGGER.info("Aggregating the resulting points.");
