@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Video;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -151,8 +150,7 @@ public class VideoReadRequest extends UserRequest {
 						CookieUtils.setCookieValue(
 								httpResponse, 
 								InputKeys.AUTH_TOKEN, 
-								token, 
-								(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+								token);
 					}
 				}
 

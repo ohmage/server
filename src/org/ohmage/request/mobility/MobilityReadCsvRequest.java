@@ -14,7 +14,6 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.ColumnKey;
 import org.ohmage.domain.MobilityPoint;
 import org.ohmage.domain.MobilityPoint.MobilityColumnKey;
@@ -281,7 +280,7 @@ public class MobilityReadCsvRequest extends UserRequest {
 			if(getUser() != null) {
 				final String token = getUser().getToken(); 
 				if(token != null) {
-					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token);
 				}
 			}
 			

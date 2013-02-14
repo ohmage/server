@@ -28,7 +28,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -67,8 +66,6 @@ public class DocumentReadContentsRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(DocumentReadContentsRequest.class);
 	
 	private static final int CHUNK_SIZE = 4096;
-
-	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final String documentId;
 	
@@ -212,8 +209,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 						CookieUtils.setCookieValue(
 							httpResponse, 
 							InputKeys.AUTH_TOKEN, 
-							token, 
-							(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+							token);
 					}
 				}
 				

@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Clazz;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -68,8 +67,6 @@ import org.ohmage.validator.ClassValidators;
  */
 public class ClassRosterReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassRosterReadRequest.class);
-
-	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final Collection<String> classIds;
 	
@@ -184,7 +181,7 @@ public class ClassRosterReadRequest extends UserRequest {
 			if(getUser() != null) {
 				final String token = getUser().getToken(); 
 				if(token != null) {
-					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+					CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token);
 				}
 			}
 
