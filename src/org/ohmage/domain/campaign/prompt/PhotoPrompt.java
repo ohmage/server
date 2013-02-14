@@ -68,11 +68,7 @@ public class PhotoPrompt extends Prompt {
 	 * 
 	 * @param displayLabel The display label for this prompt.
 	 * 
-<<<<<<< HEAD
 	 * @param maximumDimension The maximum allowed dimension for a photo.
-=======
-	 * @param maxDimension The maximum dimension for an photo.
->>>>>>> 6cf314261b8a649979da0b8616d76272e6353e6f
 	 * 
 	 * @param index This prompt's index in its container's list of survey 
 	 * 				items.
