@@ -643,6 +643,7 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserAuth.equals(uri) ||
 				apiUserAuthToken.equals(uri) ||
 				apiUserLogout.equals(uri) ||
+				apiUserWhoAmI.equals(uri) ||
 				// Audit
 				apiAuditRead.equals(uri) ||
 				// Campaign
@@ -1373,5 +1374,9 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiVisualizationSurveyResponsePrivacyTimeseries() {
 		return apiVisualizationSurveyResponsePrivacyTimeseries;
+	}
+	
+	public String getApiUserWhoAmI() {
+		return apiUserWhoAmI;
 	}
 }
