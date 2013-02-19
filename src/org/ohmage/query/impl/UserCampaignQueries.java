@@ -15,14 +15,18 @@
  ******************************************************************************/
 package org.ohmage.query.impl;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.sql.DataSource;
 
@@ -30,9 +34,17 @@ import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserCampaignQueries;
+import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for reading and writing 
@@ -118,6 +130,148 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 */
 	private UserCampaignQueries(final DataSource dataSource) {
 		super(dataSource);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserCampaignQueries#createUserCampaignMask(java.lang.String, java.lang.String, java.util.Set, java.util.UUID, long)
+	 */
+	@Override
+	public void createUserCampaignMask(
+		final String username,
+		final String campaignId,
+		final UUID maskId,
+		final long time,
+		final Set<String> surveyIds)
+		throws DataAccessException {
+		
+		if(username == null) {
+			throw new DataAccessException("The username is null.");
+		}
+		else if(campaignId == null) {
+			throw new DataAccessException("The campaign ID is null.");
+		}
+		else if(surveyIds == null) {
+			throw new DataAccessException("The survey ID list is null.");
+		}
+		else if(surveyIds.size() == 0) {
+			throw new DataAccessException("The survey ID list is empty.");
+		}
+		else if(maskId == null) {
+			throw new DataAccessException("The mask's ID is null.");
+		}
+
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating an observer.");
+
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager =
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Campaign mask creation SQL.
+			final String campaignMaskSql =
+				"INSERT INTO campaign_mask(" +
+						"user_id, " +
+						"campaign_id, " +
+						"mask_id, " +
+						"creation_time) " +
+					"VALUES (" +
+						"(SELECT id FROM user WHERE username = ?), " +
+						"(SELECT id FROM campaign WHERE urn = ?), " +
+						"?, " +
+						"?)";
+			
+			// Campaign mask creation statement with parameters.
+			PreparedStatementCreator maskCreator =
+				new PreparedStatementCreator() {
+					/*
+					 * (non-Javadoc)
+					 * @see org.springframework.jdbc.core.PreparedStatementCreator#createPreparedStatement(java.sql.Connection)
+					 */
+					@Override
+					public PreparedStatement createPreparedStatement(
+							final Connection connection)
+							throws SQLException {
+						
+						PreparedStatement ps =
+							connection.prepareStatement(
+								campaignMaskSql,
+								new String[] { "id" });
+						
+						ps.setString(1, username);
+						ps.setString(2, campaignId);
+						ps.setString(3, maskId.toString());
+						ps.setLong(4, time);
+						
+						return ps;
+					}
+
+				};
+				
+			// The auto-generated key for the observer.
+			KeyHolder maskKeyHolder = new GeneratedKeyHolder();
+			
+			// Create the observer.
+			try {
+				getJdbcTemplate().update(maskCreator, maskKeyHolder);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + 
+						campaignMaskSql + 
+						"' with parameters: " +
+						username + ", " +
+						campaignId + ", " +
+						maskId.toString() + ", " +
+						time,
+					e);
+			}
+			
+			// Get the mask's DB ID.
+			long key = maskKeyHolder.getKey().longValue();
+			
+			// Create each of the masks.
+			final String campaignMaskSurveyIdSql =
+				"INSERT INTO campaign_mask_survey_id(" +
+						"campaign_mask_id, " +
+						"survey_id)" +
+					"VALUES (?, ?)";
+			
+			// Create the list of parameters for each of the survey IDs.
+			List<Object[]> maskSurveyIdParameters =
+				new ArrayList<Object[]>(surveyIds.size());
+				
+			// Cycle through the survey IDs building the parameters list.
+			for(final String surveyId : surveyIds) {
+				maskSurveyIdParameters.add(new Object[] { key, surveyId });
+			}
+			
+			// Add the mask survey IDs.
+			getJdbcTemplate()
+				.batchUpdate(campaignMaskSurveyIdSql, maskSurveyIdParameters);
+
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error while committing the transaction.",
+					e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException(
+				"Error while attempting to rollback the transaction.",
+				e);
+		}
+		
+		
 	}
 	
 	/**

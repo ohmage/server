@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -104,6 +105,45 @@ public class UserCampaignServices {
 	 */
 	public static UserCampaignServices instance() {
 		return instance;
+	}
+	
+
+	/**
+	 * Creates a campaign mask for the given user. When the campaign is
+	 * queried, only the surveys given by this list will be shown to the user.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @param maskId The UUID for the mask.
+	 * 
+	 * @param time The time at which the mask was made.
+	 * 
+	 * @param surveyIds The set of survey IDs that must belong to the campaign.
+	 * 
+	 * @throws DataAccessException There was an error saving the data.
+	 */
+	public void createUserCampaignMask(
+		final String username,
+		final String campaignId,
+		final UUID maskId,
+		final long time,
+		final Set<String> surveyIds)
+		throws ServiceException {
+		
+		try {
+			userCampaignQueries
+				.createUserCampaignMask(
+					username, 
+					campaignId, 
+					maskId, 
+					time, 
+					surveyIds);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
 	}
 	
 	/**

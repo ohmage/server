@@ -27,6 +27,7 @@ import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenLogoutRequest;
 import org.ohmage.request.auth.AuthTokenRequest;
 import org.ohmage.request.auth.AuthTokenWhoAmIRequest;
+import org.ohmage.request.campaign.CampaignAssignmentRequest;
 import org.ohmage.request.campaign.CampaignCreationRequest;
 import org.ohmage.request.campaign.CampaignDeletionRequest;
 import org.ohmage.request.campaign.CampaignReadRequest;
@@ -130,6 +131,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserWhoAmI;
 	
 	// Campaign
+	private String apiCampaignAssignment;
 	private String apiCampaignCreate;
 	private String apiCampaignRead;
 	private String apiCampaignSearch;
@@ -267,6 +269,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserWhoAmI = apiRoot + "/user/whoami";
 		
 		// Campaign
+		apiCampaignAssignment = apiRoot + "/campaign/assign";
 		apiCampaignCreate = apiRoot + "/campaign/create";
 		apiCampaignRead = apiRoot + "/campaign/read";
 		apiCampaignSearch = apiRoot + "/campaign/search";
@@ -422,6 +425,9 @@ public final class RequestBuilder implements ServletContextAware {
 			return new AuditReadRequest(httpRequest);
 		}
 		// Campaign
+		else if(apiCampaignAssignment.equals(requestUri)) {
+			return new CampaignAssignmentRequest(httpRequest);
+		}
 		else if(apiCampaignCreate.equals(requestUri)) {
 			return new CampaignCreationRequest(httpRequest);
 		}
@@ -652,6 +658,7 @@ public final class RequestBuilder implements ServletContextAware {
 				// Audit
 				apiAuditRead.equals(uri) ||
 				// Campaign
+				apiCampaignAssignment.equals(uri) ||
 				apiCampaignCreate.equals(uri) ||
 				apiCampaignRead.equals(uri) ||
 				apiCampaignSearch.equals(uri) ||
