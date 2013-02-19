@@ -29,7 +29,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -194,9 +193,6 @@ public abstract class VisualizationRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
 		if(! isFailed() && (result != null)) {
@@ -208,7 +204,7 @@ public abstract class VisualizationRequest extends UserRequest {
 				if(getUser() != null) {
 					final String token = getUser().getToken(); 
 					if(token != null) {
-						CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token, (int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+						CookieUtils.setCookieValue(httpResponse, InputKeys.AUTH_TOKEN, token);
 					}
 				}
 				

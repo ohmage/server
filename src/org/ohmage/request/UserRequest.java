@@ -289,8 +289,7 @@ public abstract class UserRequest extends Request {
 				CookieUtils.setCookieValue(
 					httpResponse, 
 					InputKeys.AUTH_TOKEN, 
-					token, 
-					(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+					token);
 			}
 		}
 	}

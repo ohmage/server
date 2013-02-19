@@ -657,10 +657,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		
 		// Sets the HTTP headers to disable caching.
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
+				
 		String resultString = "";
 		
 		if(! isFailed()) {
@@ -1299,7 +1296,15 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 									resultBuilder.append("");
 								}
 								else {
-									resultBuilder.append(currResult);
+									resultBuilder
+										.append(
+											"\"" +
+												currResult
+													.toString()
+														.replace(
+															"\"",
+															"\"\"") +
+											"\"");
 								}
 								
 								if((j + 1) != keyLength) {
@@ -1643,7 +1648,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 							JSONArray labels =
 									prompts.get(responseId + ":label")
 										.getJSONArray(JSON_KEY_VALUES);
-							labels.put("\"" + responseObject + "\"");
+							labels.put(responseObject);
 							
 							if(((ChoicePrompt) prompt).hasValues()) {
 								JSONArray values =
@@ -1680,7 +1685,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 								value = lvp.getValue();
 							}
 							else if(response instanceof SingleChoiceCustomPromptResponse) {
-								label = (String) responseObject;
+								label = responseObject;
 								
 								key = choicePrompt.getChoiceKey((String) label);
 								value = choices.get(key).getValue();
@@ -1740,16 +1745,17 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 							JSONArray keys =
 									prompts.get(responseId + ":key")
 										.getJSONArray(JSON_KEY_VALUES);
-							keys.put("\"" + key + "\"");
+							keys.put(key);
 							
 							promptIdsWithResponse.add(responseId + ":label");
 							JSONArray labels =
 									prompts.get(responseId + ":label")
 										.getJSONArray(JSON_KEY_VALUES);
-							labels.put("\"" + label + "\"");
+							labels.put(label);
 							
 							if(choicePrompt.hasValues()) {
-								promptIdsWithResponse.add(responseId + ":value");
+								promptIdsWithResponse
+									.add(responseId + ":value");
 								JSONArray values =
 										prompts.get(responseId + ":value")
 											.getJSONArray(JSON_KEY_VALUES);
@@ -1757,7 +1763,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 									values.put("");
 								}
 								else {
-									values.put("\"" + value + "\"");
+									values.put(value);
 								}
 							}
 						}
@@ -1772,16 +1778,10 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 					// Otherwise, only populate the value.
 					else {
 						promptIdsWithResponse.add(responseId);
-
-						JSONArray values =
-								prompts.get(responseId).getJSONArray(JSON_KEY_VALUES);
-						
-						Object responseValue = response.getResponse();
-						if(OutputFormat.CSV.equals(outputFormat)) {
-							responseValue = "\"" + responseValue + "\"";
-						}
-					
-						values.put(responseValue);
+						prompts
+							.get(responseId)
+								.getJSONArray(JSON_KEY_VALUES)
+									.put(response.getResponse());
 					}
 				}
 			}

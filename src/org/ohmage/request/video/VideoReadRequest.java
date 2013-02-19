@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Video;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -122,10 +121,7 @@ public class VideoReadRequest extends UserRequest {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
+				
 		// Open the connection to the image if it is not null.
 		InputStream videoStream = null;
 		if((! isFailed()) && video != null) {
@@ -151,8 +147,7 @@ public class VideoReadRequest extends UserRequest {
 						CookieUtils.setCookieValue(
 								httpResponse, 
 								InputKeys.AUTH_TOKEN, 
-								token, 
-								(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+								token);
 					}
 				}
 
