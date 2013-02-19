@@ -1,9 +1,7 @@
 package org.ohmage.request.campaign;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +18,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.request.survey.SurveyUploadRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignServices;
@@ -41,7 +40,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 	
 	final String campaignId;
 	final Set<String> surveyIds;
-	final List<JSONObject> surveyResponses;
+	final SurveyUploadRequest uploadRequest;
 
 	/**
 	 * Creates a new campaign assignment request.
@@ -67,7 +66,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 		
 		String tCampaignId = null;
 		Set<String> tSurveyIds = null;
-		List<JSONObject> tSurveyResponses = Collections.emptyList();
+		SurveyUploadRequest tUploadRequest = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a campaign assignment request.");
@@ -176,16 +175,12 @@ public class CampaignAssignmentRequest extends UserRequest {
 								InputKeys.SURVEYS);
 				}
 				else if(t.length == 1) {
-					try {
-						tSurveyResponses = 
-							CampaignValidators.validateUploadedJson(t[0]);
-					}
-					catch(IllegalArgumentException e) {
-						throw new ValidationException(
-							ErrorCode.SURVEY_INVALID_RESPONSES, 
-							"The survey responses could not be URL decoded.",
-							e);
-					}
+					tUploadRequest = 
+						new SurveyUploadRequest(
+							httpRequest, 
+							getParameterMap(), 
+							tCampaignId, 
+							t[0]);
 				}
 			}
 			catch(ValidationException e) {
@@ -201,7 +196,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 		
 		campaignId = tCampaignId;
 		surveyIds = tSurveyIds;
-		surveyResponses = tSurveyResponses;
+		uploadRequest = tUploadRequest;
 	}
 
 	/*
@@ -218,11 +213,6 @@ public class CampaignAssignmentRequest extends UserRequest {
 		}
 		
 		try {
-			// Verify that the campaign exists.
-			LOGGER.info("Verifying that the campaign exists.");
-			CampaignServices
-				.instance().checkCampaignExistence(campaignId, true);
-			
 			// If given, verify that the class exists.
 			if(classId != null) {
 				LOGGER.info("Verifying that the class exists.");
@@ -248,6 +238,11 @@ public class CampaignAssignmentRequest extends UserRequest {
 							"You are not privileged in the class: " + classId);
 				}
 			}
+			
+			// Verify that the campaign exists.
+			LOGGER.info("Verifying that the campaign exists.");
+			CampaignServices
+				.instance().checkCampaignExistence(campaignId, true);
 			
 			// Verify that the user already exists and that the requesting user
 			// is allowed to assign a campaign to them.
@@ -305,6 +300,9 @@ public class CampaignAssignmentRequest extends UserRequest {
 				}
 			}
 			
+			// Upload the survey response.
+			uploadRequest.service();
+			
 			// Create the campaign "mask".
 			UserCampaignServices
 				.instance()
@@ -330,6 +328,11 @@ public class CampaignAssignmentRequest extends UserRequest {
 		final HttpServletRequest httpRequest,
 		final HttpServletResponse httpResponse) {
 		
-		super.respond(httpRequest, httpResponse, (JSONObject) null);
+		if((uploadRequest != null) && (uploadRequest.isFailed())) {
+			uploadRequest.respond(httpRequest, httpResponse);
+		}
+		else {
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
+		}
 	}
 }
