@@ -1016,6 +1016,10 @@ public class UserCampaignServices {
 							userCampaignQueries.getUsersAndRolesForCampaign(
 									campaign.getId()));
 				}
+
+				// Get the mask.
+				
+				// Apply the mask.
 			}
 			
 			return result;

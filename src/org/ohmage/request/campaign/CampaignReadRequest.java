@@ -446,6 +446,10 @@ public class CampaignReadRequest extends UserRequest {
 				campaignNameResult = 
 						CampaignServices
 							.instance().getCampaignName(campaignIds.get(0));
+				
+				// Get the mask.
+				
+				// Apply the mask.
 			}
 		}
 		catch(ServiceException e) {
@@ -494,12 +498,11 @@ public class CampaignReadRequest extends UserRequest {
 			}
 		}
 		
-		// Set the response's content type to "text/html" and if it is a
-		// successful read, it will change it to whatever is appropriate.
-		httpResponse.setContentType("text/html");
-		
 		String responseText;
 		if(isFailed()) {
+			// Set the response's content type to "application/json".
+			httpResponse.setContentType("application/json");
+			
 			// If it failed, get the failure message.
 			responseText = getFailureMessage();
 		}
@@ -507,6 +510,9 @@ public class CampaignReadRequest extends UserRequest {
 			// If it has succeeded thus far, set the return value based on the
 			// type of request.
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
+				// Set the response's content type to "application/json".
+				httpResponse.setContentType("application/json");
+				
 				try {
 					// Create the JSONObject with which to respond.
 					JSONObject result = new JSONObject();
@@ -568,6 +574,9 @@ public class CampaignReadRequest extends UserRequest {
 					responseText = result.toString();
 				}
 				catch(JSONException e) {
+					// Set the response's content type to "application/json".
+					httpResponse.setContentType("application/json");
+					
 					// If anything fails, return a failure message.
 					responseText = getFailureMessage();
 				}
@@ -581,6 +590,9 @@ public class CampaignReadRequest extends UserRequest {
 				responseText = xmlResult;
 			}
 			else {
+				// Set the response's content type to "application/json".
+				httpResponse.setContentType("application/json");
+				
 				responseText = getFailureMessage();
 			}
 		}
