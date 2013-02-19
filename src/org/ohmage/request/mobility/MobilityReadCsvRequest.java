@@ -266,10 +266,7 @@ public class MobilityReadCsvRequest extends UserRequest {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
+				
 		try {
 			// Set the type and force the browser to download it as the 
 			// last step before beginning to stream the response.

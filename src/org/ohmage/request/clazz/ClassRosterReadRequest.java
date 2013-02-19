@@ -159,9 +159,6 @@ public class ClassRosterReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
 		// Write an error message or the roster depending on if it failed or 
 		// not.
 		String responseText = "";

@@ -169,10 +169,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
+				
 		// If the request hasn't failed, attempt to write the file to the
 		// output stream. 
 		try {

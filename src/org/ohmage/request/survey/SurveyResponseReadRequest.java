@@ -657,10 +657,7 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		
 		// Sets the HTTP headers to disable caching.
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
+				
 		String resultString = "";
 		
 		if(! isFailed()) {
