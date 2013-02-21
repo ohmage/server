@@ -393,9 +393,6 @@ public abstract class Request {
 			// Sets the HTTP headers to disable caching.
 			expireResponse(httpResponse);
 			
-			// Handle CORS requests
-			handleCORS(httpRequest, httpResponse);
-			
 			httpResponse.setContentType("application/json");
 			
 			// If the response hasn't failed yet, attempt to create and write the
@@ -440,35 +437,7 @@ public abstract class Request {
 			}
 		}
 	}
-	
-	/**
-	 * If the request contains the Origin header, sets the 
-	 * Access-Control-Allow-Origin header in the response.
-	 * 
-	 * @param request the request to check for the CORS Origin headers.
-	 * @param response the response to alter if the Origin request header is
-	 * present.
-	 */
-	protected void handleCORS(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		
-		if(httpRequest.getHeader(ORIGIN_REQUEST_HEADER_NAME) != null) {
-		
-			// This is done to allow client content to be served up from from 
-		    // different domains than the server data e.g., when you want to run a
-		    // client in a local sandbox, but retrieve data from a remote server
-			
-			// "*" is used to avoid hardcoding the allowed origin list in the 
-			// init-params for the CORSFilter (OhmageCORSFilter). All ohmage URIs
-			// allow CORS except for the authentication URIs. This is done because
-			// if a user can't authenticate, they can't access any other sensitive
-			// URI regardless of whether the origin matches the host.
-		    httpResponse.setHeader("Access-Control-Allow-Origin",httpRequest.getHeader(ORIGIN_REQUEST_HEADER_NAME));
-		    
-		    // Required to allow for CORS.
-		    httpResponse.addHeader("Access-Control-Allow-Credentials", "true");
-		}
-	}
-	
 	/**
 	 * Reads the HttpServletRequest for a key-value pair and returns the value
 	 * where the key is equal to the given key.

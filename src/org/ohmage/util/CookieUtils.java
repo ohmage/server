@@ -92,8 +92,7 @@ public final class CookieUtils {
 	}
 	
 	/**
-	 * Adds a HTTP Cookie to the response with the given name and value and a
-	 * lifetime.
+	 * Adds a HTTP Cookie to the response with the given name and value.
 	 *  
 	 * @param httpResponse The HttpServletResponse to which the Cookie should 
 	 * 					   be added.
@@ -101,13 +100,14 @@ public final class CookieUtils {
 	 * @param name The name of the Cookie.
 	 * 
 	 * @param value The value for the Cookie.
-	 * 
-	 * @param lifetimeInSeconds The lifetime of the Cookie in seconds.
 	 */
-	public static void setCookieValue(HttpServletResponse httpResponse, String name, String value, int lifetimeInSeconds) {
+	public static void setCookieValue(
+		final HttpServletResponse httpResponse,
+		final String name,
+		final String value) {
+		
 		Cookie authTokenCookie = new Cookie(name, value);
 		authTokenCookie.setHttpOnly(false);
-		authTokenCookie.setMaxAge(lifetimeInSeconds);
 		authTokenCookie.setPath("/");
 		httpResponse.addCookie(authTokenCookie);
 	}

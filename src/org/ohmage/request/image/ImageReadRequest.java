@@ -28,7 +28,6 @@ import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Image;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
@@ -79,8 +78,6 @@ public class ImageReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ImageReadRequest.class);
 	
 	private static final int CHUNK_SIZE = 4096;
-
-	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final UUID imageId;
 	private final Image.Size size;
@@ -200,9 +197,6 @@ public class ImageReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
 		// Open the connection to the image if it is not null.
 		InputStream imageStream = null;
 		try {
@@ -242,8 +236,7 @@ public class ImageReadRequest extends UserRequest {
 						CookieUtils.setCookieValue(
 								httpResponse, 
 								InputKeys.AUTH_TOKEN, 
-								token, 
-								(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+								token);
 					}
 				}
 

@@ -245,9 +245,6 @@ public class OmhRegistryReadRequest extends Request {
 		
 		LOGGER.info("Responding to an OMH registry read request");
 		
-		// Handles the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-
 		// If either request has failed, set the response's status code.
 		if(isFailed()) {
 			if(

@@ -36,7 +36,6 @@ import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.cache.UserBin;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.OutputFormat;
 import org.ohmage.exception.InvalidRequestException;
@@ -174,8 +173,6 @@ public class CampaignReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignReadRequest.class);
 
 	private static final String JSON_KEY_USER_ROLES = "user_roles";
-
-	private static final long MILLIS_IN_A_SECOND = 1000;
 	
 	private final Campaign.OutputFormat outputFormat;
 	
@@ -482,10 +479,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
-		
-		// Set the CORS headers.
-		handleCORS(httpRequest, httpResponse);
-		
+				
 		// If available, update the token.
 		if(getUser() != null) {
 			final String token = getUser().getToken(); 
@@ -493,8 +487,7 @@ public class CampaignReadRequest extends UserRequest {
 				CookieUtils.setCookieValue(
 						httpResponse, 
 						InputKeys.AUTH_TOKEN, 
-						token, 
-						(int) (UserBin.getTokenRemainingLifetimeInMillis(token) / MILLIS_IN_A_SECOND));
+						token);
 			}
 		}
 		
