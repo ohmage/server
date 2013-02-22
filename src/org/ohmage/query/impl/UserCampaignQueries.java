@@ -23,16 +23,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.Role;
+import org.ohmage.domain.campaign.CampaignMask;
+import org.ohmage.domain.campaign.CampaignMask.MaskId;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserCampaignQueries;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -138,28 +142,8 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 */
 	@Override
 	public void createUserCampaignMask(
-		final String username,
-		final String campaignId,
-		final UUID maskId,
-		final long time,
-		final Set<String> surveyIds)
+		final CampaignMask mask)
 		throws DataAccessException {
-		
-		if(username == null) {
-			throw new DataAccessException("The username is null.");
-		}
-		else if(campaignId == null) {
-			throw new DataAccessException("The campaign ID is null.");
-		}
-		else if(surveyIds == null) {
-			throw new DataAccessException("The survey ID list is null.");
-		}
-		else if(surveyIds.size() == 0) {
-			throw new DataAccessException("The survey ID list is empty.");
-		}
-		else if(maskId == null) {
-			throw new DataAccessException("The mask's ID is null.");
-		}
 
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -174,11 +158,13 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 			// Campaign mask creation SQL.
 			final String campaignMaskSql =
 				"INSERT INTO campaign_mask(" +
-						"user_id, " +
+						"assigner_user_id, " +
+						"assignee_user_id, " +
 						"campaign_id, " +
 						"mask_id, " +
 						"creation_time) " +
 					"VALUES (" +
+						"(SELECT id FROM user WHERE username = ?), " +
 						"(SELECT id FROM user WHERE username = ?), " +
 						"(SELECT id FROM campaign WHERE urn = ?), " +
 						"?, " +
@@ -200,11 +186,12 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 							connection.prepareStatement(
 								campaignMaskSql,
 								new String[] { "id" });
-						
-						ps.setString(1, username);
-						ps.setString(2, campaignId);
-						ps.setString(3, maskId.toString());
-						ps.setLong(4, time);
+
+						ps.setString(1, mask.getAssignerUserId());
+						ps.setString(2, mask.getAssigneeUserId());
+						ps.setString(3, mask.getCampaignId());
+						ps.setString(4, mask.getId().toString());
+						ps.setLong(5, mask.getCreationTime().getMillis());
 						
 						return ps;
 					}
@@ -224,10 +211,11 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 					"Error executing SQL '" + 
 						campaignMaskSql + 
 						"' with parameters: " +
-						username + ", " +
-						campaignId + ", " +
-						maskId.toString() + ", " +
-						time,
+						mask.getAssignerUserId() + ", " +
+						mask.getAssigneeUserId() + ", " +
+						mask.getCampaignId() + ", " +
+						mask.getId().toString() + ", " +
+						mask.getCreationTime().getMillis(),
 					e);
 			}
 			
@@ -240,6 +228,9 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 						"campaign_mask_id, " +
 						"survey_id)" +
 					"VALUES (?, ?)";
+			
+			// Get the survey IDs from the mask.
+			Set<String> surveyIds = mask.getSurveyIds();
 			
 			// Create the list of parameters for each of the survey IDs.
 			List<Object[]> maskSurveyIdParameters =
@@ -506,6 +497,209 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGN_IDS_FOR_USER_WITH_ROLE + "' with parameters: " + 
 					username + ", " + role, e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignMask(org.ohmage.domain.campaign.CampaignMask.MaskId, org.joda.time.DateTime, org.joda.time.DateTime, java.lang.String, java.lang.String, java.lang.String)
+	 */
+	@Override
+	public List<CampaignMask> getCampaignMasks(
+		final MaskId maskId,
+		final DateTime startDate,
+		final DateTime endDate,
+		final String assignerUserId,
+		final String assigneeUserId,
+		final String campaignId)
+		throws DataAccessException {
+		
+		// Build the default SQL.
+		StringBuilder sqlBuilder =
+			new StringBuilder(
+				"SELECT " +
+					"cm.mask_id AS mask_id, " +
+					"cm.creation_time AS creation_time, " +
+					"assigner_user.username AS assigner_user_id, " +
+					"assignee_user.username AS assignee_user_id, " +
+					"c.urn AS campaign_id, " +
+					"cmsi.survey_id AS survey_id " +
+				"FROM " +
+					"user assigner_user, " +
+					"user assignee_user, " +
+					"campaign c, " +
+					"campaign_mask cm, " +
+					"campaign_mask_survey_id cmsi " +
+				"WHERE assigner_user.id = cm.assigner_user_id " +
+				"AND assignee_user.id = cm.assignee_user_id " +
+				"AND c.id = cm.campaign_id " +
+				"AND cm.id = cmsi.campaign_mask_id");
+		// Build the list of required parameters.
+		List<Object> parameters = new LinkedList<Object>();
+		
+		// If the mask is given, add it to the SQL and the parameters list.
+		if(maskId != null) {
+			sqlBuilder.append(" AND cm.id = ?");
+			parameters.add(maskId.toString());
+		}
+		
+		// If the start date is given, add it to the SQL and the parameters
+		// list.
+		if(startDate != null) {
+			sqlBuilder.append(" AND cm.creation_time >= ?");
+			parameters.add(startDate.getMillis());
+		}
+		
+		// If the end date is given, add it to the SQL and the parameters.
+		if(endDate != null) {
+			sqlBuilder.append(" AND cm.creation_time <= ?");
+			parameters.add(endDate.getMillis());
+		}
+		
+		// If the assigner's user ID was given, add it to the SQL and the
+		// parameters.
+		if(assignerUserId != null) {
+			sqlBuilder.append(" AND assigner_user.username = ?");
+			parameters.add(assignerUserId);
+		}
+		
+		// If the assignee's user ID was given, add it to the SQL and the
+		// parameters.
+		if(assigneeUserId != null) {
+			sqlBuilder.append(" AND assignee_user.username = ?");
+			parameters.add(assigneeUserId);
+		}
+		
+		// If the campaign's ID was given, add it to the SQL and the
+		// parameters.
+		if(campaignId != null) {
+			sqlBuilder.append(" AND c.urn = ?");
+			parameters.add(campaignId);
+		}
+
+		// Make the query and return the results.
+		try {
+			return
+				getJdbcTemplate().query(
+					sqlBuilder.toString(), 
+					parameters.toArray(),
+					new ResultSetExtractor<List<CampaignMask>>() {
+						/*
+						 * (non-Javadoc)
+						 * @see org.springframework.jdbc.core.ResultSetExtractor#extractData(java.sql.ResultSet)
+						 */
+						@Override
+						public List<CampaignMask> extractData(
+							final ResultSet resultSet)
+							throws SQLException,
+							org.springframework.dao.DataAccessException {
+							
+							// Create a map of mask IDs to their builders.
+							Map<MaskId, CampaignMask.Builder> builders =
+								new HashMap<MaskId, CampaignMask.Builder>();
+							
+							// For each of the results, create a new builder if
+							// the mask has never been seen before or just 
+							// append to the list of survey IDs if it has been
+							// seen before.
+							while(resultSet.next()) {
+								MaskId maskId;
+								try {
+									maskId =
+										MaskId
+											.decodeString(
+												resultSet
+													.getString("mask_id"));
+								}
+								catch(DomainException e) {
+									throw
+										new SQLException(
+											"Error decoding the mask ID.",
+											e);
+								}
+								
+								// Attempt to get the builder.
+								CampaignMask.Builder builder =
+									builders.get(maskId);
+								
+								// If the builder doesn't exist, create it.
+								if(builder == null) {
+									// Create the builder.
+									builder = new CampaignMask.Builder();
+									
+									// Add the builder to the map.
+									builders.put(maskId, builder);
+									
+									// Set the mask ID.
+									builder.setMaskId(maskId);
+									
+									// Get the creation time and set it.
+									DateTime creationTime = 
+										new DateTime(
+											resultSet
+												.getLong("creation_time"));
+									builder.setCreationTime(creationTime);
+									
+									// Get the assigner's user ID and set it.
+									String assignerUserId =
+										resultSet
+											.getString("assigner_user_id");
+									builder.setAssignerUserId(assignerUserId);
+									
+									// Get the assignee's user ID and set it.
+									String assigneeUserId =
+										resultSet
+											.getString("assignee_user_id");
+									builder.setAssigneeUserId(assigneeUserId);
+									
+									// Get the campaign's ID and set it.
+									String campaignId =
+										resultSet
+											.getString("campaign_id");
+									builder.setCampaignId(campaignId);
+									
+									// Set the default set of survey IDs to be
+									// empty.
+									builder
+										.setSurveyIds(new HashSet<String>());
+								}
+								
+								// Add the survey ID.
+								builder
+									.addSurveyId(
+										resultSet.getString("survey_id"));
+							}
+							
+							// Cycle through the builders, build them, and add
+							// them to the result list.
+							List<CampaignMask> result =
+								new ArrayList<CampaignMask>(builders.size());
+							for(CampaignMask.Builder builder : builders.values()) {
+								try {
+									result.add(builder.build());
+								}
+								catch(DomainException e) {
+									throw
+										new SQLException(
+											"There was a problem building the campaign mask.",
+											e);
+								}
+							}
+							
+							// Return the result.
+							return result;
+						}
+					}
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw
+				new DataAccessException(
+					"Error executing SQL '" + 
+							sqlBuilder.toString() + 
+						"' with parameters: " + 
+							parameters.toString(),
+					e);
 		}
 	}
 }

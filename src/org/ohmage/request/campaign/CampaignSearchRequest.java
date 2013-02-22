@@ -29,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -358,6 +359,13 @@ public class CampaignSearchRequest extends UserRequest {
 			}
 			catch(JSONException e) {
 				LOGGER.error("There was an error building the result.", e);
+				setFailed();
+			}
+			catch(DomainException e) {
+				LOGGER
+					.error(
+						"There was an error building the campaign mask.",
+						e);
 				setFailed();
 			}
 		}

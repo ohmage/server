@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,6 +12,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.campaign.CampaignMask;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -244,6 +245,25 @@ public class CampaignAssignmentRequest extends UserRequest {
 			CampaignServices
 				.instance().checkCampaignExistence(campaignId, true);
 			
+			// Create the campaign mask.
+			CampaignMask mask;
+			try {
+				mask =
+					new CampaignMask(
+						null, 
+						null, 
+						getUser().getUsername(), 
+						username, 
+						campaignId, 
+						surveyIds);
+			}
+			catch(DomainException e) {
+				throw
+					new ServiceException(
+						"An invalid password passed validation.",
+						e);
+			}
+			
 			// Verify that the user already exists and that the requesting user
 			// is allowed to assign a campaign to them.
 			if(password == null) {
@@ -304,14 +324,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 			uploadRequest.service();
 			
 			// Create the campaign "mask".
-			UserCampaignServices
-				.instance()
-					.createUserCampaignMask(
-						username, 
-						campaignId, 
-						UUID.randomUUID(), 
-						System.currentTimeMillis(), 
-						surveyIds);
+			UserCampaignServices.instance().createUserCampaignMask(mask);
 		}
 		catch(ServiceException e) {
 			e.logException(LOGGER);

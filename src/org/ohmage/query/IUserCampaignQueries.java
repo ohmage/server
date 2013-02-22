@@ -19,9 +19,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.CampaignMask;
 import org.ohmage.exception.DataAccessException;
 
 public interface IUserCampaignQueries {
@@ -29,25 +30,11 @@ public interface IUserCampaignQueries {
 	 * Creates a campaign mask for the given user. When the campaign is
 	 * queried, only the surveys given by this list will be shown to the user.
 	 * 
-	 * @param username The user's username.
-	 * 
-	 * @param campaignId The campaign's unique identifier.
-	 * 
-	 * @param maskId The UUID for the mask.
-	 * 
-	 * @param time The time at which the mask was made.
-	 * 
-	 * @param surveyIds The set of survey IDs that must belong to the campaign.
+	 * @param mask The campaign mask to save.
 	 * 
 	 * @throws DataAccessException There was an error saving the data.
 	 */
-	void createUserCampaignMask(
-		String username,
-		String campaignId,
-		UUID maskId,
-		long time,
-		Set<String> surveyIds)
-		throws DataAccessException;
+	void createUserCampaignMask(CampaignMask mask) throws DataAccessException;
 
 	/**
 	 * Retrieves whether or not a user belongs to a campaign in any capacity.
@@ -149,4 +136,34 @@ public interface IUserCampaignQueries {
 		String username,
 		Campaign.Role role) throws DataAccessException;
 
+	/**
+	 * Retrieves the masks that meet the criteria.
+	 * 
+	 * @param maskId Retrieves the mask with the given mask ID.
+	 * 
+	 * @param startDate Retrieves all of the masks that have a creation
+	 * 					timestamp greater than or equal to this timestamp.
+	 * 
+	 * @param endDate Retrieves all of the masks that have a creation timestamp
+	 * 				  less than or equal to this timestamp.
+	 * 
+	 * @param assignerUserId Returns all of the masks that were assigned by the
+	 * 						 user with this user ID.
+	 * 
+	 * @param assigneeUserId Returns all of the masks that were assigned to the
+	 * 						 user with this user ID.
+	 * 
+	 * @param campaignId Returns all of the masks for the campaign with this
+	 * 					 unique campaign identifier.
+	 * 
+	 * @return The list of campaign masks that matched the given criteria.
+	 */
+	List<CampaignMask> getCampaignMasks(
+		CampaignMask.MaskId maskId,
+		DateTime startDate,
+		DateTime endDate,
+		String assignerUserId,
+		String assigneeUserId,
+		String campaignId)
+		throws DataAccessException;
 }

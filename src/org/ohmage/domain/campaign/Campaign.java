@@ -127,7 +127,6 @@ public class Campaign {
 	private static final String JSON_KEY_ID = "campaign_id";
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
-	private static final String JSON_KEY_SERVER_URL = "server_url";
 	private static final String JSON_KEY_ICON_URL = "icon_url";
 	private static final String JSON_KEY_AUTHORED_BY = "authored_by";
 	private static final String JSON_KEY_RUNNING_STATE = "running_state";
@@ -149,7 +148,6 @@ public class Campaign {
 	
 	private static final int MAX_ID_LENGTH = 255;
 	private static final int MAX_NAME_LENGTH = 255;
-	private static final int MAX_SERVER_URL_LENGTH = 255;
 	private static final int MAX_ICON_URL_LENGTH = 255;
 	
 	/**
@@ -343,6 +341,13 @@ public class Campaign {
 	} 
 	
 	private final List<String> classes;
+	
+	/**
+	 * The list of campaign masks for the requesting user. This list should
+	 * remain sorted at all times based on the
+	 * {@link CampaignMask#compareTo(CampaignMask)} definition.
+	 */
+	private final List<CampaignMask> masks = new LinkedList<CampaignMask>();
 	
 	/**
 	 * Creates a new configuration object that represents the configuration
@@ -811,9 +816,76 @@ public class Campaign {
 	 * Returns the configuration defined as an XML string.
 	 * 
 	 * @return The configuration defined as an XML string.
+	 * 
+	 * @throws DomainException The XML was not valid.
 	 */
-	public String getXml() {
-		return xml;
+	public String getXml() throws DomainException {
+		String maskedXml = xml;
+		
+		// Only apply masks if any exist.
+		if(masks.size() != 0) {
+			// Parse the XML document.
+			Document document;
+			try {
+				document = (new Builder()).build(new StringReader(xml));
+			} 
+			catch(IOException e) {
+				// This should only be thrown if it can't read the 'xml', but
+				// given that it is already in memory this should never happen.
+				throw new DomainException("XML was unreadable.", e);
+			}
+			catch(XMLException e) {
+				throw
+					new DomainException(
+						"No usable XML parser could be found.",
+						e);
+			}
+			catch(ValidityException e) {
+				throw new DomainException("The XML is invalid.", e);
+			}
+			catch(ParsingException e) {
+				throw new DomainException("The XML is not well formed.", e);
+			}
+			
+			// Get the root of the document.
+			Element root = document.getRootElement();
+			
+			// The only relevant mask is the one that was created last.
+			CampaignMask mask = masks.get(masks.size() - 1);
+			
+			// Get the list of survey IDs to retain.
+			Set<String> surveyIds = mask.getSurveyIds();
+			
+			// Get all of the survey nodes.
+			Nodes surveys = root.query("/campaign/surveys/survey");
+			
+			// Cycle through the surveys and remove those whose ID is not in
+			// the list.
+			int numSurveys = surveys.size();
+			for(int i = 0; i < numSurveys; i++) {
+				// Get the individual survey.
+				Node survey = surveys.get(i);
+				
+				// Get the ID nodes and validate that there is only 1.
+				Nodes ids = survey.query("./id");
+				if(ids.size() == 0) {
+					throw new DomainException("The survey is missing its ID.");
+				}
+				else if(ids.size() > 1) {
+					throw new DomainException("The survey has multiple IDs.");
+				}
+				
+				// If this ID isn't in the set of survey IDs, remove it.
+				if(! surveyIds.contains(ids.get(0).getValue())) {
+					survey.getParent().removeChild(survey);
+				}
+			}
+			
+			// Finally, generate a new XML string from the masked XML.
+			maskedXml = root.toXML();
+		}
+		
+		return maskedXml;
 	}
 	
 	/**
@@ -944,6 +1016,23 @@ public class Campaign {
 		}
 		
 		classes.addAll(classIds);
+	}
+	
+	/**
+	 * Adds the campaign masks to this campaign.
+	 * 
+	 * @param masks The collection of masks to add.
+	 */
+	public void addMasks(final Collection<CampaignMask> masks) {
+		if(masks == null) {
+			return;
+		}
+		
+		// Add the new masks, if any.
+		this.masks.addAll(masks);
+		
+		// Sort them.
+		Collections.sort(this.masks);
 	}
 
 	/**
@@ -1658,7 +1747,7 @@ public class Campaign {
 			final boolean withSupervisors, 
 			final boolean withXml,
 			final boolean withSurveys) 
-			throws JSONException {
+			throws JSONException, DomainException{
 		
 		JSONObject result = new JSONObject();
 		
@@ -1697,24 +1786,39 @@ public class Campaign {
 		}
 		
 		if(withXml) {
-			result.put(JSON_KEY_XML, xml);
+			// Returned the masked XML.
+			result.put(JSON_KEY_XML, getXml());
 		}
 		
 		if(withSurveys) {
-			JSONArray surveysArray = new JSONArray();
+			// If any masks exist, get the most recent one's survey list.
+			Set<String> surveyIds = null;
+			if(masks.size() > 0) {
+				surveyIds = masks.get(masks.size() - 1).getSurveyIds();
+			}
 			
+			JSONArray surveysArray = new JSONArray();
 			for(Survey survey : surveyMap.values()) {
+				// If the campaign is being masked and this survey isn't part
+				// of the mask, skip it.
+				if(
+					(surveyIds != null) && 
+					(! surveyIds.contains(survey.getId()))) {
+						
+					continue;
+				}
+				
 				surveysArray.put( 
-						survey.toJson(
-								true,	// ID
-								true,	// Title
-								true,	// Description
-								true,	// Intro Text
-								true,	// Submit Text
-								true,	// Anytime
-								true	// Prompts
-							)
-					);
+					survey.toJson(
+						true,	// ID
+						true,	// Title
+						true,	// Description
+						true,	// Intro Text
+						true,	// Submit Text
+						true,	// Anytime
+						true	// Prompts
+					)
+				);
 			}
 			
 			result.put(JSON_KEY_SURVEYS, surveysArray);

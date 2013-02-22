@@ -265,7 +265,7 @@ public class StreamUploadRequest extends UserRequest {
 			if(observers.size() == 0) {
 				throw new ServiceException(
 					ErrorCode.OBSERVER_INVALID_ID,
-					"No observer exists with teh given ID-version pair: " + 
+					"No observer exists with the given ID-version pair: " + 
 						"Observer ID: " + observerId + " " +
 						"Observer Version: " + observerVersion);
 			}

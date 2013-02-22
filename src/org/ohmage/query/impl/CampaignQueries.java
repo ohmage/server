@@ -408,6 +408,15 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				iconUrlString = iconUrl.toString();
 			}
 			
+			String xml;
+			try {
+				xml = campaign.getXml();
+			}
+			catch(DomainException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("The XML could not be saved.");
+			}
+			
 			// Create the campaign.
 			try {
 				getJdbcTemplate().update(
@@ -415,7 +424,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 					new Object[] { 
 						campaign.getId(), 
 						campaign.getName(), 
-						campaign.getXml(), 
+						xml, 
 						campaign.getDescription(), 
 						iconUrlString, 
 						campaign.getAuthoredBy(), 
@@ -432,7 +441,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 						"' with parameters: " +
 						campaign.getId() + ", " + 
 						campaign.getName() + ", " + 
-						campaign.getXml() + ", " + 
+						xml + ", " + 
 						campaign.getDescription() + ", " + 
 						iconUrlString + ", " + 
 						campaign.getAuthoredBy() + ", " + 
@@ -1094,7 +1103,6 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 							"AND ca.id = urc.campaign_id" +
 						")" +
 					")");
-			
 			
 			List<Object> parameters = new LinkedList<Object>();
 			parameters.add(username);

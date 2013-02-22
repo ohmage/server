@@ -38,12 +38,12 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.Campaign.OutputFormat;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.CampaignServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.CampaignValidators;
@@ -194,8 +194,8 @@ public class CampaignReadRequest extends UserRequest {
 	private Map<Campaign, Collection<Campaign.Role>> shortOrLongResult;
 	
 	// For XML reads.
-	private String xmlResult;
-	private String campaignNameResult;
+	//private String xmlResult;
+	//private String campaignNameResult;
 	
 	/**
 	 * Creates a campaign read request.
@@ -286,8 +286,9 @@ public class CampaignReadRequest extends UserRequest {
 				}
 				else if(t.length == 1) {
 					tCampaignIds = 
-							CampaignValidators.validateCampaignIds(t[0]);
+						CampaignValidators.validateCampaignIds(t[0]);
 					
+					/*
 					if(tOutputFormat.equals(OutputFormat.XML)) {
 						if(tCampaignIds == null) {
 							throw new ValidationException(
@@ -304,6 +305,7 @@ public class CampaignReadRequest extends UserRequest {
 										"' only one campaign ID is allowed.");
 						}
 					}
+					*/
 				}
 				
 				t = getParameterValues(InputKeys.CLASS_URN_LIST);
@@ -398,8 +400,8 @@ public class CampaignReadRequest extends UserRequest {
 		role = tRole;
 		
 		shortOrLongResult = Collections.emptyMap();
-		xmlResult = "";
-		campaignNameResult = "";
+		//xmlResult = "";
+		//campaignNameResult = "";
 	}
 
 	/**
@@ -414,40 +416,22 @@ public class CampaignReadRequest extends UserRequest {
 		}
 		
 		try {
-			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
-				LOGGER.info("Gathering the information about the campaigns.");
-				shortOrLongResult =
-						UserCampaignServices.instance().getCampaignInformation(
-								getUser().getUsername(), 
-								campaignIds, 
-								classIds,
-								nameTokens,
-								descriptionTokens,
-								startDate, 
-								endDate, 
-								privacyState, 
-								runningState, 
-								role, 
-								OutputFormat.LONG.equals(outputFormat), 
-								OutputFormat.LONG.equals(outputFormat));
-				
-				LOGGER.info("Found " + shortOrLongResult.size() + " results.");
-			}
-			else if(OutputFormat.XML.equals(outputFormat)) {
-				LOGGER.info("Gathering the XML for the campaign.");
-				xmlResult = 
-						CampaignServices
-							.instance().getCampaignXml(campaignIds.get(0));
-				
-				LOGGER.info("Gathering the name of the campaign.");
-				campaignNameResult = 
-						CampaignServices
-							.instance().getCampaignName(campaignIds.get(0));
-				
-				// Get the mask.
-				
-				// Apply the mask.
-			}
+			// TODO: Rename "shortOrLongResult" to "campaignResult" or something.
+			LOGGER.info("Getting the campaign information.");
+			shortOrLongResult =
+				UserCampaignServices.instance().getCampaignInformation(
+						getUser().getUsername(), 
+						campaignIds, 
+						classIds,
+						nameTokens,
+						descriptionTokens,
+						startDate, 
+						endDate, 
+						privacyState, 
+						runningState, 
+						role, 
+						OutputFormat.LONG.equals(outputFormat), 
+						OutputFormat.LONG.equals(outputFormat));
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -491,15 +475,8 @@ public class CampaignReadRequest extends UserRequest {
 			}
 		}
 		
-		String responseText;
-		if(isFailed()) {
-			// Set the response's content type to "application/json".
-			httpResponse.setContentType("application/json");
-			
-			// If it failed, get the failure message.
-			responseText = getFailureMessage();
-		}
-		else {
+		String responseText = getFailureMessage();
+		if(! isFailed()) {
 			// If it has succeeded thus far, set the return value based on the
 			// type of request.
 			if(OutputFormat.SHORT.equals(outputFormat) || OutputFormat.LONG.equals(outputFormat)) {
@@ -538,24 +515,36 @@ public class CampaignReadRequest extends UserRequest {
 							roles.contains(Campaign.Role.SUPERVISOR) || 
 							roles.contains(Campaign.Role.AUTHOR);
 						
-						// Create the JSONObject response. This may return null
-						// if there is an error building it.
-						JSONObject resultJson = campaign.toJson(
-								false,	// ID 
-								longOutput,	// Classes
-								longOutput,	// Any roles
-								supervisorOrAuthor,	// Participants
-								supervisorOrAuthor, // Analysts
-								true,				// Authors
-								supervisorOrAuthor,	// Supervisors
-								longOutput,	// XML
-								false);	// Surveys
-						
-						if(resultJson != null) {
-							resultJson.put(JSON_KEY_USER_ROLES, roles);
+						try {
+							// Create the JSONObject response. This may return
+							// null if there is an error building it.
+							JSONObject resultJson =
+								campaign
+									.toJson(
+										false,	// ID 
+										longOutput,	// Classes
+										longOutput,	// Any roles
+										supervisorOrAuthor,	// Participants
+										supervisorOrAuthor, // Analysts
+										true,				// Authors
+										supervisorOrAuthor,	// Supervisors
+										longOutput,	// XML
+										false);	// Surveys
+							
+							if(resultJson != null) {
+								resultJson.put(JSON_KEY_USER_ROLES, roles);
+							}
+							
+							campaignInfo
+								.accumulate(campaign.getId(), resultJson);
 						}
-						
-						campaignInfo.accumulate(campaign.getId(), resultJson);
+						catch(DomainException e) {
+							LOGGER
+								.error(
+									"There was an error generating the campaign mask.",
+									e);
+							setFailed();
+						}
 					}
 					
 					metadata.put("number_of_results", resultCampaignIds.size());
@@ -575,12 +564,28 @@ public class CampaignReadRequest extends UserRequest {
 				}
 			}
 			else if(OutputFormat.XML.equals(outputFormat)) {
+				// Get the singular result.
+				Campaign campaign = 
+					shortOrLongResult.keySet().iterator().next();
+				
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
 				httpResponse.setContentType("text/xml");
-				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + campaignNameResult + ".xml");
+				httpResponse
+					.setHeader(
+						"Content-Disposition",
+						"attachment; filename=" + campaign.getName() + ".xml");
 				
-				responseText = xmlResult;
+				try {
+					responseText = campaign.getXml();
+				}
+				catch(DomainException e) {
+					LOGGER
+						.error(
+							"There was an error generating the campaign mask.",
+							e);
+					setFailed();
+				}
 			}
 			else {
 				// Set the response's content type to "application/json".
@@ -588,6 +593,13 @@ public class CampaignReadRequest extends UserRequest {
 				
 				responseText = getFailureMessage();
 			}
+		}
+		if(isFailed()) {
+			// Set the response's content type to "application/json".
+			httpResponse.setContentType("application/json");
+			
+			// If it failed, get the failure message.
+			responseText = getFailureMessage();
 		}
 			
 		// Write the error response.
