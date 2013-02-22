@@ -191,7 +191,7 @@ public class CampaignReadRequest extends UserRequest {
 	private final Campaign.Role role;
 	
 	// For short and long reads.
-	private Map<Campaign, Collection<Campaign.Role>> shortOrLongResult;
+	private Map<Campaign, Collection<Campaign.Role>> campaignResults;
 	
 	// For XML reads.
 	//private String xmlResult;
@@ -287,25 +287,6 @@ public class CampaignReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					tCampaignIds = 
 						CampaignValidators.validateCampaignIds(t[0]);
-					
-					/*
-					if(tOutputFormat.equals(OutputFormat.XML)) {
-						if(tCampaignIds == null) {
-							throw new ValidationException(
-									ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT, 
-									"For an output format of '" + 
-										OutputFormat.XML.name() + 
-										"' exactly one campaign is required.");
-						}
-						else if(tCampaignIds.size() > 1) {
-							throw new ValidationException(
-									ErrorCode.CAMPAIGN_INVALID_OUTPUT_FORMAT,
-									"For an output format of '" + 
-										OutputFormat.XML.name() + 
-										"' only one campaign ID is allowed.");
-						}
-					}
-					*/
 				}
 				
 				t = getParameterValues(InputKeys.CLASS_URN_LIST);
@@ -399,7 +380,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		role = tRole;
 		
-		shortOrLongResult = Collections.emptyMap();
+		campaignResults = Collections.emptyMap();
 		//xmlResult = "";
 		//campaignNameResult = "";
 	}
@@ -416,9 +397,8 @@ public class CampaignReadRequest extends UserRequest {
 		}
 		
 		try {
-			// TODO: Rename "shortOrLongResult" to "campaignResult" or something.
 			LOGGER.info("Getting the campaign information.");
-			shortOrLongResult =
+			campaignResults =
 				UserCampaignServices.instance().getCampaignInformation(
 						getUser().getUsername(), 
 						campaignIds, 
@@ -432,6 +412,19 @@ public class CampaignReadRequest extends UserRequest {
 						role, 
 						OutputFormat.LONG.equals(outputFormat), 
 						OutputFormat.LONG.equals(outputFormat));
+			
+			// If this is a request for XML and there were no campaigns visible
+			// to the user based on the parameters, we need to report that
+			// rather than attempt to attach an empty file.
+			if(
+				OutputFormat.XML.equals(outputFormat) && 
+				(campaignResults.size() == 0)) {
+				
+				throw
+					new ServiceException(
+						ErrorCode.CAMPAIGN_INVALID_ID,
+						"No campaigns were found.");
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -505,12 +498,12 @@ public class CampaignReadRequest extends UserRequest {
 					
 					// For each of the campaigns, process its information and
 					// place it in its respective object.
-					for(Campaign campaign : shortOrLongResult.keySet()) {
+					for(Campaign campaign : campaignResults.keySet()) {
 						// Get the campaign's ID for the metadata.
 						resultCampaignIds.add(campaign.getId());
 						
 						Collection<Campaign.Role> roles = 
-								shortOrLongResult.get(campaign);
+								campaignResults.get(campaign);
 						boolean supervisorOrAuthor = 
 							roles.contains(Campaign.Role.SUPERVISOR) || 
 							roles.contains(Campaign.Role.AUTHOR);
@@ -566,7 +559,7 @@ public class CampaignReadRequest extends UserRequest {
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				// Get the singular result.
 				Campaign campaign = 
-					shortOrLongResult.keySet().iterator().next();
+					campaignResults.keySet().iterator().next();
 				
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
@@ -629,7 +622,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		// Retrieve all of the campaign IDs from the result.
 		List<String> campaignIds = new LinkedList<String>();
-		for(Campaign campaign : shortOrLongResult.keySet()) {
+		for(Campaign campaign : campaignResults.keySet()) {
 			campaignIds.add(campaign.getId());
 		}
 		
