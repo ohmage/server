@@ -809,7 +809,7 @@ public class Image {
 		if(destination.isDirectory()) {
 			fileDestination = 
 				new File(
-					destination.getAbsolutePath() + 
+					destination.getAbsolutePath() + "/" +
 					id.toString() + 
 					size.getExtension());
 		}
