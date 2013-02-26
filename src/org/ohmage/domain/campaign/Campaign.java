@@ -1760,7 +1760,26 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
-		result.put(JSON_KEY_CREATION_TIMESTAMP, DateTimeUtils.getIso8601DateString(creationTimestamp, true));
+		
+		// If there is no mask, report the actual campaign creation timestamp.
+		if(masks.size() == 0) {
+			result
+				.put(
+					JSON_KEY_CREATION_TIMESTAMP,
+					DateTimeUtils
+						.getIso8601DateString(creationTimestamp, true));
+		}
+		// Otherwise, get the latest mask and use its creation timestamp as
+		// this campaign's timestamp.
+		else {
+			result
+				.put(
+					JSON_KEY_CREATION_TIMESTAMP,
+					DateTimeUtils
+						.getIso8601DateString(
+							masks.get(masks.size() - 1).getCreationTime(),
+							true));
+		}
 		
 		if(withClasses) {
 			result.put(JSON_KEY_CLASSES, classes);
