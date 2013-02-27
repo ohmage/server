@@ -1109,7 +1109,7 @@ public class SurveyResponse {
 		if(survey == null) {
 			throw new DomainException(
 					ErrorCode.SURVEY_INVALID_SURVEY_ID, 
-					"The survey ID doesn't refer to any known surveys in the campaign.");
+					"The survey ID doesn't refer to any known surveys in the campaign: " + surveyId);
 		}
 		
 		try {

@@ -363,13 +363,42 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Verifying that the campaign is running.");
 			CampaignServices.instance().verifyCampaignIsRunning(campaignUrn);
 			
+			Collection<String> campaignIds = new ArrayList<String>(1);
+			campaignIds.add(campaignUrn);
+			LOGGER.info("Generating the campaign object.");
+			Map<Campaign, Collection<Campaign.Role>> campaigns = 
+				UserCampaignServices
+					.instance()
+						.getCampaignInformation(
+							getUser().getUsername(),
+							campaignIds,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							null,
+							false,
+							false);
+			if(campaigns.size() == 0) {
+				throw
+					new ServiceException(
+						ErrorCode.CAMPAIGN_INVALID_ID,
+						"The campaign does not exist: " + campaignUrn);
+			}
+			if(campaigns.size() > 1) {
+				throw
+					new ServiceException(
+						"Multiple campaigns exist with the same ID.");
+			}
+			Campaign campaign = campaigns.keySet().iterator().next();
+			
 			if(campaignCreationTimestamp != null) {
 				LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
-				CampaignServices.instance().verifyCampaignIsUpToDate(campaignUrn, campaignCreationTimestamp);
+				CampaignServices.instance().verifyCampaignIsUpToDate(campaign, campaignCreationTimestamp);
 			}
-			
-			LOGGER.info("Generating the campaign object.");
-			Campaign campaign = CampaignServices.instance().getCampaign(campaignUrn);
 			
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 

@@ -1263,15 +1263,10 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 									
 									result.addResult(
 											new Campaign(
-													rs.getString("urn"),
-													rs.getString("name"),
 													rs.getString("description"),
-													iconUrl,
-													rs.getString("authored_by"),
 													Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
 													Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
-													new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
-													new HashMap<String, Survey>(0),
+													new DateTime(rs.getTimestamp("creation_timestamp").getTime()).toDate(),
 													rs.getString("xml")));
 								}
 							

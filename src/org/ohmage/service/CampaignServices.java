@@ -337,18 +337,17 @@ public class CampaignServices {
 	 * 							creation timestamps are not the same or if 
 	 * 							there is an error.
 	 */
-	public void verifyCampaignIsUpToDate(final String campaignId, 
+	public void verifyCampaignIsUpToDate(final Campaign campaign, 
 			final DateTime creationTimestamp) throws ServiceException {
 		
-		try {
-			if(! creationTimestamp.equals(campaignQueries.getCreationTimestamp(campaignId))) {
-				throw new ServiceException(
-						ErrorCode.CAMPAIGN_OUT_OF_DATE, 
-						"The given timestamp is not the same as the campaign's creation timestamp.");
-			}
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
+		long creationTimeWithoutMillis = 
+			campaign.getCreationTimestamp().getMillis() / 1000;
+		long givenTimeWithoutMillis = creationTimestamp.getMillis() / 1000;
+		
+		if(creationTimeWithoutMillis != givenTimeWithoutMillis) {
+			throw new ServiceException(
+					ErrorCode.CAMPAIGN_OUT_OF_DATE, 
+					"The given timestamp is not the same as the campaign's creation timestamp.");
 		}
 	}
 	

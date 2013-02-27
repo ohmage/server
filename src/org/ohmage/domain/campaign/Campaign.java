@@ -806,10 +806,15 @@ public class Campaign {
 	/**
 	 * Returns the date and time the configuration was created.
 	 * 
-	 * @return The date and time the configuration was creatd.
+	 * @return The date and time the configuration was created.
 	 */
 	public DateTime getCreationTimestamp() {
-		return new DateTime(creationTimestamp);
+		if(masks.size() == 0) {
+			return creationTimestamp;
+		}
+		else {
+			return masks.get(masks.size() - 1).getCreationTime();
+		}
 	}
 	
 	/**
