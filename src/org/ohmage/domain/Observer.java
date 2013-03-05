@@ -1050,7 +1050,7 @@ public class Observer {
 		if(metaDataNode != null) {
 			if(! metaDataNode.isObject()) {
 				throw new DomainException(
-					"The meta-dat is not a JSON object.");
+					"The meta-data is not a JSON object.");
 			}
 
 			MetaData.Builder metaDataBuilder = new MetaData.Builder();

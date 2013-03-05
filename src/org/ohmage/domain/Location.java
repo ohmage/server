@@ -304,7 +304,7 @@ public class Location {
 				try {
 					timeZone = 
 						DateTimeZone.forID(
-							locationNode.getTextValue());
+							timeZoneNode.getTextValue());
 				}
 				catch(IllegalArgumentException e) {
 					throw new DomainException(
