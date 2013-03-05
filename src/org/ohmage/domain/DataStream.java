@@ -177,7 +177,7 @@ public class DataStream {
 						try {
 							timeZone = 
 								DateTimeZone.forID(
-									metaDataNode.getTextValue());
+									timeZoneNode.getTextValue());
 						}
 						catch(IllegalArgumentException e) {
 							throw new DomainException(
