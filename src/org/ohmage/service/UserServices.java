@@ -305,8 +305,6 @@ public final class UserServices {
 				registrationText
 					.replace(MAIL_REGISTRATION_TEXT_TOS, termsOfService);
 			
-			System.out.println(registrationText);
-			
 			// Get the session.
 			Session smtpSession = getMailSession();
 			// Create the message.
