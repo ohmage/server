@@ -139,7 +139,7 @@
   <!-- Bootstrap listener to initialize Log4J.  Having this one here (before Spring is bootstrapped with its ContextLoaderListener)
        ensures Log4J is configured before Spring spits out logging messages. -->
   <listener>
-    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+     <listener-class>org.ohmage.jee.listener.LogListener</listener-class>
   </listener>
 
   <!-- Provide temp directory cleanup (for temp image storage) and ensure that the cleanup process terminates gracefully on 
