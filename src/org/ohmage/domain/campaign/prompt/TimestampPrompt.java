@@ -165,13 +165,18 @@ public class TimestampPrompt extends Prompt {
 				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException notNoResponse) {
+				System.out.println((String) value);
+				
 				try {
 					return DateTimeUtils.getDateTimeFromString((String) value);
 				}
 				catch(IllegalArgumentException notOurDateTime) {
 					try {
-						return ISODateTimeFormat.dateTimeParser().parseDateTime(
-								(String) value);
+						return
+							ISODateTimeFormat
+								.dateTimeParser()
+								.withOffsetParsed()
+								.parseDateTime((String) value);
 					}
 					catch(IllegalArgumentException notIsoDateTime) {
 						throw new DomainException(

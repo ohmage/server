@@ -185,6 +185,28 @@ public final class DateTimeUtils {
 	}
 	
 	/**
+	 * Converts a date to an W3C-ISO8601 string.
+	 * 
+	 * @param date The date, time, and time zone to be converted to a string.
+	 * 
+	 * @param withTime Whether or not to include the time component as well as
+	 * 				   the date component.
+	 * 
+	 * @return A string representing the date and time in the time zone.
+	 */
+	public static String getW3cIso8601DateString(
+			final DateTime date, 
+			final boolean withTime) {
+		
+		if(withTime) {
+			return ISO_W3C_DATE_TIME_FORMATTER.print(date);
+		}
+		else {
+			return ISO_W3C_DATE_FORMATTER.print(date);
+		}
+	}
+	
+	/**
 	 * Converts a date string into a DateTime object. The date string may be
 	 * a date and time or just a date.
 	 * 
@@ -255,10 +277,13 @@ public final class DateTimeUtils {
 	 */
 	public static DateTime parseIsoW3CDateTime(String value) {
 		try {
-			return ISO_W3C_DATE_FORMATTER.parseDateTime(value);
+			return
+				ISO_W3C_DATE_FORMATTER.withOffsetParsed().parseDateTime(value);
 		}
 		catch(IllegalArgumentException e) {
-			return ISO_W3C_DATE_TIME_FORMATTER.parseDateTime(value);
+			return
+				ISO_W3C_DATE_TIME_FORMATTER
+					.withOffsetParsed().parseDateTime(value);
 		}
 	}
 	
