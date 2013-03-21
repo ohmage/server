@@ -202,7 +202,12 @@ public final class DateTimeUtils {
 		}
 		catch(IllegalArgumentException e) {
 			// If it's not a date-time, maybe it is just a date.
-			return DATE_FORMATTER.parseDateTime(date);
+			try {
+				return DATE_FORMATTER.parseDateTime(date);
+			}
+			catch(IllegalArgumentException notBadFormat) {
+				return parseIsoW3CDateTime(date); 
+			}
 		}
 	}
 	
