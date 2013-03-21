@@ -498,7 +498,12 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						
 						Object response = promptResponse.getResponse();
 						if(response instanceof DateTime) {
-							ps.setString(6, DateTimeUtils.getIso8601DateString((DateTime) response, true));
+							ps.setString(
+								6,
+								DateTimeUtils
+									.getW3cIso8601DateString(
+										(DateTime) response,
+										true));
 						}
 						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
 							JSONArray json = new JSONArray();
