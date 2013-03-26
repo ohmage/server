@@ -162,7 +162,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 			
 			// For each stream, insert it and link it to the observer.
-			for(final Stream stream : observer.getStreams().values()) {
+			for(final Stream stream : observer.getStreamsMap().values()) {
 				// This stream's creation statement with its parameters.
 				PreparedStatementCreator streamCreator =
 					new PreparedStatementCreator() {
@@ -1349,7 +1349,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"AND os.id = osl.observer_stream_id";
 			
 			// For each stream, insert it and link it to the observer.
-			for(final Stream stream : observer.getStreams().values()) {
+			for(final Stream stream : observer.getStreamsMap().values()) {
 				// Get the stream's ID.
 				final String streamId = stream.getId();
 				

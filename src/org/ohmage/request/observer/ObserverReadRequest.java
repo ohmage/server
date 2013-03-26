@@ -5,10 +5,12 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonFactory;
@@ -63,6 +65,25 @@ public class ObserverReadRequest extends Request {
 	 */
 	private static final JsonFactory JSON_FACTORY = 
 		(new MappingJsonFactory()).configure(Feature.AUTO_CLOSE_TARGET, true);
+	
+	/**
+	 * The marshaller to return the XML version of the observer definitions.
+	 */
+	private static final Marshaller XML_MARSHALLER;
+	static {
+		try {
+			XML_MARSHALLER =
+				JAXBContext
+					.newInstance(Observer.class)
+					.createMarshaller();
+		}
+		catch(JAXBException e) {
+			throw
+				new IllegalStateException(
+					"There was a problem creating the marshaller.",
+					e);
+		}
+	}
 
 	/**
 	 * The maximum number of records that can be returned.
@@ -75,61 +96,9 @@ public class ObserverReadRequest extends Request {
 	private final long numToSkip;
 	private final long numToReturn;
 	
-	private final Collection<Observer> observers = new LinkedList<Observer>();
+	private final boolean xml;
 	
-	/**
-	 * Creates an observer read request.
-	 * 
-	 * @param httpRequest The HTTP request.
-	 * 
-	 * @param parameters The parameters that have already been decoded from the
-	 * 					 HTTP request.
-	 * 
-	 * @param observerId Limits the results to only those observers with this
-	 * 					 ID. Optional.
-	 * 
-	 * @param observerVersion Limits the results to only those observers with
-	 * 						  this version. Optional.
-	 *  
-	 * @param numToSkip The number of observers to skip. The default is 0.
-	 * 
-	 * @param numToReturn The number of observers to return. The default is the
-	 * 					  maximum for this request, 
-	 * 					  {@value #MAX_NUMBER_TO_RETURN}.
-	 * 
-	 * @throws IOException There was an error reading from the request.
-	 * 
-	 * @throws IllegalArgumentException Thrown if a required parameter is 
-	 * 									missing.
-	 */
-	public ObserverReadRequest(
-			final HttpServletRequest httpRequest,
-			final Map<String, String[]> parameters,
-			final String observerId,
-			final Long observerVersion,
-			final Long numToSkip,
-			final Long numToReturn)
-			throws IOException, InvalidRequestException {
-		
-		super(httpRequest, parameters);
-		
-		this.observerId = observerId;
-		this.observerVersion = observerVersion;
-		
-		if(numToSkip == null) {
-			this.numToSkip = 0;
-		}
-		else {
-			this.numToSkip = numToSkip;
-		}
-		
-		if((numToReturn == null) || (numToReturn > MAX_NUMBER_TO_RETURN)) {
-			this.numToReturn = MAX_NUMBER_TO_RETURN;
-		}
-		else {
-			this.numToReturn = numToReturn;
-		}
-	}
+	private final Collection<Observer> observers = new LinkedList<Observer>();
 	
 	/**
 	 * Creates an observer read request.
@@ -144,7 +113,8 @@ public class ObserverReadRequest extends Request {
 	 * 								   parsed.
 	 */
 	public ObserverReadRequest(
-			final HttpServletRequest httpRequest) 
+			final HttpServletRequest httpRequest,
+			final boolean xml) 
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, null);
@@ -179,6 +149,16 @@ public class ObserverReadRequest extends Request {
 				else if(t.length == 1) {
 					tObserverVersion = 
 						ObserverValidators.validateObserverVersion(t[0]);
+				}
+				
+				if(xml &&
+					((tObserverId == null) || (tObserverVersion == null))) {
+					
+					throw
+						new ValidationException(
+							ErrorCode.OBSERVER_INVALID_ID, 
+							"When requesting XML output, an observer ID and " +
+								"version must be given.");
 				}
 				
 				t = getParameterValues(InputKeys.NUM_TO_SKIP);
@@ -216,6 +196,8 @@ public class ObserverReadRequest extends Request {
 		
 		numToSkip = tNumToSkip;
 		numToReturn = tNumToReturn;
+		
+		this.xml = xml;
 	}
 	
 	/**
@@ -288,51 +270,82 @@ public class ObserverReadRequest extends Request {
 			return;
 		}
 
-		// Create the generator that will stream to the requester.
-		JsonGenerator generator;
 		try {
-			generator = JSON_FACTORY.createJsonGenerator(outputStream);
-		}
-		catch(IOException generatorException) {
-			LOGGER.error(
-				"Could not create the JSON generator.",
-				generatorException);
-			
-			try {
-				outputStream.close();
+			// Return the result as XML. If multiple observer definitions are
+			// requested, 
+			if(xml) {
+				if(observers.size() == 0) {
+					httpResponse
+						.sendError(
+							HttpServletResponse.SC_BAD_REQUEST, 
+							"The observer ID-version pair is unknown.");
+				}
+				else {
+					try {
+						XML_MARSHALLER
+							.marshal(
+								observers.iterator().next(),
+								outputStream);
+					}
+					catch(JAXBException e) {
+						LOGGER
+							.error(
+								"There was an error marshalling the " +
+									"observer definition as XML.",
+								e);
+						httpResponse
+							.sendError(
+								HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+								"There was an unspecified internal error.");
+					}
+				}
 			}
-			catch(IOException streamCloseException) {
-				LOGGER.warn(
-					"Could not close the output stream.",
-					streamCloseException);
+			// Otherwise, return it as JSON.
+			else {
+				// Create the generator that will stream to the requester.
+				JsonGenerator generator;
+				try {
+					generator = JSON_FACTORY.createJsonGenerator(outputStream);
+				}
+				catch(IOException e) {
+					LOGGER.error("Could not create the JSON generator.", e);
+					return;
+				}
+				
+				try {
+					// Start the resulting object.
+					generator.writeStartObject();
+					
+					// Add the result to the object.
+					generator.writeObjectField("result", "success");
+					
+					// Output the data for each observer.
+					generator.writeArrayFieldStart("data");
+					for(Observer observer : observers) {
+						// Write the observer to the output.
+						observer.toJson(generator);
+					}
+					generator.writeEndArray();
+					
+					// End the overall object.
+					generator.writeEndObject();
+				}
+				catch(JsonProcessingException e) {
+					LOGGER.error("The JSON could not be processed.", e);
+					httpResponse.setStatus(
+						HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+					return;
+				}
+				finally {
+					// Flush and close the writer.
+					try {
+						generator.close();
+					}
+					catch(IOException e) {
+						LOGGER.info("Could not close the generator.", e);
+					}
+				}
 			}
-			
-			return;
-		}
-		
-		try {
-			// Start the resulting object.
-			generator.writeStartObject();
-			
-			// Add the result to the object.
-			generator.writeObjectField("result", "success");
-			
-			// Output the data for each observer.
-			generator.writeArrayFieldStart("data");
-			for(Observer observer : observers) {
-				// Write the observer to the output.
-				observer.toJson(generator);
-			}
-			generator.writeEndArray();
-			
-			// End the overall object.
-			generator.writeEndObject();
-		}
-		catch(JsonProcessingException e) {
-			LOGGER.error("The JSON could not be processed.", e);
-			httpResponse.setStatus(
-				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return;
 		}
 		catch(IOException e) {
 			LOGGER.info(
@@ -343,12 +356,11 @@ public class ObserverReadRequest extends Request {
 			return;
 		}
 		finally {
-			// Flush and close the writer.
 			try {
-				generator.close();
+				outputStream.close();
 			}
 			catch(IOException e) {
-				LOGGER.info("Could not close the generator.", e);
+				LOGGER.info("Could not close the output stream.", e);
 			}
 		}
 	}

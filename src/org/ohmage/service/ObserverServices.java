@@ -266,7 +266,7 @@ public class ObserverServices {
 			Map<String, Long> result = new HashMap<String, Long>();
 			
 			// Compare each of the streams.
-			for(Stream stream : observer.getStreams().values()) {
+			for(Stream stream : observer.getStreamsMap().values()) {
 				// Get the stream's version.
 				Long streamVersion =
 					observerQueries.getGreatestStreamVersion(

@@ -173,6 +173,7 @@ public final class RequestBuilder implements ServletContextAware {
 	// Observer
 	private String apiObserverCreate;
 	private String apiObserverRead;
+	private String apiObserverReadXml;
 	private String apiObserverUpdate;
 	private String apiStreamUpload;
 	private String apiStreamRead;
@@ -311,6 +312,7 @@ public final class RequestBuilder implements ServletContextAware {
 		// Observer
 		apiObserverCreate = apiRoot + "/observer/create";
 		apiObserverRead = apiRoot + "/observer/read";
+		apiObserverReadXml = apiRoot + "/observer/read/xml";
 		apiObserverUpdate = apiRoot + "/observer/update";
 		apiStreamUpload = apiRoot + "/stream/upload";
 		apiStreamRead = apiRoot + "/stream/read";
@@ -515,7 +517,10 @@ public final class RequestBuilder implements ServletContextAware {
 			return new ObserverCreationRequest(httpRequest);
 		}
 		else if(apiObserverRead.equals(requestUri)) {
-			return new ObserverReadRequest(httpRequest);
+			return new ObserverReadRequest(httpRequest, false);
+		}
+		else if(apiObserverReadXml.equals(requestUri)) {
+			return new ObserverReadRequest(httpRequest, true);
 		}
 		else if(apiObserverUpdate.equals(requestUri)) {
 			return new ObserverUpdateRequest(httpRequest);
@@ -693,6 +698,7 @@ public final class RequestBuilder implements ServletContextAware {
 				// Observer
 				apiObserverCreate.equals(uri) ||
 				apiObserverRead.equals(uri) ||
+				apiObserverReadXml.equals(uri) ||
 				apiObserverUpdate.equals(uri) ||
 				apiStreamUpload.equals(uri) ||
 				apiStreamRead.equals(uri) ||

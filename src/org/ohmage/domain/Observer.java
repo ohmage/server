@@ -11,6 +11,9 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+
 import nu.xom.Document;
 import nu.xom.Node;
 import nu.xom.Nodes;
@@ -44,6 +47,7 @@ import org.w3c.dom.DOMException;
  *
  * @author John Jenkins
  */
+@XmlRootElement
 public class Observer {
 	/**
 	 * This is the contents of the JavaSciprt file that evaluates schemas and
@@ -103,16 +107,22 @@ public class Observer {
 	private static final String KEY_JSON_DESCRIPTION = "description";
 	private static final String KEY_JSON_VERSION_STRING = "versionString";
 	private static final String KEY_JSON_STREAMS = "streams";
+	private static final String KEY_XML_STREAM = "stream";
 	
 	private static final Pattern PATTERN_ID_VALIDATOR = 
 		Pattern.compile("([a-zA-Z]{1}[\\w]*(\\.[a-zA-Z]{1}[\\w]*)+)?");
 	private static final long MAX_OBSERVER_ID_LENGTH = 255;
 
+	@XmlElement(name=KEY_JSON_ID)
 	private final String id;
+	@XmlElement(name=KEY_JSON_VERSION)
 	private final long version;
 
+	@XmlElement(name=KEY_JSON_NAME)
 	private final String name;
+	@XmlElement(name=KEY_JSON_DESCRIPTION)
 	private final String description;
+	@XmlElement(name=KEY_JSON_VERSION_STRING)
 	private final String versionString;
 
 	/**
@@ -134,21 +144,46 @@ public class Observer {
 		private static final Pattern PATTERN_ID_VALIDATOR = 
 			Pattern.compile("[a-zA-Z]{1}[\\w_]{0,254}");
 		
+		@XmlElement(name=KEY_JSON_ID)
 		private final String id;
+		@XmlElement(name=KEY_JSON_VERSION)
 		private final long version;
 
+		@XmlElement(name=KEY_JSON_NAME)
 		private final String name;
+		@XmlElement(name=KEY_JSON_DESCRIPTION)
 		private final String description;
 		
 		// 'true' means that a field must be present, 'false' means that a
 		// field cannot be present, and 'null' means that the it may or may
 		// not be there.
+		@XmlElement(name=KEY_JSON_WITH_ID)
 		private final Boolean withId;
+		@XmlElement(name=KEY_JSON_WITH_TIMESTAMP)
 		private final Boolean withTimestamp;
+		@XmlElement(name=KEY_JSON_WITH_LOCATION)
 		private final Boolean withLocation;
 
+		@XmlElement(name=KEY_JSON_SCHEMA)
 		private final String schemaString;
 		private final JsonParser schema;
+		
+		/**
+		 * Private, default constructor. This should never be used and would
+		 * result in a very broken object, but it is required by JAXB. :(
+		 */
+		@SuppressWarnings("unused")
+		private Stream() {
+			id = null;
+			version = -1;
+			name = null;
+			description = null;
+			withId = null;
+			withTimestamp = null;
+			withLocation = null;
+			schemaString = null;
+			schema = null;
+		}
 
 		/**
 		 * Creates a new stream definition.
@@ -796,6 +831,20 @@ public class Observer {
 	}
 	
 	/**
+	 * Private, default constructor. This is entirely broken and should never
+	 * be used, but it is required by JAXB. :(
+	 */
+	@SuppressWarnings("unused")
+	private Observer() {
+		this.id = null;
+		this.version = -1L;
+		this.name = null;
+		this.description = null;
+		this.versionString = null;
+		this.streams = null;
+	}
+	
+	/**
 	 * Creates a new observer.
 	 * 
 	 * @param id The universally unique identifier for this observer. This 
@@ -986,13 +1035,23 @@ public class Observer {
 	public String getVersionString() {
 		return versionString;
 	}
+	
+	/**
+	 * Returns the {@link Stream} objects.
+	 * 
+	 * @return The {@link Stream} objects.
+	 */
+	@XmlElement(name=KEY_XML_STREAM)
+	public Collection<Stream> getStreams() {
+		return Collections.unmodifiableCollection(streams.values());
+	}
 
 	/**
-	 * Returns streams.
+	 * Returns the map of stream IDs to their concrete {@link Stream} object.
 	 * 
-	 * @return The streams.
+	 * @return The map of stream IDs to their concrete {@link Stream} object.
 	 */
-	public Map<String, Stream> getStreams() {
+	public Map<String, Stream> getStreamsMap() {
 		return Collections.unmodifiableMap(streams);
 	}
 	
