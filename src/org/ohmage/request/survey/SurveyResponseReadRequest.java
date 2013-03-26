@@ -1222,7 +1222,9 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 						httpResponse.setContentType("text/csv");
 						httpResponse.setHeader(
 								"Content-Disposition", 
-								"attachment; filename=SurveyResponses.csv");
+								"attachment; filename=" + 
+									getCampaign().getName() + 
+									".csv");
 
 						StringBuilder resultBuilder = new StringBuilder();
 						
