@@ -165,6 +165,14 @@ public class MobilityAggregateReadRequest extends UserRequest {
 									InputKeys.END_DATE);
 				}
 				
+				// The maximum date range is 10 days.
+				if(tStartDate.isBefore(endDate.minusDays(10))) {
+					throw
+						new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"The maximum date range is 10 days.");
+				}
+				
 				// Get the duration.
 				t = getParameterValues(InputKeys.MOBILITY_AGGREGATE_DURATION);
 				if(t.length > 1) {
