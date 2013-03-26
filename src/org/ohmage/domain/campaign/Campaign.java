@@ -2199,8 +2199,27 @@ public class Campaign {
 		int numSurveys = surveys.size();
 		List<Survey> result = new ArrayList<Survey>(numSurveys);
 		
+		// Create a set for all of the surveys' items' ID.
+		Set<String> itemIds = new HashSet<String>();
+		
+		// Cycle through the nodes and create Survey objects.
 		for(int i = 0; i < numSurveys; i++) {
-			result.add(processSurvey(surveys.get(i)));
+			// Create the Survey.
+			Survey survey = processSurvey(surveys.get(i));
+			
+			// Add the survey to the list.
+			result.add(survey);
+			
+			// Cycle through the items and check if any duplicate item IDs
+			// exist.
+			for(SurveyItem surveyItem : survey.getSurveyItems().values()) {
+				if(! itemIds.add(surveyItem.getId())) {
+					throw
+						new DomainException(
+							"Multiple survey items have the same ID: " + 
+								surveyItem.getId());
+				}
+			}
 		}
 		
 		return result;
