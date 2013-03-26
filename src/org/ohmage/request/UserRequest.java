@@ -284,12 +284,15 @@ public abstract class UserRequest extends Request {
 	 */
 	public void refreshTokenCookie(final HttpServletResponse httpResponse) {
 		if(user != null) {
-			final String token = user.getToken(); 
-			if(token != null) {
-				CookieUtils.setCookieValue(
-					httpResponse, 
-					InputKeys.AUTH_TOKEN, 
-					token);
+			User binUser = UserBin.getUser(user.getToken());
+			if(binUser != null) {
+				final String token = binUser.getToken(); 
+				if(token != null) {
+					CookieUtils.setCookieValue(
+						httpResponse, 
+						InputKeys.AUTH_TOKEN, 
+						token);
+				}
 			}
 		}
 	}
