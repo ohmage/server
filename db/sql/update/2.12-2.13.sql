@@ -1,8 +1,3 @@
--- Add the new preferences.
-INSERT INTO preference VALUES
-    ('audit_log_location', '/opt/ohmage/logs/audits/'),
-    ('fully_qualified_domain_name', 'http://localhost');
-    
 -- Update the observer_stream_data table.
 ALTER TABLE observer_stream_data
     MODIFY COLUMN `time` bigint(20) DEFAULT NULL;
