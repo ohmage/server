@@ -110,14 +110,31 @@ public class AuditServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	public void createAudit(
-			final RequestServlet.RequestType requestType, final String uri, 
-			final String client, final String deviceId, final String response,
-			final Map<String, String[]> parameterMap, 
-			final Map<String, String[]> extras, final long receivedTimestamp, 
-			final long respondTimestamp) throws ServiceException {
+		final RequestServlet.RequestType requestType,
+		final String uri,
+		final String client,
+		final String requestId,
+		final String deviceId,
+		final String response,
+		final Map<String, String[]> parameterMap,
+		final Map<String, String[]> extras,
+		final long receivedTimestamp,
+		final long respondTimestamp)
+		throws ServiceException {
 		
 		try {
-			auditQueries.createAudit(requestType, uri, client, deviceId, parameterMap, extras, response, receivedTimestamp, respondTimestamp);
+			auditQueries
+				.createAudit(
+					requestType,
+					uri,
+					client,
+					requestId,
+					deviceId,
+					parameterMap,
+					extras,
+					response,
+					receivedTimestamp,
+					respondTimestamp);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

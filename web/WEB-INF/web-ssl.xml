@@ -52,7 +52,7 @@
   </filter-mapping> 
 
   <!--
-    Allow Cross-Origin-Resource-Sharing for everything except authentication
+    Push the client value onto the NDC stack.
   -->
   <filter>
     <filter-name>ClientFilter</filter-name>

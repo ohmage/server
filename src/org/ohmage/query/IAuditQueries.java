@@ -44,6 +44,8 @@ public interface IAuditQueries {
 	 * 
 	 * @param client The value of the client parameter. Not required.
 	 * 
+	 * @param requestId The unqiue identifier for this request. Required.
+	 * 
 	 * @param deviceId An unique identifier for each device. Not required.
 	 * 
 	 * @param parameters A map of parameter keys to all of their values. Not
@@ -73,12 +75,16 @@ public interface IAuditQueries {
 	 * 									parameters are null.
 	 */
 	void createAudit(
-			RequestServlet.RequestType requestType, String uri,
-			String client, String deviceId,
-			Map<String, String[]> parameters,
-			Map<String, String[]> extras, String response,
-			long receivedMillis, long respondMillis)
-			throws DataAccessException;
+		RequestServlet.RequestType requestType,
+		String uri,
+		String client,
+		String requestId,
+		String deviceId,
+		Map<String, String[]> parameters,
+		Map<String, String[]> extras,
+		String response,
+		long receivedMillis,
+		long respondMillis) throws DataAccessException;
 
 	/**
 	 * Retrieves the unique ID for all audits.

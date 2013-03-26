@@ -144,12 +144,12 @@ public class AuditQueries extends Query implements IAuditQueries {
 	
 	// Creates a new audit entry.
 	private static final String SQL_INSERT_AUDIT =
-		"INSERT INTO audit(request_type_id, uri, client, device_id, response, received_millis, respond_millis) " +
+		"INSERT INTO audit(request_type_id, uri, client, request_id, device_id, response, received_millis, respond_millis) " +
 		"VALUES ((" +
 			"SELECT id " +
 			"FROM audit_request_type " +
 			"WHERE request_type = ?" +
-		"), ?, ?, ?, ?, ?, ?)";
+		"), ?, ?, ?, ?, ?, ?, ?)";
 	
 	// Adds a parameter to an audit.
 	private static final String SQL_INSERT_PARAMETER =
@@ -185,7 +185,8 @@ public class AuditQueries extends Query implements IAuditQueries {
 	public void createAudit(
 			final RequestServlet.RequestType requestType, 
 			final String uri, 
-			final String client, 
+			final String client,
+			final String requestId,
 			final String deviceId,
 			final Map<String, String[]> parameters, 
 			final Map<String, String[]> extras, 
@@ -230,10 +231,11 @@ public class AuditQueries extends Query implements IAuditQueries {
 								ps.setString(1, requestType.name().toLowerCase());
 								ps.setString(2, uri);
 								ps.setString(3, client);
-								ps.setString(4, deviceId);
-								ps.setString(5, response);
-								ps.setLong(6, receivedMillis);
-								ps.setLong(7, respondMillis);
+								ps.setString(4, requestId);
+								ps.setString(5, deviceId);
+								ps.setString(6, response);
+								ps.setLong(7, receivedMillis);
+								ps.setLong(8, respondMillis);
 								
 								return ps;
 							}

@@ -22,3 +22,6 @@ CREATE TABLE `campaign_mask_survey_id` (
   UNIQUE KEY `campaing_mask_unique_mask_survey` (`campaign_mask_id`,`survey_id`),
   CONSTRAINT `campaign_mask_fk_survey_id` FOREIGN KEY (`campaign_mask_id`) REFERENCES `campaign_mask` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Add the request_id column to the audit table.
+ALTER TABLE audit ADD COLUMN request_id VARCHAR(255) NOT NULL AFTER client;

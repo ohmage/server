@@ -32,6 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.jee.filter.Log4jNdcFilter;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
 import org.ohmage.request.RequestBuilder;
@@ -93,6 +94,8 @@ public class RequestServlet extends HttpServlet {
 		private final long receivedTimestamp;
 		private final long respondTimestamp;
 		
+		private final String requestId;
+
 		/**
 		 * Creates an object to hold the information necessary to create an
 		 * audit entry.
@@ -119,6 +122,7 @@ public class RequestServlet extends HttpServlet {
 				final Request request,
 				final RequestType requestType,
 				final String uri,
+				final String requestId,
 				final Map<String, String[]> parameterMap,
 				final Map<String, String[]> headerMap,
 				final long receivedTimestamp, 
@@ -128,6 +132,8 @@ public class RequestServlet extends HttpServlet {
 			
 			this.requestType = requestType;
 			this.uri = uri;
+			
+			this.requestId = requestId;
 			
 			this.parameterMap = parameterMap;
 			this.headerMap = headerMap;
@@ -209,7 +215,19 @@ public class RequestServlet extends HttpServlet {
 				}
 				
 				// Create the audit report.
-				AuditServices.instance().createAudit(requestType, uri, client, deviceId, responseString, parameterMap, extras, receivedTimestamp, respondTimestamp);
+				AuditServices
+					.instance()
+					.createAudit(
+						requestType, 
+						uri, 
+						client,
+						requestId,
+						deviceId, 
+						responseString, 
+						parameterMap, 
+						extras, 
+						receivedTimestamp, 
+						respondTimestamp);
 			}
 			catch(IllegalArgumentException e) {
 				LOGGER.error("Error while auditing the request.", e);
@@ -287,7 +305,16 @@ public class RequestServlet extends HttpServlet {
 		}
 
 		// Create a separate thread with the parameters and start that thread.
-		AuditThread auditThread = new AuditThread(request, requestType, uri, parameterMap, extras, receivedTimestamp, respondedTimestamp);
+		AuditThread auditThread =
+			new AuditThread(
+				request,
+				requestType,
+				uri,
+				(String) httpRequest.getAttribute(Log4jNdcFilter.ATTRIBUTE_REQUEST_ID),
+				parameterMap,
+				extras,
+				receivedTimestamp,
+				respondedTimestamp);
 		auditThread.start();
 	}
 	

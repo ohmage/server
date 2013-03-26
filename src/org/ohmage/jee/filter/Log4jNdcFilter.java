@@ -36,6 +36,11 @@ import org.apache.log4j.NDC;
  */
 public class Log4jNdcFilter implements Filter {
 	/**
+	 * The attribute key for the request ID.
+	 */
+	public static final String ATTRIBUTE_REQUEST_ID = "request_id";
+	
+	/**
 	 * Default no-arg constructor.
 	 */
 	public Log4jNdcFilter() {
@@ -62,7 +67,10 @@ public class Log4jNdcFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
 		throws ServletException, IOException {	
 		
-		NDC.push(UUID.randomUUID().toString());
+		String requestId = UUID.randomUUID().toString();
+		request.setAttribute(ATTRIBUTE_REQUEST_ID, requestId);
+		
+		NDC.push(requestId);
 		
 		// Execute the rest of the filters in the chain and then whatever Servlet is bound to the current request URI
 		chain.doFilter(request, response);
