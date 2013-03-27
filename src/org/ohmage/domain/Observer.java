@@ -1175,8 +1175,24 @@ public class Observer {
 		if(dataNode == null) {
 			throw new DomainException("The data is missing.");
 		}
-		dataNode = currStream.validateData(dataNode);
 		
+		try {
+			// Validate the data.
+			dataNode = currStream.validateData(dataNode);
+		}
+		catch(DomainException e) {
+			throw
+				new DomainException(
+					"An invalid point was detected for stream '" +
+						streamId +
+						"' with version '" +
+						streamVersion +
+						"': " +
+						e.getMessage(),
+					e);
+		}
+		
+		// Create the DataStream object to return.
 		result = 
 			new DataStream(
 				currStream, 

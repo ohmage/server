@@ -576,7 +576,12 @@ public class ObserverServices {
 				else {
 					LOGGER
 						.warn(
-							"An invalid observer-stream point was detected.");
+							"An invalid point was detected for observer '" +
+								observer.getId() +
+								"' with version '" +
+								observer.getVersion() +
+								"': " +
+								e.getMessage());
 					invalidPoints
 						.add(
 							new InvalidPoint(
