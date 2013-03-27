@@ -165,8 +165,6 @@ public class TimestampPrompt extends Prompt {
 				return NoResponse.valueOf((String) value);
 			}
 			catch(IllegalArgumentException notNoResponse) {
-				System.out.println((String) value);
-				
 				try {
 					return DateTimeUtils.getDateTimeFromString((String) value);
 				}
