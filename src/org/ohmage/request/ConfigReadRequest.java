@@ -85,7 +85,7 @@ public class ConfigReadRequest extends Request {
 			
 			// DEBUG!
 			JSONObject tempResult = result.toJson();
-			tempResult.put("post-easter_egg", "Jenkins FTW");
+			tempResult.put("second_try", "Jenkins is...ok");
 			
 			response.put(JSON_KEY_DATA, (result == null) ? null : tempResult);
 			respond(
