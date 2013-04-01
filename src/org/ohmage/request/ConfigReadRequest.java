@@ -82,7 +82,12 @@ public class ConfigReadRequest extends Request {
 		
 		try {
 			JSONObject response = new JSONObject();
-			response.put(JSON_KEY_DATA, (result == null) ? null : result.toJson());
+			
+			// DEBUG!
+			JSONObject tempResult = result.toJson();
+			tempResult.put("post-easter_egg", "Jenkins FTW");
+			
+			response.put(JSON_KEY_DATA, (result == null) ? null : tempResult);
 			respond(
 					httpRequest, 
 					httpResponse,
