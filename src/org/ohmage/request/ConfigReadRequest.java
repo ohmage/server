@@ -83,11 +83,11 @@ public class ConfigReadRequest extends Request {
 		try {
 			JSONObject response = new JSONObject();
 			
-			// DEBUG!
-			JSONObject tempResult = result.toJson();
-			tempResult.put("third_time's", "the charm");
+			// FIXME: DEBUG: Testing
+			JSONObject resultJson = result.toJson();
+			resultJson.put("woo", "hoo");
 			
-			response.put(JSON_KEY_DATA, (result == null) ? null : tempResult);
+			response.put(JSON_KEY_DATA, (result == null) ? null : resultJson);
 			respond(
 					httpRequest, 
 					httpResponse,
