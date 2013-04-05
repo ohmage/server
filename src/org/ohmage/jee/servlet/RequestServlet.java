@@ -45,16 +45,45 @@ import org.ohmage.service.AuditServices;
  * @author John Jenkins
  */
 @MultipartConfig(
-		// 300 MB is the maximum allowed file size for videos.
-		maxFileSize=1024*1024*300, 
-		// 300 MB for a video plus 25 MB for the images plus 5 MB for the 
-		// survey response content.
-		maxRequestSize=1024*1024*300 + 1024*1024*25 + 1024*1024*5,
-		// Let's start caching if the request is greater than that for the 
-		// images plus the survey response content.
-		fileSizeThreshold=1024*1024*25 + 1024*1024*5)
+		// The size limit of a single request parameter. 
+		maxFileSize=RequestServlet.MAX_FILE_SIZE, 
+		// The size limit on the total size of the request.
+		maxRequestSize=RequestServlet.MAX_REQUEST_SIZE,
+		// The point when the servlet container will start caching things.
+		fileSizeThreshold=RequestServlet.FILE_CACHE_LIMIT)
 public class RequestServlet extends HttpServlet {
 	private static final Logger LOGGER = Logger.getLogger(RequestServlet.class);
+
+	/**
+	 * The maximum allowed size for a set of survey responses.
+	 */
+	public static final int MAX_SURVEY_RESPONSE_SIZE = 1024*1024*25;
+	/**
+	 * The maximum allowed size for a set of stream data.
+	 */
+	public static final int MAX_STREAM_DATA_SIZE = 1024*1024*25;
+	/**
+	 * The maximum allowed size for a single file being uploaded.
+	 */
+	public static final int MAX_FILE_SIZE = 1024*1024*300;
+	/**
+	 * <p>
+	 * The maximum allowed size of a single upload.
+	 * </p>
+	 * 
+	 * <p>
+	 * This is the combination of the survey responses and a single
+	 * {@link #MAX_FILE_SIZE} to allow a video to be uploaded with the survey
+	 * response.
+	 * </p>
+	 */
+	public static final int MAX_REQUEST_SIZE =
+		MAX_FILE_SIZE + MAX_SURVEY_RESPONSE_SIZE;
+	/**
+	 * The size of the request that must be reached before the servlet
+	 * container will start caching.
+	 */
+	public static final int FILE_CACHE_LIMIT = 1024*1024*50;
 	
 	private static final int MAX_DATABASE_LENGTH = (1024 * 16) - 1;
 	

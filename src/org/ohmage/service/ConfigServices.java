@@ -24,6 +24,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.jee.servlet.RequestServlet;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -129,12 +130,19 @@ public class ConfigServices {
 		}
 		
 		try {
-			return new ServerConfig(appName, appVersion, appBuild,
-					defaultSurveyResponsePrivacyState, surveyResponsePrivacyStates,
-					defaultCampaignCreationPrivilege, mobilityEnabled,
-					UserBin.LIFETIME, 1024*1024*5*5, 1024*1024*5, 
-					selfRegistrationAllowed
-				);
+			return
+				new ServerConfig(
+					appName,
+					appVersion,
+					appBuild,
+					defaultSurveyResponsePrivacyState,
+					surveyResponsePrivacyStates,
+					defaultCampaignCreationPrivilege,
+					mobilityEnabled,
+					UserBin.LIFETIME,
+					RequestServlet.MAX_REQUEST_SIZE,
+					RequestServlet.MAX_FILE_SIZE,
+					selfRegistrationAllowed);
 		} 
 		catch(DomainException e) {
 			throw new ServiceException(e);
