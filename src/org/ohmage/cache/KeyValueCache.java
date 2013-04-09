@@ -197,9 +197,12 @@ public abstract class KeyValueCache extends Cache {
 					});
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			LOGGER.error("Error executing SQL '" +
-				sqlForRetrievingValues +
-				"'. Aborting cache refresh.");
+			LOGGER
+				.error(
+					"Error executing SQL '" +
+						sqlForRetrievingValues +
+						"'. Aborting cache refresh.",
+					e);
 			return;
 		}
 
