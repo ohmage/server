@@ -181,7 +181,8 @@ public class DataStream {
 						}
 						catch(IllegalArgumentException e) {
 							throw new DomainException(
-								"The time zone is unknown.");
+								"The time zone is unknown: " +
+									timeZoneNode.getTextValue());
 						}
 					}
 					
@@ -312,9 +313,13 @@ public class DataStream {
 			
 			// Validate the timestamp and then save it.
 			if((timestamp != null) && timestamp.isAfterNow()) {
+				long now = (new DateTime()).getMillis();
 				throw
 					new DomainException(
-						"The timestamp cannot be in the future.");
+						"The timestamp cannot be in the future: " +
+							"Now: " + now + " " +
+							"Given: " + timestamp.getMillis() + " " +
+							"Difference: " + (timestamp.getMillis() - now));
 			}
 			this.timestamp = timestamp;
 			

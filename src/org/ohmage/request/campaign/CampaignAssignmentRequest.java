@@ -320,10 +320,12 @@ public class CampaignAssignmentRequest extends UserRequest {
 				}
 			}
 			
-			// Upload the survey response.
-			uploadRequest.service();
-			if(uploadRequest.isFailed()) {
-				return;
+			// Upload the survey response if one was given.
+			if(uploadRequest != null) {
+				uploadRequest.service();
+				if(uploadRequest.isFailed()) {
+					return;
+				}
 			}
 			
 			// Create the campaign "mask".
