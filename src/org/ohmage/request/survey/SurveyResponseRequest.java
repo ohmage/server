@@ -26,7 +26,6 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseReadServices;
 import org.ohmage.service.SurveyResponseServices;
-import org.ohmage.service.UserCampaignServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -416,19 +415,6 @@ public abstract class SurveyResponseRequest extends UserRequest {
 		}
 		
 		try {
-			// This is not necessarily the case because the user may no longer
-			// belong to the campaign but still want to see their data. This
-			// should only check that the campaign exists.
-			LOGGER.info("Verifying that requester belongs to the campaign specified by campaign ID.");
-		    UserCampaignServices.instance().campaignExistsAndUserBelongs(campaignId, this.getUser().getUsername());
-			
-		    // The user may want to read survey responses from a user that no
-		    // longer belongs to the campaign.
-		    if(! usernames.equals(URN_SPECIAL_ALL_LIST)) {
-		    	LOGGER.info("Checking the user list to make sure all of the users belong to the campaign ID.");
-		    	UserCampaignServices.instance().verifyUsersExistInCampaign(campaignId, usernames);
-		    }
-		    
 		    LOGGER.info("Retrieving campaign configuration.");
 			campaign = CampaignServices.instance().getCampaign(campaignId);
 			
