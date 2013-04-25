@@ -324,7 +324,7 @@ public final class SurveyResponseServices {
 			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
 			final long surveyResponsesToProcess,
-			List<SurveyResponse> result) 
+			final List<SurveyResponse> result) 
 			throws ServiceException {
 		
 		try {

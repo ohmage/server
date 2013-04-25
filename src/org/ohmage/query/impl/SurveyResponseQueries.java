@@ -484,7 +484,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			final List<SortParameter> sortOrder,
 			final long surveyResponsesToSkip,
 			final long surveyResponsesToProcess,
-			List<SurveyResponse> result)
+			final List<SurveyResponse> result)
 			throws DataAccessException {
 		
 		if(

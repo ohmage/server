@@ -62,8 +62,9 @@ public abstract class SurveyResponseRequest extends UserRequest {
 	
 	private Campaign campaign;
 	
-	private List<SurveyResponse> surveyResponseList;
-	private long surveyResponseCount;
+	private List<SurveyResponse> surveyResponseList =
+		new ArrayList<SurveyResponse>();
+	private long surveyResponseCount = 0;
 	
 	/**
 	 * Creates a survey responses request. The optional parameters limit the 
@@ -383,9 +384,6 @@ public abstract class SurveyResponseRequest extends UserRequest {
 		privacyState = tPrivacyState;
 		
 		promptResponseSearchTokens = tPromptResponseSearchTokens;
-		
-		surveyResponseList = new ArrayList<SurveyResponse>();
-		surveyResponseCount = 0;
 	}
 
 	/**
