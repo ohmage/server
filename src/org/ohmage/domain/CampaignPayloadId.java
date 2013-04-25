@@ -8,6 +8,8 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.DateTime;
+import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.SurveyResponse.OutputFormat;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.request.UserRequest.TokenLocation;
@@ -21,6 +23,17 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class CampaignPayloadId implements PayloadId {
+	/**
+	 * The columns that will always be returned for this call.
+	 */
+	private static final Collection<SurveyResponse.ColumnKey> COLUMNS;
+	static {
+		COLUMNS = new ArrayList<SurveyResponse.ColumnKey>(3);
+		COLUMNS.add(SurveyResponse.ColumnKey.SURVEY_ID);
+		COLUMNS.add(SurveyResponse.ColumnKey.CONTEXT_LAUNCH_CONTEXT_LONG);
+		COLUMNS.add(SurveyResponse.ColumnKey.PROMPT_RESPONSE);
+	}
+	
 	private final String campaignId;
 	private final String surveyId;
 	private final String promptId;
@@ -147,8 +160,8 @@ public class CampaignPayloadId implements PayloadId {
 					endDate,
 					null,
 					null,
-					null,
-					null,
+					COLUMNS,
+					OutputFormat.JSON_ROWS,
 					null,
 					null,
 					null,

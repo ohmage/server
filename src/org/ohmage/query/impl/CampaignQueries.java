@@ -506,7 +506,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			// Compile the list of parameters for the prompt ID lookup table.
 			List<Object[]> promptParameters = 
 				new ArrayList<Object[]>(surveyIds.size());
-			for(String promptId : surveyIds) {
+			for(String promptId : promptIds) {
 				Object[] params = new Object[2];
 				params[0] = promptId;
 				params[1] = campaignId;

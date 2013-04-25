@@ -37,14 +37,20 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.log4j.Logger;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
+import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -69,6 +75,8 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
+import org.ohmage.request.omh.OmhReadResponder;
 import org.ohmage.util.DateTimeUtils;
 import org.ohmage.validator.SurveyResponseValidators;
 
@@ -194,9 +202,14 @@ import org.ohmage.validator.SurveyResponseValidators;
  * 
  * @author Joshua Selsky
  */
-public final class SurveyResponseReadRequest extends SurveyResponseRequest {
+public final class SurveyResponseReadRequest
+	extends SurveyResponseRequest
+	implements OmhReadResponder {
+	
 	public static final Logger LOGGER = 
 			Logger.getLogger(SurveyResponseReadRequest.class);
+	
+	private static final JsonFactory JSON_FACTORY = new MappingJsonFactory();
 	
 	/**
 	 * The, optional, additional JSON key associated with a prompt responses in
@@ -630,6 +643,15 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 				collapse, 
 				surveyResponsesToSkip, 
 				surveyResponsesToProcess);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#getNumDataPoints()
+	 */
+	@Override
+	public long getNumDataPoints() {
+		return getSurveyResponseCount();
 	}
 	
 	/**
@@ -1361,6 +1383,213 @@ public final class SurveyResponseReadRequest extends SurveyResponseRequest {
 		}
 		catch(IOException e) {
 			LOGGER.warn("Unable to close the writer.", e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.request.omh.OmhReadResponder#respond(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void respond(
+			final JsonGenerator generator,
+			final ColumnNode<String> columns)
+			throws JsonGenerationException, IOException, DomainException {
+		
+		for(SurveyResponse surveyResponse : getSurveyResponses()) {
+			// Start the object.
+			generator.writeStartObject();
+			
+			// Write the data point's metadata.
+			generator.writeObjectFieldStart("metadata");
+			
+			// Write the unique identifier for this point.
+			generator.writeStringField(
+				"id",
+				surveyResponse.getSurveyResponseId().toString());
+			
+			// Write the timestamp for this point.
+			generator.writeStringField(
+				"timestamp",
+				ISODateTimeFormat
+					.dateTime()
+					.print(
+						new DateTime(
+							surveyResponse.getTime(),
+							surveyResponse.getTimezone())));
+			
+			// Write the location for this point.
+			Location location = surveyResponse.getLocation();
+			if(location != null) {
+				generator.writeObjectFieldStart("location");
+				location.streamJson(
+					generator, 
+					false, 
+					LocationColumnKey.ALL_COLUMNS);
+				generator.writeEndObject();
+			}
+			
+			// End the metadata.
+			generator.writeEndObject();
+			
+			// Write the data point's data.
+			generator.writeObjectFieldStart("data");
+			
+			// Write the survey's ID.
+			if((columns == null) || 
+				columns.hasChild(SurveyResponse.JSON_KEY_SURVEY_ID)) {
+				
+				generator.writeStringField(
+					SurveyResponse.JSON_KEY_SURVEY_ID,
+					surveyResponse.getSurvey().getId());
+			}
+			
+			boolean allColumns = columns.isLeaf();
+			
+			// Write the launch context.
+			if(	allColumns || 
+				columns
+					.hasChild(SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT)) {
+				
+				generator.writeObjectFieldStart(
+					SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+				
+				ColumnNode<String> launchContextColumns =
+					columns
+						.getChild(
+							SurveyResponse.JSON_KEY_SURVEY_LAUNCH_CONTEXT);
+				boolean allLaunchContextColumns =
+					(launchContextColumns == null) ? 
+						true : 
+						launchContextColumns.isLeaf();
+				
+				// Write the launch context's time.
+				if(	allColumns ||
+					allLaunchContextColumns ||
+					launchContextColumns
+						.hasChild(
+							SurveyResponse
+								.LaunchContext.JSON_KEY_LAUNCH_TIME)) {
+					
+					generator.writeNumberField(
+						SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIME,
+						surveyResponse.getLaunchContext().getLaunchTime());
+				}
+				
+				// Write the launch context's time zone.
+				if(	allColumns ||
+					allLaunchContextColumns ||
+					launchContextColumns
+						.hasChild(
+							SurveyResponse
+								.LaunchContext.JSON_KEY_LAUNCH_TIMEZONE)) {
+					
+					generator.writeStringField(
+						SurveyResponse.LaunchContext.JSON_KEY_LAUNCH_TIMEZONE,
+						surveyResponse
+							.getLaunchContext().getTimeZone().getID());
+				}
+				
+				// Write the launch context's active triggers.
+				if(	allColumns ||
+					allLaunchContextColumns ||
+					launchContextColumns
+						.hasChild(
+							SurveyResponse
+								.LaunchContext.JSON_KEY_ACTIVE_TRIGGERS)) {
+					
+					generator.writeArrayFieldStart(
+						SurveyResponse.LaunchContext.JSON_KEY_ACTIVE_TRIGGERS);
+					
+					
+					// Add all of the active triggers.
+					JSONArray activeTriggers = 
+						surveyResponse.getLaunchContext().getActiveTriggers();
+					int numActiveTriggers = activeTriggers.length();
+					for(int i = 0; i < numActiveTriggers; i++) {
+						try {
+							generator.writeString(activeTriggers.getString(i));
+						}
+						catch(JSONException e) {
+							LOGGER.warn(
+								"Could not serialize one of the trigger names.",
+								e);
+						}
+					}
+					
+					// End the launch context's active triggers array.
+					generator.writeEndArray();
+				}
+				
+				// End the launch context.
+				generator.writeEndObject();
+			}
+			
+			// Write the responses array.
+			if(	allColumns || 
+				columns.hasChild(SurveyResponse.JSON_KEY_RESPONSES)) {
+				
+				// Start the array of responses.
+				generator
+					.writeArrayFieldStart(SurveyResponse.JSON_KEY_RESPONSES);
+				
+				// Get the list of response columns.
+				ColumnNode<String> responseColumns =
+					columns.getChild(SurveyResponse.JSON_KEY_RESPONSES);
+				
+				// Process each response in its prompt's order in the survey.
+				Map<Integer, Response> responses =
+					surveyResponse.getResponses();
+				List<Integer> indices =
+					new ArrayList<Integer>(responses.keySet());
+				Collections.sort(indices);
+				
+				// Add each prompt if it is in the column list.
+				for(Integer index : indices) {
+					// Get the response.
+					Response response = responses.get(index);
+					
+					if(allColumns || responseColumns.isLeaf())
+					// Start the response.
+					generator.writeStartObject();
+					
+					// Write the response's ID.
+					generator.writeStringField(
+						PromptResponse.JSON_KEY_PROMPT_ID,
+						response.getId());
+					
+					// Remote activity prompt responses are JSONArray objects.
+					// Jackson cannot readily parse them, so we will convert 
+					// them into their string representation, have Jackson 
+					// parse that string and then output it.
+					Object responseValue = response.getResponse();
+					if(	(responseValue instanceof JSONArray) ||
+						(responseValue instanceof JSONObject)) {
+						
+						responseValue =
+							JSON_FACTORY
+								.createJsonParser(responseValue.toString())
+								.readValueAsTree();
+					}
+					
+					// Write the response.
+					generator.writeObjectField(
+						PromptResponse.JSON_KEY_RESPONSE,
+						responseValue);
+					
+					// End the response.
+					generator.writeEndObject();
+				}
+				
+				// End the array of responses.
+				generator.writeEndArray();
+			}
+			
+			// End the data field.
+			generator.writeEndObject();
+			
+			// End the object.
+			generator.writeEndObject();
 		}
 	}
 	

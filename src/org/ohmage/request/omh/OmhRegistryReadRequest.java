@@ -394,6 +394,15 @@ public class OmhRegistryReadRequest extends Request {
 				}
 			}
 			
+			// If we are reading about a specific campaign, then it must also
+			// be about a specific survey. Get that survey ID.
+			String surveyId = null;
+			// If it's a campaign payload ID.
+			if(payloadId instanceof CampaignPayloadId) {
+				// Get that survey ID.
+				surveyId = ((CampaignPayloadId) payloadId).getSurveyId();
+			}
+			
 			// For each campaign,
 			for(Campaign campaign : campaigns) {
 				// Start building the payload ID.
@@ -403,9 +412,18 @@ public class OmhRegistryReadRequest extends Request {
 				
 				// For each survey,
 				Map<String, Survey> surveys = campaign.getSurveys();
-				for(String surveyId : surveys.keySet()) {
+				for(String currSurveyId : surveys.keySet()) {
+					// If we are reading a specific survey ID, then skip this
+					// survey if it is not the requested one.
+					if(
+						(surveyId != null) &&
+						(! surveyId.equals(currSurveyId))) {
+						
+						continue;
+					}
+					
 					// Write the survey.
-					Survey survey = surveys.get(surveyId);
+					Survey survey = surveys.get(currSurveyId);
 					
 					// Build this survey's payload ID.
 					StringBuilder surveyPayloadIdBuilder = 
@@ -461,74 +479,74 @@ public class OmhRegistryReadRequest extends Request {
 						// End the campaign's object.
 						generator.writeEndObject();
 					}
-					
-					// For each prompt in the survey,
-					for(SurveyItem surveyItem :
-							survey.getSurveyItems().values()) {
-						
-						// Messages don't have response values.
-						if(surveyItem instanceof Message) {
-							continue;
-						}
-						
-						// For now, we are ignoring repeatable sets.
-						if(surveyItem instanceof RepeatableSet) {
-							continue;
-						}
-						
-						// If we are asking for a specific prompt and this is
-						// not it, skip it.
-						if(	(promptId != null) && 
-							(! promptId.equals(surveyItem.getId()))) {
+					else {
+						// For each prompt in the survey,
+						for(SurveyItem surveyItem :
+								survey.getSurveyItems().values()) {
 							
-							continue;
+							// Messages don't have response values.
+							if(surveyItem instanceof Message) {
+								continue;
+							}
+							
+							// For now, we are ignoring repeatable sets.
+							if(surveyItem instanceof RepeatableSet) {
+								continue;
+							}
+							
+							// If we are asking for a specific prompt and this
+							// is not it, skip it.
+							if(! promptId.equals(surveyItem.getId())) {
+								
+								continue;
+							}
+							
+							// Write the survey item.
+							generator.writeStartObject();
+							
+							// Output the chunk size which will be the same for
+							// all observers.
+							generator.writeNumberField(
+								"chunk_size", 
+								StreamReadRequest.MAX_NUMBER_TO_RETURN);
+							
+							// There are no external IDs yet. This may change
+							// to link to observer/read, but there are some
+							// discrepancies in the parameters.
+							
+							// Set the local timezone as authoritative.
+							generator.writeBooleanField(
+								"local_tz_authoritative",
+								true);
+							
+							// Set the summarizable as false for the time
+							// being.
+							generator.writeBooleanField("summarizable", false);
+							
+							// Set the payload ID.
+							StringBuilder promptPayloadIdBuilder = 
+								new StringBuilder(surveyPayloadIdBuilder);
+							promptPayloadIdBuilder.append(":prompt_id:");
+							promptPayloadIdBuilder.append(surveyItem.getId());
+							generator.writeStringField(
+								"payload_id", 
+								promptPayloadIdBuilder.toString());
+							
+							// Set the payload version. For now, all surveys 
+							// have the same version, 1.
+							generator.writeStringField(
+								"payload_version", 
+								"1");
+	
+							// If it's a repeatable set, then it will be the 
+							// same as a prompt except that the data will be
+							// an array of the same definition as a prompt.
+							generator.writeFieldName("payload_definition"); 
+							survey.toConcordia(generator, surveyItem.getId());
+	
+							// End the campaign's object.
+							generator.writeEndObject();
 						}
-						
-						// Write the survey item.
-						generator.writeStartObject();
-						
-						// Output the chunk size which will be the same for
-						// all observers.
-						generator.writeNumberField(
-							"chunk_size", 
-							StreamReadRequest.MAX_NUMBER_TO_RETURN);
-						
-						// There are no external IDs yet. This may change
-						// to link to observer/read, but there are some
-						// discrepancies in the parameters.
-						
-						// Set the local timezone as authoritative.
-						generator.writeBooleanField(
-							"local_tz_authoritative",
-							true);
-						
-						// Set the summarizable as false for the time
-						// being.
-						generator.writeBooleanField("summarizable", false);
-						
-						// Set the payload ID.
-						StringBuilder promptPayloadIdBuilder = 
-							new StringBuilder(surveyPayloadIdBuilder);
-						promptPayloadIdBuilder.append(":prompt_id:");
-						promptPayloadIdBuilder.append(surveyItem.getId());
-						generator.writeStringField(
-							"payload_id", 
-							promptPayloadIdBuilder.toString());
-						
-						// Set the payload version. For now, all surveys have 
-						// the same version, 1.
-						generator.writeStringField(
-							"payload_version", 
-							"1");
-
-						// If it's a repeatable set, then it will be the 
-						// same as a prompt except that the data will be
-						// an array of the same definition as a prompt.
-						generator.writeFieldName("payload_definition"); 
-						survey.toConcordia(generator, surveyItem.getId());
-
-						// End the campaign's object.
-						generator.writeEndObject();
 					}
 				}
 			}
