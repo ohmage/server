@@ -602,7 +602,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		// Create the default SQL.
 		StringBuilder sqlBuilder = 
 			new StringBuilder(
-				"SELECT " +
+				"SELECT DISTINCT " +
 					"o.observer_id, " +
 					"os.stream_id, " +
 					"os.version, " +
