@@ -13,20 +13,18 @@
     of the ref element 
   --> 
   <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-    <property name="location" value="file://${configDir:/etc/ohmage}/configuration.properties"/>
     <property name="propertiesArray">
       <list>
         <ref bean="dbProps" />
       </list>
     </property>
-    <property name="ignoreResourceNotFound" value="true"/>
   </bean>
   
   <util:map id="dbProps">
     <entry key="db.driver" value="com.mysql.jdbc.Driver"/>
-    <entry key="db.jdbcurl" value="jdbc:mysql://${mysql.host:localhost}:${mysql.port:3306}/${mysql.db:ohmage}"/>
-    <entry key="db.username" value="${mysql.user:ohmage}"/>
-    <entry key="db.password" value="${mysql.pw:&amp;!sickly}"/>
+    <entry key="db.jdbcurl" value="jdbc:mysql://localhost:3306/ohmage"/>
+    <entry key="db.username" value="ohmage"/>
+    <entry key="db.password" value="&amp;!sickly"/>
   </util:map>
 
 </beans>
