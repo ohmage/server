@@ -77,20 +77,30 @@ public class CampaignDeletionRequest extends UserRequest {
 		
 		String tCampaignId = null;
 		
-		try {
-			tCampaignId = CampaignValidators.validateCampaignId(httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
-			if(tCampaignId == null) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
-				throw new ValidationException("A campaign identifier is required: " + InputKeys.CAMPAIGN_URN);
+		if(! isFailed()) {
+			try {
+				tCampaignId =
+					CampaignValidators
+						.validateCampaignId(
+							httpRequest.getParameter(InputKeys.CAMPAIGN_URN));
+				if(tCampaignId == null) {
+					throw
+						new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID,
+							"A campaign identifier is required: " +
+								InputKeys.CAMPAIGN_URN);
+				}
+				else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
+					throw
+						new ValidationException(
+							ErrorCode.CAMPAIGN_INVALID_ID,
+							"Multiple campaign IDs were found.");
+				}
 			}
-			else if(httpRequest.getParameterValues(InputKeys.CAMPAIGN_URN).length > 1) {
-				setFailed(ErrorCode.CAMPAIGN_INVALID_ID, "Multiple campaign IDs were found.");
-				throw new ValidationException("Multiple campaign IDs were found.");
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
 			}
-		}
-		catch(ValidationException e) {
-			e.failRequest(this);
-			e.logException(LOGGER);
 		}
 		
 		campaignId = tCampaignId;
