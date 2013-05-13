@@ -312,15 +312,6 @@ public class DataStream {
 			this.id = id;
 			
 			// Validate the timestamp and then save it.
-			if((timestamp != null) && timestamp.isAfterNow()) {
-				long now = (new DateTime()).getMillis();
-				throw
-					new DomainException(
-						"The timestamp cannot be in the future: " +
-							"Now: " + now + " " +
-							"Given: " + timestamp.getMillis() + " " +
-							"Difference: " + (timestamp.getMillis() - now));
-			}
 			this.timestamp = timestamp;
 			
 			// Validate the location and then save it.
