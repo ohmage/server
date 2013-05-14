@@ -16,11 +16,12 @@ import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
-import org.ohmage.util.StringUtils;
+import org.ohmage.validator.ObserverValidators;
 
 /**
  * The observer's payload ID.
@@ -49,23 +50,64 @@ public class ObserverPayloadId implements PayloadId {
 	 * 						   whitespace.
 	 */
 	public ObserverPayloadId(
-			final String observerId, 
-			final String streamId)
-			throws DomainException {
+		final String[] observerPayloadParts)
+		throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(observerId)) {
-			throw new DomainException(
-				ErrorCode.OBSERVER_INVALID_ID,
-				"The observer ID is null or only whitespace.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(streamId)) {
-			throw new DomainException(
-				ErrorCode.OBSERVER_INVALID_STREAM_ID,
-				"The stream ID is null or only whitespace.");
+		if(observerPayloadParts.length != 5) {
+			throw
+				new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"An observer payload ID must have at least 5 parts, " +
+						"where the 4th part is the observer ID and the 5th " +
+						"part is a stream ID.");
 		}
 		
-		this.observerId = observerId;
-		this.streamId = streamId;
+		try {
+			observerId =
+				ObserverValidators.validateObserverId(observerPayloadParts[3]);
+		}
+		catch(ValidationException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The fourth section must be a valid observer ID: " +
+					observerPayloadParts[3]);
+		}
+		if(observerId == null) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The fourth section is empty: " +
+					observerPayloadParts[3]);
+		}
+		
+		// Ensure that a stream ID exists.
+		if(observerPayloadParts.length < 5) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"Missing the stream ID for the observer payload ID." +
+					"Observer payload IDs must be of the form: " +
+					"omh:ohmage:observer:<observer_id>:<stream_id>");
+		}
+		
+		try {
+			streamId =
+				ObserverValidators.validateStreamId(observerPayloadParts[4]);
+		}
+		catch(ValidationException e) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The fifth section must be a valid stream ID: " +
+					observerPayloadParts[4]);
+		}
+		if(streamId == null) {
+			throw new ValidationException(
+				ErrorCode.OMH_INVALID_PAYLOAD_ID,
+				"The payload ID is not valid. " +
+					"The fifth section is empty: " +
+					observerPayloadParts[4]);
+		}
 	}
 
 	/**

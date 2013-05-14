@@ -208,7 +208,9 @@ public class OmhRegistryReadRequest extends Request {
 					}
 				}
 				
-				LOGGER.info("Gathering the requested campaign registry entries.");
+				LOGGER
+					.info(
+						"Gathering the requested campaign registry entries.");
 				campaigns.addAll(
 					CampaignServices
 						.instance()
@@ -227,6 +229,7 @@ public class OmhRegistryReadRequest extends Request {
 				LOGGER.info("Found " + campaigns.size() + " campaigns.");
 			}
 			
+			// TODO: 
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -52,7 +52,7 @@ public abstract interface PayloadId {
 	 * 
 	 * @throws DomainException There was an error building the request.
 	 */
-	UserRequest generateReadRequest(
+	public UserRequest generateReadRequest(
 		HttpServletRequest httpRequest,
 		Map<String, String[]> parameters,
 		Boolean hashPassword,
@@ -92,7 +92,7 @@ public abstract interface PayloadId {
 	 * 
 	 * @throws DomainException There was an error building the request.
 	 */
-	UserRequest generateWriteRequest(
+	public UserRequest generateWriteRequest(
 		HttpServletRequest httpRequest,
 		Map<String, String[]> parameters,
 		Boolean hashPassword,

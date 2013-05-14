@@ -79,6 +79,12 @@
       <ref bean="observerQueries" />
     </constructor-arg>
   </bean>
+  
+  <bean class="org.ohmage.service.OmhServices">
+    <constructor-arg>
+      <ref bean="omhQueries" />
+    </constructor-arg>
+  </bean>
 
   <bean class="org.ohmage.service.PromptResponseServices">
     <constructor-arg>

@@ -1,10 +1,8 @@
 package org.ohmage.validator;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.CampaignPayloadId;
-import org.ohmage.domain.ObserverPayloadId;
+import org.ohmage.cache.OmhThirdPartyRegistration;
 import org.ohmage.domain.PayloadId;
-import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.util.StringUtils;
 
@@ -33,24 +31,24 @@ public class OmhValidators {
 			final String value) 
 			throws ValidationException {
 		
+		// Make sure it is not null or empty.
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
 			return null;
 		}
 		
-		PayloadId result = null;
-		
+		// Trim the white space.
 		String trimmedValue = value.trim();
+		
+		// Split it based on the ":"s.
 		String[] split = trimmedValue.split(":");
-		if(split.length < 4) {
+		
+		// Make sure it has at least two parts.
+		if(split.length < 2) {
 			throw new ValidationException(
 				ErrorCode.OMH_INVALID_PAYLOAD_ID,
 				"The payload ID is not valid. " +
-					"It must contain at least 4 sections, " +
-						"\"omh\", " +
-						"\"ohmage\", " +
-						"a type (\"campaign\" or \"observer\"), " +
-						"and an ID for that type " +
-						"each divided by a ':': " +
+					"It must contain at least 2 sections, " +
+						"\"omh\" and a domain: " +
 					trimmedValue);
 		}
 		
@@ -63,160 +61,25 @@ public class OmhValidators {
 					trimmedValue);
 		}
 		
-		// The second part must be "ohmage".
-		String domain = split[1];
-		if(! "ohmage".equals(domain)) {
-			throw new ValidationException(
-				ErrorCode.OMH_INVALID_PAYLOAD_ID,
-				"The payload ID is not valid. " +
-					"The domain, '" +
-					domain +
-					"' must be 'ohmage': " +
-					trimmedValue);
+		// Lookup the second part in the registry and return the compiled
+		// payload ID.
+		try {
+			return OmhThirdPartyRegistration.getPayloadId(split);
 		}
-
-		String type = split[2];
-		if("campaign".equals(type)) {
-			// There have to be at least 7 parts for a 'campgign'-based payload
-			// ID.
-			if(split.length < 7) {
-				throw
-					new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The payload ID is too short for a 'campaign'-based payload ID.");
-			}
-			
-			int surveyIdIndex;
-			String surveyId;
-			String promptId = null;
-			
-			// Get the second to last part.
-			String lastIdType = split[split.length - 2];
-			
-			// If it is "survey_ID", then the last part must be the survey ID.
-			if("survey_id".equals(lastIdType)) {
-				surveyId = split[split.length - 1];
-				surveyIdIndex = split.length - 2;
-			}
-			// If it is "prompt_id", then the last part must be the prompt ID
-			// and the part just before it must be the survey ID.
-			else if("prompt_id".equals(lastIdType)) {
-				surveyId = split[split.length - 3];
-				promptId = split[split.length - 1];
-				surveyIdIndex = split.length - 4;
-				
-				if(! "survey_id".equals(split[surveyIdIndex])) {
-					throw 
-						new ValidationException(
-							ErrorCode.OMH_INVALID_PAYLOAD_ID,
-							"The 'campaign-based' payload ID is incorrectly formatted. " +
-								"It must be of the form: " +
-								"omh:ohmage:campaign:<campaign_id>:survey_id:<survey_id>[:prompt_id:<prompt_id>]");
-				}
-			}
-			else {
-				throw 
-					new ValidationException(
-						ErrorCode.OMH_INVALID_PAYLOAD_ID,
-						"The 'campaign-based' payload ID is incorrectly formatted. " +
-							"It must be of the form: " +
-							"omh:ohmage:campaign:<campaign_id>:survey_id:<survey_id>[:prompt_id:<prompt_id>]");
-			}
-			
-			// Build the campaign ID.
-			StringBuilder campaignIdBuilder = new StringBuilder();
-			boolean firstPass = true;
-			for(int i = 3; i < surveyIdIndex; i++) {
-				if(firstPass) {
-					firstPass = false;
-				}
-				else {
-					campaignIdBuilder.append(':');
-				}
-				campaignIdBuilder.append(split[i]);
-			}
-			
-			try {
-				result = 
-					new CampaignPayloadId(
-						campaignIdBuilder.toString(), 
-						surveyId, 
-						promptId);
-			}
-			catch(DomainException e) {
-				throw new ValidationException(
-					ErrorCode.SYSTEM_GENERAL_ERROR,
-					"Could not construct the PayloadId object.",
+		catch(IllegalArgumentException e) {
+			throw
+				new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The payload ID was invalid: " + trimmedValue,
 					e);
-			}
 		}
-		else if("observer".equals(type)) {
-			String observerId;
-			try {
-				observerId = ObserverValidators.validateObserverId(split[3]);
-			}
-			catch(ValidationException e) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid. " +
-						"The third section must be a valid observer ID: " +
-						trimmedValue);
-			}
-			if(observerId == null) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid. " +
-						"The third section is empty: " +
-						trimmedValue);
-			}
-			
-			// Ensure that a stream ID exists.
-			if(split.length < 5) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"Missing the stream ID for the observer payload ID." +
-						"Observer payload IDs must be of the form: " +
-						"omh:ohmage:observer:<observer_id>:<stream_id>");
-			}
-			
-			String streamId;
-			try {
-				streamId = ObserverValidators.validateStreamId(split[4]);
-			}
-			catch(ValidationException e) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid. " +
-						"The forth section must be a valid stream ID: " +
-						trimmedValue);
-			}
-			if(streamId == null) {
-				throw new ValidationException(
-					ErrorCode.OMH_INVALID_PAYLOAD_ID,
-					"The payload ID is not valid. " +
-						"The forth section is empty: " +
-						trimmedValue);
-			}
-			
-			try {
-				result = new ObserverPayloadId(observerId, streamId);
-			}
-			catch(DomainException e) {
-				throw new ValidationException(
+		catch(IllegalStateException e) {
+			throw
+				new ValidationException(
 					ErrorCode.SYSTEM_GENERAL_ERROR,
-					"Could not construct the PayloadId object.",
+					"There was an error creating the PayloadId object.",
 					e);
-			}
 		}
-		else if(result == null) {
-			throw new ValidationException(
-				ErrorCode.OMH_INVALID_PAYLOAD_ID,
-				"The payload ID is not valid. " +
-					"The type must either be 'campaign' or 'observer': " +
-					trimmedValue);
-		}
-
-		return result;
 	}
 	
 	/**

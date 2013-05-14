@@ -23,6 +23,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.PayloadId;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.Request;
@@ -30,6 +31,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamReadRequest.ColumnNode;
+import org.ohmage.service.OmhServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ObserverValidators;
 import org.ohmage.validator.OmhValidators;
@@ -291,7 +293,38 @@ public class OmhReadRequest extends Request {
 		LOGGER.info("Servicing an OMH read request.");
 		
 		if((userRequest != null) && (! userRequest.isFailed())) {
-			userRequest.service();
+			try {
+				if(userRequest instanceof OmhReadServicer) {
+					LOGGER
+						.info(
+							"Verifying that the requesting user can read " +
+								"data about another user if a different " +
+								"user's username was given.");
+					String username =
+						OmhServices
+							.instance()
+							.verifyUserCanReadAboutOtherUser(
+								userRequest.getUser().getUsername(),
+								owner);
+					
+					LOGGER.info("Servicing the request.");
+					((OmhReadServicer) userRequest)
+						.service(
+							username,
+							startDate,
+							endDate,
+							numToSkip,
+							numToReturn);
+				}
+				else {
+					LOGGER.info("Servicing the request.");
+					userRequest.service();
+				}
+			}
+			catch(ServiceException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
+			}
 		}
 	}
 

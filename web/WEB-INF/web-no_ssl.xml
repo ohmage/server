@@ -2,8 +2,26 @@
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://java.sun.com/xml/ns/javaee"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
-         
-  <!--  Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
+
+  <!-- Listeners -->
+  <!-- Register the default payload IDs. -->
+  <listener>
+      <listener-class>
+          org.ohmage.jee.listener.OmhRegistrationListener
+      </listener-class>
+  </listener>
+  
+  <!--
+    Register the RunKeeper payload IDs. This is specific to one deployment and,
+    like the RunKeeperOmhLayer JAR, can be generally ignored.
+   -->
+  <listener>
+      <listener-class>
+          org.ohmage.jee.listener.RunKeeperRegistrationListener
+      </listener-class>
+  </listener>
+  
+  <!-- Filters: executed in the order in which they are defined in this file, but specific to the filter-mappings -->
 
   <!--
     Handle Cross-Origin-Resource-Sharing

@@ -725,3 +725,16 @@ CREATE TABLE `campaign_mask_survey_id` (
   UNIQUE KEY `campaing_mask_unique_mask_survey` (`campaign_mask_id`,`survey_id`),
   CONSTRAINT `campaign_mask_fk_survey_id` FOREIGN KEY (`campaign_mask_id`) REFERENCES `campaign_mask` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- A table to hold OmH authentication/authorization information.
+-- --------------------------------------------------------------------
+CREATE TABLE `omh_authentication` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `domain` varchar(100) NOT NULL,
+  `auth_key` varchar(100) NOT NULL,
+  `auth_value` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `omh_authentication_unique_domain_key` (`domain`,`auth_key`),
+  KEY `omh_authentication_index_domain` (`domain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8

@@ -108,6 +108,12 @@
     </constructor-arg>
   </bean>
 
+  <bean name="omhQueries" class="org.ohmage.query.impl.OmhQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+
   <bean name="promptResponseQueries" class="org.ohmage.query.impl.PromptResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />

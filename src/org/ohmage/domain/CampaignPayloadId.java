@@ -19,12 +19,12 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ValidationException;
 import org.ohmage.request.UserRequest;
 import org.ohmage.request.UserRequest.TokenLocation;
 import org.ohmage.request.survey.SurveyResponseReadRequest;
 import org.ohmage.request.survey.SurveyResponseRequest;
 import org.ohmage.request.survey.SurveyUploadRequest;
-import org.ohmage.util.StringUtils;
 
 /**
  * This class represents a campaign-specific payload ID.
@@ -59,30 +59,68 @@ public class CampaignPayloadId implements PayloadId {
 	 * 						   only.
 	 */
 	public CampaignPayloadId(
-			final String campaignId,
-			final String surveyId,
-			final String promptId)
-			throws DomainException {
+		final String[] campaignPayloadParts)
+		throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(campaignId)) {
-			throw 
-				new DomainException(
-					"The campaign ID is null or only whitespace.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
-			throw 
-				new DomainException(
-					"The survey ID is null or only whitespace.");
-		}
-		else if((promptId != null) && (promptId.trim().length() == 0)) {
+		// There have to be at least 7 parts for a 'campgign'-based payload
+		// ID.
+		if(campaignPayloadParts.length < 7) {
 			throw
-				new DomainException(
-					"The prompt ID is only whitespace.");
+				new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The payload ID is too short for a 'campaign'-based payload ID.");
 		}
 		
-		this.campaignId = campaignId;
-		this.surveyId = surveyId;
-		this.promptId = promptId;
+		int surveyIdIndex;
+		
+		// Get the second to last part.
+		String lastIdType =
+			campaignPayloadParts[campaignPayloadParts.length - 2];
+		
+		// If it is "survey_ID", then the last part must be the survey ID.
+		if("survey_id".equals(lastIdType)) {
+			surveyId = campaignPayloadParts[campaignPayloadParts.length - 1];
+			surveyIdIndex = campaignPayloadParts.length - 2;
+			promptId = null;
+		}
+		// If it is "prompt_id", then the last part must be the prompt ID
+		// and the part just before it must be the survey ID.
+		else if("prompt_id".equals(lastIdType)) {
+			surveyId = campaignPayloadParts[campaignPayloadParts.length - 3];
+			promptId = campaignPayloadParts[campaignPayloadParts.length - 1];
+			surveyIdIndex = campaignPayloadParts.length - 4;
+			
+			if(! "survey_id".equals(campaignPayloadParts[surveyIdIndex])) {
+				throw 
+					new ValidationException(
+						ErrorCode.OMH_INVALID_PAYLOAD_ID,
+						"The 'campaign-based' payload ID is incorrectly formatted. " +
+							"It must be of the form: " +
+							"omh:ohmage:campaign:<campaign_id>:survey_id:<survey_id>[:prompt_id:<prompt_id>]");
+			}
+		}
+		else {
+			throw 
+				new ValidationException(
+					ErrorCode.OMH_INVALID_PAYLOAD_ID,
+					"The 'campaign-based' payload ID is incorrectly formatted. " +
+						"It must be of the form: " +
+						"omh:ohmage:campaign:<campaign_id>:survey_id:<survey_id>[:prompt_id:<prompt_id>]");
+		}
+		
+		// Build the campaign ID.
+		StringBuilder campaignIdBuilder = new StringBuilder();
+		boolean firstPass = true;
+		for(int i = 3; i < surveyIdIndex; i++) {
+			if(firstPass) {
+				firstPass = false;
+			}
+			else {
+				campaignIdBuilder.append(':');
+			}
+			campaignIdBuilder.append(campaignPayloadParts[i]);
+		}
+		campaignId = campaignIdBuilder.toString();
 	}
 
 	/**

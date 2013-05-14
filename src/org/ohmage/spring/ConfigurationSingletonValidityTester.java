@@ -37,7 +37,7 @@ import org.springframework.core.PriorityOrdered;
  * constructors. The idea is that this class runs on application startup to
  * check any injected singletons and then fails if it can't find them. This is 
  * far preferable to failing at runtime. The reason why there are singleton 
- * objects that are dynamically injected via Spring is in order to facilatate
+ * objects that are dynamically injected via Spring is in order to facilitate
  * mock objects for testing. Singletons enforce a small application footprint
  * and Spring allows us the flexibility (and the associated problems that come 
  * with it) to swap singletons for mock instances.  
