@@ -228,8 +228,6 @@ public class OmhRegistryReadRequest extends Request {
 						));
 				LOGGER.info("Found " + campaigns.size() + " campaigns.");
 			}
-			
-			// TODO: 
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

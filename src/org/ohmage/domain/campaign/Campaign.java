@@ -53,6 +53,7 @@ import org.ohmage.config.grammar.custom.ConditionValidator;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt.LabelValuePair;
 import org.ohmage.domain.campaign.Prompt.Type;
+import org.ohmage.domain.campaign.prompt.AudioPrompt;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
 import org.ohmage.domain.campaign.prompt.HoursBeforeNowPrompt;
@@ -2924,6 +2925,20 @@ public class Campaign {
 		}
 
 		switch(type) {
+		case AUDIO:
+			return processAudio(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+			
 		case HOURS_BEFORE_NOW:
 			return processHoursBeforeNow(
 				id,
@@ -3268,6 +3283,100 @@ public class Campaign {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Processes an audio prompt and returns an AudioPrompt object.
+	 * 
+	 * @param id
+	 *        The prompt's unique identifier.
+	 * 
+	 * @param condition
+	 *        The condition value.
+	 * 
+	 * @param unit
+	 *        The prompt's visualization unit.
+	 * 
+	 * @param text
+	 *        The prompt's text value.
+	 * 
+	 * @param explanationText
+	 *        The prompt's explanation text value.
+	 * 
+	 * @param skippable
+	 *        Whether or not this prompt is skippable.
+	 * 
+	 * @param skipLabel
+	 *        The label to show to skip this prompt.
+	 * 
+	 * @param displayLabel
+	 *        The label for this display type.
+	 * 
+	 * @param defaultValue
+	 *        The default value given in the XML.
+	 * 
+	 * @param properties
+	 *        The properties defined in the XML for this prompt.
+	 * 
+	 * @param index
+	 *        The index of this prompt in its collection of survey items.
+	 * 
+	 * @return An AudioPrompt object.
+	 * 
+	 * @throws DomainException
+	 *         Thrown if the required properties are missing or if any of the
+	 *         parameters are invalid.
+	 */
+	private static AudioPrompt processAudio(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final String displayLabel,
+			final String defaultValue,
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
+		
+		Long maxDuration = null;
+		try {
+			LabelValuePair maxDurationVlp =
+				properties.get(AudioPrompt.XML_KEY_MAX_DURATION);
+			
+			if(maxDurationVlp != null) {
+				maxDuration = 
+					Long.decode(maxDurationVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						AudioPrompt.XML_KEY_MAX_DURATION +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+		
+		if(defaultValue != null) {
+			throw new DomainException(
+					"Default values are not allowed for audio prompts: " +
+						id);
+		}
+
+		return new AudioPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayLabel,
+			index,
+			maxDuration);
 	}
 	
 	/**
