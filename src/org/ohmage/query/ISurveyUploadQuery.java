@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.ohmage.domain.Audio;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -27,20 +28,29 @@ import org.ohmage.exception.DataAccessException;
 public interface ISurveyUploadQuery {
 
 	/**
-	 * Inserts surveys into survey_response, prompt_response,
-	 * and url_based_resource (if the payload contains images).
-	 * Any images are also persisted to the file system. The entire persistence
-	 * process is wrapped in one giant transaction.
+	 * Inserts surveys into survey_response, prompt_response, and
+	 * url_based_resource (if the payload contains images). Any images are also
+	 * persisted to the file system. The entire persistence process is wrapped
+	 * in one giant transaction.
 	 * 
-	 * @param user  The owner of the survey upload.
-	 * @param client  The software client that performed the upload.
-	 * @param campaignUrn  The campaign for the survey upload.
-	 * @param surveyUploadList  The surveys to persist.
-	 * @param bufferedImageMap  The images to persist.
-	 * @param videoContentsMap The videos to persist.
+	 * @param user
+	 *        The owner of the survey upload.
+	 * @param client
+	 *        The software client that performed the upload.
+	 * @param campaignUrn
+	 *        The campaign for the survey upload.
+	 * @param surveyUploadList
+	 *        The surveys to persist.
+	 * @param bufferedImageMap
+	 *        The images to persist.
+	 * @param videoContentsMap
+	 *        The videos to persist.
+	 * @param audioContentsMap
+	 *        The audio files to persist.
 	 * @return Returns a List of Integers representing the ids of duplicate
-	 * surveys.
-	 * @throws DataAccessException  If any IO error occurs.
+	 *         surveys.
+	 * @throws DataAccessException
+	 *         If any IO error occurs.
 	 */
 	List<Integer> insertSurveys(
 			final String username, 
@@ -48,6 +58,7 @@ public interface ISurveyUploadQuery {
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
 			final Map<UUID, Image> bufferedImageMap,
-			final Map<String, Video> videoContentsMap)
+			final Map<String, Video> videoContentsMap,
+			final Map<String, Audio> audioContentsMap)
 			throws DataAccessException;
 }

@@ -35,10 +35,12 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Audio;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -119,6 +121,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private List<JSONObject> jsonData;
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<String, Video> videoContentsMap;
+	private final Map<String, Audio> audioContentsMap;
 	
 	private Collection<UUID> surveyResponseIds;
 	
@@ -166,6 +169,7 @@ public class SurveyUploadRequest extends UserRequest {
 		jsonData = tJsonData;
 		imageContentsMap = Collections.emptyMap();
 		videoContentsMap = Collections.emptyMap();
+		audioContentsMap = Collections.emptyMap();
 	}
 	
 	/**
@@ -189,6 +193,7 @@ public class SurveyUploadRequest extends UserRequest {
 		List<JSONObject> tJsonData = null;
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<String, Video> tVideoContentsMap = null;
+		Map<String, Audio> tAudioContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -265,6 +270,7 @@ public class SurveyUploadRequest extends UserRequest {
 				// Retrieve and validate images and videos.
 				List<UUID> imageIds = new ArrayList<UUID>();
 				tVideoContentsMap = new HashMap<String, Video>();
+				tAudioContentsMap = new HashMap<String, Audio>();
 				Collection<Part> parts = null;
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
@@ -291,6 +297,23 @@ public class SurveyUploadRequest extends UserRequest {
 									UUID.fromString(name),
 									contentType.split("/")[1],
 									getMultipartValue(httpRequest, name)));
+						}
+						else if(contentType.startsWith("audio/")) {
+							try {
+								tAudioContentsMap.put(
+									name,
+									new Audio(
+										UUID.fromString(name),
+										contentType.split("/")[1],
+										getMultipartValue(httpRequest, name)));
+							}
+							catch(DomainException e) {
+								throw
+									new ValidationException(
+										ErrorCode.SYSTEM_GENERAL_ERROR,
+										"Could not create the Audio object.",
+										e);
+							}
 						}
 					}
 				}
@@ -341,6 +364,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.jsonData = tJsonData;
 		this.imageContentsMap = tImageContentsMap;
 		this.videoContentsMap = tVideoContentsMap;
+		this.audioContentsMap = tAudioContentsMap;
 		
 		surveyResponseIds = null;
 	}
@@ -427,7 +451,8 @@ public class SurveyUploadRequest extends UserRequest {
 					campaignUrn, 
 					surveyResponses, 
 					imageContentsMap,
-					videoContentsMap);
+					videoContentsMap,
+					audioContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}

@@ -40,8 +40,10 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.ohmage.cache.AudioDirectoryCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.VideoDirectoryCache;
+import org.ohmage.domain.Audio;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
@@ -52,6 +54,7 @@ import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
@@ -162,7 +165,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
 			final Map<UUID, Image> bufferedImageMap,
-			final Map<String, Video> videoContentsMap)
+			final Map<String, Video> videoContentsMap,
+			final Map<String, Audio> audioContentsMap)
 			throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
@@ -172,10 +176,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		SurveyResponse currentSurveyResponse = null;
 		PromptResponse currentPromptResponse = null;
 		String currentSql = null;
-		
-		List<File> regularImageList = new ArrayList<File>();
-		List<File> scaledImageList = new ArrayList<File>();
-		List<File> videoList = new LinkedList<File>();
+
+		List<File> fileList = new LinkedList<File>();
 		
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -273,11 +275,18 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					// Now insert each prompt response from the survey
 					Collection<Response> promptUploadList = surveyUpload.getResponses().values();
 					
-					createPromptResponse(username, client, surveyResponseId, 
-							regularImageList, scaledImageList, videoList,
-							promptUploadList, null, bufferedImageMap, 
-							videoContentsMap,
-							transactionManager, status);
+					createPromptResponse(
+						username,
+						client,
+						surveyResponseId,
+						fileList,
+						promptUploadList,
+						null,
+						bufferedImageMap,
+						videoContentsMap,
+						audioContentsMap,
+						transactionManager,
+						status);
 					
 				} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
 					
@@ -298,17 +307,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						
 						LOGGER.error("Caught DataAccessException", dive);
 						logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
-						if(! regularImageList.isEmpty()) {
-							for(File f : regularImageList) {
-								f.delete();
-							}
-						}
-						if(! scaledImageList.isEmpty()) {
-							for(File f : scaledImageList) {
-								f.delete();
-							}
-						}
-						for(File f : videoList) {
+						for(File f : fileList) {
 							f.delete();
 						}
 						rollback(transactionManager, status);
@@ -322,17 +321,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					
 					LOGGER.error("caught DataAccessException", dae);
 					logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
-					if(! regularImageList.isEmpty()) {
-						for(File f : regularImageList) {
-							f.delete();
-						}
-					}
-					if(! scaledImageList.isEmpty()) {
-						for(File f : scaledImageList) {
-							f.delete();
-						}
-					}
-					for(File f : videoList) {
+					for(File f : fileList) {
 						f.delete();
 					}
 					rollback(transactionManager, status);
@@ -350,17 +339,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			
 			LOGGER.error("failed to commit survey upload transaction, attempting to rollback", te);
 			rollback(transactionManager, status);
-			if(! regularImageList.isEmpty()) {
-				for(File f : regularImageList) {
-					f.delete();
-				}
-			}
-			if(! scaledImageList.isEmpty()) {
-				for(File f : scaledImageList) {
-					f.delete();
-				}
-			}
-			for(File f : videoList) {
+			for(File f : fileList) {
 				f.delete();
 			}
 			logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
@@ -412,50 +391,50 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	 * Creates the prompt response entry in the corresponding table and saves
 	 * any attached files, images, videos, etc..
 	 * 
-	 * @param username The username of the user saving this prompt response.
+	 * @param username
+	 *        The username of the user saving this prompt response.
 	 * 
-	 * @param client The name of the device used to generate the response.
+	 * @param client
+	 *        The name of the device used to generate the response.
 	 * 
-	 * @param surveyResponseId The unique identifier for this survey response.
+	 * @param surveyResponseId
+	 *        The unique identifier for this survey response.
 	 * 
-	 * @param regularImageList The list of images saved to the disk, which
-	 * 						   should be a reference to a list that will be
-	 * 						   populated by this function.
+	 * @param fileList
+	 *        The list of files saved to the disk, which should be a reference
+	 *        to a list that will be populated by this function.
 	 * 
-	 * @param scaledImageList The list of scaled images saved to the disk, 
-	 * 						  which should be a reference to a list that will 
-	 * 						  populated by this function.
-	 *  
-	 * @param videoList The list of video files saved to the disk, which should
-	 * 					be a reference to a list that will be populated by this
-	 * 					function.
+	 * @param promptUploadList
+	 *        The collection of prompt responses to store.
 	 * 
-	 * @param promptUploadList The collection of prompt responses to store.
+	 * @param repeatableSetIteration
+	 *        If these prompt responses were part of a repeatable set, this is
+	 *        the iteration of that repeatable set; otherwise, null.
 	 * 
-	 * @param repeatableSetIteration If these prompt responses were part of a
-	 * 								 repeatable set, this is the iteration of
-	 * 								 that repeatable set; otherwise, null.
+	 * @param bufferedImageMap
+	 *        The map of image IDs to their contents.
 	 * 
-	 * @param bufferedImageMap The map of image IDs to their contents.
+	 * @param videoContentsMap
+	 *        The map of video IDs to their contents.
 	 * 
-	 * @param videoContentsMap The map of video IDs to their contents.
+	 * @param transactionManager
+	 *        The manager for this transaction.
 	 * 
-	 * @param transactionManager The manager for this transaction.
+	 * @param status
+	 *        The status of this transaction.
 	 * 
-	 * @param status The status of this transaction.
-	 * 
-	 * @throws DataAccessException There was an error saving the information.
+	 * @throws DataAccessException
+	 *         There was an error saving the information.
 	 */
 	private void createPromptResponse(
 			final String username, final String client,
 			final Number surveyResponseId,
-			final List<File> regularImageList, 
-			final List<File> scaledImageList,
-			final List<File> videoList,
+			final List<File> fileList,
 			final Collection<Response> promptUploadList,
 			final Integer repeatableSetIteration,
             final Map<UUID, Image> bufferedImageMap,
             final Map<String, Video> videoContentsMap, 
+            final Map<String, Audio> audioContentsMap, 
             final DataSourceTransactionManager transactionManager,
             final TransactionStatus status) 
 			throws DataAccessException {
@@ -466,12 +445,18 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					((RepeatableSetResponse) response).getResponseGroups();
 				
 				for(Integer iteration : iterationToResponse.keySet()) {
-					createPromptResponse(username, client, surveyResponseId, 
-							regularImageList, scaledImageList, videoList,
-							iterationToResponse.get(iteration).values(), 
-							iteration, bufferedImageMap, videoContentsMap,
-							transactionManager, status
-						);
+					createPromptResponse(
+						username,
+						client,
+						surveyResponseId,
+						fileList,
+						iterationToResponse.get(iteration).values(),
+						iteration,
+						bufferedImageMap,
+						videoContentsMap,
+						audioContentsMap,
+						transactionManager,
+						status);
 				}
 				continue;
 			}
@@ -618,7 +603,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						fos.close();
 
 						// Store the file reference in the video list.
-						videoList.add(videoFile);
+						fileList.add(videoFile);
 						
 						// Get the video's URL.
 						String url = "file://" + videoFile.getAbsolutePath();
@@ -636,6 +621,97 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							videoFile.delete();
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+								"Error executing SQL '" + 
+									SQL_INSERT_IMAGE + 
+									"' with parameters: " +
+									username + ", " + 
+									client + ", " + 
+									responseValueString + ", " + 
+									url, 
+								e);
+						}
+					}
+					// If it fails, roll back the transaction.
+					catch(DomainException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Could not get the video directory.",
+							e);
+					}
+					catch(IOException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Could not write the file.",
+							e);
+					}
+				}
+			}
+			else if(promptResponse instanceof AudioPromptResponse) {
+				// Make sure the response contains an actual audio response.
+				Object responseValue = promptResponse.getResponse();
+				if(! (responseValue instanceof NoResponse)) {
+					// Attempt to write it to the file system.
+					try {
+						// Get the current audio directory.
+						File currAudioDirectory = 
+							AudioDirectoryCache.getDirectory();
+
+						// Get the audio ID.
+						String responseValueString = responseValue.toString();
+						
+						// Get the audio object.
+						Audio audio = 
+							audioContentsMap.get(responseValueString);
+						
+						// Get the file.
+						File audioFile = 
+							new File(
+								currAudioDirectory.getAbsolutePath() +
+								"/" +
+								responseValueString +
+								"." +
+								audio.getType());
+						
+						// Get the video contents.
+						InputStream content = audio.getContentStream();
+						if(content == null) {
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+								"The audio contents did not exist in the map.");
+						}
+						
+						// Write the video contents to disk.
+						FileOutputStream fos = new FileOutputStream(audioFile);
+						
+						// Write the content to the output stream.
+						int bytesRead;
+						byte[] buffer = new byte[4096];
+						while((bytesRead = content.read(buffer)) != -1) {
+							fos.write(buffer, 0, bytesRead);
+						}
+						fos.close();
+
+						// Store the file reference in the video list.
+						fileList.add(audioFile);
+						
+						// Get the video's URL.
+						String url = "file://" + audioFile.getAbsolutePath();
+						
+						// Insert the video URL into the database.
+						try {
+							getJdbcTemplate().update(
+									SQL_INSERT_IMAGE, 
+									new Object[] { 
+										username, 
+										client, 
+										responseValueString,
+										url }
+								);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							audioFile.delete();
 							transactionManager.rollback(status);
 							throw new DataAccessException(
 								"Error executing SQL '" + 

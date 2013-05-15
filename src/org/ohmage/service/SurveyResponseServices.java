@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Audio;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
@@ -121,7 +122,10 @@ public final class SurveyResponseServices {
 	 * 						   database entry.
 	 * 
 	 * @param videoContentsMap The map of the video unique identifiers to their
-	 * 						   byte array contents.
+	 * 						   objects.
+	 * 
+	 * @param audioContentsMap The map of the audio unique identifiers to their
+	 * 						   objects.
 	 * 
 	 * @return A list of the indices of the survey responses that were 
 	 * 		   duplicates.
@@ -132,7 +136,8 @@ public final class SurveyResponseServices {
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<UUID, Image> bufferedImageMap,
-            final Map<String, Video> videoContentsMap) 
+            final Map<String, Video> videoContentsMap,
+            final Map<String, Audio> audioContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -142,7 +147,8 @@ public final class SurveyResponseServices {
 				campaignUrn, 
 				surveyUploadList, 
 				bufferedImageMap,
-				videoContentsMap);
+				videoContentsMap,
+				audioContentsMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

@@ -8,4 +8,8 @@ CREATE TABLE `omh_authentication` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `omh_authentication_unique_domain_key` (`domain`,`auth_key`),
   KEY `omh_authentication_index_domain` (`domain`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Add a default audio directory.
+INSERT INTO preference(p_key, p_value) VALUES
+    ('video_directory', '/opt/ohmage/userdata/videos');
