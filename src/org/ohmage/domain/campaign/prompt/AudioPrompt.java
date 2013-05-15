@@ -29,7 +29,7 @@ public class AudioPrompt extends Prompt {
 	/**
 	 * The JSON key for the maximum duration.
 	 */
-	public static final String XML_KEY_MAX_DURATION = "max_duration";
+	public static final String XML_KEY_MAX_DURATION = "maxDuration";
 	
 	/**
 	 * The maximum number of milliseconds that the recording may last.
