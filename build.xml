@@ -98,7 +98,7 @@
 
   <target name="javac" description="Compiles Java files.">
     <mkdir dir="${build}/classes"/>
-    <javac destdir="${build}/classes" source="1.6" target="1.6"
+    <javac destdir="${build}/classes" source="1.7" target="1.7"
           debug="true" deprecation="true" optimize="true" failonerror="true" 
           encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
@@ -111,7 +111,7 @@
     
   <target name="javac-validator" description="Compiles Java files to create the campaign validator.">
     <mkdir dir="${build}/classes"/>
-    <javac destdir="${build}/classes" source="1.6" target="1.6"
+    <javac destdir="${build}/classes" source="1.7" target="1.7"
           debug="true" deprecation="true" optimize="true" failonerror="true" 
           encoding="UTF-8">
       <compilerarg value="-Xlint:unchecked"/>
@@ -124,7 +124,7 @@
     
   <target name="javac-library" description="Compiles Java files to create the ohmage library.">
     <mkdir dir="${build}/classes"/>
-    <javac destdir="${build}/classes" source="1.6" target="1.6"
+    <javac destdir="${build}/classes" source="1.7" target="1.7"
           debug="true" deprecation="true" optimize="true" failonerror="true" 
           encoding="UTF-8" includeantruntime="false">
       <compilerarg value="-Xlint:unchecked"/>
@@ -354,8 +354,8 @@ it up and remove the warnings.</echo>
       <sources>
         <path location="${src}" />
       </sources>
-      <property key="sonar.java.source" value="1.6" />
-      <property key="sonar.java.target" value="1.6" />
+      <property key="sonar.java.source" value="1.7" />
+      <property key="sonar.java.target" value="1.7" />
     </sonar:sonar>
   </target>
   
