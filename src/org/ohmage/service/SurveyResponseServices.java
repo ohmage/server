@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Audio;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
@@ -30,6 +31,7 @@ import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
+import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
@@ -121,7 +123,10 @@ public final class SurveyResponseServices {
 	 * 						   database entry.
 	 * 
 	 * @param videoContentsMap The map of the video unique identifiers to their
-	 * 						   byte array contents.
+	 * 						   objects.
+	 * 
+	 * @param audioContentsMap The map of the audio unique identifiers to their
+	 * 						   objects.
 	 * 
 	 * @return A list of the indices of the survey responses that were 
 	 * 		   duplicates.
@@ -132,7 +137,8 @@ public final class SurveyResponseServices {
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<UUID, Image> bufferedImageMap,
-            final Map<String, Video> videoContentsMap) 
+            final Map<String, Video> videoContentsMap,
+            final Map<String, Audio> audioContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -142,7 +148,8 @@ public final class SurveyResponseServices {
 				campaignUrn, 
 				surveyUploadList, 
 				bufferedImageMap,
-				videoContentsMap);
+				videoContentsMap,
+				audioContentsMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -224,6 +231,39 @@ public final class SurveyResponseServices {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"A video was missing for a video prompt response: " + 
+								responseValue.toString());
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Verifies that, for all audio prompt responses, a corresponding audio
+	 * exists in the list of audio files.
+	 * 
+	 * @param surveyResponses The survey responses.
+	 * 
+	 * @param images A map of audio IDs to audio contents.
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	public void verifyAudioFilesExistForAudioPromptResponses(
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<String, Audio> audios) 
+			throws ServiceException {
+		
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if(promptResponse instanceof AudioPromptResponse) {
+					Object responseValue = promptResponse.getResponse();
+					if((responseValue instanceof UUID) && 
+							(! audios.containsKey(responseValue.toString()))) {
+						
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"An audio file was missing for an audio prompt response: " + 
 								responseValue.toString());
 					}
 				}
