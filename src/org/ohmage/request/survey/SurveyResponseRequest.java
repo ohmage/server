@@ -417,6 +417,12 @@ public abstract class SurveyResponseRequest extends UserRequest {
 		try {
 		    LOGGER.info("Retrieving campaign configuration.");
 			campaign = CampaignServices.instance().getCampaign(campaignId);
+			if(campaign == null) {
+				throw
+					new ServiceException(
+						ErrorCode.CAMPAIGN_INVALID_ID,
+						"The campaign does not exist.");
+			}
 			
 			if((promptIds != null) && (! promptIds.isEmpty()) && (! URN_SPECIAL_ALL_LIST.equals(promptIds))) {
 				LOGGER.info("Verifying that the prompt ids in the query belong to the campaign.");
