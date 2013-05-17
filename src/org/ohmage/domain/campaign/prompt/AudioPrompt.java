@@ -100,7 +100,7 @@ public class AudioPrompt extends Prompt {
 			index);
 		
 		// Validate the maximum duration.
-		if(maxDuration <= 0) {
+		if((maxDuration != null) && (maxDuration <= 0)) {
 			throw
 				new DomainException("The maximum duration must be positive.");
 		}

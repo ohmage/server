@@ -443,6 +443,9 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all video prompt responses have their corresponding videos attached.");
 			SurveyResponseServices.instance().verifyVideosExistForVideoPromptResponses(surveyResponses, videoContentsMap);
 			
+			LOGGER.info("Validating that all audio prompt responses have their corresponding audio files attached.");
+			SurveyResponseServices.instance().verifyAudioFilesExistForAudioPromptResponses(surveyResponses, audioContentsMap);
+			
 			LOGGER.info("Inserting the data into the database.");
 			List<Integer> duplicateIndexList = 
 				SurveyResponseServices.instance().createSurveyResponses(

@@ -31,6 +31,7 @@ import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
+import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
@@ -230,6 +231,39 @@ public final class SurveyResponseServices {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"A video was missing for a video prompt response: " + 
+								responseValue.toString());
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Verifies that, for all audio prompt responses, a corresponding audio
+	 * exists in the list of audio files.
+	 * 
+	 * @param surveyResponses The survey responses.
+	 * 
+	 * @param images A map of audio IDs to audio contents.
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	public void verifyAudioFilesExistForAudioPromptResponses(
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<String, Audio> audios) 
+			throws ServiceException {
+		
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if(promptResponse instanceof AudioPromptResponse) {
+					Object responseValue = promptResponse.getResponse();
+					if((responseValue instanceof UUID) && 
+							(! audios.containsKey(responseValue.toString()))) {
+						
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"An audio file was missing for an audio prompt response: " + 
 								responseValue.toString());
 					}
 				}
