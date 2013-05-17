@@ -16,7 +16,11 @@
 package org.ohmage.domain.campaign.prompt;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -52,10 +56,10 @@ public abstract class BoundedPrompt extends Prompt {
 	 */
 	public static final String XML_KEY_MAX = "max";
 	
-	private final long min;
-	private final long max;
+	private final BigDecimal min;
+	private final BigDecimal max;
 	
-	private final Long defaultValue;
+	private final BigDecimal defaultValue;
 	
 	/**
 	 * Creates a new bounded prompt.
@@ -105,11 +109,11 @@ public abstract class BoundedPrompt extends Prompt {
 			final boolean skippable, 
 			final String skipLabel,
 			final String displayLabel,
-			final long min, 
-			final long max, 
-			final Long defaultValue,
+			final BigDecimal min, 
+			final BigDecimal max, 
+			final BigDecimal defaultValue,
 			final Type type, 
-			final int index) 
+			final int index)
 			throws DomainException {
 		
 		super(
@@ -124,17 +128,44 @@ public abstract class BoundedPrompt extends Prompt {
 			type,
 			index);
 		
+		// Validate the min value.
+		if(mustBeWholeNumber() && (! isWholeNumber(min))) {
+			throw
+				new DomainException("The min must be a whole number: " + min);
+		}
 		this.min = min;
+		
+		// Validate the max value.
+		if(mustBeWholeNumber() && (! isWholeNumber(max))) {
+			throw
+				new DomainException("The max must be a whole number: " + max);
+		}
 		this.max = max;
 		
+		// Validate the default value.
 		if(defaultValue != null) {
-			if(defaultValue < min) {
-				throw new DomainException(
-						"The default value is less than the minimum value.");
+			if(mustBeWholeNumber() && (! isWholeNumber(defaultValue))) {
+				throw
+					new DomainException(
+						"The default must be a whole number: " + defaultValue);
 			}
-			else if(defaultValue > max) {
-				throw new DomainException(
-						"The default value is greater than hte maximum value.");
+			else if(defaultValue.compareTo(min) < 0) {
+				throw
+					new DomainException(
+						"The default value is greater than the minimum " +
+							"value (" +
+							min +
+							"): " +
+							defaultValue);
+			}
+			else if(defaultValue.compareTo(max) > 0) {
+				throw 
+					new DomainException(
+						"The default value is greater than the maximum " +
+							"value (" +
+							max +
+							"): " +
+							defaultValue);
 			}
 		}
 		this.defaultValue = defaultValue;
@@ -145,7 +176,7 @@ public abstract class BoundedPrompt extends Prompt {
 	 * 
 	 * @return The lower bound for a response to this prompt.
 	 */
-	public long getMin() {
+	public BigDecimal getMin() {
 		return min;
 	}
 	
@@ -154,7 +185,7 @@ public abstract class BoundedPrompt extends Prompt {
 	 * 
 	 * @return The upper bound for a response to this prompt.
 	 */
-	public long getMax() {
+	public BigDecimal getMax() {
 		return max;
 	}
 	
@@ -163,7 +194,7 @@ public abstract class BoundedPrompt extends Prompt {
 	 * 
 	 * @return The default value. This may be null if none was given.
 	 */
-	public Long getDefault() {
+	public BigDecimal getDefault() {
 		return defaultValue;
 	}
 	
@@ -182,24 +213,39 @@ public abstract class BoundedPrompt extends Prompt {
 			throws DomainException {
 		
 		try {
-			long value = Long.decode(pair.getValue());
+			DecimalFormat decimalFormat = new DecimalFormat();
+			decimalFormat.setParseBigDecimal(true);
+			BigDecimal value =
+				(BigDecimal) decimalFormat.parse(pair.getValue());
 			
-			if(value < min) {
+			// Verify that the default is not less than the minimum.
+			if(value.compareTo(getMin()) < 0) {
 				throw new DomainException(
-						"The value of the condition is less than the minimum allowed value (" + 
-							min +
+						"The value of the condition is less than the " +
+							"minimum allowed value (" + 
+							getMin() +
 							"): " +
 							pair.getValue());
 			}
-			else if(value > max) {
+			// Verify that the default is not greater than the maximum.
+			else if(value.compareTo(getMax()) > 0) {
 				throw new DomainException(
-						"The value of the condition is greater than the maximum allowed value (" + 
-							max +
+						"The value of the condition is greater than the " +
+							"maximum allowed value (" + 
+							getMax() +
 							"): " +
 							pair.getValue());
+			}
+			// Verify that the 
+			else if(mustBeWholeNumber() && isWholeNumber(value)) {
+				throw
+					new DomainException(
+						"The value of the condition is a decimal, but the " +
+							"flag indicatest that only whole numbers are " +
+							"possible.");
 			}
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
 					"The value of the condition is not a number: " + 
 						pair.getValue(),
@@ -228,13 +274,13 @@ public abstract class BoundedPrompt extends Prompt {
 	 * 				  <ul>
 	 * 				</ul>
 	 * 
-	 * @return A {@link Long} object or a {@link NoResponse} object.
+	 * @return A {@link Number} object or a {@link NoResponse} object.
 	 * 
 	 * @throws DomainException The value is invalid.
 	 */
 	@Override
 	public Object validateValue(final Object value) throws DomainException {
-		long longValue;
+		BigDecimal result;
 		
 		// If it's already a NoResponse value, then return make sure that if it
 		// was skipped that it as skippable.
@@ -248,23 +294,13 @@ public abstract class BoundedPrompt extends Prompt {
 			
 			return value;
 		}
-		// If it's already a number, first ensure that it is an integer and not
-		// a floating point number.
+		// If it's already a number, be sure it is a whole number, if required.
 		else if(value instanceof Number) {
-			if((value instanceof AtomicInteger) ||
-					(value instanceof AtomicLong) ||
-					(value instanceof BigInteger) ||
-					(value instanceof Integer) ||
-					(value instanceof Long) ||
-					(value instanceof Short)) {
-				
-				longValue = ((Number) value).longValue();
-			}
-			else {
-				throw new DomainException(
-						"Only whole numbers are allowed for prompt '" +
-							getId() +
-							"'.");
+			result = new BigDecimal(value.toString());
+			if(mustBeWholeNumber() && (! isWholeNumber(result))) {
+				throw
+					new DomainException(
+						"The value cannot be a decimal: " + value);
 			}
 		}
 		// If it is a string, parse it to check if it's a NoResponse value and,
@@ -278,48 +314,58 @@ public abstract class BoundedPrompt extends Prompt {
 				return NoResponse.valueOf(stringValue);
 			}
 			catch(IllegalArgumentException iae) {
+				// Parse it.
 				try {
-					longValue = Long.decode(stringValue);
+					DecimalFormat format = new DecimalFormat();
+					format.setParseBigDecimal(true);
+					result = (BigDecimal) format.parse(stringValue);
 				}
-				catch(NumberFormatException nfe) {
-					throw new DomainException(
-							"The value is not a valid number for prompt '" +
-								getId() +
-								"': " +
+				catch(ParseException e) {
+					throw
+						new DomainException(
+							"The value could not be decoded as a number: " +
 								stringValue,
-							nfe);
+							e);
 				}
+			}
+
+			// Validate it.
+			if(mustBeWholeNumber() && (! isWholeNumber(result))) {
+				throw
+					new DomainException(
+						"The value cannot be a decimal: " + value);
 			}
 		}
 		// Finally, if its type is unknown, throw an exception.
 		else {
 			throw new DomainException(
-					"The value is not decodable as a response value for prompt '" +
+					"The value is not decodable as a response value for " +
+						"prompt '" +
 						getId() +
 						"'.");
 		}
 		
-		// Now that we have a Long value, verify that it is within bounds.
-		if(longValue < min) {
+		// Now that we have a Number value, verify that it is within bounds.
+		if(min.compareTo(result) > 0) {
 			throw new DomainException(
 					"The value is less than the lower bound (" +
 						min + 
 						") for the prompt, '" +
 						getId() +
 						"': " + 
-						longValue);
+						result);
 		}
-		else if(longValue > max) {
+		else if(max.compareTo(result) < 0) {
 			throw new DomainException(
 					"The value is greater than the upper bound (" +
 						max +
 						") for the prompt, '" +
 						getId() +
 						"': " +
-						longValue);
+						result);
 		}
 		
-		return longValue;
+		return result;
 	}
 	
 	/**
@@ -375,9 +421,8 @@ public abstract class BoundedPrompt extends Prompt {
 		generator.writeEndObject();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#hashCode()
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
@@ -387,8 +432,8 @@ public abstract class BoundedPrompt extends Prompt {
 			prime *
 				result +
 				((defaultValue == null) ? 0 : defaultValue.hashCode());
-		result = prime * result + (int) (max ^ (max >>> 32));
-		result = prime * result + (int) (min ^ (min >>> 32));
+		result = prime * result + ((max == null) ? 0 : max.hashCode());
+		result = prime * result + ((min == null) ? 0 : min.hashCode());
 		return result;
 	}
 
@@ -415,12 +460,48 @@ public abstract class BoundedPrompt extends Prompt {
 		else if(!defaultValue.equals(other.defaultValue)) {
 			return false;
 		}
-		if(max != other.max) {
+		if(max == null) {
+			if(other.max != null) {
+				return false;
+			}
+		}
+		else if(!max.equals(other.max)) {
 			return false;
 		}
-		if(min != other.min) {
+		if(min == null) {
+			if(other.min != null) {
+				return false;
+			}
+		}
+		else if(!min.equals(other.min)) {
 			return false;
 		}
 		return true;
 	}
+	
+	/**
+	 * Returns whether or not a given value is a whole number.
+	 * 
+	 * @param value
+	 *        The value to check.
+	 * 
+	 * @return True if the BigDecimal is a whole number; false, otherwise.
+	 */
+	protected boolean isWholeNumber(final BigDecimal value) {
+		try {
+			return value.setScale(0, RoundingMode.DOWN).compareTo(value) == 0;
+		}
+		catch(ArithmeticException e) {
+			return false;
+		}
+	}
+	
+	/**
+	 * Returns whether or not the prompt type requires its min, max, default,
+	 * and response values to be whole numbers.
+	 * 
+	 * @return Whether or not the min, max, default, and response values must
+	 *         all be whole numbers.
+	 */
+	protected abstract boolean mustBeWholeNumber();
 }

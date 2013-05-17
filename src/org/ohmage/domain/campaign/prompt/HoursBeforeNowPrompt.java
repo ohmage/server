@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
+import java.math.BigDecimal;
+
 import org.ohmage.domain.campaign.response.HoursBeforeNowPromptResponse;
 import org.ohmage.exception.DomainException;
 
@@ -74,9 +76,9 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 			final boolean skippable, 
 			final String skipLabel,
 			final String displayLabel,
-			final long min, 
-			final long max, 
-			final Long defaultValue, 
+			final BigDecimal min, 
+			final BigDecimal max, 
+			final BigDecimal defaultValue, 
 			final int index) 
 			throws DomainException {
 		
@@ -116,5 +118,13 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 				this, 
 				repeatableSetIteration, 
 				response);
+	}
+
+	/**
+	 * @return Always returns true.
+	 */
+	@Override
+	protected boolean mustBeWholeNumber() {
+		return true;
 	}
 }

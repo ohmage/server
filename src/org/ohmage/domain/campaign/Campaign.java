@@ -17,8 +17,11 @@ package org.ohmage.domain.campaign;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -3315,7 +3318,11 @@ public class Campaign {
 			final int index) 
 			throws DomainException {
 		
-		int min;
+		// Create the decimal parser.
+		DecimalFormat format = new DecimalFormat();
+		format.setParseBigDecimal(true);
+		
+		BigDecimal min;
 		try {
 			LabelValuePair minVlp = 
 				properties.get(HoursBeforeNowPrompt.XML_KEY_MIN);
@@ -3327,18 +3334,19 @@ public class Campaign {
 							"' property: " +
 							id);
 			}
-			min = Integer.decode(minVlp.getLabel());
+			
+			min = (BigDecimal) format.parse(minVlp.getLabel());
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
 					"The '" +
 						HoursBeforeNowPrompt.XML_KEY_MIN +
-						"' property is not an integer: " +
+						"' property is not a valid number: " +
 						id, 
 					e);
 		}
 		
-		int max;
+		BigDecimal max;
 		try {
 			LabelValuePair maxVlp = 
 				properties.get(HoursBeforeNowPrompt.XML_KEY_MAX);
@@ -3350,26 +3358,27 @@ public class Campaign {
 							"' property: " +
 							id);
 			}
-			max = Integer.decode(maxVlp.getLabel());
+			
+			max = (BigDecimal) format.parse(maxVlp.getLabel());
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
 					"The '" +
 						HoursBeforeNowPrompt.XML_KEY_MAX +
-						"' property is not an integer: " +
+						"' property is not valid number: " +
 						id, 
 					e);
 		}
 		
-		Long defaultValueLong = null;
+		BigDecimal parsedDefaultValue = null;
 		try {
 			if(defaultValue != null) {
-				defaultValueLong = Long.decode(defaultValue);
+				parsedDefaultValue = (BigDecimal) format.parse(defaultValue);
 			}
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
-					"The default value is not a valid integer: " +
+					"The default value is not a valid number: " +
 						id);
 		}
 		
@@ -3384,7 +3393,7 @@ public class Campaign {
 			displayLabel,
 			min,
 			max,
-			defaultValueLong,
+			parsedDefaultValue,
 			index);
 	}
 	
@@ -3638,7 +3647,11 @@ public class Campaign {
 			final int index) 
 			throws DomainException {
 		
-		long min;
+		// Create the decimal parser.
+		DecimalFormat format = new DecimalFormat();
+		format.setParseBigDecimal(true);
+		
+		BigDecimal min;
 		try {
 			LabelValuePair minVlp = 
 				properties.get(NumberPrompt.XML_KEY_MIN);
@@ -3650,18 +3663,19 @@ public class Campaign {
 							"' property: " +
 							id);
 			}
-			min = Long.decode(minVlp.getLabel());
+			
+			min = (BigDecimal) format.parse(minVlp.getLabel());
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
 					"The '" +
 						NumberPrompt.XML_KEY_MIN +
-						"' property is not an integer: " +
+						"' property is not a valid number: " +
 						id, 
 					e);
 		}
 		
-		long max;
+		BigDecimal max;
 		try {
 			LabelValuePair maxVlp = 
 				properties.get(NumberPrompt.XML_KEY_MAX);
@@ -3673,27 +3687,45 @@ public class Campaign {
 							"' property: " +
 							id);
 			}
-			max = Long.decode(maxVlp.getLabel());
+			
+			max = (BigDecimal) format.parse(maxVlp.getLabel());
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
 					"The '" +
 						NumberPrompt.XML_KEY_MAX +
-						"' property is not an integer: " +
+						"' property is not valid number: " +
 						id, 
 					e);
 		}
 		
-		Long defaultValueLong = null;
+		BigDecimal parsedDefaultValue = null;
 		try {
 			if(defaultValue != null) {
-				defaultValueLong = Long.decode(defaultValue);
+				parsedDefaultValue = (BigDecimal) format.parse(defaultValue);
 			}
 		}
-		catch(NumberFormatException e) {
+		catch(ParseException e) {
 			throw new DomainException(
-					"The default value is not a valid integer: " +
+					"The default value is not a valid number: " +
 						id);
+		}
+		
+		Boolean wholeNumber = null;
+		LabelValuePair wholeNumberVlp = 
+			properties.get(NumberPrompt.XML_KEY_WHOLE_NUMBER);
+		
+		if(wholeNumberVlp != null) {
+			wholeNumber =
+				StringUtils.decodeBoolean(wholeNumberVlp.getLabel());
+			if(wholeNumber == null) {
+				throw
+					new DomainException(
+						"The '" +
+						NumberPrompt.XML_KEY_WHOLE_NUMBER +
+						"' property is not a valid boolean: " +
+						id);
+			}
 		}
 
 		return new NumberPrompt(
@@ -3707,8 +3739,9 @@ public class Campaign {
 			displayLabel,
 			min,
 			max,
-			defaultValueLong,
-			index);
+			parsedDefaultValue,
+			index,
+			wholeNumber);
 	}
 	
 	/**

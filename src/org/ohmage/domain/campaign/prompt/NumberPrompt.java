@@ -15,6 +15,10 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
+import java.math.BigDecimal;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.domain.campaign.response.NumberPromptResponse;
 import org.ohmage.exception.DomainException;
 
@@ -24,6 +28,21 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class NumberPrompt extends BoundedPrompt {
+	/**
+	 * The JSON key for the whole number flag.
+	 */
+	private static final String JSON_KEY_WHOLE_NUMBER = "whole_number";
+	
+	/**
+	 * The campaign configuration property key for the whole number flag.
+	 */
+	public static final String XML_KEY_WHOLE_NUMBER = "wholeNumber";
+	
+	/**
+	 * Whether or not the response must be a whole number.
+	 */
+	private final boolean wholeNumber;
+	
 	/**
 	 * Creates a number prompt.
 	 * 
@@ -69,10 +88,11 @@ public class NumberPrompt extends BoundedPrompt {
 			final boolean skippable, 
 			final String skipLabel,
 			final String displayLabel,
-			final long min, 
-			final long max, 
-			final Long defaultValue,
-			final int index) 
+			final BigDecimal min, 
+			final BigDecimal max, 
+			final BigDecimal defaultValue,
+			final int index,
+			final Boolean wholeNumber) 
 			throws DomainException {
 
 		super(
@@ -89,6 +109,31 @@ public class NumberPrompt extends BoundedPrompt {
 			defaultValue,
 			Type.NUMBER,
 			index);
+		
+		if(wholeNumber == null) {
+			this.wholeNumber = false;
+		}
+		else {
+			this.wholeNumber = wholeNumber;
+		}
+	}
+	
+	/**
+	 * Returns whether or not the response must be a whole number.
+	 * 
+	 * @return Whether or not the response must be a whole number.
+	 */
+	public boolean wholeNumber() {
+		return wholeNumber;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.prompt.BoundedPrompt#mustBeWholeNumber()
+	 */
+	@Override
+	public boolean mustBeWholeNumber() {
+		return wholeNumber;
 	}
 	
 	/**
@@ -117,5 +162,53 @@ public class NumberPrompt extends BoundedPrompt {
 				this, 
 				repeatableSetIteration, 
 				response);
+	}
+	
+	/**
+	 * Creates a JSONObject that represents this bounded prompt.
+	 * 
+	 * @return A JSONObject that represents this bounded prompt.
+	 * 
+	 * @throws JSONException There was a problem creating the JSONObject.
+	 */
+	@Override
+	public JSONObject toJson() throws JSONException {
+		JSONObject result = super.toJson();
+		
+		result.put(JSON_KEY_WHOLE_NUMBER, wholeNumber);
+		
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result + (wholeNumber ? 1231 : 1237);
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if(this == obj) {
+			return true;
+		}
+		if(!super.equals(obj)) {
+			return false;
+		}
+		if(!(obj instanceof NumberPrompt)) {
+			return false;
+		}
+		NumberPrompt other = (NumberPrompt) obj;
+		if(wholeNumber != other.wholeNumber) {
+			return false;
+		}
+		return true;
 	}
 }

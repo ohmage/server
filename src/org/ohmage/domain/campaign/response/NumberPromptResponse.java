@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.response;
 
+import java.math.BigDecimal;
+
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.NumberPrompt;
 import org.ohmage.exception.DomainException;
@@ -25,8 +27,6 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class NumberPromptResponse extends PromptResponse {
-	//private final Long number;
-	
 	/**
 	 * Creates a number prompt response.
 	 * 
@@ -53,16 +53,6 @@ public class NumberPromptResponse extends PromptResponse {
 			throws DomainException {
 		
 		super(prompt, repeatableSetIteration, response);
-		/*
-		if((number == null) && (noResponse == null)) {
-			throw new IllegalArgumentException("Both number and no response cannot be null.");
-		}
-		else if((number != null) && (noResponse != null)) {
-			throw new IllegalArgumentException("Both number and no response were given.");
-		}
-		
-		this.number = number;
-		*/
 	}
 	
 	/**
@@ -72,7 +62,7 @@ public class NumberPromptResponse extends PromptResponse {
 	 * 
 	 * @throws DomainException The prompt does not have a response.
 	 */
-	public Long getNumber() throws DomainException {
+	public BigDecimal getNumber() throws DomainException {
 		if(wasNotDisplayed()) {
 			throw new DomainException("The prompt was not displayed.");
 		}
@@ -80,62 +70,6 @@ public class NumberPromptResponse extends PromptResponse {
 			throw new DomainException("The prompt was skipped.");
 		}
 		
-		return (Long) getResponse();
+		return (BigDecimal) getResponse();
 	}
-	
-	/**
-	 * Returns the number as a string.
-	 * 
-	 * @return A String representing the number.
-	 *
-	@Override
-	public Object getResponseValue() {
-		Object noResponseObject = super.getResponseValue();
-		
-		if(noResponseObject == null) {
-			return number;
-		}
-		else {
-			return noResponseObject;
-		}
-	}*/
-
-	/**
-	 * Generates a hash code for this response.
-	 * 
-	 * @return A hash code for this prompt response.
-	 *
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + ((number == null) ? 0 : number.hashCode());
-		return result;
-	}*/
-
-	/**
-	 * Determines if this prompt response is logically equivalent to another
-	 * object.
-	 * 
-	 * @param obj The other object.
-	 * 
-	 * @return True if this response is logically equivalent to the other 
-	 * 		   object; false, otherwise.
-	 *
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (!super.equals(obj))
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		NumberPromptResponse other = (NumberPromptResponse) obj;
-		if (number == null) {
-			if (other.number != null)
-				return false;
-		} else if (!number.equals(other.number))
-			return false;
-		return true;
-	}*/
 }
