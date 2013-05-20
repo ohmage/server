@@ -1,29 +1,39 @@
+# Welcome
 
+ohmage is a mobile data collection system for collecting data given explicitly
+by a user (active data) and data that is collected by backgrounded applications
+(passive data). This repository houses the server-side application. The Android
+application can be found at https://github.com/ohmage/ohmageAndroidLib.
 
-BACKGROUND:
+A description of the high-level entities can be found at,
+https://github.com/cens/ohmageServer/wiki/About-Users,-Classes-and-Campaigns,
+and an introduction into how to read and write from an up-and-running system
+can be found at,
+https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities.
 
-This is the ohmage server project developed at CENS (http://research.cens.ucla.edu/ http://ohmage.org).
+This server is an Open mHealth DSU reference implementation for the 0.1 version
+of the specification, which can be found at
+https://github.com/openmhealth/developer/wiki/DSU-API-0.1. The specification
+has evolved but the implementation has not kept completely up-to-date. More
+information can be found at, https://github.com/openmhealth/developer/wiki.
 
-ohmage is a platform for creating, capturing and visualizing configurable mobile phone data streams.
+# Compiling
 
-ohmage server is the reference DSU (data storage unit) for Open mHealth. (http://openmhealth.org/)
+There are two primary ant build targets, `dist` and `dist-no_ssl`, which should
+be used based on whether or not a SSL should be required respectively. The
+resulting
 
-For more details or if you have questions, you can check out our wiki or contact selsky@cens.ucla.edu.
+# Collaboration
 
+The source is currently undergoing a major overhaul, so, unless a patch is
+already in the works, it might be best to wait until the 3.0 version is
+released.
 
-COLLABORATION POLICY:
-
-Please avoid pushing to master. Instead, please push to a development branch.
-
-
-CODING STANDARDS:
-
-4 space indents (no tabs)
-
-Always use curly braces even if the conditional or loop is one line
-
-Opening curly braces go on the same line of the loop or conditional declaration
-
-Comments anywhere can only be 80 chars per line
-
-For code, most of us have been going with 80 chars per line, but that is not a hard and fast rule.
+The coding rules are loose, and the best reference would be other parts of the
+code. A few rules we do have are:
+- 4 space indents (no tabs).
+- Always use curly braces even if the conditional or loop is one line.
+- Opening curly braces go on the same line of the loop or conditional
+declaration.
+- All comments must be no more than 79 characters (with the 80th character
+being a new line). Code should try to adhere to this as best as possible.
