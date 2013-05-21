@@ -12,4 +12,4 @@ CREATE TABLE `omh_authentication` (
 
 -- Add a default audio directory.
 INSERT INTO preference(p_key, p_value) VALUES
-    ('video_directory', '/opt/ohmage/userdata/videos');
+    ('audio_directory', '/opt/ohmage/userdata/audio');

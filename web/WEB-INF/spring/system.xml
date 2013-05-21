@@ -9,24 +9,10 @@
           http://www.springframework.org/schema/util/spring-util-3.0.xsd">
   
   <!-- 
-    this makes application properties accessible to the rest of the beans in the app via ${}-style variable references instead
-    of the ref element 
-  --> 
-  <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-    <property name="location" value="file://${configDir:/etc/ohmage}/configuration.properties"/>
-    <property name="propertiesArray">
-      <list>
-        <ref bean="dbProps" />
-      </list>
-    </property>
+    This makes application properties accessible to the rest of the beans in
+    the app via ${}-style variable references instead of the ref element. 
+   -->
+  <bean class="org.ohmage.jee.listener.ConfigurationFileImport">
     <property name="ignoreResourceNotFound" value="true"/>
   </bean>
-  
-  <util:map id="dbProps">
-    <entry key="db.driver" value="com.mysql.jdbc.Driver"/>
-    <entry key="db.jdbcurl" value="jdbc:mysql://${mysql.host:localhost}:${mysql.port:3306}/${mysql.db:ohmage}"/>
-    <entry key="db.username" value="${mysql.user:ohmage}"/>
-    <entry key="db.password" value="${mysql.pw:&amp;!sickly}"/>
-  </util:map>
-
 </beans>
