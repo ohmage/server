@@ -241,6 +241,8 @@ public class SurveyUploadRequest extends UserRequest {
 				else {
 					try {
 						tJsonData = CampaignValidators.validateUploadedJson(t[0]);
+						System.out.println(t[0]);
+						System.out.println(tJsonData);
 					}
 					catch(IllegalArgumentException e) {
 						throw new ValidationException(

@@ -41,8 +41,8 @@ import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.ISurveyResponseQueries;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -661,7 +661,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 													(Integer) rs.getObject(
 															"repeatable_set_iteration", 
 															typeMapping),
-													rs.getString("response")
+													rs.getObject("response")
 												)
 										);
 								}
