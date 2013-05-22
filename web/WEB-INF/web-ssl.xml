@@ -153,10 +153,23 @@
   </context-param>
 
   <!-- The order of the following listener components is important - ContextLoaderListener must be last. -->
+
+  <!-- Sets the web application root property. -->
+  <listener>
+    <listener-class>org.ohmage.jee.listener.WebAppRootSetter</listener-class>
+  </listener>
+  
+  <!-- Configure the properties.-->
+  <listener>
+    <listener-class>
+      org.ohmage.jee.listener.ConfigurationFileImport
+    </listener-class>
+  </listener>
+  
   <!-- Bootstrap listener to initialize Log4J.  Having this one here (before Spring is bootstrapped with its ContextLoaderListener)
        ensures Log4J is configured before Spring spits out logging messages. -->
   <listener>
-    <listener-class>org.ohmage.jee.listener.LogListener</listener-class>
+    <listener-class>org.ohmage.jee.listener.LogSetup</listener-class>
   </listener>
 
   <!-- Provide temp directory cleanup (for temp image storage) and ensure that the cleanup process terminates gracefully on 
