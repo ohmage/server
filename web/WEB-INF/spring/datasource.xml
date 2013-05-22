@@ -5,22 +5,16 @@
          "http://www.springframework.org/schema/beans 
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-  <bean id="dataSource" destroy-method="close" class="org.apache.commons.dbcp.BasicDataSource">
-    <property name="driverClassName" value="${db.driver}"/>
-    <property name="url" value="${db.jdbcurl}"/>
+  <bean
+    id="dataSource"
+    destroy-method="close"
+    class="com.jolbox.bonecp.BoneCPDataSource">
+    
+    <property name="jdbcUrl" value="${db.jdbcurl}"/>
     <property name="username" value="${db.username}"/>
     <property name="password" value="${db.password}"/>
     <property name="defaultAutoCommit" value="false"/>
-    
-    <!-- connection pool props -->
-    <property name="initialSize" value="8"/>
-    <!-- <property name="maxActive" value="20"/> the default is 8, which should be enough for the initial release. -->
-    <!-- the following properties configure the connection pool for handling the freshness of the connections it returns -->
-    <property name="maxActive" value="8"/>
-    <property name="validationQuery" value="SELECT 1" />
-    <property name="testWhileIdle" value="true" />
-    <property name="timeBetweenEvictionRunsMillis" value="3600000" />
-    <property name="minEvictableIdleTimeMillis" value="14400000" />
+    <property name="partitionCount" value="2"/>
   </bean>
 
 </beans>
