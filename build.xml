@@ -306,7 +306,7 @@ it up and remove the warnings.</echo>
         <include name="org/ohmage/config/**" />
         <include name="org/ohmage/util/StringUtils.class" />
       </fileset>
-      <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/json.org-2013-05-22.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/log4j-1.2.16.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
@@ -332,7 +332,7 @@ it up and remove the warnings.</echo>
         <include name="docs/**" />
       </fileset>
       <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/json.org-2011-11-03.jar" excludes="META-INF/*" />
+      <zipfileset src="${library}/json.org-2013-05-22.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/httpcore-4.1.2.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/httpclient-4.1.2.jar" excludes="META-INF/*" />
       <zipfileset src="${library}/httpmime-4.1.2.jar" excludes="META-INF/*" />
