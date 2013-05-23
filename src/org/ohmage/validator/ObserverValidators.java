@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.map.MappingJsonFactory;
 import org.joda.time.DateTime;
@@ -267,6 +268,13 @@ public class ObserverValidators {
 		
 		try {
 			return (new MappingJsonFactory()).createJsonParser(value);
+		}
+		catch(JsonParseException e) {
+			throw
+				new ValidationException(
+					ErrorCode.OBSERVER_INVALID_STREAM_DATA,
+					"The data is not valid JSON.",
+					e);
 		}
 		catch(IOException e) {
 			throw new ValidationException("The data could not be read.", e);
