@@ -145,6 +145,18 @@ public interface IUserQueries {
 	Boolean userCanCreateCampaigns(String username) throws DataAccessException;
 
 	/**
+	 * Gets whether or not the user is allowed to create classes.
+	 * 
+	 * @param username The username of the user in question.
+	 * 
+	 * @return Whether or not the user can create classes.
+	 * 
+	 * @throws DataAccessException Thrown if there is a problem running the
+	 * 							   query.
+	 */
+	Boolean userCanCreateClasses(String username) throws DataAccessException;
+
+	/**
 	 * Checks if a user has a personal information entry in the database.
 	 *  
 	 * @param username The username of the user.
@@ -446,42 +458,52 @@ public interface IUserQueries {
 	/**
 	 * Updates a user's account information.
 	 * 
-	 * @param username The username of the user whose information is to be
-	 * 				   updated.
+	 * @param username
+	 *        The username of the user whose information is to be updated.
 	 * 
-	 * @param emailAddress The user's new email address. A null value indicates
-	 * 					   that this value should not be updated.
+	 * @param emailAddress
+	 *        The user's new email address. A null value indicates that this
+	 *        value should not be updated.
 	 * 
-	 * @param admin Whether or not the user should be an admin. A null value
-	 * 			    indicates that this field should not be updated.
+	 * @param admin
+	 *        Whether or not the user should be an admin. A null value
+	 *        indicates that this field should not be updated.
 	 * 
-	 * @param enabled Whether or not the user's account should be enabled. A
-	 * 				  null value indicates that this field should not be
-	 * 				  updated.
+	 * @param enabled
+	 *        Whether or not the user's account should be enabled. A null value
+	 *        indicates that this field should not be updated.
 	 * 
-	 * @param newAccount Whether or not the user should be required to change
-	 * 					 their password. A null value indicates that this field
-	 * 					 should not be updated.
+	 * @param newAccount
+	 *        Whether or not the user should be required to change their
+	 *        password. A null value indicates that this field should not be
+	 *        updated.
 	 * 
-	 * @param campaignCreationPrivilege Whether or not the user should be 
-	 * 									allowed to create campaigns. A null
-	 * 									value indicates that this field should
-	 * 									not be updated.
+	 * @param campaignCreationPrivilege
+	 *        Whether or not the user should be allowed to create campaigns. A
+	 *        null value indicates that this field should not be updated.
 	 * 
-	 * @param firstName The user's new first name. A null value indicates that
-	 * 					this field should not be updated.
+	 * @param classCreationPrivilege
+	 *        Whether or not the user should be allowed to create classes. A
+	 *        null value indicates that this field should not be updated.
 	 * 
-	 * @param lastName The users's last name. A null value indicates that this
-	 * 				   field should not be updated.
+	 * @param firstName
+	 *        The user's new first name. A null value indicates that this field
+	 *        should not be updated.
 	 * 
-	 * @param organization The user's new organization. A null value indicates
-	 * 					   that this field should not be updated.
+	 * @param lastName
+	 *        The users's last name. A null value indicates that this field
+	 *        should not be updated.
 	 * 
-	 * @param personalId The user's new personal ID. A null value indicates 
-	 * 					 that this field should not be updated.
+	 * @param organization
+	 *        The user's new organization. A null value indicates that this
+	 *        field should not be updated.
 	 * 
-	 * @param deletePersonalInfo Whether or not to delete the user's personal
-	 * 							 information.
+	 * @param personalId
+	 *        The user's new personal ID. A null value indicates that this
+	 *        field should not be updated.
+	 * 
+	 * @param deletePersonalInfo
+	 *        Whether or not to delete the user's personal information.
 	 */
 	void updateUser(
 			final String username, 
@@ -490,6 +512,7 @@ public interface IUserQueries {
 			final Boolean enabled,
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
+			final Boolean classCreationPrivilege,
 			final String firstName,
 			final String lastName,
 			final String organization,

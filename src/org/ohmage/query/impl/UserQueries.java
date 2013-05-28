@@ -93,6 +93,16 @@ public class UserQueries extends Query implements IUserQueries {
 			"AND campaign_creation_privilege = true" +
 		")";
 	
+	// Returns a boolean representing whether a user can create classes or not. 
+	// If the user doesn't exist, false is returned.
+	private static final String SQL_EXISTS_USER_CAN_CREATE_CLASSES =
+		"SELECT EXISTS(" +
+			"SELECT username " +
+			"FROM user " +
+			"WHERE username = ? " +
+			"AND class_creation_privilege = true" +
+		")";
+	
 	// Returns a boolean representing whether or not a user has a personal
 	// information entry.
 	private static final String SQL_EXISTS_USER_PERSONAL =
@@ -263,6 +273,12 @@ public class UserQueries extends Query implements IUserQueries {
 	private static final String SQL_UPDATE_CAMPAIGN_CREATION_PRIVILEGE =
 		"UPDATE user " +
 		"SET campaign_creation_privilege = ? " +
+		"WHERE username = ?";
+	
+	// Updates a user's class creation privilege.
+	private static final String SQL_UPDATE_CLASS_CREATION_PRIVILEGE =
+		"UPDATE user " +
+		"SET class_creation_privilege = ? " +
 		"WHERE username = ?";
 	
 	// Updates a user's first name in their personal information record.
@@ -740,15 +756,9 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 	}
 	
-	/**
-	 * Gets whether or not the user is allowed to create campaigns.
-	 * 
-	 * @param username The username of the user in question.
-	 * 
-	 * @return Whether or not the user can create campaigns.
-	 * 
-	 * @throws DataAccessException Thrown if there is a problem running the
-	 * 							   query.
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userCanCreateCampaigns(java.lang.String)
 	 */
 	public Boolean userCanCreateCampaigns(String username) throws DataAccessException {
 		try {
@@ -760,6 +770,29 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_CAN_CREATE_CAMPAIGNS + "' with parameter: " + username, e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userCanCreateClasses(java.lang.String)
+	 */
+	public Boolean userCanCreateClasses(String username) throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_EXISTS_USER_CAN_CREATE_CLASSES, 
+					new Object[] { username }, 
+					Boolean.class
+					);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw
+				new DataAccessException(
+					"Error executing the following SQL '" +
+						SQL_EXISTS_USER_CAN_CREATE_CLASSES +
+						"' with parameter: " +
+						username,
+					e);
 		}
 	}
 	
@@ -1674,6 +1707,7 @@ public class UserQueries extends Query implements IUserQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#updateUser(java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
+	@Override
 	public void updateUser(
 			final String username, 
 			final String emailAddress,
@@ -1681,6 +1715,7 @@ public class UserQueries extends Query implements IUserQueries {
 			final Boolean enabled, 
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
+			final Boolean classCreationPrivilege,
 			final String firstName,
 			final String lastName,
 			final String organization,
@@ -1753,6 +1788,29 @@ public class UserQueries extends Query implements IUserQueries {
 					transactionManager.rollback(status);
 					throw new DataAccessException("Error executing the following SQL '" + SQL_UPDATE_CAMPAIGN_CREATION_PRIVILEGE + "' with parameters: " + 
 							campaignCreationPrivilege + ", " + username, e);
+				}
+			}
+			
+			// Update the campaign creation privilege value if it's not null.
+			if(classCreationPrivilege != null) {
+				try {
+					getJdbcTemplate()
+						.update(
+							SQL_UPDATE_CLASS_CREATION_PRIVILEGE,
+							classCreationPrivilege,
+							username);
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw
+						new DataAccessException(
+							"Error executing the following SQL '" +
+								SQL_UPDATE_CLASS_CREATION_PRIVILEGE +
+								"' with parameters: " + 
+								classCreationPrivilege +
+								", " +
+								username,
+							e);
 				}
 			}
 			

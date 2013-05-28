@@ -13,3 +13,9 @@ CREATE TABLE `omh_authentication` (
 -- Add a default audio directory.
 INSERT INTO preference(p_key, p_value) VALUES
     ('audio_directory', '/opt/ohmage/userdata/audio');
+
+-- Add the class creation privilege.
+ALTER TABLE user
+    ADD COLUMN `class_creation_privilege`
+    BOOLEAN NOT NULL DEFAULT FALSE
+    AFTER `campaign_creation_privilege`;

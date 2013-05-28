@@ -125,6 +125,7 @@ public class UserUpdateRequest extends UserRequest {
 	private final Boolean enabled;
 	private final Boolean newAccount;
 	private final Boolean campaignCreationPrivilege;
+	private final Boolean classCreationPrivilege;
 	
 	private final String firstName;
 	private final String lastName;
@@ -156,6 +157,7 @@ public class UserUpdateRequest extends UserRequest {
 		Boolean tEnabled = null;
 		Boolean tNewAccount = null;
 		Boolean tCampaignCreationPrivilege = null;
+		Boolean tClassCreationPrivilege = null;
 		
 		String tFirstName = null;
 		String tLastName = null;
@@ -241,6 +243,19 @@ public class UserUpdateRequest extends UserRequest {
 						t[0]);
 			}
 			
+			t = getParameterValues(InputKeys.CLASS_CREATION_PRIVILEGE);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_CLASS_CREATION_PRIVILEGE, 
+					"Multiple class creation privilege parameters were given: " +
+						InputKeys.CLASS_CREATION_PRIVILEGE);
+			}
+			else if(t.length == 1) {
+				tClassCreationPrivilege = 
+					UserValidators.validateClassCreationPrivilegeValue(
+						t[0]);
+			}
+			
 			t = getParameterValues(InputKeys.FIRST_NAME);
 			if(t.length > 1) {
 				throw new ValidationException(
@@ -309,6 +324,7 @@ public class UserUpdateRequest extends UserRequest {
 		enabled = tEnabled;
 		newAccount = tNewAccount;
 		campaignCreationPrivilege = tCampaignCreationPrivilege;
+		classCreationPrivilege = tClassCreationPrivilege;
 		
 		firstName = tFirstName;
 		lastName = tLastName;
@@ -352,6 +368,7 @@ public class UserUpdateRequest extends UserRequest {
 					enabled, 
 					newAccount, 
 					campaignCreationPrivilege,
+					classCreationPrivilege,
 					firstName,
 					lastName,
 					organization,

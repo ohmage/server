@@ -155,6 +155,7 @@ CREATE TABLE user (
   enabled bit NOT NULL,
   new_account bit NOT NULL,
   campaign_creation_privilege bit NOT NULL,
+  campaign_creation_privilege bit NOT NULL DEFAULT FALSE,
   email_address varchar(320),
   admin bit NOT NULL,
   last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),

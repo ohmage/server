@@ -16,6 +16,8 @@
 package org.ohmage.request.clazz;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,6 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Clazz;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -155,8 +158,10 @@ public class ClassCreationRequest extends UserRequest {
 		
 		try {
 			// Check if the user is an administrator.
-			LOGGER.info("Checking that the user is an admin.");
-			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			LOGGER.info("Checking that the user can create classes.");
+			UserServices
+				.instance()
+				.verifyUserCanCreateClasses(getUser().getUsername());
 			
 			// Check that the class doesn't already exist.
 			LOGGER.info("Checking that a class with the same ID doesn't already exist.");
@@ -165,6 +170,15 @@ public class ClassCreationRequest extends UserRequest {
 			// Create the class.
 			LOGGER.info("Creating the class.");
 			ClassServices.instance().createClass(classId, className, classDescription);
+			
+			// Add the user to the class.
+			Map<String, Clazz.Role> usersToAdd =
+				new HashMap<String, Clazz.Role>();
+			usersToAdd.put(getUser().getUsername(), Clazz.Role.PRIVILEGED);
+			LOGGER.info("Adding the user to the class.");
+			ClassServices
+				.instance()
+				.updateClass(classId, null, null, usersToAdd, null);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

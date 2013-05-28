@@ -470,6 +470,48 @@ public final class UserValidators {
 	}
 	
 	/**
+	 * Validates that a value is a valid campaign class privilege value. If the
+	 * value is null or whitespace only, null is returned. If the value is a
+	 * valid class creation privilege value, it is returned. If the value is
+	 * not null, not whitespace only, and not a valid class creation privilege
+	 * value, a ValidationException is thrown.
+	 * 
+	 * @param value
+	 *        The String representation of the class creation privilege value
+	 *        to be validated.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 *         the value is returned.
+	 * 
+	 * @throws ValidationException
+	 *         Thrown if the value is not null, not whitespace only, and not a
+	 *         valid class creation privilege value.
+	 */
+	public static Boolean validateClassCreationPrivilegeValue(
+		final String value)
+		throws ValidationException {
+		
+		LOGGER
+			.info(
+				"Validating that the value is a valid class creation " +
+					"privilege value.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		if(StringUtils.isValidBoolean(value.trim())) {
+			return StringUtils.decodeBoolean(value.trim());
+		}
+		else {
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_CLASS_CREATION_PRIVILEGE, 
+					"The class creation privilege value is invalid: " + 
+						value);
+		}
+	}
+	
+	/**
 	 * Validates that the first name value for a user is a valid first name
 	 * value.
 	 * 

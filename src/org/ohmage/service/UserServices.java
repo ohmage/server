@@ -632,6 +632,37 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Verifies that the user can create classes.
+	 * 
+	 * @param username
+	 *        The username of the user whose class creation ability is being
+	 *        checked.
+	 * 
+	 * @throws ServiceException
+	 *         Thrown if there is an error or if the user is not allowed to
+	 *         create classes.
+	 */
+	public void verifyUserCanCreateClasses(final String username) 
+			throws ServiceException {
+		
+		try {
+			if(
+				(! userQueries.userIsAdmin(username)) &&
+				(! userQueries.userCanCreateClasses(username))) {
+				
+				throw
+					new ServiceException(
+						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have permission to create new " +
+							"classes.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Validates that a registration ID still exists, hasn't been used, and 
 	 * hasn't expired.
 	 * 
@@ -1095,6 +1126,7 @@ public final class UserServices {
 						userQueries.getEmailAddress(username),
 						userQueries.userIsAdmin(username), 
 						userQueries.userCanCreateCampaigns(username),
+						userQueries.userCanCreateClasses(username),
 						campaigns,
 						campaignRoles,
 						classes,
@@ -1140,44 +1172,55 @@ public final class UserServices {
 	/**
 	 * Updates a user's account information.
 	 * 
-	 * @param username The username of the user whose information is to be
-	 * 				   updated.
+	 * @param username
+	 *        The username of the user whose information is to be updated.
 	 * 
-	 * @param emailAddress The new email address for the user. A null value 
-	 * 					   indicates that this field should not be updated.
+	 * @param emailAddress
+	 *        The new email address for the user. A null value indicates that
+	 *        this field should not be updated.
 	 * 
-	 * @param admin Whether or not the user should be an admin. A null value
-	 * 			    indicates that this field should not be updated.
+	 * @param admin
+	 *        Whether or not the user should be an admin. A null value
+	 *        indicates that this field should not be updated.
 	 * 
-	 * @param enabled Whether or not the user's account should be enabled. A
-	 * 				  null value indicates that this field should not be
-	 * 				  updated.
+	 * @param enabled
+	 *        Whether or not the user's account should be enabled. A null value
+	 *        indicates that this field should not be updated.
 	 * 
-	 * @param newAccount Whether or not the user should be required to change
-	 * 					 their password. A null value indicates that this field
-	 * 					 should not be updated.
+	 * @param newAccount
+	 *        Whether or not the user should be required to change their
+	 *        password. A null value indicates that this field should not be
+	 *        updated.
 	 * 
-	 * @param campaignCreationPrivilege Whether or not the user should be 
-	 * 									allowed to create campaigns. A null
-	 * 									Value indicates that this field should
-	 * 									not be updated.
+	 * @param campaignCreationPrivilege
+	 *        Whether or not the user should be allowed to create campaigns. A
+	 *        null value indicates that this field should not be updated.
 	 * 
-	 * @param firstName The user's new first name. A null value indicates that
-	 * 					this field should not be updated.
+	 * @param classCreationPrivilege
+	 *        Whether or not the user should be allowed to create classes. A
+	 *        null value indicates that this field should not be updated.
 	 * 
-	 * @param lastName The users's last name. A null value indicates that this
-	 * 				   field should not be updated.
+	 * @param firstName
+	 *        The user's new first name. A null value indicates that this field
+	 *        should not be updated.
 	 * 
-	 * @param organization The user's new organization. A null value indicates
-	 * 					   that this field should not be updated.
+	 * @param lastName
+	 *        The users's last name. A null value indicates that this field
+	 *        should not be updated.
 	 * 
-	 * @param personalId The user's new personal ID. A null value indicates 
-	 * 					 that this field should not be updated.
+	 * @param organization
+	 *        The user's new organization. A null value indicates that this
+	 *        field should not be updated.
 	 * 
-	 * @param deletePersonalInfo Whether or not to delete the user's personal
-	 * 							 information.
+	 * @param personalId
+	 *        The user's new personal ID. A null value indicates that this
+	 *        field should not be updated.
 	 * 
-	 * @throws ServiceException Thrown if there is an error.
+	 * @param deletePersonalInfo
+	 *        Whether or not to delete the user's personal information.
+	 * 
+	 * @throws ServiceException
+	 *         Thrown if there is an error.
 	 */
 	public void updateUser(
 			final String username, 
@@ -1185,7 +1228,8 @@ public final class UserServices {
 			final Boolean admin, 
 			final Boolean enabled, 
 			final Boolean newAccount, 
-			final Boolean campaignCreationPrivilege, 
+			final Boolean campaignCreationPrivilege,
+			final Boolean classCreationPrivilege, 
 			final String firstName,
 			final String lastName,
 			final String organization,
@@ -1194,13 +1238,15 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
-			userQueries.updateUser(
+			userQueries
+				.updateUser(
 					username, 
 					emailAddress,
 					admin, 
 					enabled, 
 					newAccount, 
 					campaignCreationPrivilege,
+					classCreationPrivilege,
 					firstName,
 					lastName,
 					organization,

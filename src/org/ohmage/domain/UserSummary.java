@@ -41,7 +41,10 @@ public class UserSummary {
 	
 	private static final String JSON_KEY_PERMISSIONS = "permissions";
 	private static final String JSON_KEY_PERMISSIONS_ADMIN = "is_admin";
-	private static final String JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION = "can_create_campaigns";
+	private static final String JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION =
+		"can_create_campaigns";
+	private static final String JSON_KEY_PERMISSIONS_CLASS_CREATION =
+		"can_create_classes";
 	
 	private static final String JSON_KEY_CAMPAIGNS = "campaigns";
 	private static final String JSON_KEY_CAMPAIGN_ROLES = "campaign_roles";
@@ -53,6 +56,7 @@ public class UserSummary {
 	
 	private final boolean isAdmin;
 	private final boolean campaignCreationPrivilege;
+	private final boolean classCreationPrivilege;
 	
 	private final Map<String, String> campaigns;
 	private final Set<Campaign.Role> campaignRoles;
@@ -72,6 +76,9 @@ public class UserSummary {
 	 * 
 	 * @param campaignCreationPrivilege Whether or not the user is allowed to
 	 * 									create new campaigns.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the user is allowed to
+	 * 									create new classes.
 	 * 
 	 * @param campaigns The map of all campaigns to which the user is 
 	 * 					associated where the key is the campaign's ID and its
@@ -93,6 +100,7 @@ public class UserSummary {
 			String emailAddress,
 			boolean isAdmin,
 			boolean campaignCreationPrivilege,
+			boolean classCreationPrivilege,
 			final Map<String, String> campaigns,
 			final Set<Campaign.Role> campaignRoles,
 			final Map<String, String> classes,
@@ -120,6 +128,7 @@ public class UserSummary {
 		
 		this.isAdmin = isAdmin;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
+		this.classCreationPrivilege = classCreationPrivilege;
 		
 		this.campaigns = new HashMap<String, String>(campaigns);
 		this.campaignRoles = new HashSet<Campaign.Role>(campaignRoles);
@@ -168,6 +177,13 @@ public class UserSummary {
 		}
 		catch(JSONException e) {
 			throw new DomainException("The campaign creation permission is missing from the list of permissions.", e);
+		}
+		
+		try {
+			classCreationPrivilege = permissions.getBoolean(JSON_KEY_PERMISSIONS_CLASS_CREATION); 
+		}
+		catch(JSONException e) {
+			throw new DomainException("The class creation permission is missing from the list of permissions.", e);
 		}
 		
 		try {
@@ -256,6 +272,15 @@ public class UserSummary {
 	}
 	
 	/**
+	 * Returns whether or not the user is allowed to create classes.
+	 * 
+	 * @return Whether or not the user is allowed to create classes.
+	 */
+	public boolean getClassCreationPrivilege() {
+		return classCreationPrivilege;
+	}
+	
+	/**
 	 * Returns an unmodifiable map of all of the campaigns associated with the 
 	 * user.
 	 * 
@@ -310,6 +335,7 @@ public class UserSummary {
 		JSONObject permissions = new JSONObject();
 		permissions.put(JSON_KEY_PERMISSIONS_ADMIN, isAdmin);
 		permissions.put(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, campaignCreationPrivilege);
+		permissions.put(JSON_KEY_PERMISSIONS_CLASS_CREATION, classCreationPrivilege);
 		result.put(JSON_KEY_PERMISSIONS, permissions);
 		
 		result.put(JSON_KEY_CAMPAIGNS, campaigns);
