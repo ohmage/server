@@ -87,12 +87,6 @@ public class CampaignCreationRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(CampaignCreationRequest.class);
 
 	private final Campaign campaign;
-	/*
-	private final String xml;
-	private final String description;
-	private final Campaign.RunningState runningState;
-	private final Campaign.PrivacyState privacyState;
-	*/
 	private final Collection<String> classIds;
 	
 	/**
@@ -167,7 +161,7 @@ public class CampaignCreationRequest extends UserRequest {
 					description = CampaignValidators.validateDescription(t[0]);
 				}
 
-				byte[] xml = getMultipartValue(httpRequest, InputKeys.XML);
+				byte[] xml = getParameter(httpRequest, InputKeys.XML);
 				if(xml == null) {
 					throw new ValidationException(
 						ErrorCode.CAMPAIGN_INVALID_XML,

@@ -437,6 +437,89 @@ public abstract class Request {
 			}
 		}
 	}
+	
+	/**
+	 * <p>
+	 * Retrieves a parameter from either parts or the servlet container's
+	 * deserialization.
+	 * </p>
+	 * 
+	 * <p>
+	 * This supersedes {@link #getMultipartValue(HttpServletRequest, String)}.
+	 * </p>
+	 * 
+	 * @param httpRequest
+	 *        The HTTP request.
+	 * 
+	 * @param key
+	 *        The parameter key.
+	 * 
+	 * @return The parameter if given otherwise null.
+	 * 
+	 * @throws ValidationException
+	 *         There was a problem reading from the request.
+	 */
+	protected byte[] getParameter(
+		final HttpServletRequest httpRequest,
+		final String key)
+		throws ValidationException {
+		
+		// First, attempt to decode it as a multipart/form-data post.
+		try {
+			// Get the part. If it isn't a multipart/form-data post, an
+			// exception will be thrown. If it is and such a part does not
+			// exist, return null.
+			Part part = httpRequest.getPart(key);
+			if(part == null) {
+				return null;
+			}
+			
+			// If the part exists, attempt to retrieve it.
+			InputStream partInputStream = part.getInputStream();
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			byte[] chunk = new byte[4096];
+			int amountRead;
+			while((amountRead = partInputStream.read(chunk)) != -1) {
+				outputStream.write(chunk, 0, amountRead);
+			}
+			
+			// If the buffer is empty, return null. Otherwise, return the byte
+			// array.
+			if(outputStream.size() == 0) {
+				return null;
+			}
+			else {
+				return outputStream.toByteArray();
+			}
+		}
+		// This will be thrown if it isn't a multipart/form-post, at which
+		// point we can attempt to use the servlet container's deserialization
+		// of the parameters.
+		catch(ServletException e) {
+			// Get the parameter.
+			String result = httpRequest.getParameter(key);
+			
+			// If it doesn't exist, return null.
+			if(result == null) {
+				return null;
+			}
+			// Otherwise, return its bytes.
+			else {
+				return result.getBytes();
+			}
+		}
+		// If we could not read a parameter, something more severe happened,
+		// and we need to fail the request and throw an exception.
+		catch(IOException e) {
+			LOGGER
+				.info(
+					"There was an error reading the message from the input " +
+						"stream.",
+					e);
+			setFailed();
+			throw new ValidationException(e);
+		}
+	}
 		
 	/**
 	 * Reads the HttpServletRequest for a key-value pair and returns the value
