@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -88,7 +89,9 @@ public class RequestServlet extends HttpServlet {
 	private static final int MAX_DATABASE_LENGTH = (1024 * 16) - 1;
 	
 	private static final String PASSWORD_OMITTED = "omitted";
-	private static final String LONG_VALUE_OMITTED = "<<<Value exeeded " + MAX_DATABASE_LENGTH + " characters.>>>";
+	private static final String LONG_VALUE_OMITTED = 
+		"<<<Value exeeded " + MAX_DATABASE_LENGTH + " characters.>>>";
+	private static final String MEDIA_OMITTED = "<<<Media omitted.>>>";
 	private static final String ELLIPSE = "...";
 	
 	private static final String KEY_DEVICE_ID = "device_id";
@@ -190,16 +193,37 @@ public class RequestServlet extends HttpServlet {
 					// If it is a password or new_password, we mask it to avoid
 					// accidentally storing any passwords in the database,
 					// except in the user table.
-					if(key.equals(InputKeys.PASSWORD) || 
-							key.equals(InputKeys.NEW_PASSWORD)) {
+					if(
+						InputKeys.PASSWORD.equals(key) || 
+						InputKeys.NEW_PASSWORD.equals(key)) {
+
 						for(int i = 0; i < values.length; i++) {
 							values[i] = PASSWORD_OMITTED;
 						}
 					}
-					else {
+					// If it is the list of BASE64-encoded images, then ignore
+					// them.
+					else if(InputKeys.IMAGES.equals(key)) {
 						for(int i = 0; i < values.length; i++) {
-							if(values[i].length() > MAX_DATABASE_LENGTH) {
-								values[i] = LONG_VALUE_OMITTED;
+							values[i] = MEDIA_OMITTED;
+						}
+					}
+					else {
+						// If the parameter's key is a UUID, it is probably a
+						// media file and should not be audited.
+						try {
+							UUID.fromString(key);
+							for(int i = 0; i < values.length; i++) {
+								values[i] = MEDIA_OMITTED;
+							}
+						}
+						// If it wasn't a valid UUID, then check every field to
+						// see if it is greater than the database limit.
+						catch(IllegalArgumentException e) { 
+							for(int i = 0; i < values.length; i++) {
+								if(values[i].length() > MAX_DATABASE_LENGTH) {
+									values[i] = LONG_VALUE_OMITTED;
+								}
 							}
 						}
 					}
