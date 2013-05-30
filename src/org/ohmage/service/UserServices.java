@@ -565,6 +565,27 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Returns the user's email address or null if they don't have one.
+	 * 
+	 * @param username
+	 *        The username of the user whose email address is desired.
+	 * 
+	 * @return The user's email address or null if they don't have one or don't
+	 *         exist.
+	 * 
+	 * @throws ServiceException
+	 *         There was an internal error.
+	 */
+	public String getUserEmail(final String username) throws ServiceException {
+		try {
+			return userQueries.getEmailAddress(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Checks if the user is an admin.
 	 * 
 	 * TODO Any use case that involves an API call which isn't exclusively
@@ -642,8 +663,9 @@ public final class UserServices {
 	 *         Thrown if there is an error or if the user is not allowed to
 	 *         create classes.
 	 */
-	public void verifyUserCanCreateClasses(final String username) 
-			throws ServiceException {
+	public void verifyUserCanCreateClasses(
+		final String username) 
+		throws ServiceException {
 		
 		try {
 			if(
@@ -655,6 +677,36 @@ public final class UserServices {
 						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have permission to create new " +
 							"classes.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Verifies that a user can setup a new user.
+	 * 
+	 * @param username
+	 *        The requesting user's username.
+	 * 
+	 * @throws ServiceException
+	 *         The user cannot setup a new user.
+	 */
+	public void verifyUserCanSetupUsers(
+		final String username)
+		throws ServiceException {
+		
+		try {
+			if(
+				(! userQueries.userIsAdmin(username)) &&
+				(! userQueries.userCanSetupUsers(username))) {
+				
+				throw
+					new ServiceException(
+						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have permission to setup a new " +
+							"user.");
 			}
 		}
 		catch(DataAccessException e) {
@@ -717,9 +769,14 @@ public final class UserServices {
 			final String username, final Collection<String> usernames) 
 			throws ServiceException {
 		
-		if((usernames == null) || (usernames.size() == 0) ||
-				((usernames.size() == 1) && 
-				 usernames.iterator().next().equals(username))) {
+		if(
+			(usernames == null) ||
+			(usernames.size() == 0) ||
+			(
+				(usernames.size() == 1) && 
+				usernames.iterator().next().equals(username)
+			)) {
+			
 			return;
 		}
 		
@@ -827,58 +884,72 @@ public final class UserServices {
 	/**
 	 * Searches through all of the users in the system and returns those that
 	 * match the criteria. All Object parameters are optional except
-	 * 'requesterUsername'; by passing a null value, it will be omitted from 
+	 * 'requesterUsername'; by passing a null value, it will be omitted from
 	 * the search.
 	 * 
-	 * @param requesterUsername The username of the user making this request.
+	 * @param requesterUsername
+	 *        The username of the user making this request.
 	 * 
-	 * @param usernames Limits the results to only those whose username is in
-	 * 					this list.
+	 * @param usernames
+	 *        Limits the results to only those whose username is in this list.
 	 * 
-	 * @param usernameTokens Limits the results to only those whose username is
-	 * 						 like any of the values in this token.
+	 * @param usernameTokens
+	 *        Limits the results to only those whose username is like any of
+	 *        the values in this token.
 	 * 
-	 * @param emailAddress Limits the results to only those users whose email
-	 * 					   address matches this value.
+	 * @param emailAddress
+	 *        Limits the results to only those users whose email address
+	 *        matches this value.
 	 * 
-	 * @param admin Limits the results to only those users whose admin value
-	 * 				matches this value.
+	 * @param admin
+	 *        Limits the results to only those users whose admin value matches
+	 *        this value.
 	 * 
-	 * @param enabled Limits the results to only those user whose enabled value
-	 * 				  matches this value.
+	 * @param enabled
+	 *        Limits the results to only those user whose enabled value matches
+	 *        this value.
 	 * 
-	 * @param newAccount Limits the results to only those users whose new 
-	 * 					 account value matches this value.
+	 * @param newAccount
+	 *        Limits the results to only those users whose new account value
+	 *        matches this value.
 	 * 
-	 * @param campaignCreationPrivilege Limits the results to only those 
-	 * 									users whose campaign creation privilege
-	 * 									matches this value.
+	 * @param campaignCreationPrivilege
+	 *        Limits the results to only those users whose campaign creation
+	 *        privilege matches this value.
 	 * 
-	 * @param firstName Limits the results to only those that have personal 
-	 * 					information and their first name equals this value.
+	 * @param classCreationPrivilege
+	 *        Limits the results to only those users whose class creation
+	 *        privilege matches this value.
 	 * 
-	 * @param partialLastName Limits the results to only those users that have 
-	 * 						  personal information and their last name matches 
-	 * 						  this value.
+	 * @param firstName
+	 *        Limits the results to only those that have personal information
+	 *        and their first name equals this value.
 	 * 
-	 * @param partialOrganization Limits the results to only those users that 
-	 * 							  have personal information and their 
-	 * 							  organization value matches this value.
+	 * @param partialLastName
+	 *        Limits the results to only those users that have personal
+	 *        information and their last name matches this value.
 	 * 
-	 * @param partialPersonalId Limits the results to only those users that 
-	 * 							have personal information and their personal ID
-	 * 							matches this value.
+	 * @param partialOrganization
+	 *        Limits the results to only those users that have personal
+	 *        information and their organization value matches this value.
 	 * 
-	 * @param numToSkip The number of results to skip.
+	 * @param partialPersonalId
+	 *        Limits the results to only those users that have personal
+	 *        information and their personal ID matches this value.
 	 * 
-	 * @param numToReturn The number of results to return.
+	 * @param numToSkip
+	 *        The number of results to skip.
 	 * 
-	 * @param results The user information for the users that matched the
-	 * 				  criteria.
+	 * @param numToReturn
+	 *        The number of results to return.
+	 * 
+	 * @param results
+	 *        The user information for the users that matched the criteria.
 	 * 
 	 * @return The number of usernames that matched the given criteria.
 	 * 
-	 * @throws ServiceException Thrown if there is an error.
+	 * @throws ServiceException
+	 *         Thrown if there is an error.
 	 */
 	public long getUserInformation(
 			final String requesterUsername,
@@ -889,6 +960,7 @@ public final class UserServices {
 			final Boolean enabled,
 			final Boolean newAccount,
 			final Boolean canCreateCampaigns,
+			final Boolean canCreateClasses,
 			final Collection<String> firstNameTokens,
 			final Collection<String> lastNameTokens,
 			final Collection<String> organizationTokens,
@@ -900,25 +972,67 @@ public final class UserServices {
 			final List<UserInformation> results) 
 			throws ServiceException {
 		
+		// Compile the set of usernames based on those that must be equal and
+		// those that may have wildcards.
+		Set<String> usernameCompilation = new HashSet<String>();
+		for(String username : usernames) {
+			usernameCompilation.add(username);
+		}
+		for(String username : usernameTokens) {
+			usernameCompilation.add('%' + username + '%');
+		}
+		
+		// Compile the set of email addresses.
+		Set<String> emailAddressCompilation = new HashSet<String>();
+		for(String emailAddress : emailAddressTokens) {
+			emailAddressCompilation.add('%' + emailAddress + '%');
+		}
+		
+		// Compile the set of first names.
+		Set<String> firstNameCompilation = new HashSet<String>();
+		for(String firstName : firstNameTokens) {
+			firstNameCompilation.add('%' + firstName + '%');
+		}
+		
+		// Compile the set of last names.
+		Set<String> lastNameCompilation = new HashSet<String>();
+		for(String lastName : lastNameTokens) {
+			lastNameCompilation.add('%' + lastName + '%');
+		}
+		
+		// Compile the set of organizations.
+		Set<String> organizationCompilation = new HashSet<String>();
+		for(String organization : organizationTokens) {
+			organizationCompilation.add('%' + organization + '%');
+		}
+		
+		// Compile the set of personal IDs.
+		Set<String> personalIdCompilation = new HashSet<String>();
+		for(String personalId : personalIdTokens) {
+			personalIdCompilation.add('%' + personalId + '%');
+		}
+		
 		try {
 			QueryResultsList<UserInformation> result =
-					userQueries.getUserInformation(
+					userQueries
+						.getUserInformation(
 							requesterUsername,
-							usernames,
-							usernameTokens, 
-							emailAddressTokens, 
+							usernameCompilation,
+							emailAddressCompilation, 
 							admin, 
 							enabled, 
 							newAccount, 
 							canCreateCampaigns, 
-							firstNameTokens, 
-							lastNameTokens, 
-							organizationTokens, 
-							personalIdTokens,
+							canCreateClasses,
+							firstNameCompilation, 
+							lastNameCompilation, 
+							organizationCompilation, 
+							personalIdCompilation,
 							campaignIds,
 							classIds,
 							numToSkip, 
-							numToReturn);
+							numToReturn,
+							false);
 			
 			results.addAll(result.getResults());
 			
@@ -931,60 +1045,75 @@ public final class UserServices {
 	
 	/**
 	 * Searches through all of the users in the system and returns those that
-	 * match the criteria. All Object parameters are optional except 
-	 * 'requesterUsername'; by passing a null value, it will be omitted from 
-	 * the search. 
+	 * match the criteria. All Object parameters are optional except
+	 * 'requesterUsername'; by passing a null value, it will be omitted from
+	 * the search.
 	 * 
-	 * @param requesterUsername The username of the user making this request.
+	 * @param requesterUsername
+	 *        The username of the user making this request.
 	 * 
-	 * @param partialUsername Limits the results to only those users whose 
-	 * 						  username contain this value.
+	 * @param partialUsername
+	 *        Limits the results to only those users whose username contain
+	 *        this value.
 	 * 
-	 * @param partialEmailAddress Limits the results to only those users whose
-	 * 							  email address contains this value.
+	 * @param partialEmailAddress
+	 *        Limits the results to only those users whose email address
+	 *        contains this value.
 	 * 
-	 * @param admin Limits the results to only those usernames that belong to
-	 * 				users whose admin value matches this one.
+	 * @param admin
+	 *        Limits the results to only those usernames that belong to users
+	 *        whose admin value matches this one.
 	 * 
-	 * @param enabled Limits the results to only those usernames that belong to
-	 * 				  users whose enabled value matches this one.
+	 * @param enabled
+	 *        Limits the results to only those usernames that belong to users
+	 *        whose enabled value matches this one.
 	 * 
-	 * @param newAccount Limits the results to only those usernames that belong
-	 * 					 to users whose new account value matches this one.
+	 * @param newAccount
+	 *        Limits the results to only those usernames that belong to users
+	 *        whose new account value matches this one.
 	 * 
-	 * @param campaignCreationPrivilege Limits the results to only those 
-	 * 									usernames that belong to users whose	
-	 * 									campaign creation privilege matches 
-	 * 									this one.
+	 * @param campaignCreationPrivilege
+	 *        Limits the results to only those usernames that belong to users
+	 *        whose campaign creation privilege matches this one.
 	 * 
-	 * @param partialFirstName Limits the results to only those usernames that
-	 * 						   belong to users that have personal information
-	 * 						   and their first name contains this value.
+	 * @param classCreationPrivilege
+	 *        Limits the results to only those users whose class creation
+	 *        privilege matches this value.
 	 * 
-	 * @param partialLastName Limits the results to only those usernames that
-	 * 						  belong to users that have personal information 
-	 * 						  and their last name contains this value.
+	 * @param partialFirstName
+	 *        Limits the results to only those usernames that belong to users
+	 *        that have personal information and their first name contains this
+	 *        value.
 	 * 
-	 * @param partialOrganization Limits the results to only those usernames
-	 * 							  that belong to users that have personal 
-	 * 							  information and their organization value 
-	 * 							  contains this value.
+	 * @param partialLastName
+	 *        Limits the results to only those usernames that belong to users
+	 *        that have personal information and their last name contains this
+	 *        value.
 	 * 
-	 * @param partialPersonalId Limits the results to only those usernames that
-	 * 							belong to users that have personal information
-	 * 							and their personal ID contains this value.
+	 * @param partialOrganization
+	 *        Limits the results to only those usernames that belong to users
+	 *        that have personal information and their organization value
+	 *        contains this value.
 	 * 
-	 * @param numToSkip The number of results to skip.
+	 * @param partialPersonalId
+	 *        Limits the results to only those usernames that belong to users
+	 *        that have personal information and their personal ID contains
+	 *        this value.
 	 * 
-	 * @param numToReturn The number of results to return.
+	 * @param numToSkip
+	 *        The number of results to skip.
 	 * 
-	 * @param results The user information for the users that matched the
-	 * 				  criteria. This cannot be null and will be populated with
-	 * 				  the results.
+	 * @param numToReturn
+	 *        The number of results to return.
+	 * 
+	 * @param results
+	 *        The user information for the users that matched the criteria.
+	 *        This cannot be null and will be populated with the results.
 	 * 
 	 * @return The number of usernames that matched the given criteria.
 	 * 
-	 * @throws ServiceException Thrown if there is an error.
+	 * @throws ServiceException
+	 *         Thrown if there is an error.
 	 */
 	public long userSearch(
 			final String requesterUsername,
@@ -1007,57 +1136,59 @@ public final class UserServices {
 			Set<String> usernameTokens = null;
 			if(partialUsername != null) {
 				usernameTokens = new HashSet<String>();
-				usernameTokens.add(partialUsername);
+				usernameTokens.add('%' + partialUsername + '%');
 			}
 			
 			Set<String> emailAddressTokens = null;
 			if(partialEmailAddress != null) {
 				emailAddressTokens = new HashSet<String>();
-				emailAddressTokens.add(partialEmailAddress);
+				emailAddressTokens.add('%' + partialEmailAddress + '%');
 			}
 			
 			Set<String> firstNameTokens = null;
 			if(partialFirstName != null) {
 				firstNameTokens = new HashSet<String>();
-				firstNameTokens.add(partialFirstName);
+				firstNameTokens.add('%' + partialFirstName + '%');
 			}
 			
 			Set<String> lastNameTokens = null;
 			if(partialLastName != null) {
 				lastNameTokens = new HashSet<String>();
-				lastNameTokens.add(partialLastName);
+				lastNameTokens.add('%' + partialLastName + '%');
 			}
 			
 			Set<String> organizationTokens = null;
 			if(partialOrganization != null) {
 				organizationTokens = new HashSet<String>();
-				organizationTokens.add(partialOrganization);
+				organizationTokens.add('%' + partialOrganization + '%');
 			}
 			
 			Set<String> personalIdTokens = null;
 			if(partialPersonalId != null) {
 				personalIdTokens = new HashSet<String>();
-				personalIdTokens.add(partialPersonalId);
+				personalIdTokens.add('%' + partialPersonalId + '%');
 			}
-			
+
 			QueryResultsList<UserInformation> result =
-					userQueries.getUserInformation(
-							requesterUsername,
-							null, 
-							usernameTokens, 
-							emailAddressTokens, 
-							admin, 
-							enabled, 
-							newAccount, 
-							campaignCreationPrivilege, 
-							firstNameTokens, 
-							lastNameTokens, 
-							organizationTokens, 
-							personalIdTokens, 
-							null,
-							null,
-							numToSkip, 
-							numToReturn);
+				userQueries
+					.getUserInformation(
+						requesterUsername,
+						usernameTokens,
+						emailAddressTokens, 
+						admin, 
+						enabled, 
+						newAccount, 
+						campaignCreationPrivilege, 
+						null,
+						firstNameTokens, 
+						lastNameTokens, 
+						organizationTokens, 
+						personalIdTokens,
+						null,
+						null,
+						numToSkip, 
+						numToReturn,
+						false);
 			
 			try {
 				for(UserInformation currResult : result.getResults()) {
@@ -1080,6 +1211,81 @@ public final class UserServices {
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Based on personal information, this will either return a user's
+	 * information if they exist or null if they do not.
+	 * 
+	 * @param requesterUsername
+	 *        The requesting user's username.
+	 * 
+	 * @param personalInformation
+	 *        The personal information of the user in question.
+	 * 
+	 * @return The information about the user or null if no user has the given
+	 *         personal information.
+	 * 
+	 * @throws ServiceException
+	 *         An internal error occurred.
+	 */
+	public UserInformation getUserInformationFromPersonalInformation(
+		final String requesterUsername,
+		final UserPersonal personalInformation)
+		throws ServiceException {
+		
+		Set<String> firstNameSet = new HashSet<String>();
+		firstNameSet.add(personalInformation.getFirstName());
+		
+		Set<String> lastNameSet = new HashSet<String>();
+		lastNameSet.add(personalInformation.getLastName());
+		
+		Set<String> organizationSet = new HashSet<String>();
+		organizationSet.add(personalInformation.getOrganization());
+		
+		
+		Set<String> personalIdSet = new HashSet<String>();
+		personalIdSet.add(personalInformation.getPersonalId());
+		
+		// Query for the users.
+		QueryResultsList<UserInformation> queryResult;
+		try {
+			queryResult =
+				userQueries
+					.getUserInformation(
+						requesterUsername,
+						null,
+						null, 
+						null, 
+						null, 
+						null, 
+						null, 
+						null,
+						firstNameSet, 
+						lastNameSet, 
+						organizationSet, 
+						personalIdSet,
+						null,
+						null,
+						0, 
+						2,
+						true);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		
+		// Return the result.
+		switch((int) queryResult.getTotalNumResults()) {
+		case 0:
+			return null;
+		case 1:
+			return queryResult.getResults().get(0);
+		default:
+			throw
+				new ServiceException(
+					"Multiple users have the same user information.");
 		}
 	}
 	

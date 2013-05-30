@@ -385,6 +385,7 @@ public class UserReadRequest extends UserRequest {
 							enabled,
 							newAccount,
 							campaignCreationPrivilege,
+							null,
 							firstNameTokens,
 							lastNameTokens,
 							organizationTokens,

@@ -454,8 +454,11 @@ public final class StringUtils {
 			return Collections.emptySet();
 		}
 		
+		// Escape the wildcard.
+		String escapedString = string.replace("%", "\\%");
+		
 		Set<String> result = new HashSet<String>();
-		Matcher regexMatcher = PATTERN_SEARCH.matcher(string);
+		Matcher regexMatcher = PATTERN_SEARCH.matcher(escapedString);
 		while (regexMatcher.find()) {
 		    if (regexMatcher.group(1) != null) {
 		        // Add double-quoted string without the quotes

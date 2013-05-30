@@ -197,6 +197,8 @@ public class ImageReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 		
+		httpResponse.setHeader("Cache-Control", "max-age=1051200, private");
+		
 		// Open the connection to the image if it is not null.
 		InputStream imageStream = null;
 		try {

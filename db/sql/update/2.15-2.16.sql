@@ -19,3 +19,9 @@ ALTER TABLE user
     ADD COLUMN `class_creation_privilege`
     BOOLEAN NOT NULL DEFAULT FALSE
     AFTER `campaign_creation_privilege`;
+
+-- Add the user setup privilege.
+ALTER TABLE user
+    ADD COLUMN `user_setup_privilege`
+    BOOLEAN NOT NULL DEFAULT FALSE
+    AFTER `class_creation_privilege`;

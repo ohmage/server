@@ -157,6 +157,19 @@ public interface IUserQueries {
 	Boolean userCanCreateClasses(String username) throws DataAccessException;
 
 	/**
+	 * Gets whether or not the user is allowed to setup other users.
+	 * 
+	 * @param username
+	 *        The username of the requesting user.
+	 * 
+	 * @return Whether or not the user can setup other users.
+	 * 
+	 * @throws DataAccessException
+	 *         Thrown if there is a problem running the query.
+	 */
+	Boolean userCanSetupUsers(String username) throws DataAccessException;
+
+	/**
 	 * Checks if a user has a personal information entry in the database.
 	 *  
 	 * @param username The username of the user.
@@ -369,90 +382,104 @@ public interface IUserQueries {
 			throws DataAccessException;
 	
 	/**
-	 * Gathers the information about a person including the classes and 
-	 * campaigns to which they belong. Any of the Object parameters may be 
-	 * null except 'requesterUsername'.
+	 * Gathers the information about a person including the classes and
+	 * campaigns to which they belong. Any of the Object parameters may be null
+	 * except 'requesterUsername'.
 	 * 
-	 * @param requesterUsername The username of the user that is requesting 
-	 * 							this information.
+	 * @param requesterUsername
+	 *        The username of the user that is requesting this information.
 	 * 
-	 * @param usernames Limits the results to only those whose username is in
-	 * 					this list.
+	 * @param usernames
+	 *        Limits the results to only those whose username is equal to or
+	 *        like these.
 	 * 
-	 * @param likeUsername Limits the results to only those whose username is
-	 * 					   like this username. The 'like' parameter has no
-	 * 					   effect on this parameter.
-	 * 					
-	 * @param emailAddress Limits the results to only those accounts that have
-	 * 					   an email address and where that email address 
-	 * 					   matches or is like this value, see 'like'.
+	 * @param emailAddresses
+	 *        Limits the results to only those accounts that have an email
+	 *        address and where that email address matches or is like this
+	 *        value.
 	 * 
-	 * @param admin Limits the results to only those accounts whose admin value
-	 * 				matches this value.
+	 * @param admin
+	 *        Limits the results to only those accounts whose admin value
+	 *        matches this value.
 	 * 
-	 * @param enabled Limits the results to only those accounts whose enabled
-	 * 				  value matches this value.
+	 * @param enabled
+	 *        Limits the results to only those accounts whose enabled value
+	 *        matches this value.
 	 * 
-	 * @param newAccount Limits the results to only those accounts whose new
-	 * 					 account value matches this value.
+	 * @param newAccount
+	 *        Limits the results to only those accounts whose new account value
+	 *        matches this value.
 	 * 
-	 * @param canCreateCampaigns Limits the results to only those accounts 
-	 * 							 whose new account status matches this value.
-	 * 							 
-	 * @param firstName Limits the results to only those accounts that have
-	 * 					personal information and whose first name matches or is
-	 * 					like this value, see 'like'.
+	 * @param canCreateCampaigns
+	 *        Limits the results to only those accounts that are allowed to
+	 *        create campaigns.
 	 * 
-	 * @param lastName Limits the results to only those accounts that have 
-	 * 				   personal information and whose last name matches or is
-	 * 				   like this value, see 'like'.
+	 * @param canCreateClasses
+	 *        Limits the results to only those accounts that are allowed to
+	 *        create classes.
 	 * 
-	 * @param organization Limits the results to only those accounts that have
-	 * 					   personal information and whose organization value
-	 * 					   matches or is like this value, see 'like'.
+	 * @param firstNames
+	 *        Limits the results to only those accounts that have personal
+	 *        information and whose first name matches or is like this value.
 	 * 
-	 * @param personalId Limits the results to only those accounts that have a
-	 * 					 personal ID and where that personal ID matches or is
-	 * 					 like this value, see 'like'.
+	 * @param lastNames
+	 *        Limits the results to only those accounts that have personal
+	 *        information and whose last name matches or is like this value.
 	 * 
-	 * @param campaignIds Limits the results to only those accounts that are in
-	 * 					  any of the campaigns listed.
+	 * @param organizations
+	 *        Limits the results to only those accounts that have personal
+	 *        information and whose organization value matches or is like this
+	 *        value.
 	 * 
-	 * @param classIds Limits the results to only those accounts that are in 
-	 * 				   any of the classes listed.
+	 * @param personalIds
+	 *        Limits the results to only those accounts that have a personal ID
+	 *        and where that personal ID matches or is like this value.
 	 * 
-	 * @param like Switches the SQL to use LIKE instead of a direct matching. 
-	 * 			   This only applies to the parameters that mention it.
+	 * @param campaignIds
+	 *        Limits the results to only those accounts that are in any of the
+	 *        campaigns listed.
 	 * 
-	 * @param numToSkip The number of results to skip. The results are sorted
-	 * 					alphabetically by username.
+	 * @param classIds
+	 *        Limits the results to only those accounts that are in any of the
+	 *        classes listed.
 	 * 
-	 * @param numToReturn The number of results to return. The results are 
-	 * 					  sorted alphabetically by username.
+	 * @param numToSkip
+	 *        The number of results to skip. The results are sorted
+	 *        alphabetically by username.
 	 * 
-	 * @return A QueryResultsList object containing the users' information and the
-	 * 		   total number of results.
+	 * @param numToReturn
+	 *        The number of results to return. The results are sorted
+	 *        alphabetically by username.
+	 *
+	 * @param settingUpUser
+	 *        This flag should be used internally to dictate when a user has
+	 *        the ability to read information about users they otherwise would
+	 *        not.
 	 * 
-	 * @throws DataAccessException There was an error aggregating the 
-	 * 							   information.
+	 * @return A QueryResultsList object containing the users' information and
+	 *         the total number of results.
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error aggregating the information.
 	 */
 	public QueryResultsList<UserInformation> getUserInformation(
 			final String requesterUsername,
 			final Collection<String> usernames,
-			final Collection<String> usernameTokens,
-			final Collection<String> emailAddressTokens,
+			final Collection<String> emailAddresses,
 			final Boolean admin,
 			final Boolean enabled,
 			final Boolean newAccount,
 			final Boolean canCreateCampaigns,
-			final Collection<String> firstNameTokens,
-			final Collection<String> lastNameTokens,
-			final Collection<String> organizationTokens,
-			final Collection<String> personalIdTokens,
+			final Boolean canCreateClasses,
+			final Collection<String> firstNames,
+			final Collection<String> lastNames,
+			final Collection<String> organizations,
+			final Collection<String> personalIds,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final long numToSkip,
-			final long numToReturn)
+			final long numToReturn,
+			final boolean settingUpUser)
 			throws DataAccessException;
 
 	/**

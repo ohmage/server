@@ -3,6 +3,7 @@ package org.ohmage.jee.listener;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.apache.log4j.LogManager;
 import org.apache.log4j.PropertyConfigurator;
 
 /**
@@ -40,6 +41,6 @@ public class LogSetup implements ServletContextListener {
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent event) {
-		// Do nothing.
+		LogManager.shutdown();
 	}
 }

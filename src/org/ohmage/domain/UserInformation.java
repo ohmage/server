@@ -74,7 +74,8 @@ public class UserInformation {
 		ADMIN ("admin"),
 		ENABLED ("enabled"),
 		NEW_ACCOUNT ("new_account"),
-		CAN_CREATE_CAMPAIGNS ("can_create_campaigns");
+		CAN_CREATE_CAMPAIGNS ("can_create_campaigns"),
+		CAN_CREATE_CLASSES ("can_create_classes");
 		
 		private final String key;
 		
@@ -313,6 +314,7 @@ public class UserInformation {
 	private final boolean isEnabled;
 	private final boolean isNewAccount;
 	private final boolean campaignCreationPrivilege;
+	private final boolean classCreationPrivilege;
 	
 	private Map<String, Set<Campaign.Role>> campaigns;
 	private Map<String, Clazz.Role> classes;
@@ -320,28 +322,40 @@ public class UserInformation {
 	/**
 	 * Creates a new information object for this user.
 	 * 
-	 * @param username The user's username.
+	 * @param username
+	 *        The user's username.
 	 * 
-	 * @param emailAddress The user's email address.
+	 * @param emailAddress
+	 *        The user's email address.
 	 * 
-	 * @param isAdmin Whether or not the user is an admin.
+	 * @param isAdmin
+	 *        Whether or not the user is an admin.
 	 * 
-	 * @param isEnabled Whether or not the user's account is enabled.
+	 * @param isEnabled
+	 *        Whether or not the user's account is enabled.
 	 * 
-	 * @param isNewAccount Whether or not the account is new.
+	 * @param isNewAccount
+	 *        Whether or not the account is new.
 	 * 
-	 * @param campaignCreationPrivilege Whether or not the user is allowed to
-	 * 									create new campaigns.
+	 * @param campaignCreationPrivilege
+	 *        Whether or not the user is allowed to create new campaigns.
 	 * 
-	 * @param campaigns The map of campaign IDs to a set of the user's roles in
-	 * 					those campaigns.
+	 * @param classCreationPrivilege
+	 *        Whether or not the user is allowed to create new classes.
 	 * 
-	 * @param classes The map of class IDs to the user's role in that class.
+	 * @param campaigns
+	 *        The map of campaign IDs to a set of the user's roles in those
+	 *        campaigns.
 	 * 
-	 * @param personalInfo The personal information about the user or null if
-	 * 					   the user doesn't have a personal information record.
+	 * @param classes
+	 *        The map of class IDs to the user's role in that class.
 	 * 
-	 * @throws DomainException The campaign and/or class parameter is null.
+	 * @param personalInfo
+	 *        The personal information about the user or null if the user
+	 *        doesn't have a personal information record.
+	 * 
+	 * @throws DomainException
+	 *         The campaign and/or class parameter is null.
 	 */
 	public UserInformation(
 			final String username,
@@ -350,6 +364,7 @@ public class UserInformation {
 			final boolean isEnabled,
 			final boolean isNewAccount,
 			final boolean campaignCreationPrivilege,
+			final boolean classCreationPrivilege,
 			final Map<String, Set<Campaign.Role>> campaigns,
 			final Map<String, Clazz.Role> classes,
 			final UserPersonal personalInfo) 
@@ -366,6 +381,7 @@ public class UserInformation {
 		this.isEnabled = isEnabled;
 		this.isNewAccount = isNewAccount;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
+		this.classCreationPrivilege = classCreationPrivilege;
 		
 		if(campaigns == null) {
 			this.campaigns = null;
@@ -547,41 +563,42 @@ public class UserInformation {
 			throws JSONException {
 		
 		JSONObject result = new JSONObject();
-		
+
 		if(withUsername) {
 			result.put(UserColumnKey.USERNAME.toString(), username);
 		}
-		
+
 		result.put(UserColumnKey.EMAIL_ADDRESS.toString(), emailAddress);
-		
+
 		JSONObject permissionsJson = new JSONObject();
+		permissionsJson.put(UserPermissionColumnKey.ADMIN.toString(), isAdmin);
 		permissionsJson.put(
-				UserPermissionColumnKey.ADMIN.toString(), 
-				isAdmin);
+			UserPermissionColumnKey.ENABLED.toString(),
+			isEnabled);
 		permissionsJson.put(
-				UserPermissionColumnKey.ENABLED.toString(), 
-				isEnabled);
+			UserPermissionColumnKey.NEW_ACCOUNT.toString(),
+			isNewAccount);
 		permissionsJson.put(
-				UserPermissionColumnKey.NEW_ACCOUNT.toString(), 
-				isNewAccount);
+			UserPermissionColumnKey.CAN_CREATE_CAMPAIGNS.toString(),
+			campaignCreationPrivilege);
 		permissionsJson.put(
-				UserPermissionColumnKey.CAN_CREATE_CAMPAIGNS.toString(), 
-				campaignCreationPrivilege);
+			UserPermissionColumnKey.CAN_CREATE_CLASSES.toString(),
+			classCreationPrivilege);
 		result.put(UserColumnKey.PERMISSIONS.toString(), permissionsJson);
-		
+
 		if(campaigns != null) {
 			result.put(UserColumnKey.CAMPAIGNS.toString(), campaigns);
 		}
 		if(classes != null) {
 			result.put(UserColumnKey.CLASSES.toString(), classes);
 		}
-		
+
 		if((personalInfo != null) && withPersonal) {
 			result.put(
-					UserColumnKey.PERSONAL.toString(), 
-					personalInfo.toJsonObject());
+				UserColumnKey.PERSONAL.toString(),
+				personalInfo.toJsonObject());
 		}
-		
+
 		return result;
 	}
 }

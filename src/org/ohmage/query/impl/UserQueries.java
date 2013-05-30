@@ -103,6 +103,16 @@ public class UserQueries extends Query implements IUserQueries {
 			"AND class_creation_privilege = true" +
 		")";
 	
+	// Returns a boolean representing whether a user can create setup other
+	// users or not. If the user doesn't exist, false is returned.
+	private static final String SQL_EXISTS_USER_CAN_SETUP_USER =
+		"SELECT EXISTS(" +
+			"SELECT username " +
+			"FROM user " +
+			"WHERE username = ? " +
+			"AND user_setup_privilege = true" +
+		")";
+	
 	// Returns a boolean representing whether or not a user has a personal
 	// information entry.
 	private static final String SQL_EXISTS_USER_PERSONAL =
@@ -798,6 +808,29 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userCanCreateClasses(java.lang.String)
+	 */
+	public Boolean userCanSetupUsers(String username) throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_EXISTS_USER_CAN_SETUP_USER, 
+					new Object[] { username }, 
+					Boolean.class
+					);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw
+				new DataAccessException(
+					"Error executing the following SQL '" +
+						SQL_EXISTS_USER_CAN_SETUP_USER +
+						"' with parameter: " +
+						username,
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#userHasPersonalInfo(java.lang.String)
 	 */
 	public Boolean userHasPersonalInfo(String username) throws DataAccessException {
@@ -1239,23 +1272,24 @@ public class UserQueries extends Query implements IUserQueries {
 	 */
 	@Override
 	public QueryResultsList<UserInformation> getUserInformation(
-			final String requesterUsername,
-			final Collection<String> usernames,
-			final Collection<String> usernameTokens,
-			final Collection<String> emailAddressTokens,
-			final Boolean admin,
-			final Boolean enabled,
-			final Boolean newAccount,
-			final Boolean canCreateCampaigns,
-			final Collection<String> firstNameTokens,
-			final Collection<String> lastNameTokens,
-			final Collection<String> organizationTokens,
-			final Collection<String> personalIdTokens,
-			final Collection<String> campaignIds,
-			final Collection<String> classIds,
-			final long numToSkip,
-			final long numToReturn)
-			throws DataAccessException {
+		final String requesterUsername,
+		final Collection<String> usernames,
+		final Collection<String> emailAddresses,
+		final Boolean admin,
+		final Boolean enabled,
+		final Boolean newAccount,
+		final Boolean canCreateCampaigns,
+		final Boolean canCreateClasses,
+		final Collection<String> firstNames,
+		final Collection<String> lastNames,
+		final Collection<String> organizations,
+		final Collection<String> personalIds,
+		final Collection<String> campaignIds,
+		final Collection<String> classIds,
+		final long numToSkip,
+		final long numToReturn,
+		final boolean settingUpUser)
+		throws DataAccessException {
 		
 		// The initial SELECT selects everything.
 		StringBuilder sql = 
@@ -1266,6 +1300,7 @@ public class UserQueries extends Query implements IUserQueries {
 							"u.enabled, " +
 							"u.new_account, " +
 							"u.campaign_creation_privilege, " +
+							"u.class_creation_privilege, " +
 							"up.first_name, " +
 							"up.last_name, " +
 							"up.organization, " +
@@ -1277,8 +1312,11 @@ public class UserQueries extends Query implements IUserQueries {
 						"WHERE ru.username = ? " +
 						// ACL
 						"AND (" +
+								settingUpUser +
+							" OR " +
 								"(ru.admin = true)" +
-							" OR EXISTS(" +
+							" OR " +
+								"EXISTS(" +
 								// If the requesting user shares a campaign
 								// with the desired user and is a 
 								// supervisor in that campaign.
@@ -1337,26 +1375,15 @@ public class UserQueries extends Query implements IUserQueries {
 		// in the list.
 		if(usernames != null) {
 			if(usernames.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
-			}
-			
-			sql.append(" AND u.username IN ")
-				.append(StringUtils.generateStatementPList(usernames.size()));
-			
-			parameters.addAll(usernames);
-		}
-		
-		// If the list of username tokens is present, add a WHERE clause that 
-		// contains all of the tokens in their own OR.
-		if(usernameTokens != null) {
-			if(usernameTokens.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+				return
+					(new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
 			}
 			
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
-			for(String usernameToken : usernameTokens) {
+			for(String username : usernames) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -1366,23 +1393,25 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(u.username) LIKE ?");
 				
-				parameters.add('%' + usernameToken + '%');
+				parameters.add(username);
 			}
 			
 			sql.append(")");
 		}
 		
-		// If the list of email address tokens is present, add a WHERE clause
+		// If the list of email addresses is present, add a WHERE clause that
 		// that contains all of the tokens in their own OR.
-		if(emailAddressTokens != null) {
-			if(emailAddressTokens.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+		if(emailAddresses != null) {
+			if(emailAddresses.size() == 0) {
+				return
+					(new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
 			}
 			
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
-			for(String emailAddressToken : emailAddressTokens) {
+			for(String emailAddressToken : emailAddresses) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -1392,7 +1421,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(u.email_address) LIKE ?");
 				
-				parameters.add('%' + emailAddressToken + '%');
+				parameters.add(emailAddressToken);
 			}
 			
 			sql.append(")");
@@ -1434,17 +1463,28 @@ public class UserQueries extends Query implements IUserQueries {
 			parameters.add(canCreateCampaigns);
 		}
 		
+		// If "canCreateClasses" is present, add a WHERE clause component that 
+		// limits the results to only those whose campaign creation privilege
+		// is the same as this boolean.
+		if(canCreateClasses != null) {
+			sql.append(" AND u.class_creation_privilege = ?");
+			
+			parameters.add(canCreateClasses);
+		}
+		
 		// If the list of first name tokens is present, add a WHERE clause that
 		// contains all of the tokens in their own OR.
-		if(firstNameTokens != null) {
-			if(firstNameTokens.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+		if(firstNames != null) {
+			if(firstNames.size() == 0) {
+				return
+					(new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
 			}
 			
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
-			for(String firstNameToken : firstNameTokens) {
+			for(String firstName : firstNames) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -1454,7 +1494,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.first_name) LIKE ?");
 				
-				parameters.add('%' + firstNameToken + '%');
+				parameters.add(firstName);
 			}
 			
 			sql.append(")");
@@ -1462,15 +1502,17 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of last name tokens is present, add a WHERE clause that
 		// contains all of the tokens in their own OR.
-		if(lastNameTokens != null) {
-			if(lastNameTokens.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+		if(lastNames != null) {
+			if(lastNames.size() == 0) {
+				return
+					(new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
 			}
 			
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
-			for(String lastNameToken : lastNameTokens) {
+			for(String lastName : lastNames) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -1480,7 +1522,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.last_name) LIKE ?");
 				
-				parameters.add('%' + lastNameToken + '%');
+				parameters.add(lastName);
 			}
 			
 			sql.append(")");
@@ -1488,15 +1530,17 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of organization tokens is present, add a WHERE clause
 		// that contains all of the tokens in their own OR.
-		if(organizationTokens != null) {
-			if(organizationTokens.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+		if(organizations != null) {
+			if(organizations.size() == 0) {
+				return
+					(new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
 			}
 			
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
-			for(String organizationToken : organizationTokens) {
+			for(String organization : organizations) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -1506,7 +1550,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.organization) LIKE ?");
 				
-				parameters.add('%' + organizationToken + '%');
+				parameters.add(organization);
 			}
 			
 			sql.append(")");
@@ -1514,15 +1558,17 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of personal ID tokens is present, add a WHERE clause 
 		// that contains all of the tokens in their own OR.
-		if(personalIdTokens != null) {
-			if(personalIdTokens.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>()).getQueryResult();
+		if(personalIds != null) {
+			if(personalIds.size() == 0) {
+				return
+					(new QueryResultListBuilder<UserInformation>())
+						.getQueryResult();
 			}
 			
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
-			for(String personalIdToken : personalIdTokens) {
+			for(String personalId : personalIds) {
 				if(firstPass) {
 					firstPass = false;
 				}
@@ -1532,7 +1578,7 @@ public class UserQueries extends Query implements IUserQueries {
 				
 				sql.append("LOWER(up.personal_id) LIKE ?");
 				
-				parameters.add('%' + personalIdToken + '%');
+				parameters.add(personalId);
 			}
 			
 			sql.append(")");
@@ -1543,7 +1589,8 @@ public class UserQueries extends Query implements IUserQueries {
 		// campaigns.
 		if(campaignIds != null) {
 			if(campaignIds.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>())
+				return
+					(new QueryResultListBuilder<UserInformation>())
 						.getQueryResult();
 			}
 			
@@ -1564,7 +1611,8 @@ public class UserQueries extends Query implements IUserQueries {
 		// classes.
 		if(classIds != null) {
 			if(classIds.size() == 0) {
-				return (new QueryResultListBuilder<UserInformation>())
+				return
+					(new QueryResultListBuilder<UserInformation>())
 						.getQueryResult();
 			}
 			
@@ -1645,8 +1693,11 @@ public class UserQueries extends Query implements IUserQueries {
 							boolean enabled = rs.getBoolean("enabled");
 							boolean newAccount = rs.getBoolean("new_account");
 							boolean canCreateCampaigns =
-									rs.getBoolean(
-											"campaign_creation_privilege");
+								rs.getBoolean(
+										"campaign_creation_privilege");
+							boolean canCreateClasses =
+								rs.getBoolean(
+										"class_creation_privilege");
 							
 							String firstName = rs.getString("first_name");
 							String lastName = rs.getString("last_name");
@@ -1654,13 +1705,15 @@ public class UserQueries extends Query implements IUserQueries {
 							String personalId = rs.getString("personal_id");
 							
 							UserPersonal personalInfo = null;
-							if((firstName != null) &&
-									(lastName != null) &&
-									(organization != null) &&
-									(personalId != null)) {
+							if(
+								(firstName != null) &&
+								(lastName != null) &&
+								(organization != null) &&
+								(personalId != null)) {
 								
 								try {
-									personalInfo = new UserPersonal(
+									personalInfo =
+										new UserPersonal(
 											firstName,
 											lastName,
 											organization,
@@ -1668,19 +1721,22 @@ public class UserQueries extends Query implements IUserQueries {
 								} 
 								catch(DomainException e) {
 									throw new SQLException(
-											"Error creating the user's personal information.",
+											"Error creating the user's " +
+												"personal information.",
 											e);
 								}
 							}
 							
 							try {
-								return new UserInformation(
+								return
+									new UserInformation(
 										username,
 										emailAddress,
 										admin,
 										enabled,
 										newAccount,
 										canCreateCampaigns,
+										canCreateClasses,
 										null,
 										null,
 										personalInfo);
