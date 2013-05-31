@@ -15,6 +15,7 @@
     <property name="password" value="${db.password}"/>
     <property name="defaultAutoCommit" value="false"/>
     <property name="partitionCount" value="2"/>
+    <property name="maxConnectionsPerPartition" value="75"/>
   </bean>
 
 </beans>
