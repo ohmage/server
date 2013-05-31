@@ -213,6 +213,7 @@ public class UserSetupRequest extends UserRequest {
 						.instance()
 						.getUserEmail(getUser().getUsername());
 				
+				LOGGER.info("Creating the user.");
 				UserServices
 					.instance()
 					.createUser(
@@ -223,6 +224,23 @@ public class UserSetupRequest extends UserRequest {
 						true,
 						false,
 						true);
+				
+				LOGGER.info("Adding the user's personal information.");
+				UserServices
+					.instance()
+					.updateUser(
+						username, 
+						emailAddress, 
+						null, 
+						null, 
+						null, 
+						null, 
+						null, 
+						personalInfo.getFirstName(), 
+						personalInfo.getLastName(), 
+						personalInfo.getOrganization(), 
+						personalInfo.getPersonalId(),
+						false);
 			}
 			// If the user does exist, store their username and the email
 			// address associated with their account.
