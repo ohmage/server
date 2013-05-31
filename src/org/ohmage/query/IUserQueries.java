@@ -513,6 +513,10 @@ public interface IUserQueries {
 	 *        Whether or not the user should be allowed to create classes. A
 	 *        null value indicates that this field should not be updated.
 	 * 
+	 * @param userSetupPrivilege
+	 *        Whether or not the user should be allowed to setup users. A null
+	 *        value indicates that this field should not be updated.
+	 * 
 	 * @param firstName
 	 *        The user's new first name. A null value indicates that this field
 	 *        should not be updated.
@@ -540,6 +544,7 @@ public interface IUserQueries {
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
 			final Boolean classCreationPrivilege,
+			final Boolean userSetupPrivilege,
 			final String firstName,
 			final String lastName,
 			final String organization,

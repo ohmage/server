@@ -133,6 +133,7 @@ public final class InputKeys {
 	public static final String NEW_ACCOUNT = "new_account";
 	public static final String CAMPAIGN_CREATION_PRIVILEGE = "campaign_creation_privilege";
 	public static final String CLASS_CREATION_PRIVILEGE = "class_creation_privilege";
+	public static final String USER_SETUP_PRIVILEGE = "user_setup_privilege";
 	public static final String FIRST_NAME = "first_name";
 	public static final String FIRST_NAME_SEARCH = "first_name_search";
 	public static final String LAST_NAME = "last_name";

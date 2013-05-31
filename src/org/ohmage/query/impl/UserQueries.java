@@ -291,6 +291,12 @@ public class UserQueries extends Query implements IUserQueries {
 		"SET class_creation_privilege = ? " +
 		"WHERE username = ?";
 	
+	// Updates a user's user setup privilege.
+	private static final String SQL_UPDATE_USER_SETUP_PRIVILEGE =
+		"UPDATE user " +
+		"SET user_setup_privilege = ? " +
+		"WHERE username = ?";
+	
 	// Updates a user's first name in their personal information record.
 	private static final String SQL_UPDATE_FIRST_NAME = 
 		"UPDATE user_personal " +
@@ -1777,6 +1783,7 @@ public class UserQueries extends Query implements IUserQueries {
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
 			final Boolean classCreationPrivilege,
+			final Boolean userSetupPrivilege,
 			final String firstName,
 			final String lastName,
 			final String organization,
@@ -1852,7 +1859,7 @@ public class UserQueries extends Query implements IUserQueries {
 				}
 			}
 			
-			// Update the campaign creation privilege value if it's not null.
+			// Update the class creation privilege value if it's not null.
 			if(classCreationPrivilege != null) {
 				try {
 					getJdbcTemplate()
@@ -1869,6 +1876,29 @@ public class UserQueries extends Query implements IUserQueries {
 								SQL_UPDATE_CLASS_CREATION_PRIVILEGE +
 								"' with parameters: " + 
 								classCreationPrivilege +
+								", " +
+								username,
+							e);
+				}
+			}
+			
+			// Update the user setup privilege value if it's not null.
+			if(userSetupPrivilege != null) {
+				try {
+					getJdbcTemplate()
+						.update(
+							SQL_UPDATE_USER_SETUP_PRIVILEGE,
+							userSetupPrivilege,
+							username);
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw
+						new DataAccessException(
+							"Error executing the following SQL '" +
+								SQL_UPDATE_USER_SETUP_PRIVILEGE +
+								"' with parameters: " + 
+								userSetupPrivilege +
 								", " +
 								username,
 							e);

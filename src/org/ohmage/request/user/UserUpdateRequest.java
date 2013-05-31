@@ -126,6 +126,7 @@ public class UserUpdateRequest extends UserRequest {
 	private final Boolean newAccount;
 	private final Boolean campaignCreationPrivilege;
 	private final Boolean classCreationPrivilege;
+	private final Boolean userSetupPrivilege;
 	
 	private final String firstName;
 	private final String lastName;
@@ -158,6 +159,7 @@ public class UserUpdateRequest extends UserRequest {
 		Boolean tNewAccount = null;
 		Boolean tCampaignCreationPrivilege = null;
 		Boolean tClassCreationPrivilege = null;
+		Boolean tUserSetupPrivilege = null;
 		
 		String tFirstName = null;
 		String tLastName = null;
@@ -256,6 +258,18 @@ public class UserUpdateRequest extends UserRequest {
 						t[0]);
 			}
 			
+			t = getParameterValues(InputKeys.USER_SETUP_PRIVILEGE);
+			if(t.length > 1) {
+				throw new ValidationException(
+					ErrorCode.USER_INVALID_USER_SETUP_PRIVILEGE, 
+					"Multiple user setup privilege parameters were given: " +
+						InputKeys.USER_SETUP_PRIVILEGE);
+			}
+			else if(t.length == 1) {
+				tUserSetupPrivilege = 
+					UserValidators.validateUserSetupPrivilegeValue(t[0]);
+			}
+			
 			t = getParameterValues(InputKeys.FIRST_NAME);
 			if(t.length > 1) {
 				throw new ValidationException(
@@ -325,6 +339,7 @@ public class UserUpdateRequest extends UserRequest {
 		newAccount = tNewAccount;
 		campaignCreationPrivilege = tCampaignCreationPrivilege;
 		classCreationPrivilege = tClassCreationPrivilege;
+		userSetupPrivilege = tUserSetupPrivilege;
 		
 		firstName = tFirstName;
 		lastName = tLastName;
@@ -369,6 +384,7 @@ public class UserUpdateRequest extends UserRequest {
 					newAccount, 
 					campaignCreationPrivilege,
 					classCreationPrivilege,
+					userSetupPrivilege,
 					firstName,
 					lastName,
 					organization,
