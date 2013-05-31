@@ -61,7 +61,7 @@ public class ConfigurationFileImport
 	 * systems.
 	 */
 	private static final String CONFIG_FILE_DEFAULT_POSIX =
-		"/etc/ohmage.properties";
+		"/etc/ohmage.conf";
 	
 	/**
 	 * The logger for this class.
@@ -145,6 +145,11 @@ public class ConfigurationFileImport
 		Properties customProperties = new Properties();
 		try {
 			customProperties.load(new FileReader(propertiesFile));
+			LOGGER
+				.log(
+					Level.INFO,
+					"The properties file was imported: " +
+						propertiesFile.getAbsolutePath());
 		}
 		// The properties file didn't exist, which is fine.
 		catch(FileNotFoundException e) {
