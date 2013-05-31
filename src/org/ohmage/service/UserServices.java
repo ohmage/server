@@ -974,42 +974,64 @@ public final class UserServices {
 		
 		// Compile the set of usernames based on those that must be equal and
 		// those that may have wildcards.
-		Set<String> usernameCompilation = new HashSet<String>();
-		for(String username : usernames) {
-			usernameCompilation.add(username);
-		}
-		for(String username : usernameTokens) {
-			usernameCompilation.add('%' + username + '%');
+		Set<String> usernameCompilation = null;
+		if((usernames != null) || (usernameTokens != null)) {
+			usernameCompilation = new HashSet<String>();
+			if(usernames != null) {
+				for(String username : usernames) {
+					usernameCompilation.add(username);
+				}
+			}
+			if(usernameTokens != null) {
+				for(String username : usernameTokens) {
+					usernameCompilation.add('%' + username + '%');
+				}
+			}
 		}
 		
 		// Compile the set of email addresses.
-		Set<String> emailAddressCompilation = new HashSet<String>();
-		for(String emailAddress : emailAddressTokens) {
-			emailAddressCompilation.add('%' + emailAddress + '%');
+		Set<String> emailAddressCompilation = null;
+		if(emailAddressTokens != null) {
+			emailAddressCompilation = new HashSet<String>();
+			for(String emailAddress : emailAddressTokens) {
+				emailAddressCompilation.add('%' + emailAddress + '%');
+			}
 		}
 		
 		// Compile the set of first names.
-		Set<String> firstNameCompilation = new HashSet<String>();
-		for(String firstName : firstNameTokens) {
-			firstNameCompilation.add('%' + firstName + '%');
+		Set<String> firstNameCompilation = null;
+		if(firstNameTokens != null) {
+			firstNameCompilation = new HashSet<String>();
+			for(String firstName : firstNameTokens) {
+				firstNameCompilation.add('%' + firstName + '%');
+			}
 		}
 		
 		// Compile the set of last names.
-		Set<String> lastNameCompilation = new HashSet<String>();
-		for(String lastName : lastNameTokens) {
-			lastNameCompilation.add('%' + lastName + '%');
+		Set<String> lastNameCompilation = null;
+		if(lastNameTokens != null) {
+			lastNameCompilation = new HashSet<String>();
+			for(String lastName : lastNameTokens) {
+				lastNameCompilation.add('%' + lastName + '%');
+			}
 		}
 		
 		// Compile the set of organizations.
-		Set<String> organizationCompilation = new HashSet<String>();
-		for(String organization : organizationTokens) {
-			organizationCompilation.add('%' + organization + '%');
+		Set<String> organizationCompilation = null;
+		if(organizationTokens != null) {
+			organizationCompilation = new HashSet<String>();
+			for(String organization : organizationTokens) {
+				organizationCompilation.add('%' + organization + '%');
+			}
 		}
 		
 		// Compile the set of personal IDs.
-		Set<String> personalIdCompilation = new HashSet<String>();
-		for(String personalId : personalIdTokens) {
-			personalIdCompilation.add('%' + personalId + '%');
+		Set<String> personalIdCompilation = null;
+		if(personalIdTokens != null) {
+			personalIdCompilation = new HashSet<String>();
+			for(String personalId : personalIdTokens) {
+				personalIdCompilation.add('%' + personalId + '%');
+			}
 		}
 		
 		try {
@@ -1333,6 +1355,7 @@ public final class UserServices {
 						userQueries.userIsAdmin(username), 
 						userQueries.userCanCreateCampaigns(username),
 						userQueries.userCanCreateClasses(username),
+						userQueries.userCanSetupUsers(username),
 						campaigns,
 						campaignRoles,
 						classes,

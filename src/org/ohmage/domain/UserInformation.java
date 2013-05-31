@@ -75,7 +75,8 @@ public class UserInformation {
 		ENABLED ("enabled"),
 		NEW_ACCOUNT ("new_account"),
 		CAN_CREATE_CAMPAIGNS ("can_create_campaigns"),
-		CAN_CREATE_CLASSES ("can_create_classes");
+		CAN_CREATE_CLASSES ("can_create_classes"),
+		CAN_SETUP_USERS ("can_setup_users");
 		
 		private final String key;
 		
@@ -315,6 +316,7 @@ public class UserInformation {
 	private final boolean isNewAccount;
 	private final boolean campaignCreationPrivilege;
 	private final boolean classCreationPrivilege;
+	private final boolean userSetupPrivilege;
 	
 	private Map<String, Set<Campaign.Role>> campaigns;
 	private Map<String, Clazz.Role> classes;
@@ -343,6 +345,9 @@ public class UserInformation {
 	 * @param classCreationPrivilege
 	 *        Whether or not the user is allowed to create new classes.
 	 * 
+	 * @param userSetupPrivilege
+	 *        Whether or not the user can setup other users.
+	 * 
 	 * @param campaigns
 	 *        The map of campaign IDs to a set of the user's roles in those
 	 *        campaigns.
@@ -365,6 +370,7 @@ public class UserInformation {
 			final boolean isNewAccount,
 			final boolean campaignCreationPrivilege,
 			final boolean classCreationPrivilege,
+			final boolean userSetupPrivilege,
 			final Map<String, Set<Campaign.Role>> campaigns,
 			final Map<String, Clazz.Role> classes,
 			final UserPersonal personalInfo) 
@@ -382,6 +388,7 @@ public class UserInformation {
 		this.isNewAccount = isNewAccount;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		this.classCreationPrivilege = classCreationPrivilege;
+		this.userSetupPrivilege = userSetupPrivilege;
 		
 		if(campaigns == null) {
 			this.campaigns = null;
@@ -584,6 +591,9 @@ public class UserInformation {
 		permissionsJson.put(
 			UserPermissionColumnKey.CAN_CREATE_CLASSES.toString(),
 			classCreationPrivilege);
+		permissionsJson.put(
+			UserPermissionColumnKey.CAN_SETUP_USERS.toString(),
+			userSetupPrivilege);
 		result.put(UserColumnKey.PERMISSIONS.toString(), permissionsJson);
 
 		if(campaigns != null) {

@@ -1301,6 +1301,7 @@ public class UserQueries extends Query implements IUserQueries {
 							"u.new_account, " +
 							"u.campaign_creation_privilege, " +
 							"u.class_creation_privilege, " +
+							"u.user_setup_privilege, " +
 							"up.first_name, " +
 							"up.last_name, " +
 							"up.organization, " +
@@ -1698,6 +1699,9 @@ public class UserQueries extends Query implements IUserQueries {
 							boolean canCreateClasses =
 								rs.getBoolean(
 										"class_creation_privilege");
+							boolean canSetupUsers =
+								rs.getBoolean(
+										"user_setup_privilege");
 							
 							String firstName = rs.getString("first_name");
 							String lastName = rs.getString("last_name");
@@ -1737,6 +1741,7 @@ public class UserQueries extends Query implements IUserQueries {
 										newAccount,
 										canCreateCampaigns,
 										canCreateClasses,
+										canSetupUsers,
 										null,
 										null,
 										personalInfo);

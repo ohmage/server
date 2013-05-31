@@ -45,6 +45,8 @@ public class UserSummary {
 		"can_create_campaigns";
 	private static final String JSON_KEY_PERMISSIONS_CLASS_CREATION =
 		"can_create_classes";
+	private static final String JSON_KEY_PERMISSIONS_USER_SETUP =
+		"can_setup_users";
 	
 	private static final String JSON_KEY_CAMPAIGNS = "campaigns";
 	private static final String JSON_KEY_CAMPAIGN_ROLES = "campaign_roles";
@@ -57,6 +59,7 @@ public class UserSummary {
 	private final boolean isAdmin;
 	private final boolean campaignCreationPrivilege;
 	private final boolean classCreationPrivilege;
+	private final boolean userSetupPrivilege;
 	
 	private final Map<String, String> campaigns;
 	private final Set<Campaign.Role> campaignRoles;
@@ -66,41 +69,50 @@ public class UserSummary {
 	
 	/**
 	 * Creates a new user information object with a default campaign creation
-	 * privilege, no campaigns or campaign roles, and no classes or class 
+	 * privilege, no campaigns or campaign roles, and no classes or class
 	 * roles.
 	 * 
-	 * @param emailAddress The user's email address if one exists, which it may
-	 * 					   not.
+	 * @param emailAddress
+	 *        The user's email address if one exists, which it may not.
 	 * 
-	 * @param isAdmin Whether or not the user is an admin.
+	 * @param isAdmin
+	 *        Whether or not the user is an admin.
 	 * 
-	 * @param campaignCreationPrivilege Whether or not the user is allowed to
-	 * 									create new campaigns.
+	 * @param campaignCreationPrivilege
+	 *        Whether or not the user is allowed to create new campaigns.
 	 * 
-	 * @param campaignCreationPrivilege Whether or not the user is allowed to
-	 * 									create new classes.
+	 * @param classCreationPrivilege
+	 *        Whether or not the user is allowed to create new classes.
 	 * 
-	 * @param campaigns The map of all campaigns to which the user is 
-	 * 					associated where the key is the campaign's ID and its
-	 * 					value is the campaign's name.
+	 * @param userSetupPrivilege
+	 *        Whether or not the user is allowed to setup users.
 	 * 
-	 * @param campaignRoles A set of all of the campaign roles for the user 
-	 * 						across all of their campaigns.
+	 * @param campaigns
+	 *        The map of all campaigns to which the user is associated where
+	 *        the key is the campaign's ID and its value is the campaign's
+	 *        name.
 	 * 
-	 * @param classes The map of all classes to which the user is associated
-	 * 				  where the key is the class' ID and its value is the 
-	 * 				  class' name.
+	 * @param campaignRoles
+	 *        A set of all of the campaign roles for the user across all of
+	 *        their campaigns.
 	 * 
-	 * @param classRoles A set of all of the class roles for the user across 
-	 * 					 all of their classes.
+	 * @param classes
+	 *        The map of all classes to which the user is associated where the
+	 *        key is the class' ID and its value is the class' name.
 	 * 
-	 * @throws DomainException The campaigns, classes, or role lists is empty.
+	 * @param classRoles
+	 *        A set of all of the class roles for the user across all of their
+	 *        classes.
+	 * 
+	 * @throws DomainException
+	 *         The campaigns, classes, or role lists is empty.
 	 */
 	public UserSummary(
 			String emailAddress,
 			boolean isAdmin,
 			boolean campaignCreationPrivilege,
 			boolean classCreationPrivilege,
+			boolean userSetupPrivilege,
 			final Map<String, String> campaigns,
 			final Set<Campaign.Role> campaignRoles,
 			final Map<String, String> classes,
@@ -129,6 +141,7 @@ public class UserSummary {
 		this.isAdmin = isAdmin;
 		this.campaignCreationPrivilege = campaignCreationPrivilege;
 		this.classCreationPrivilege = classCreationPrivilege;
+		this.userSetupPrivilege = userSetupPrivilege;
 		
 		this.campaigns = new HashMap<String, String>(campaigns);
 		this.campaignRoles = new HashSet<Campaign.Role>(campaignRoles);
@@ -181,6 +194,13 @@ public class UserSummary {
 		
 		try {
 			classCreationPrivilege = permissions.getBoolean(JSON_KEY_PERMISSIONS_CLASS_CREATION); 
+		}
+		catch(JSONException e) {
+			throw new DomainException("The class creation permission is missing from the list of permissions.", e);
+		}
+		
+		try {
+			userSetupPrivilege = permissions.getBoolean(JSON_KEY_PERMISSIONS_USER_SETUP); 
 		}
 		catch(JSONException e) {
 			throw new DomainException("The class creation permission is missing from the list of permissions.", e);
@@ -281,6 +301,15 @@ public class UserSummary {
 	}
 	
 	/**
+	 * Returns whether or not the user is allowed to setup users.
+	 * 
+	 * @return Whether or not the user is allowed to setup users.
+	 */
+	public boolean getUserSetupPrivilege() {
+		return userSetupPrivilege;
+	}
+	
+	/**
 	 * Returns an unmodifiable map of all of the campaigns associated with the 
 	 * user.
 	 * 
@@ -336,6 +365,7 @@ public class UserSummary {
 		permissions.put(JSON_KEY_PERMISSIONS_ADMIN, isAdmin);
 		permissions.put(JSON_KEY_PERMISSIONS_CAMPAIGN_CREATION, campaignCreationPrivilege);
 		permissions.put(JSON_KEY_PERMISSIONS_CLASS_CREATION, classCreationPrivilege);
+		permissions.put(JSON_KEY_PERMISSIONS_USER_SETUP, userSetupPrivilege);
 		result.put(JSON_KEY_PERMISSIONS, permissions);
 		
 		result.put(JSON_KEY_CAMPAIGNS, campaigns);
