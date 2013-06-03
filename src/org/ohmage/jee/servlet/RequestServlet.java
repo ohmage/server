@@ -388,7 +388,8 @@ public class RequestServlet extends HttpServlet {
 			RequestBuilder.getInstance().getApiStreamRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiUserWhoAmI().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiOmhRead().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiSurveyResponseRead().equals(httpRequest.getRequestURI())) {
+			RequestBuilder.getInstance().getApiSurveyResponseRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiAudioRead().equals(httpRequest.getRequestURI())) {
 			
 			processRequest(httpRequest, httpResponse);
 		}

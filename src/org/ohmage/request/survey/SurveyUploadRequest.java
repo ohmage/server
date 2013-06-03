@@ -324,7 +324,10 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 				catch(IOException e) {
 					LOGGER.error("cannot parse parts", e);
-					setFailed();
+					throw new ValidationException(e);
+				}
+				catch(DomainException e) {
+					LOGGER.info("A Media object could not be built.", e);
 					throw new ValidationException(e);
 				}
 				

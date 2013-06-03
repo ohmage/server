@@ -8,7 +8,7 @@ import javax.sql.DataSource;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.PrivacyState;
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.ICampaignVideoQueries;
+import org.ohmage.query.ICampaignMediaQueries;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -16,26 +16,26 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  *
  * @author John Jenkins
  */
-public class CampaignVideoQueries 
+public class CampaignMediaQueries 
 		extends Query 
-		implements ICampaignVideoQueries {
+		implements ICampaignMediaQueries {
 	
 	/**
 	 * Creates this object via dependency injection (reflection).
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	private CampaignVideoQueries(DataSource dataSource) {
+	private CampaignMediaQueries(DataSource dataSource) {
 		super(dataSource);
 	}
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignVideoQueries#getCampaignIdsForVideoId(java.util.UUID)
+	 * @see org.ohmage.query.ICampaignMediaQueries#getCampaignIdsForVideoId(java.util.UUID)
 	 */
 	@Override
-	public List<String> getCampaignIdsForVideoId(
-			final UUID videoId)
+	public List<String> getCampaignIdsForMediaId(
+			final UUID mediaId)
 			throws DataAccessException {
 		
 		String sql = 
@@ -53,7 +53,7 @@ public class CampaignVideoQueries
 		try {
 			return getJdbcTemplate().query(
 				sql, 
-				new Object[] { videoId.toString() },
+				new Object[] { mediaId.toString() },
 				new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
@@ -61,19 +61,19 @@ public class CampaignVideoQueries
 				"Error executing SQL '" + 
 					sql + 
 					"' with parameter: " + 
-					videoId.toString(),
+					mediaId.toString(),
 				e);
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignVideoQueries#getVideoPrivacyStateInCampaign(java.lang.String, java.util.UUID)
+	 * @see org.ohmage.query.ICampaignMediaQueries#getVideoPrivacyStateInCampaign(java.lang.String, java.util.UUID)
 	 */
 	@Override
-	public PrivacyState getVideoPrivacyStateInCampaign(
+	public PrivacyState getMediaPrivacyStateInCampaign(
 			final String campaignId,
-			final UUID videoId)
+			final UUID mediaId)
 			throws DataAccessException {
 		
 		String sql =
@@ -96,7 +96,7 @@ public class CampaignVideoQueries
 				SurveyResponse.PrivacyState.getValue(
 					getJdbcTemplate().queryForObject(
 						sql, 
-						new Object[] { campaignId, videoId.toString() },
+						new Object[] { campaignId, mediaId.toString() },
 						String.class));
 		}
 		catch(IllegalArgumentException e) {
@@ -108,7 +108,7 @@ public class CampaignVideoQueries
 			if(e.getActualSize() > 1) {
 				throw new DataAccessException(
 					"A video, '" + 
-						videoId + 
+						mediaId + 
 						"' has multiple privacy states in the same campaign: " + 
 						campaignId,
 					e);
@@ -122,7 +122,7 @@ public class CampaignVideoQueries
 					sql + 
 					"' with parameters: " + 
 					campaignId + ", " +
-					videoId.toString(),
+					mediaId.toString(),
 				e);
 		}
 	}

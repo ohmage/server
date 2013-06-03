@@ -7,39 +7,39 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 
 /**
- * Defines all of the queries between campaigns and videos.
+ * Defines all of the queries between campaigns and media.
  *
  * @author John Jenkins
  */
-public interface ICampaignVideoQueries {
+public interface ICampaignMediaQueries {
 	/**
-	 * Gets the ID of all of the campaigns associated with a video.
+	 * Gets the ID of all of the campaigns associated with some media.
 	 * 
-	 * @param videoId The video's unique identifier.
+	 * @param videoId The media's unique identifier.
 	 * 
-	 * @return The list of campaign IDs associated with this video.
+	 * @return The list of campaign IDs associated with this media.
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	List<String> getCampaignIdsForVideoId(
-		final UUID videoId)
+	List<String> getCampaignIdsForMediaId(
+		final UUID mediaId)
 		throws DataAccessException;
 	
 	/**
 	 * Gets the privacy state of the survey response that is associated with 
-	 * this video.
+	 * this media.
 	 * 
 	 * @param campaignId The campaign's unique identifier.
 	 * 
-	 * @param videoId The video's unique identifier.
+	 * @param videoId The media's unique identifier.
 	 * 
 	 * @return The privacy state of the survey response associated with this
-	 * 		   video.
+	 * 		   media.
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	SurveyResponse.PrivacyState getVideoPrivacyStateInCampaign(
+	SurveyResponse.PrivacyState getMediaPrivacyStateInCampaign(
 		final String campaignId,
-		final UUID videoId)
+		final UUID mediaId)
 		throws DataAccessException;
 }

@@ -5,25 +5,30 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.IUserVideoQueries;
+import org.ohmage.query.IUserMediaQueries;
 
-public class UserVideoQueries extends Query implements IUserVideoQueries {
+/**
+ * The implementation of the query for user's media.
+ *
+ * @author John Jenkins
+ */
+public class UserMediaQueries extends Query implements IUserMediaQueries {
 	/**
 	 * Creates this object via dependency injection (reflection).
 	 * 
 	 * @param dataSource The DataSource to use when querying the database.
 	 */
-	private UserVideoQueries(DataSource dataSource) {
+	private UserMediaQueries(DataSource dataSource) {
 		super(dataSource);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserVideoQueries#getVideoOwner(java.util.UUID)
+	 * @see org.ohmage.query.IUserMediaQueries#getMediaOwner(java.lang.String)
 	 */
 	@Override
-	public String getVideoOwner(
-			final UUID videoId)
+	public String getMediaOwner(
+			final UUID id)
 			throws DataAccessException {
 		
 		String sql =
@@ -36,13 +41,13 @@ public class UserVideoQueries extends Query implements IUserVideoQueries {
 			return 
 				getJdbcTemplate().queryForObject(
 					sql,
-					new Object[] { videoId.toString() }, 
+					new Object[] { id.toString() }, 
 					String.class);
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
 				throw new DataAccessException(
-					"More than one video has the same ID.",
+					"More than one media have the same ID: " + id.toString(),
 					e);
 			}
 			
@@ -50,10 +55,10 @@ public class UserVideoQueries extends Query implements IUserVideoQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
-				"Error executing SQL '" + 
+				"Error executing SQL '" +
 					sql + 
 					"' with parameter: " + 
-					videoId.toString(),
+					id.toString(),
 				e);
 		}
 	}

@@ -242,7 +242,7 @@
     </constructor-arg>
   </bean>
 
-  <bean class="org.ohmage.service.UserVideoServices">
+  <bean class="org.ohmage.service.UserMediaServices">
     <constructor-arg>
       <ref bean="userQueries" />
     </constructor-arg>
@@ -250,16 +250,16 @@
       <ref bean="campaignQueries" />
     </constructor-arg>
     <constructor-arg>
-      <ref bean="videoQueries" />
+      <ref bean="mediaQueries" />
     </constructor-arg>
     <constructor-arg>
-      <ref bean="userVideoQueries" />
+      <ref bean="userMediaQueries" />
     </constructor-arg>
     <constructor-arg>
       <ref bean="userCampaignQueries" />
     </constructor-arg>
     <constructor-arg>
-      <ref bean="campaignVideoQueries" />
+      <ref bean="campaignMediaQueries" />
     </constructor-arg>
   </bean>
   

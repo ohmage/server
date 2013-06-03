@@ -1,123 +1,64 @@
 package org.ohmage.domain;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
 
-import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
 
 /**
+ * <p>
  * This class represents a video file.
+ * </p>
  *
  * @author John Jenkins
  */
-public class Video {
-	private static final int MAX_EXTENSION_LENGTH = 3;
-	
-	public final UUID id;
-	public final String type;
-	public final int size;
-	public final InputStream content; 
+public class Video extends Media {
+	/**
+	 * The root MIME type for any media of this type, {@value #MIME_TYPE}.
+	 */
+	public static final String MIME_TYPE = "video";
 	
 	/**
 	 * Constructs a new video object.
 	 * 
-	 * @param id The video's unique identifier.
+	 * @param id
+	 *        The video's unique identifier.
 	 * 
-	 * @param type The video's extension.
+	 * @param type
+	 *        The video's extension.
 	 * 
-	 * @param content The byte array of the video.
+	 * @param content
+	 *        The byte array of the video.
 	 */
-	public Video(final UUID id, final String type, final byte[] content) {
-		this.id = id;
-		this.type = type;
-		this.size = content.length;
-		this.content = new ByteArrayInputStream(content);
-	}
-	
-	/**
-	 * Creates a video file with an ID from the given URL. 
-	 * 
-	 * @param id This video's unique identifier.
-	 * 
-	 * @param url A URL string to the video file.
-	 * 
-	 * @throws DomainException The URL was invalid or the object it points to
-	 * 						   does not exist.
-	 */
-	public Video(final UUID id, final String url) throws DomainException {
-		this.id = id;
+	public Video(
+		final UUID id, 
+		final String type, 
+		final byte[] content)
+		throws DomainException {
 		
-		// Compute the type. If there is no extension or if it is greater than
-		// three characters long, the extension will be set to null.
-		String[] parts = url.split("[\\.]");
-		if(parts.length == 0) {
-			this.type = null;
-		}
-		else {
-			String extension = parts[parts.length - 1];
-			if(extension.length() > MAX_EXTENSION_LENGTH) {
-				this.type = null;
-			}
-			else {
-				this.type = parts[parts.length - 1];
-			}
-		}
-		
-		// Create a connection to the stream.
-		try {
-			URL tempUrl = new URL(url);
-			this.size = tempUrl.openConnection().getContentLength();
-			this.content = tempUrl.openStream();
-		}
-		catch(MalformedURLException e) {
-			throw new DomainException("The URL is invalid.", e);
-		}
-		catch(IOException e) {
-			throw new DomainException(
-				ErrorCode.SYSTEM_GENERAL_ERROR,
-				"The video file does not exist.",
-				e);
-		}
+		super(id, type, content);
 	}
 	
 	/**
-	 * Returns the video's type (extension).
+	 * Creates a video file with an ID from the given URL.
 	 * 
-	 * @return The video's type (extension) or null if it doesn't have one.
+	 * @param id
+	 *        This video's unique identifier.
+	 * 
+	 * @param url
+	 *        A URL to the video file.
+	 * 
+	 * @throws DomainException
+	 *         The URL was invalid or the object it points to does not exist.
 	 */
-	public String getType() {
-		return type;
+	public Video(final UUID id, final URL url) throws DomainException {
+		super(id, url);
 	}
 	
 	/**
-	 * Returns the video's size.
-	 * 
-	 * @return The video's size.
+	 * @return Always returns {@value #MIME_TYPE}.
 	 */
-	public int getSize() {
-		return size;
-	}
-	
-	/**
-	 * Returns the content of the video.
-	 * 
-	 * @return The content of the video.
-	 */
-	public InputStream getContentStream() {
-		return content;
-	}
-	
-	/**
-	 * Creates a filename for this video based on its ID and type.
-	 * 
-	 * @return The file's filename.
-	 */
-	public String getFilename() {
-		return id.toString() + "." + type;
+	protected String getMimeTypeRoot() {
+		return MIME_TYPE;
 	}
 }

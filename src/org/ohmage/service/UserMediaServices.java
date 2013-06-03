@@ -5,44 +5,40 @@ import java.util.List;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Audio;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.query.ICampaignMediaQueries;
 import org.ohmage.query.ICampaignQueries;
-import org.ohmage.query.ICampaignVideoQueries;
+import org.ohmage.query.IMediaQueries;
 import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.IUserMediaQueries;
 import org.ohmage.query.IUserQueries;
-import org.ohmage.query.IUserVideoQueries;
-import org.ohmage.query.IVideoQueries;
 
-public class UserVideoServices {
-	private static UserVideoServices instance;
+public class UserMediaServices {
+	private static UserMediaServices instance;
 	
 	private final IUserQueries userQueries;
 	private final ICampaignQueries campaignQueries;
-	private final IVideoQueries videoQueries;
-	private final IUserVideoQueries userVideoQueries;
 	private final IUserCampaignQueries userCampaignQueries;
-	private final ICampaignVideoQueries campaignVideoQueries;
+	private final IMediaQueries mediaQueries;
+	private final IUserMediaQueries userMediaQueries;
+	private final ICampaignMediaQueries campaignVideoQueries;
 	
 	/**
-	 * Private constructor called by reflection via Tomcat.
-	 * 
-	 * @param iUserQueries The object that implements the user queries.
-	 * 
-	 * @param iUserVideoQueries The object that implements the user-video
-	 * 							queries.
+	 * Private constructor called by reflection via Spring.
 	 */
-	private UserVideoServices(
+	private UserMediaServices(
 			final IUserQueries iUserQueries,
 			final ICampaignQueries iCampaignQueries,
-			final IVideoQueries iVideoQueries,
-			final IUserVideoQueries iUserVideoQueries,
+			final IMediaQueries iMediaQueries,
+			final IUserMediaQueries iUserMediaQueries,
 			final IUserCampaignQueries iUserCampaignQueries,
-			final ICampaignVideoQueries iCampaignVideoQueries) {
+			final ICampaignMediaQueries iCampaignVideoQueries) {
 		
 		if(instance != null) {
 			throw new IllegalStateException(
@@ -57,14 +53,14 @@ public class UserVideoServices {
 			throw new IllegalArgumentException(
 				"The ICampaignQueries is null.");
 		}
-		else if(iVideoQueries == null) {
+		else if(iMediaQueries == null) {
 			throw new IllegalArgumentException(
-				"The IVideoQueries is null.");
+				"The IMediaQueries is null.");
 			
 		}
-		else if(iUserVideoQueries == null) {
+		else if(iUserMediaQueries == null) {
 			throw new IllegalArgumentException(
-				"The IUserVideoQueries is null.");
+				"The IUserMediaQueries is null.");
 		}
 		else if(iUserCampaignQueries == null) {
 			throw new IllegalArgumentException(
@@ -73,15 +69,15 @@ public class UserVideoServices {
 		}
 		else if(iCampaignVideoQueries == null) {
 			throw new IllegalArgumentException(
-				"The ICampaignVideoQueries is null.");
+				"The ICampaignMediaQueries is null.");
 			
 		}
 		
 		userQueries = iUserQueries;
 		campaignQueries = iCampaignQueries;
-		videoQueries = iVideoQueries;
-		userVideoQueries = iUserVideoQueries;
 		userCampaignQueries = iUserCampaignQueries;
+		mediaQueries = iMediaQueries;
+		userMediaQueries = iUserMediaQueries;
 		campaignVideoQueries = iCampaignVideoQueries;
 		
 		instance = this;
@@ -92,7 +88,7 @@ public class UserVideoServices {
 	 * 
 	 * @return The singleton instance of this class.
 	 */
-	public static UserVideoServices instance() {
+	public static UserMediaServices instance() {
 		return instance;
 	}
 	
@@ -108,14 +104,14 @@ public class UserVideoServices {
 	 * @throws ServiceException The user is not allowed to read the video or
 	 * 							there was an error.
 	 */
-	public void verifyUserCanReadVideo(
+	public void verifyUserCanReadMedia(
 			final String username, 
-			final UUID videoId)
+			final UUID id)
 			throws ServiceException {
 		
 		try {
 			// If it is their own image, they can read it.
-			if(username.equals(userVideoQueries.getVideoOwner(videoId))) {
+			if(username.equals(userMediaQueries.getMediaOwner(id))) {
 				return;
 			}
 			
@@ -126,7 +122,7 @@ public class UserVideoServices {
 			
 			// Retrieve all of the campaigns associated with an image.
 			List<String> campaignIds = 
-				campaignVideoQueries.getCampaignIdsForVideoId(videoId);
+				campaignVideoQueries.getCampaignIdsForMediaId(id);
 			
 			// For each of the campaigns, see if the requesting user has 
 			// sufficient permissions.
@@ -145,8 +141,8 @@ public class UserVideoServices {
 				// If null is returned, something has changed since the list of
 				// campaign IDs was retrieved, so we need to just error out.
 				SurveyResponse.PrivacyState imagePrivacyState = 
-					campaignVideoQueries.getVideoPrivacyStateInCampaign(
-						campaignId, videoId);
+					campaignVideoQueries.getMediaPrivacyStateInCampaign(
+						campaignId, id);
 				
 				// They are an author and the image is shared
 				if(roles.contains(Campaign.Role.AUTHOR) && 
@@ -179,23 +175,50 @@ public class UserVideoServices {
 	}
 	
 	/**
-	 * Returns a Video object representing the video.
+	 * Returns an Audio object representing the media.
 	 * 
-	 * @param videoId The video's unique identifier.
+	 * @param id The media's unique identifier.
+	 * 
+	 * @return An Audio object.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Audio getAudio(final UUID id) throws ServiceException {
+		try {
+			URL result = mediaQueries.getMediaUrl(id);
+			
+			if(result == null) {
+				throw new ServiceException("The media does not exist.");
+			}
+			
+			return new Audio(id, result);
+		}
+		catch(DomainException e) {
+			throw new ServiceException(e);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Returns a Video object representing the media.
+	 * 
+	 * @param id The media's unique identifier.
 	 * 
 	 * @return A Video object.
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Video getVideo(final UUID videoId) throws ServiceException {
+	public Video getVideo(final UUID id) throws ServiceException {
 		try {
-			URL result = videoQueries.getVideoUrl(videoId);
+			URL result = mediaQueries.getMediaUrl(id);
 			
 			if(result == null) {
-				throw new ServiceException("The video does not exist.");
+				throw new ServiceException("The media does not exist.");
 			}
 			
-			return new Video(videoId, result.toString());
+			return new Video(id, result);
 		}
 		catch(DomainException e) {
 			throw new ServiceException(e);

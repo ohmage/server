@@ -1219,6 +1219,25 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="accordion-group">
+                                        <div class="accordion-heading pad-inner">
+                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseAudioRead">
+                                                <i class="icon-plus"></i> Audio Read
+                                            </a>
+                                        </div>
+                                        <div id="collapseAudioRead" class="accordion-body collapse" style="height: 0px; ">
+                                            <div class="accordion-inner pad-inner"  >
+                                                <form action="audio/read" method="post" class="well" target="outputframe">
+                                                    <label><span class="label label-info">required</span> Client</label>
+                                                    <input type="text" name="client" value="ohmageEasyPost">
+                                                    <label><span class="label label-info">required</span> Audio ID</label>
+                                                    <input type="text" name="audio_id">
+                                                    <br>
+                                                    <input type="submit" class="btn" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                      <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">
                                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseImageBatchZipRead">

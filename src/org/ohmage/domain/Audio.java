@@ -1,59 +1,67 @@
 package org.ohmage.domain;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import java.net.URL;
 import java.util.UUID;
 
 import org.ohmage.exception.DomainException;
 
-public class Audio {
-	public final UUID id;
-	public final String type;
-	public final InputStream content;
-
+/**
+ * <p>
+ * This class represents audio media data.
+ * </p>
+ *
+ * @author John Jenkins
+ */
+public class Audio extends Media {
+	/**
+	 * The root MIME type for any media of this type, {@value #MIME_TYPE}.
+	 */
+	public static final String MIME_TYPE = "audio";
+	
+	/**
+	 * Creates a new representation of audio data.
+	 * 
+	 * @param id
+	 *        The unique identifier for this audio data.
+	 * 
+	 * @param type
+	 *        The content type of the media data.
+	 * 
+	 * @param content
+	 *        The actual media data as a byte array.
+	 * 
+	 * @throws DomainException
+	 *         One of the parameters was invalid.
+	 */
 	public Audio(
 		final UUID id,
 		final String type,
 		final byte[] content)
 		throws DomainException {
 		
-		// Validate the ID.
-		if(id == null) {
-			throw new DomainException("The ID is null.");
-		}
-		else {
-			this.id = id;
-		}
-		
-		// Validate the type.
-		if(type == null) {
-			throw new DomainException("The type is null.");
-		}
-		else {
-			this.type = type;
-		}
-		
-		// Validate the content.
-		if(content == null) {
-			throw new DomainException("The content is null.");
-		}
-		else if(content.length == 0) {
-			throw new DomainException("The content is empty.");
-		}
-		else {
-			this.content = new ByteArrayInputStream(content);
-		}
+		super(id, type, content);
 	}
 	
-	public UUID getId() {
-		return id;
+	/**
+	 * Creates an audio file with an ID from the given URL.
+	 * 
+	 * @param id
+	 *        This audio file's unique identifier.
+	 * 
+	 * @param url
+	 *        A URL to the audio file.
+	 * 
+	 * @throws DomainException
+	 *         The URL was invalid or the object it points to does not exist.
+	 */
+	public Audio(final UUID id, final URL url) throws DomainException {
+		super(id, url);
 	}
 	
-	public String getType() {
-		return type;
-	}
-	
-	public InputStream getContentStream() {
-		return content;
+	/**
+	 * @return Always returns {@value #MIME_TYPE}.
+	 */
+	protected String getMimeTypeRoot() {
+		return MIME_TYPE;
 	}
 }

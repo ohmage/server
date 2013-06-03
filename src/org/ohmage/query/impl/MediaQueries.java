@@ -7,24 +7,29 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import org.ohmage.exception.DataAccessException;
-import org.ohmage.query.IVideoQueries;
+import org.ohmage.query.IMediaQueries;
 
-public class VideoQueries extends Query implements IVideoQueries {
+/**
+ * The implementation for the query for media.
+ *
+ * @author John Jenkins
+ */
+public class MediaQueries extends Query implements IMediaQueries {
 	/**
 	 * Creates this object.
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private VideoQueries(DataSource dataSource) {
+	private MediaQueries(DataSource dataSource) {
 		super(dataSource);
 	}
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IVideoQueries#getVideoUrl(java.util.UUID)
+	 * @see org.ohmage.query.IMediaQueries#getMediaUrl(java.lang.String)
 	 */
 	@Override
-	public URL getVideoUrl(final UUID videoId) throws DataAccessException {
+	public URL getMediaUrl(final UUID id) throws DataAccessException {
 		String sql = 
 			"SELECT url " +
 			"FROM url_based_resource " +
@@ -35,13 +40,14 @@ public class VideoQueries extends Query implements IVideoQueries {
 				new URL(
 					getJdbcTemplate().queryForObject(
 						sql, 
-						new Object[] { videoId.toString() },
+						new Object[] { id.toString() },
 						String.class));
 		}
 		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 			if(e.getActualSize() > 1) {
 				throw new DataAccessException(
-					"Multiple URL-based resources have the same UUID.",
+					"Multiple URL-based resources have the same ID: " +
+						id.toString(),
 					e);
 			}
 			
@@ -50,14 +56,14 @@ public class VideoQueries extends Query implements IVideoQueries {
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
 				"Error executing SQL '" + 
-					sql +
-					"' with parameter: " +
-					videoId.toString(),
+					sql + 
+					"' with parameter: " + 
+					id.toString(),
 				e);
 		}
 		catch(MalformedURLException e) {
 			throw new DataAccessException(
-				"The URL is malformed for video: " + videoId.toString(),
+				"The URL is malformed for the media: " + id.toString(),
 				e);
 		}
 	}

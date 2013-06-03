@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.audio.AudioReadRequest;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
 import org.ohmage.request.auth.AuthTokenLogoutRequest;
@@ -121,6 +122,9 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiAnnotationSurveyResponseRead;
 	private String apiAnnotationUpdate;
 	private String apiAnnotationDelete;
+	
+	// Audio
+	private String apiAudioRead;
 	
 	// Audit
 	private String apiAuditRead;
@@ -261,6 +265,9 @@ public final class RequestBuilder implements ServletContextAware {
 		apiAnnotationSurveyResponseRead = apiRoot + "/annotation/survey_response/read";
 		apiAnnotationUpdate = apiRoot + "/annotation/update";
 		apiAnnotationDelete = apiRoot + "/annotation/delete";
+		
+		// Audio
+		apiAudioRead = apiRoot + "/audio/read";
 		
 		// Audit
 		apiAuditRead = apiRoot + "/audit/read";
@@ -424,7 +431,11 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		else if(apiAnnotationDelete.equals(requestUri)) {
 			return new AnnotationDeleteRequest(httpRequest);
-		}		
+		}
+		// Audio
+		else if(apiAudioRead.equals(requestUri)) {
+			return new AudioReadRequest(httpRequest);
+		}
 		// Audit
 		else if(apiAuditRead.equals(requestUri)) {
 			return new AuditReadRequest(httpRequest);
@@ -667,6 +678,8 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserAuthToken.equals(uri) ||
 				apiUserLogout.equals(uri) ||
 				apiUserWhoAmI.equals(uri) ||
+				// Audio
+				apiAudioRead.equals(uri) ||
 				// Audit
 				apiAuditRead.equals(uri) ||
 				// Campaign
@@ -816,6 +829,15 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiAnnotationDelete() {
 		return apiAnnotationDelete;
+	}
+	
+	/**
+	 * Returns apiAudioRead.
+	 * 
+	 * @return The apiAudioRead.
+	 */
+	public String getApiAudioRead() {
+		return apiAudioRead;
 	}
 
 	/**

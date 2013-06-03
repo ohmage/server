@@ -1,4 +1,4 @@
-package org.ohmage.request.video;
+package org.ohmage.request.audio;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -12,7 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.Video;
+import org.ohmage.domain.Audio;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -20,20 +20,32 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.validator.VideoValidators;
+import org.ohmage.validator.AudioValidators;
 
-public class VideoReadRequest extends UserRequest {
+public class AudioReadRequest extends UserRequest {
+	/**
+	 * The logger for this class.
+	 */
 	private static final Logger LOGGER = 
-		Logger.getLogger(VideoReadRequest.class);
+		Logger.getLogger(AudioReadRequest.class);
 
+	/**
+	 * The size of a chunk when reading the audio data.
+	 */
 	private static final int CHUNK_SIZE = 4096;
 	
-	private final UUID videoId;
-	
-	private Video video = null;
+	/**
+	 * The ID of the audio file in question from the request.
+	 */
+	private final UUID audioId;
 	
 	/**
-	 * Creates a video read request.
+	 * The 
+	 */
+	private Audio audio = null;
+
+	/**
+	 * Creates an audio read request.
 	 * 
 	 * @param httpRequest The HTTP request.
 	 * 
@@ -42,33 +54,33 @@ public class VideoReadRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public VideoReadRequest(
-			final HttpServletRequest httpRequest) 
-			throws IOException, InvalidRequestException {
+	public AudioReadRequest(
+		final HttpServletRequest httpRequest)
+		throws InvalidRequestException, IOException {
 		
 		super(httpRequest, false, TokenLocation.EITHER, null);
-		
-		UUID tVideoId = null;
+
+		UUID tAudioId = null;
 		
 		if(! isFailed()) {
-			LOGGER.info("Creating a video read request.");
+			LOGGER.info("Creating an audio read request.");
 			String[] t;
 			
 			try {
-				t = getParameterValues(InputKeys.VIDEO_ID);
+				t = getParameterValues(InputKeys.AUDIO_ID);
 				if(t.length > 1) {
 					throw new ValidationException(
-						ErrorCode.VIDEO_INVALID_ID,
-						"Multiple video IDs were given: " +
-							InputKeys.VIDEO_ID);
+						ErrorCode.AUDIO_INVALID_ID,
+						"Multiple audio IDs were given: " +
+							InputKeys.AUDIO_ID);
 				}
 				else if(t.length == 1) {
-					tVideoId = VideoValidators.validateId(t[0]);
+					tAudioId = AudioValidators.validateId(t[0]);
 				}
-				if(tVideoId == null) {
+				if(tAudioId == null) {
 					throw new ValidationException(
-						ErrorCode.VIDEO_INVALID_ID,
-						"The video's ID was missing: " + InputKeys.VIDEO_ID);
+						ErrorCode.AUDIO_INVALID_ID,
+						"The audio's ID was missing: " + InputKeys.AUDIO_ID);
 				}
 			}
 			catch(ValidationException e) {
@@ -77,29 +89,30 @@ public class VideoReadRequest extends UserRequest {
 			}
 		}
 		
-		videoId = tVideoId;
+		audioId = tAudioId;
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.request.Request#service()
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Validating a video read request.");
+		LOGGER.info("Validating an audio read request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
 		try {
-			LOGGER.info("Verifying that the user is allowed to read the video.");
+			LOGGER
+				.info("Verifying that the user is allowed to read the audio.");
 			UserMediaServices.instance().verifyUserCanReadMedia(
 				getUser().getUsername(), 
-				videoId);
+				audioId);
 			
-			LOGGER.info("Connecting to the video stream.");
-			video = UserMediaServices.instance().getVideo(videoId);
+			LOGGER.info("Connecting to the audio stream.");
+			audio = UserMediaServices.instance().getAudio(audioId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -113,8 +126,8 @@ public class VideoReadRequest extends UserRequest {
 	 */
 	@Override
 	public void respond(
-			final HttpServletRequest httpRequest,
-			final HttpServletResponse httpResponse) {
+		final HttpServletRequest httpRequest,
+		final HttpServletResponse httpResponse) {
 
 		LOGGER.info("Responding to a video read request.");
 		
@@ -123,8 +136,8 @@ public class VideoReadRequest extends UserRequest {
 				
 		// Open the connection to the image if it is not null.
 		InputStream videoStream = null;
-		if((! isFailed()) && video != null) {
-			videoStream = video.getContentStream();
+		if((! isFailed()) && audio != null) {
+			videoStream = audio.getContentStream();
 		}
 		
 		try {
@@ -134,10 +147,10 @@ public class VideoReadRequest extends UserRequest {
 			else {
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + video.getFilename());
+					"attachment; filename=" + audio.getFilename());
 				httpResponse.setHeader(
 					"Content-Length", 
-					new Long(video.getSize()).toString());
+					new Long(audio.getSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {
