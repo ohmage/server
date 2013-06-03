@@ -146,7 +146,7 @@ public class DocumentCreationRequest extends UserRequest {
 		
 		if(! isFailed()) {
 			try {
-				tempDocument = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
+				tempDocument = getParameter(httpRequest, InputKeys.DOCUMENT);
 				if(tempDocument == null) {
 					setFailed(ErrorCode.DOCUMENT_INVALID_CONTENTS, "The document's contents are missing: " + InputKeys.DOCUMENT);
 					throw new ValidationException("The document's contents were missing.");
