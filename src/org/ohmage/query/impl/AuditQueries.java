@@ -475,7 +475,7 @@ public class AuditQueries extends Query implements IAuditQueries {
 			try {
 				final Audit auditInformation = getJdbcTemplate().queryForObject(
 						SQL_GET_AUDIT_INFORMATION_FROM_ID, 
-						new Object[] { auditId },
+						new Object[] { auditId.longValue() },
 						new RowMapper<Audit>() {
 							@Override
 							public Audit mapRow(

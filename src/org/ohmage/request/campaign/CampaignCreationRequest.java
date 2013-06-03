@@ -160,6 +160,17 @@ public class CampaignCreationRequest extends UserRequest {
 				if(t.length == 1) {
 					description = CampaignValidators.validateDescription(t[0]);
 				}
+				
+				String id = null;
+				t = getParameterValues(InputKeys.CAMPAIGN_URN);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_ID,
+						"Multiple IDs were found: " + InputKeys.CAMPAIGN_URN);
+				}
+				else if(t.length == 1) {
+					id = CampaignValidators.validateCampaignId(t[0]);
+				}
 
 				byte[] xml = getParameter(httpRequest, InputKeys.XML);
 				if(xml == null) {
@@ -171,6 +182,7 @@ public class CampaignCreationRequest extends UserRequest {
 					tCampaign = 
 						CampaignValidators
 							.validateCampaign(
+								id,
 								new String(xml),
 								description, 
 								runningState, 

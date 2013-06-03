@@ -573,7 +573,7 @@ public class Campaign {
 			
 			Element root = document.getRootElement();
 			
-			tId = getId(root);
+			tId = getId(root, id);
 			tName = getName(root);
 
 			tIconUrl = getIconUrl(root);
@@ -635,6 +635,7 @@ public class Campaign {
 	 * @throws DomainException If any of the parameters are invalid.
 	 */
 	public Campaign(
+			final String id,
 			final String description,
 			final RunningState runningState, 
 			final PrivacyState privacyState, 
@@ -676,7 +677,7 @@ public class Campaign {
 		
 		Element root = document.getRootElement();
 		
-		id = getId(root);
+		this.id = getId(root, id);
 		name = getName(root);
 		this.description = description;
 		
@@ -691,7 +692,7 @@ public class Campaign {
 		
 		this.creationTimestamp = new DateTime(creationTimestamp);
 		
-		this.xml = xml;
+		this.xml = root.toXML();
 		
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
@@ -733,7 +734,7 @@ public class Campaign {
 		
 		Element root = document.getRootElement();
 		
-		String id = getId(root);
+		String id = getId(root, null);
 		String name = getName(root);
 		getIconUrl(root);
 		getAuthoredBy(root);
@@ -2011,30 +2012,53 @@ public class Campaign {
 	 * @throws DomainException The ID is missing, there are multiple IDs, or 
 	 * 						   the ID fails validation.
 	 */
-	private static String getId(final Node root) throws DomainException {
+	private static String getId(
+		final Element root, 
+		final String id) 
+		throws DomainException {
+		
+		// Get the URN.
+		String urn;
 		Nodes ids = root.query(XML_ID);
 		if(ids.size() == 0) {
-			throw new DomainException("The campaign ID is missing.");
+			if(id == null) {
+				throw new DomainException("The campaign ID is missing.");
+			}
+			else {
+				urn = id;
+				
+				Element idElement = new Element("campaignUrn");
+				idElement.appendChild(urn);
+				root.appendChild(idElement);
+			}
 		}
 		else if(ids.size() > 1) {
 			throw new DomainException("Multiple campaign IDs were found.");
 		}
 		else {
-			String urn = ids.get(0).getValue().trim();
+			urn = ids.get(0).getValue().trim();
 			
-			if(! StringUtils.isValidUrn(urn)) {
-				throw new DomainException("The campaign ID is not valid.");
-			}
-			else if(urn.length() > MAX_ID_LENGTH) {
-				throw new DomainException(
-						"The campaign's ID cannot be longer than " +
-							MAX_ID_LENGTH +
-							" characters.");
-			}
-			else {
-				return urn;
+			if((id != null) && (! id.equals(urn))) {
+				throw
+					new DomainException(
+						"An ID was given and was part of the XML, and they " +
+							"do not match.");
 			}
 		}
+		
+		// Validate the URN.
+		if(! StringUtils.isValidUrn(urn)) {
+			throw new DomainException("The campaign ID is not valid.");
+		}
+		else if(urn.length() > MAX_ID_LENGTH) {
+			throw new DomainException(
+					"The campaign's ID cannot be longer than " +
+						MAX_ID_LENGTH +
+						" characters.");
+		}
+		
+		// Return the URN.
+		return urn;
 	}
 	
 	/**

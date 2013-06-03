@@ -847,6 +847,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 						
 							try {
 								return new Campaign(
+										null,
 										rs.getString("description"),
 										Campaign.RunningState.getValue(
 												rs.getString("running_state")),
@@ -1263,6 +1264,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 									
 									result.addResult(
 											new Campaign(
+													null,
 													rs.getString("description"),
 													Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
 													Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
@@ -1417,6 +1419,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 							try {
 								return
 									new Campaign(
+										null,
 										rs.getString("description"),
 										Campaign.RunningState.getValue(rs.getString("running_state")),
 										Campaign.PrivacyState.getValue(rs.getString("privacy_state")),

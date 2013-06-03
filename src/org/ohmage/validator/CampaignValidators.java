@@ -33,8 +33,8 @@ import org.ohmage.domain.campaign.Campaign.OutputFormat;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 
 /**
  * Class to contain the validators for campaign parameters.
@@ -304,6 +304,8 @@ public final class CampaignValidators {
 	 * Validates a campaign's XML and creates a Campaign object from it and the
 	 * other parameters.
 	 * 
+	 * @param id The campaign's ID.
+	 * 
 	 * @param xml The XML to be validated.
 	 * 
 	 * @param description The description of the campaign or null.
@@ -319,6 +321,7 @@ public final class CampaignValidators {
 	 * @throws ValidationException The XML was not valid.
 	 */
 	public static Campaign validateCampaign(
+			final String id,
 			final String xml,
 			final String description,
 			final Campaign.RunningState runningState,
@@ -333,6 +336,7 @@ public final class CampaignValidators {
 		try {
 			return 
 				new Campaign(
+					id,
 					description, 
 					runningState, 
 					privacyState, 
