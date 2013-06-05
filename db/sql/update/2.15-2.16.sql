@@ -25,3 +25,9 @@ ALTER TABLE user
     ADD COLUMN `user_setup_privilege`
     BOOLEAN NOT NULL DEFAULT FALSE
     AFTER `class_creation_privilege`;
+
+-- Add the character encoding to survey responses.
+ALTER TABLE survey_response
+    MODIFY COLUMN survey text CHARACTER SET utf8 NOT NULL;
+ALTER TABLE prompt_response
+    MODIFY COLUMN response text CHARACTER SET utf8 NOT NULL;

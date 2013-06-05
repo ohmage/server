@@ -232,15 +232,19 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
-				t = parameters.get(InputKeys.SURVEYS);
-				if(t == null || t.length != 1) {
+				byte[] surveyDataBytes =
+					getParameter(httpRequest, InputKeys.SURVEYS);
+				if(surveyDataBytes == null) {
 					throw new ValidationException(
 						ErrorCode.SURVEY_INVALID_RESPONSES, 
 						"No value found for 'surveys' parameter or multiple surveys parameters were found.");
 				}
 				else {
 					try {
-						tJsonData = CampaignValidators.validateUploadedJson(t[0]);
+						tJsonData =
+							CampaignValidators
+								.validateUploadedJson(
+									new String(surveyDataBytes, "UTF-8"));
 					}
 					catch(IllegalArgumentException e) {
 						throw new ValidationException(

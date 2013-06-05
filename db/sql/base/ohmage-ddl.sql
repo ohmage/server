@@ -290,8 +290,8 @@ CREATE TABLE survey_response (
   client tinytext NOT NULL,
   epoch_millis bigint unsigned NOT NULL, 
   phone_timezone varchar(32) NOT NULL,
-  survey_id varchar(250) NOT NULL,    -- a survey id as defined in a campaign at the XPath //surveyId
-  survey text NOT NULL,               -- the max length for text is 21843 UTF-8 chars
+  survey_id varchar(250) NOT NULL,    
+  survey text CHARACTER SET utf8 NOT NULL,
   launch_context text,                -- trigger and other data
   location_status tinytext NOT NULL,  -- one of: unavailable, valid, stale, inaccurate 
   location text,                      -- JSON location data: longitude, latitude, accuracy, provider
@@ -318,7 +318,7 @@ CREATE TABLE prompt_response (
   prompt_type varchar(250) NOT NULL, -- a prompt type as defined in a configuration at the XPath //promptType
   repeatable_set_id varchar(250), -- a repeatable set id as defined in a configuration at the XPath //repeatableSetId
   repeatable_set_iteration tinyint unsigned,
-  response text NOT NULL,   -- the data format is defined by the prompt type: a string or a JSON string
+  response text CHARACTER SET utf8 NOT NULL,
   audit_timestamp timestamp default current_timestamp on update current_timestamp,
   PRIMARY KEY (id),
   INDEX (survey_response_id),
