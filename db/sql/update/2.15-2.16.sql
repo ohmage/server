@@ -73,6 +73,14 @@ BEGIN
 	ALTER TABLE prompt_response
 	    MODIFY COLUMN response text CHARACTER SET utf8 NOT NULL;
 
+    -- Add the SSL flag.
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM preference
+        WHERE p_key = 'ssl_enabled'))
+    THEN
+        INSERT INTO preference VALUES ('ssl_enabled', 'false');
+    END IF;
+
     -- Set the result to 0.
     SET resultCode = 0;
 END //

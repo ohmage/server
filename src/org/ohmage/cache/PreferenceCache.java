@@ -83,7 +83,6 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_APPLICATION_NAME = "application.name";
 	public static final String KEY_APPLICATION_VERSION = "application.version";
 	public static final String KEY_APPLICATION_BUILD = "application.build";
-	public static final String KEY_SSL_ENABLED = "ssl.enabled";
 	
 	// Self-registration information.
 	public static final String KEY_ALLOW_SELF_REGISTRATION = "self_registration_allowed";
@@ -128,6 +127,9 @@ public final class PreferenceCache extends KeyValueCache {
 	
 	public static final String KEY_FULLY_QUALIFIED_DOMAIN_NAME = 
 		"fully_qualified_domain_name";
+	
+	// SSL enabling.
+	public static final String KEY_SSL_ENABLED = "ssl_enabled";
 		
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
@@ -210,8 +212,7 @@ public final class PreferenceCache extends KeyValueCache {
 		
 		if(KEY_APPLICATION_NAME.equals(key) ||
 		   KEY_APPLICATION_VERSION.equals(key) ||
-		   KEY_APPLICATION_BUILD.equals(key) || 
-		   KEY_SSL_ENABLED.equals(key)) {
+		   KEY_APPLICATION_BUILD.equals(key)) {
 			return getSystemProperty(key);
 		}
 		else {

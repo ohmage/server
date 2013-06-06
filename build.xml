@@ -247,7 +247,6 @@ it up and remove the warnings.</echo>
       <entry key="application.name" default="${app_name}"/>
       <entry key="application.version" default="${app_version}"/>
       <entry key="application.build" default="${git.revision}"/>
-      <entry key="ssl.enabled" default="true"/>
     </propertyfile>
     <move file="system.properties" todir="web/WEB-INF/properties"/>
     <war webxml="${resources}/WEB-INF/web-ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}-ssl.war">
@@ -279,7 +278,6 @@ it up and remove the warnings.</echo>
       <entry key="application.name" default="${app_name}"/>
       <entry key="application.version" default="${app_version}"/>
       <entry key="application.build" default="${git.revision}"/>
-      <entry key="ssl.enabled" default="false"/>
     </propertyfile>
     <move file="system.properties" todir="web/WEB-INF/properties"/>
     <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}-no_ssl.war">
