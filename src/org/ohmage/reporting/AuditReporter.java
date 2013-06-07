@@ -97,7 +97,10 @@ public final class AuditReporter {
 						endDate);
 			}
 			catch(ServiceException e) {
-				LOGGER.error("There was an error generating the audit inforamtion.", e);
+				LOGGER
+					.error(
+						"There was an error generating the audit information.",
+						e);
 				return;
 			}
 			
