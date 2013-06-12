@@ -112,7 +112,11 @@ public abstract class Request {
 	private static final String KEY_AUDIT_REQUESTER_INTERNET_ADDRESS = 
 			"requester_inet_addr";
 	
-	private static final String ORIGIN_REQUEST_HEADER_NAME = "Origin";
+	/**
+	 * The value our Android app uses when setting the client parameter for
+	 * each request.
+	 */
+	public static final String ANDROID_CLIENT_NAME = "ohmage-android";
 	
 	private final Annotator annotator;
 	private boolean failed;
