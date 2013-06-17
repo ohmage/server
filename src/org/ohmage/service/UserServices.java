@@ -668,9 +668,9 @@ public final class UserServices {
 		throws ServiceException {
 		
 		try {
-			if(
-				(! userQueries.userIsAdmin(username)) &&
-				(! userQueries.userCanCreateClasses(username))) {
+			if(!
+				(userQueries.userIsAdmin(username) || 
+				userQueries.userCanCreateClasses(username))) {
 				
 				throw
 					new ServiceException(
