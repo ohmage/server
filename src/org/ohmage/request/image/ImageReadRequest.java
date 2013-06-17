@@ -194,9 +194,20 @@ public class ImageReadRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Writing the image read response.");
 		
-		// Sets the HTTP headers to disable caching
-		expireResponse(httpResponse);
-		
+		if(ANDROID_CLIENT_NAME.equals(getClient())) {
+
+			// TODO move to web server configuration for all image file types?
+			// For now, this allows images to be stored by clients for one year
+			// and specifies private to disable intermediaries from caching the
+			// image. (HTTP 1.1)
+			httpResponse.setHeader("Cache-Control", "max-age=1051200, private");  
+						
+		} else {
+
+			// Sets the HTTP headers to disable caching
+			expireResponse(httpResponse);
+		}
+				
 		// Open the connection to the image if it is not null.
 		InputStream imageStream = null;
 		try {
