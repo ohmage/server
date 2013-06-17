@@ -4,7 +4,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 import org.ohmage.cache.OmhThirdPartyRegistration;
-import org.ohmage.domain.OhmagePayloadId;
+import org.ohmage.domain.OhmagePayloadIdBuilder;
 
 /**
  * <p>
@@ -29,7 +29,7 @@ public class OmhRegistrationListener implements ServletContextListener {
 	public void contextInitialized(final ServletContextEvent event) {
 		// Register the ohmage payload IDs.
 		OmhThirdPartyRegistration
-			.registerDomain("ohmage", OhmagePayloadId.class);
+			.registerDomain("ohmage", new OhmagePayloadIdBuilder());
 	}
 
 	/*
