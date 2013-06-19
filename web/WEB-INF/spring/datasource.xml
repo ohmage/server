@@ -16,6 +16,11 @@
     <property name="password" value="${db.password}"/>
     <property name="defaultAutoCommit" value="false"/>
     
+    <property name="validationQuery" value="SELECT 1" />
+    <property name="testWhileIdle" value="true" />
+    <property name="timeBetweenEvictionRunsMillis" value="3600000" />
+    <property name="minEvictableIdleTimeMillis" value="14400000" />
+    
   </bean>
 
 </beans>
