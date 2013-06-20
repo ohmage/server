@@ -181,7 +181,8 @@ public class CampaignAssignmentRequest extends UserRequest {
 							httpRequest, 
 							getParameterMap(), 
 							tCampaignId, 
-							t[0]);
+							t[0],
+							tUsername);
 				}
 			}
 			catch(ValidationException e) {

@@ -122,6 +122,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<String, Video> videoContentsMap;
 	private final Map<String, Audio> audioContentsMap;
+	private final String owner;
 	
 	private Collection<UUID> surveyResponseIds;
 	
@@ -129,7 +130,8 @@ public class SurveyUploadRequest extends UserRequest {
 		final HttpServletRequest httpRequest,
 		final Map<String, String[]> parameters,
 		final String campaignId,
-		final String data)
+		final String data,
+		final String owner)
 		throws IOException, InvalidRequestException {
 
 		super(httpRequest, false, TokenLocation.PARAMETER, parameters);
@@ -170,6 +172,7 @@ public class SurveyUploadRequest extends UserRequest {
 		imageContentsMap = Collections.emptyMap();
 		videoContentsMap = Collections.emptyMap();
 		audioContentsMap = Collections.emptyMap();
+		this.owner = owner;
 	}
 	
 	/**
@@ -372,6 +375,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.imageContentsMap = tImageContentsMap;
 		this.videoContentsMap = tVideoContentsMap;
 		this.audioContentsMap = tAudioContentsMap;
+		this.owner = null;
 		
 		surveyResponseIds = null;
 	}
@@ -456,7 +460,7 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Inserting the data into the database.");
 			List<Integer> duplicateIndexList = 
 				SurveyResponseServices.instance().createSurveyResponses(
-					getUser().getUsername(), 
+					((owner == null) ? getUser().getUsername() : owner), 
 					getClient(), 
 					campaignUrn, 
 					surveyResponses, 

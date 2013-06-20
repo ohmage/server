@@ -507,7 +507,8 @@ public class CampaignPayloadId implements PayloadId {
 					httpRequest,
 					parameters,
 					campaignId,
-					resultWriter.toString());
+					resultWriter.toString(),
+					null);
 		}
 		catch(IOException e) {
 			throw new DomainException(
