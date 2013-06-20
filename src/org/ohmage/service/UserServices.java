@@ -685,6 +685,50 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Verifies that the user can delete a class.
+	 * 
+	 * @param username
+	 *        The username of the user whose class deletion ability is being
+	 *        checked.
+	 * 
+	 * @param classId
+	 *        The ID of the class to be deleted.
+	 * 
+	 * @throws ServiceException
+	 *         Thrown if there is an error or if the user is not allowed to
+	 *         create classes.
+	 */
+	public void verifyUserCanDeleteClasses(
+		final String username,
+		final String classId) 
+		throws ServiceException {
+		
+		try {
+			if(!
+				(userQueries.userIsAdmin(username) || 
+				(
+					userQueries.userCanCreateClasses(username) &&
+					Clazz
+						.Role
+						.PRIVILEGED
+						.equals(
+							userClassQueries
+								.getUserClassRole(classId, username))))) {
+				
+				throw
+					new ServiceException(
+						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
+						"The user does not have permission to delete the " +
+							"class: " +
+							classId);
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Verifies that a user can setup a new user.
 	 * 
 	 * @param username
