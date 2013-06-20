@@ -113,6 +113,8 @@ public class SurveyResponse {
 	 */
 	public static enum LocationStatus { 
 		VALID,
+		STALE,
+		INACCURATE,
 		GPS_OFF,
 		UNAVAILABLE;
 		
