@@ -3,7 +3,9 @@ package org.ohmage.domain.campaign;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -211,8 +213,9 @@ public class CampaignMask implements Comparable<CampaignMask> {
 
 		// The unique identifier for the corresponding campaign ID.
 		String campaignId = null;
-		// The list of surveys in the campaign to which the mask belongs.
-		Set<String> surveyIds = null;
+		// The map of survey-to-prompts in the campaign to which the mask
+		// belongs.
+		Map<String, Set<String>> promptIds = null;
 
 		/**
 		 * Creates an empty builder
@@ -317,50 +320,69 @@ public class CampaignMask implements Comparable<CampaignMask> {
 		}
 
 		/**
-		 * Returns surveyIds.
+		 * Returns promptIds.
 		 * 
-		 * @return The surveyIds.
+		 * @return The promptIds.
 		 */
-		public Set<String> getSurveyIds() {
-			return surveyIds;
+		public Map<String, Set<String>> getPromptIds() {
+			return promptIds;
 		}
 
 		/**
-		 * Sets the surveyIds.
+		 * Sets the promptIds.
 		 * 
-		 * @param surveyIds
-		 *        The surveyIds to set.
+		 * @param promptIds
+		 *        The promptIds to set.
 		 */
-		public void setSurveyIds(final Set<String> surveyIds) {
-			this.surveyIds = surveyIds;
+		public void setPromptIds(final Map<String, Set<String>> promptIds) {
+			this.promptIds = promptIds;
 		}
 
 		/**
-		 * Adds a survey ID to the list of survey IDs.
+		 * Adds a prompt ID to the list of prompt IDs for a survey ID.
 		 * 
 		 * @param surveyId
-		 *        The survey ID to add.
+		 *        The survey ID to which the prompt belongs.
+		 *        
+		 * @param promptId
+		 *        The prompt ID in the survey.
 		 */
-		public void addSurveyId(final String surveyId) {
-			if(surveyIds == null) {
-				surveyIds = new HashSet<String>();
+		public void addPromptId(final String surveyId, final String promptId) {
+			if(promptIds == null) {
+				promptIds = new HashMap<String, Set<String>>();
 			}
-
-			surveyIds.add(surveyId);
+			
+			Set<String> prompts = promptIds.get(surveyId);
+			if(prompts == null) {
+				prompts = new HashSet<String>();
+				promptIds.put(surveyId, prompts);
+			}
+			prompts.add(promptId);
 		}
 
 		/**
-		 * Adds all of the survey IDs to the list of survey IDs.
+		 * Adds all of the prompt IDs to the list of survey IDs.
 		 * 
-		 * @param surveyIds
-		 *        The survey IDs to add.
+		 * @param surveyId
+		 *        The survey ID to which the prompts belong.
+		 *
+		 * @param promptIds
+		 *        The prompt IDs to add to the list.
 		 */
-		public void addSurveyIds(final Collection<String> surveyIds) {
-			if(this.surveyIds == null) {
-				this.surveyIds = new HashSet<String>();
+		public void addPromptIds(
+			final String surveyId,
+			final Collection<String> promptIds) {
+			
+			if(this.promptIds == null) {
+				this.promptIds = new HashMap<String, Set<String>>();
 			}
 
-			this.surveyIds.addAll(surveyIds);
+			Set<String> prompts = this.promptIds.get(surveyId);
+			if(prompts == null) {
+				prompts = new HashSet<String>();
+				this.promptIds.put(surveyId, prompts);
+			}
+			prompts.addAll(promptIds);
 		}
 
 		/**
@@ -379,7 +401,7 @@ public class CampaignMask implements Comparable<CampaignMask> {
 					assignerUserId,
 					assigneeUserId,
 					campaignId,
-					surveyIds);
+					promptIds);
 		}
 	}
 
@@ -406,9 +428,9 @@ public class CampaignMask implements Comparable<CampaignMask> {
 	 */
 	private final String campaignId;
 	/**
-	 * The list of surveys in the campaign to which the mask belongs.
+	 * The map of survey IDs to their prompt IDs that are part of the mask.
 	 */
-	private final Set<String> surveyIds;
+	private final Map<String, Set<String>> promptIds;
 
 	/**
 	 * Creates a new campaign mask.
@@ -432,9 +454,9 @@ public class CampaignMask implements Comparable<CampaignMask> {
 	 *        The unique identifier of the campaign being masked.
 	 * 
 	 * @param surveyIds
-	 *        A list of survey IDs that will be visible to the user. This must
-	 *        be a non-null, non-empty list as the user must be able to see at
-	 *        least one survey.
+	 *        A map of survey IDs to prompt IDs that will be visible to the
+	 *        user. Every set associated with a survey must be non-null,
+	 *        non-empty as the user must be able to see at least one prompt.
 	 * 
 	 * @throws DomainException
 	 *         One of the parameters was invalid.
@@ -445,7 +467,8 @@ public class CampaignMask implements Comparable<CampaignMask> {
 		final String assignerUserId,
 		final String assigneeUserId,
 		final String campaignId,
-		final Set<String> surveyIds) throws DomainException {
+		final Map<String, Set<String>> promptIds)
+		throws DomainException {
 
 		// Validate and assign the assigner's user ID.
 		if(assignerUserId == null) {
@@ -471,16 +494,17 @@ public class CampaignMask implements Comparable<CampaignMask> {
 			this.campaignId = campaignId;
 		}
 
-		// The set of survey IDs cannot be empty.
-		if(surveyIds == null) {
-			throw new DomainException("The set of survey IDs is null.");
-		}
-		else if(surveyIds.size() == 0) {
-			throw new DomainException("The set of survey IDs is empty.");
-		}
-		// If we are saving it, be sure to do a deep copy.
-		else {
-			this.surveyIds = new HashSet<String>(surveyIds);
+		// Every set must be non-empty.
+		this.promptIds = new HashMap<String, Set<String>>();
+		for(String surveyId : promptIds.keySet()) {
+			Set<String> promptIdsSet = promptIds.get(surveyId); 
+			if(promptIdsSet.isEmpty()) {
+				throw
+					new DomainException(
+						"The prompt IDs for a survey are empty.");
+			}
+			
+			promptIds.put(surveyId, Collections.unmodifiableSet(promptIdsSet));
 		}
 
 		// If the mask ID is null, create a random one. Otherwise, use the
@@ -548,12 +572,12 @@ public class CampaignMask implements Comparable<CampaignMask> {
 	}
 
 	/**
-	 * Returns an unmodifiable set of the survey IDs.
+	 * Returns an unmodifiable map of survey IDs to their prompt IDs.
 	 * 
-	 * @return An unmodifiable set of the survey IDs in this mask.
+	 * @return An unmodifiable map of survey IDs to their prompt IDs.
 	 */
-	public Set<String> getSurveyIds() {
-		return Collections.unmodifiableSet(surveyIds);
+	public Map<String, Set<String>> getSurveyPromptMap() {
+		return Collections.unmodifiableMap(promptIds);
 	}
 
 	/**

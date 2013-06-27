@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -365,7 +366,8 @@ public class Survey {
 			final boolean withIntroText,
 			final boolean withSubmitText, 
 			final boolean withAnytime, 
-			final boolean withSurveyItems) 
+			final boolean withSurveyItems,
+			final Set<String> promptIds) 
 			throws JSONException {
 		
 		JSONObject result = new JSONObject();
@@ -397,11 +399,20 @@ public class Survey {
 		if(withSurveyItems) {
 			JSONArray surveyItemsArray = new JSONArray();
 			
-			List<Integer> indices = new ArrayList<Integer>(surveyItems.keySet());
+			List<Integer> indices =
+				new ArrayList<Integer>(surveyItems.keySet());
 			Collections.sort(indices);
 			
 			for(Integer index : indices) {
-				surveyItemsArray.put(surveyItems.get(index).toJson());
+				if(promptIds == null) {
+					surveyItemsArray.put(surveyItems.get(index).toJson());
+				}
+				else {
+					SurveyItem surveyItem = surveyItems.get(index);
+					if(promptIds.contains(surveyItem.getId())) {
+						surveyItemsArray.put(surveyItem.toJson());
+					}
+				}
 			}
 			
 			result.put(JSON_KEY_PROMPTS, surveyItemsArray);

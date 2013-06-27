@@ -863,30 +863,66 @@ public class Campaign {
 			// The only relevant mask is the one that was created last.
 			CampaignMask mask = masks.get(masks.size() - 1);
 			
-			// Get the list of survey IDs to retain.
-			Set<String> surveyIds = mask.getSurveyIds();
+			// Get the list of survey and prompt IDs to retain.
+			Map<String, Set<String>> surveyPromptMap = mask.getSurveyPromptMap();
 			
 			// Get all of the survey nodes.
 			Nodes surveys = root.query("/campaign/surveys/survey");
 			
 			// Cycle through the surveys and remove those whose ID is not in
-			// the list.
+			// the map.
 			int numSurveys = surveys.size();
 			for(int i = 0; i < numSurveys; i++) {
 				// Get the individual survey.
 				Node survey = surveys.get(i);
 				
-				// Get the ID nodes and validate that there is only 1.
-				Nodes ids = survey.query("./id");
-				if(ids.size() == 0) {
+				// Get the ID for this survey.
+				Nodes surveyIdNode = survey.query("./id");
+				if(surveyIdNode.size() == 0) {
 					throw new DomainException("The survey is missing its ID.");
 				}
-				else if(ids.size() > 1) {
+				else if(surveyIdNode.size() > 1) {
 					throw new DomainException("The survey has multiple IDs.");
 				}
+				String surveyId = surveyIdNode.get(0).getValue();
 				
-				// If this ID isn't in the set of survey IDs, remove it.
-				if(! surveyIds.contains(ids.get(0).getValue())) {
+				// Get the desired prompt IDs for this survey.
+				Set<String> promptIds = surveyPromptMap.get(surveyId);
+				
+				// If this ID is in the map, remove the undesired prompts.
+				if(surveyPromptMap.containsKey(surveyId)) {
+					// Get all of the prompts for this survey.
+					Nodes prompts = survey.query("./contentList/prompt");
+					
+					// Cycle through the prompts removing those that are not in
+					// this list.
+					int numPrompts = prompts.size();
+					for(int j = 0; j < numPrompts; j++) {
+						// Get the individual prompt.
+						Node prompt = prompts.get(i);
+						
+						// Get the ID for this prompt.
+						Nodes promptIdNode = survey.query("./id");
+						if(promptIdNode.size() == 0) {
+							throw
+								new DomainException(
+									"The prompt is missing its ID.");
+						}
+						else if(promptIdNode.size() > 1) {
+							throw
+								new DomainException(
+									"The prompt has multiple IDs.");
+						}
+						String promptId = promptIdNode.get(0).getValue();
+						
+						// If the prompt is not in the mask, remove it.
+						if(! promptIds.contains(promptId)) {
+							prompt.getParent().removeChild(prompt);
+						}
+					}
+				}
+				// Otherwise, remove the survey completely.
+				else {
 					survey.getParent().removeChild(survey);
 				}
 			}
@@ -1043,6 +1079,21 @@ public class Campaign {
 		
 		// Sort them.
 		Collections.sort(this.masks);
+	}
+	
+	/**
+	 * Returns the most recent mask for this user and campaign.
+	 * 
+	 * @return The most recent mask for this user and campaign or null if the
+	 *         user has no masks.
+	 */
+	public CampaignMask getLatestMask() {
+		if(masks.size() == 0) {
+			return null;
+		}
+		else {
+			return masks.get(masks.size() - 1);
+		}
 	}
 
 	/**
@@ -1821,9 +1872,9 @@ public class Campaign {
 		
 		if(withSurveys) {
 			// If any masks exist, get the most recent one's survey list.
-			Set<String> surveyIds = null;
+			Map<String, Set<String>> surveyPromptMap = null;
 			if(masks.size() > 0) {
-				surveyIds = masks.get(masks.size() - 1).getSurveyIds();
+				surveyPromptMap = masks.get(masks.size() - 1).getSurveyPromptMap();
 			}
 			
 			JSONArray surveysArray = new JSONArray();
@@ -1831,8 +1882,8 @@ public class Campaign {
 				// If the campaign is being masked and this survey isn't part
 				// of the mask, skip it.
 				if(
-					(surveyIds != null) && 
-					(! surveyIds.contains(survey.getId()))) {
+					(surveyPromptMap != null) && 
+					(! surveyPromptMap.containsKey(survey.getId()))) {
 						
 					continue;
 				}
@@ -1845,7 +1896,8 @@ public class Campaign {
 						true,	// Intro Text
 						true,	// Submit Text
 						true,	// Anytime
-						true	// Prompts
+						true,	// Prompts
+						surveyPromptMap.get(survey.getId())
 					)
 				);
 			}

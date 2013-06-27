@@ -85,6 +85,7 @@ public final class InputKeys {
 	public static final String SURVEY_ID = "survey_id";
 	public static final String SURVEY_ID_LIST = "survey_id_list";
 	public static final String SURVEY_RESPONSE_ID_LIST = "survey_response_id_list";
+	public static final String SURVEY_PROMPT_MAP = "survey_prompt_map";
 	/**
 	 * FIXME: This should be more descriptive.
 	 */

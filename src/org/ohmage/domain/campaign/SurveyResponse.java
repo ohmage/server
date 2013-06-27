@@ -1105,6 +1105,22 @@ public class SurveyResponse {
 					e);
 		}
 		
+		Set<String> allowedPromptIds = null;
+		CampaignMask mask = campaign.getLatestMask();
+		// If a mask exists, ensure that this survey ID is allowed.
+		if(mask != null) {
+			// Get the allowed prompt IDs.
+			allowedPromptIds = mask.getSurveyPromptMap().get(surveyId);
+			
+			// If the prompt IDs are null, then this survey is not allowed.
+			if(allowedPromptIds == null) {
+				throw
+					new DomainException(
+						"The survey is masked and survey responses are not " +
+							"allowed.");
+			}
+		}
+		
 		survey = campaign.getSurveys().get(surveyId);
 		if(survey == null) {
 			throw new DomainException(
@@ -1146,7 +1162,10 @@ public class SurveyResponse {
 					timezone);
 		}
 		catch(JSONException e) {
-			if(!LocationStatus.UNAVAILABLE.equals(locationStatus)) {
+			if(!(
+				LocationStatus.UNAVAILABLE.equals(locationStatus) ||
+				LocationStatus.GPS_OFF.equals(locationStatus))) {
+				
 				throw new DomainException(
 						ErrorCode.SERVER_INVALID_LOCATION, 
 						"The location is missing.", 
@@ -1191,10 +1210,11 @@ public class SurveyResponse {
 					e);
 		}
 		this.responses = 
-				processResponses(
-						campaign.getSurveys().get(surveyId).getSurveyItems(), 
-						responses, 
-						null);
+			processResponses(
+				campaign.getSurveys().get(surveyId).getSurveyItems(), 
+				responses,
+				null,
+				allowedPromptIds);
 	}
 	
 	/**
@@ -1726,14 +1746,15 @@ public class SurveyResponse {
 	 * 						   survey objects.
 	 */
 	private Map<Integer, Response> processResponses(
-			final Map<Integer, SurveyItem> surveyItems, 
-			final JSONArray currArray, 
-			final Integer repeatableSetIteration) 
-			throws DomainException {
+		final Map<Integer, SurveyItem> surveyItems, 
+		final JSONArray currArray, 
+		final Integer repeatableSetIteration,
+		final Set<String> allowedPromptIds) 
+		throws DomainException {
 		
 		int numResponses = currArray.length();
 		Map<Integer, Response> results = 
-				new HashMap<Integer, Response>(numResponses);
+			new HashMap<Integer, Response>(numResponses);
 		
 		for(int i = 0; i < numResponses; i++) {
 			try {
@@ -1755,11 +1776,11 @@ public class SurveyResponse {
 					}
 					
 					results.put(
-							prompt.getIndex(),
-							processPromptResponse(
-									prompt, 
-									currResponse, 
-									repeatableSetIteration));
+						prompt.getIndex(),
+						processPromptResponse(
+							prompt, 
+							currResponse, 
+							repeatableSetIteration));
 				}
 				catch(JSONException notPrompt) {
 					try {
@@ -1781,7 +1802,8 @@ public class SurveyResponse {
 								repeatableSet.getIndex(),
 								processRepeatableSet(
 										repeatableSet, 
-										currResponse));
+										currResponse,
+										allowedPromptIds));
 					}
 					catch(JSONException notRepeatableSet) {
 						throw new DomainException(
@@ -1803,11 +1825,23 @@ public class SurveyResponse {
 			}
 		}
 		
+		// Cycle through the prompts and ensure that a response exists for each
+		// prompt, unless it was masked.
 		for(SurveyItem surveyItem : surveyItems.values()) {
+			// If it's a message, it won't have a response.
 			if(! (surveyItem instanceof Message)) {
 				String surveyItemId = surveyItem.getId();
+				
+				// If it's not part of the mask, throw an exception.
+				if(
+					(allowedPromptIds != null) &&
+					(! allowedPromptIds.contains(surveyItemId))) {
+					
+					continue;
+				}
+				
 				boolean found = false;
-			
+
 				for(Response response : results.values()) {
 					if(response.getId().equals(surveyItemId)) {
 						found = true;
@@ -1886,7 +1920,8 @@ public class SurveyResponse {
 	 */
 	private RepeatableSetResponse processRepeatableSet(
 			final RepeatableSet repeatableSet, 
-			final JSONObject response) 
+			final JSONObject response,
+			final Set<String> allowedPromptIds) 
 			throws DomainException {
 		
 		try {
@@ -1922,7 +1957,8 @@ public class SurveyResponse {
 						processResponses(
 								repeatableSet.getSurveyItems(), 
 								responses.getJSONArray(i),
-								i
+								i,
+								allowedPromptIds
 							)
 					);
 			} catch (JSONException e) {

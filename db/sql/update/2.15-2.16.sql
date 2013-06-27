@@ -80,6 +80,20 @@ BEGIN
     THEN
         INSERT INTO preference VALUES ('ssl_enabled', 'false');
     END IF;
+    
+    -- Add the campaign mask table that includes both survey and prompt IDs.
+    CREATE TABLE IF NOT EXISTS `campaign_mask_survey_prompt_map` (
+        `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+        `campaign_mask_id` int(10) unsigned NOT NULL,
+        `survey_id` varchar(255) NOT NULL,
+        `prompt_id` varchar(255) NOT NULL,
+        PRIMARY KEY (`id`),
+        UNIQUE KEY `campaing_mask_unique_mask_survey_prompt`
+            (`campaign_mask_id`,`survey_id`, `prompt_id`),
+        CONSTRAINT `campaign_mask_fk_survey_prompt_map`
+            FOREIGN KEY (`campaign_mask_id`) REFERENCES `campaign_mask` (`id`)
+            ON DELETE CASCADE ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
     -- Set the result to 0.
     SET resultCode = 0;

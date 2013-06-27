@@ -40,7 +40,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 	final String classId;
 	
 	final String campaignId;
-	final Set<String> surveyIds;
+	final Map<String, Set<String>> promptIds;
 	final SurveyUploadRequest uploadRequest;
 
 	/**
@@ -66,7 +66,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 		String tClassId = null;
 		
 		String tCampaignId = null;
-		Set<String> tSurveyIds = null;
+		Map<String, Set<String>> tPromptIds = null;
 		SurveyUploadRequest tUploadRequest = null;
 		
 		if(! isFailed()) {
@@ -145,24 +145,23 @@ public class CampaignAssignmentRequest extends UserRequest {
 				
 				// Survey IDs. Required. The list of surveys that should exist
 				// in the user's custom campaign.
-				t = getParameterValues(InputKeys.SURVEY_ID_LIST);
+				t = getParameterValues(InputKeys.SURVEY_PROMPT_MAP);
 				if(t.length > 1) {
 					throw
 						new ValidationException(
-							ErrorCode.SURVEY_INVALID_SURVEY_ID,
-							"Multiple survey ID lists were given: " +
-								InputKeys.SURVEY_ID_LIST);
+							ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
+							"Multiple survey-prompt ID maps were given: " +
+								InputKeys.SURVEY_PROMPT_MAP);
 				}
 				else if(t.length == 1) {
-					tSurveyIds =
-						SurveyResponseValidators.validateSurveyIds(t[0]);
+					tPromptIds =
+						SurveyResponseValidators.validatePromptIdMap(t[0]);
 				}
-				if((tSurveyIds == null) || (tSurveyIds.size() == 0)) {
+				if(tPromptIds == null) {
 					throw
 						new ValidationException(
-							ErrorCode.SURVEY_INVALID_SURVEY_ID,
-							"No survey IDs were given: " +
-								InputKeys.SURVEY_ID_LIST);
+							ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
+							"The survey-prompt ID map is missing.");
 				}
 				
 				// Survey response. Optional. These are survey responses that
@@ -197,7 +196,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 		classId = tClassId;
 		
 		campaignId = tCampaignId;
-		surveyIds = tSurveyIds;
+		promptIds = tPromptIds;
 		uploadRequest = tUploadRequest;
 	}
 
@@ -255,8 +254,8 @@ public class CampaignAssignmentRequest extends UserRequest {
 						null, 
 						getUser().getUsername(), 
 						username, 
-						campaignId, 
-						surveyIds);
+						campaignId,
+						promptIds);
 			}
 			catch(DomainException e) {
 				throw

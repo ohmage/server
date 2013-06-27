@@ -28,6 +28,7 @@ import java.util.UUID;
 import javax.xml.bind.DatatypeConverter;
 
 import org.joda.time.DateTime;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -113,6 +114,98 @@ public final class SurveyResponseValidators {
 	}
 	
 	/**
+	 * Validates a string representing a map of survey IDs to a list of prompt
+	 * IDs for their respective surveys.
+	 * 
+	 * @param promptIdMap  The string map of survey IDs to their prompt IDs.
+	 * 
+	 * @return A Map of survey IDs to prompt IDs.
+	 */
+	public static Map<String, Set<String>> validatePromptIdMap(
+		final String promptIdMap) 
+		throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(promptIdMap)) {
+			return null;
+		}
+		
+		// Create a JSON object from the input.
+		JSONObject jsonMap;
+		try {
+			jsonMap = new JSONObject(promptIdMap);
+		}
+		catch(JSONException e) {
+			throw
+				new ValidationException(
+					"The prompt ID map was not a valid JSON object: " +
+						e.getMessage(),
+					e);
+		}
+		
+		// Create the result map.
+		Map<String, Set<String>> result = new HashMap<String, Set<String>>();
+		
+		// Parse the JSON object.
+		@SuppressWarnings("unchecked")
+		Iterator<String> surveyIds = jsonMap.keys();
+		while(surveyIds.hasNext()) {
+			// Get and validate the survey ID.
+			String surveyId = surveyIds.next();
+			if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
+				throw
+					new ValidationException(
+						"The survey ID is only whitespace.");
+			}
+			
+			// Get the array of prompt IDs.
+			JSONArray promptIdsArray;
+			try {
+				promptIdsArray = jsonMap.getJSONArray(surveyId);
+			}
+			catch(JSONException e) {
+				throw
+					new ValidationException(
+						"The survey ID's value was not a JSON array: " +
+							e.getMessage(),
+						e);
+			}
+			
+			// Create the Set and add the elements in the array to it.
+			Set<String> promptIds = new HashSet<String>();
+			int numPromptIds = promptIdsArray.length();
+			for(int i = 0; i < numPromptIds; i++) {
+				// Get the prompt ID.
+				String promptId;
+				try {
+					promptId = promptIdsArray.getString(i); 
+				}
+				catch(JSONException e) {
+					throw
+						new ValidationException(
+							"The prompt ID is not a string: " + e.getMessage(),
+							e);
+				}
+				
+				// Validate the prompt ID.
+				if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
+					throw
+						new ValidationException(
+							"The prompt ID is only whitespace.");
+				}
+				
+				// Save the prompt ID.
+				promptIds.add(promptId);
+			}
+			
+			// Save the survey ID - prompt IDs collection to the result map.
+			result.put(surveyId, promptIds);
+		}
+		
+		// Return the result.
+		return result;
+	}
+	
+	/**
 	 * Validates that the provided survey response id is a valid UUID.
 	 * 
 	 * @param surveyId A survey ID as a string to be validated.
@@ -129,7 +222,8 @@ public final class SurveyResponseValidators {
 			return null;
 		}
 		
-		// Surveys are only referenceable from the outside world using their UUIDs.
+		// Surveys are only referenceable from the outside world using their
+		// UUIDs.
 		try {
 			return UUID.fromString(surveyId);
 		}

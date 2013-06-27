@@ -223,27 +223,31 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 			long key = maskKeyHolder.getKey().longValue();
 			
 			// Create each of the masks.
-			final String campaignMaskSurveyIdSql =
-				"INSERT INTO campaign_mask_survey_id(" +
+			final String campaignMaskPromptIdSql =
+				"INSERT INTO campaign_mask_survey_prompt_map(" +
 						"campaign_mask_id, " +
-						"survey_id)" +
-					"VALUES (?, ?)";
+						"survey_id, " +
+						"prompt_id)" +
+					"VALUES (?, ?, ?)";
 			
 			// Get the survey IDs from the mask.
-			Set<String> surveyIds = mask.getSurveyIds();
+			Map<String, Set<String>> promptIds = mask.getSurveyPromptMap();
 			
 			// Create the list of parameters for each of the survey IDs.
-			List<Object[]> maskSurveyIdParameters =
-				new ArrayList<Object[]>(surveyIds.size());
+			List<Object[]> maskPromptIdParameters =
+				new ArrayList<Object[]>(promptIds.size());
 				
 			// Cycle through the survey IDs building the parameters list.
-			for(final String surveyId : surveyIds) {
-				maskSurveyIdParameters.add(new Object[] { key, surveyId });
+			for(String surveyId : promptIds.keySet()) {
+				for(String promptId : promptIds.get(surveyId)) {
+					maskPromptIdParameters
+						.add(new Object[] { key, surveyId, promptId });
+				}
 			}
 			
 			// Add the mask survey IDs.
 			getJdbcTemplate()
-				.batchUpdate(campaignMaskSurveyIdSql, maskSurveyIdParameters);
+				.batchUpdate(campaignMaskPromptIdSql, maskPromptIdParameters);
 
 			// Commit the transaction.
 			try {
@@ -523,17 +527,18 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 					"assigner_user.username AS assigner_user_id, " +
 					"assignee_user.username AS assignee_user_id, " +
 					"c.urn AS campaign_id, " +
-					"cmsi.survey_id AS survey_id " +
+					"cmpi.survey_id AS survey_id, " +
+					"cmpi.prompt_id AS prompt_id " +
 				"FROM " +
 					"user assigner_user, " +
 					"user assignee_user, " +
 					"campaign c, " +
 					"campaign_mask cm, " +
-					"campaign_mask_survey_id cmsi " +
+					"campaign_mask_survey_prompt_map cmpi " +
 				"WHERE assigner_user.id = cm.assigner_user_id " +
 				"AND assignee_user.id = cm.assignee_user_id " +
 				"AND c.id = cm.campaign_id " +
-				"AND cm.id = cmsi.campaign_mask_id");
+				"AND cm.id = cmpi.campaign_mask_id");
 		// Build the list of required parameters.
 		List<Object> parameters = new LinkedList<Object>();
 		
@@ -661,13 +666,15 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 									// Set the default set of survey IDs to be
 									// empty.
 									builder
-										.setSurveyIds(new HashSet<String>());
+										.setPromptIds(
+											new HashMap<String, Set<String>>());
 								}
 								
 								// Add the survey ID.
 								builder
-									.addSurveyId(
-										resultSet.getString("survey_id"));
+									.addPromptId(
+										resultSet.getString("survey_id"),
+										resultSet.getString("prompt_id"));
 							}
 							
 							// Cycle through the builders, build them, and add
