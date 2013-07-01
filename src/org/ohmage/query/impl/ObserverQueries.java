@@ -32,6 +32,7 @@ import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IObserverQueries;
+import org.ohmage.service.ObserverServices.InvalidPoint;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
@@ -957,6 +958,94 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 		def.setName("Inserting stream data.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = 
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			try {
+				getJdbcTemplate().batchUpdate(sql, args);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error executing SQL '" + sql +"'.", 
+					e);
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+					"Error while committing the transaction.", 
+					e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException(
+				"Error while attempting to rollback the transaction.", 
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#storeInvalidData(java.lang.String, org.ohmage.domain.Observer, java.util.Collection)
+	 */
+	@Override
+	public void storeInvalidData(
+		final String username,
+		final Observer observer,
+		final Collection<InvalidPoint> invalidData)
+		throws DataAccessException {
+		
+		String sql =
+			"INSERT INTO observer_stream_data_invalid (" +
+				"user_id, " +
+				"observer_stream_link_id, " +
+				"point_index, " +
+				"reason, " +
+				"data) " +
+			"VALUES (" +
+				"(SELECT id FROM user WHERE username = ?), " +
+				"(" +
+					"SELECT osl.id " +
+					"FROM " +
+						"observer o, " +
+						"observer_stream os, " +
+						"observer_stream_link osl " +
+					"WHERE o.observer_id = ? " +
+					"AND o.version = ? " +
+					"AND os.stream_id = ? " +
+					"AND os.version = ? " +
+					"AND o.id = osl.observer_id " +
+					"AND os.id = osl.observer_stream_id" +
+				"), " +
+				"?, " +
+				"?, " +
+				"?)";
+		
+		List<Object[]> args = new ArrayList<Object[]>(invalidData.size());
+		for(InvalidPoint currData : invalidData) {
+			args.add(
+				new Object[] {
+					username,
+					observer.getId(),
+					currData.getIndex(),
+					currData.getReason(),
+					currData.getData()
+				}
+			);
+		}
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Inserting invalid stream data.");
 		
 		try {
 			// Begin the transaction.

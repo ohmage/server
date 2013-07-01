@@ -94,6 +94,30 @@ BEGIN
             FOREIGN KEY (`campaign_mask_id`) REFERENCES `campaign_mask` (`id`)
             ON DELETE CASCADE ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    
+    -- Add the table to store the invalid data.
+    CREATE TABLE IF NOT EXISTS `observer_stream_data_invalid` (
+        `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+        `user_id` int(10) unsigned NOT NULL,
+        `observer_stream_link_id` int(10) unsigned NOT NULL,
+        `point_index` int(20) unsigned NOT NULL,
+        `reason` text NOT NULL,
+        `data` longtext NOT NULL,
+        `last_modified_timestamp` timestamp NOT NULL
+            DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (`id`),
+        CONSTRAINT `observer_stream_data_invalid_fk_user_id`
+            FOREIGN KEY (`user_id`)
+            REFERENCES `user` (`id`)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+        CONSTRAINT `observer_stream_data_invalid_fk_observer_stream_link_id`
+          FOREIGN KEY (`observer_stream_link_id`)
+          REFERENCES `observer_stream_link` (`id`)
+          ON DELETE CASCADE
+          ON UPDATE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
     -- Set the result to 0.
     SET resultCode = 0;

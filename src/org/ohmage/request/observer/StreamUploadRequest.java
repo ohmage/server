@@ -275,7 +275,8 @@ public class StreamUploadRequest extends UserRequest {
 			LOGGER.info("Validating the uploaded data.");
 			Collection<DataStream> dataStreams =
 				ObserverServices
-					.instance().validateData(observer, data, invalidPoints);
+					.instance()
+					.validateData(observer, data, invalidPoints);
 			
 			try {
 				data.close();
@@ -299,6 +300,13 @@ public class StreamUploadRequest extends UserRequest {
 				getUser().getUsername(), 
 				observer,
 				dataStreams);
+			
+			LOGGER
+				.info(
+					"Storing the invalid data: " +
+						invalidPoints.size() +
+						" points");
+			
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

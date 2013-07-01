@@ -129,15 +129,17 @@ public final class SurveyResponseValidators {
 			return null;
 		}
 		
-		// Create a JSON object from the input.
-		JSONObject jsonMap;
+		// Get the array of JSON objects, where each object represents one
+		// survey and its prompts.
+		JSONArray surveysArray;
 		try {
-			jsonMap = new JSONObject(promptIdMap);
+			surveysArray = new JSONArray(promptIdMap);
 		}
 		catch(JSONException e) {
 			throw
 				new ValidationException(
-					"The prompt ID map was not a valid JSON object: " +
+					ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
+					"The survey-prompt ID map was not a valid JSON array: " +
 						e.getMessage(),
 					e);
 		}
@@ -145,27 +147,47 @@ public final class SurveyResponseValidators {
 		// Create the result map.
 		Map<String, Set<String>> result = new HashMap<String, Set<String>>();
 		
-		// Parse the JSON object.
-		@SuppressWarnings("unchecked")
-		Iterator<String> surveyIds = jsonMap.keys();
-		while(surveyIds.hasNext()) {
-			// Get and validate the survey ID.
-			String surveyId = surveyIds.next();
-			if(StringUtils.isEmptyOrWhitespaceOnly(surveyId)) {
+		// Cycle through the elements, processing them.
+		int numSurveys = surveysArray.length();
+		for(int i = 0; i < numSurveys; i++) {
+			// Get the survey object.
+			JSONObject surveyObject;
+			try {
+				surveyObject = surveysArray.getJSONObject(i);
+			}
+			catch(JSONException e) {
 				throw
 					new ValidationException(
-						"The survey ID is only whitespace.");
+						ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
+						"An element in the survey-prompt map was not an " +
+							"object: " +
+							e.getMessage(),
+						e);
+			}
+			
+			// Get the survey ID.
+			String surveyId;
+			try {
+				surveyId = surveyObject.getString("survey_id");
+			}
+			catch(JSONException e) {
+				throw
+					new ValidationException(
+						ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
+						"The survey ID was not a string: " + e.getMessage(),
+						e);
 			}
 			
 			// Get the array of prompt IDs.
 			JSONArray promptIdsArray;
 			try {
-				promptIdsArray = jsonMap.getJSONArray(surveyId);
+				promptIdsArray = surveyObject.getJSONArray("prompt_ids");
 			}
 			catch(JSONException e) {
 				throw
 					new ValidationException(
-						"The survey ID's value was not a JSON array: " +
+						ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
+						"The prompt ID list was not a JSON array: " +
 							e.getMessage(),
 						e);
 			}
@@ -173,15 +195,16 @@ public final class SurveyResponseValidators {
 			// Create the Set and add the elements in the array to it.
 			Set<String> promptIds = new HashSet<String>();
 			int numPromptIds = promptIdsArray.length();
-			for(int i = 0; i < numPromptIds; i++) {
+			for(int j = 0; j < numPromptIds; j++) {
 				// Get the prompt ID.
 				String promptId;
 				try {
-					promptId = promptIdsArray.getString(i); 
+					promptId = promptIdsArray.getString(j); 
 				}
 				catch(JSONException e) {
 					throw
 						new ValidationException(
+							ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
 							"The prompt ID is not a string: " + e.getMessage(),
 							e);
 				}
@@ -190,6 +213,7 @@ public final class SurveyResponseValidators {
 				if(StringUtils.isEmptyOrWhitespaceOnly(promptId)) {
 					throw
 						new ValidationException(
+							ErrorCode.SURVEY_INVALID_SURVEY_PROMPT_MAP,
 							"The prompt ID is only whitespace.");
 				}
 				

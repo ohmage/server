@@ -504,7 +504,9 @@ public class CampaignMask implements Comparable<CampaignMask> {
 						"The prompt IDs for a survey are empty.");
 			}
 			
-			promptIds.put(surveyId, Collections.unmodifiableSet(promptIdsSet));
+			this
+				.promptIds
+				.put(surveyId, Collections.unmodifiableSet(promptIdsSet));
 		}
 
 		// If the mask ID is null, create a random one. Otherwise, use the

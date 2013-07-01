@@ -899,10 +899,10 @@ public class Campaign {
 					int numPrompts = prompts.size();
 					for(int j = 0; j < numPrompts; j++) {
 						// Get the individual prompt.
-						Node prompt = prompts.get(i);
+						Node prompt = prompts.get(j);
 						
 						// Get the ID for this prompt.
-						Nodes promptIdNode = survey.query("./id");
+						Nodes promptIdNode = prompt.query("./id");
 						if(promptIdNode.size() == 0) {
 							throw
 								new DomainException(

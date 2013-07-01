@@ -673,7 +673,7 @@ public class ObserverServices {
 	}
 	
 	/**
-	 * Stores the data stream data.
+	 * Stores the stream data.
 	 * 
 	 * @param username The user who is uploading the data.
 	 * 
@@ -691,6 +691,35 @@ public class ObserverServices {
 		
 		try {
 			observerQueries.storeData(username, observer, data);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Stores the stream data where the points were invalid.
+	 * 
+	 * @param username
+	 *        The username of the user to whom the points belong.
+	 * 
+	 * @param observer
+	 *        The observer to which the points were supposed to conform.
+	 * 
+	 * @param invalidData
+	 *        The data to be stored.
+	 * 
+	 * @throws ServiceException
+	 *         There was an error storing the data.
+	 */
+	public void storeInvalidData(
+		final String username,
+		final Observer observer,
+		final Collection<InvalidPoint> invalidData)
+		throws ServiceException {
+		
+		try {
+			observerQueries.storeInvalidData(username, observer, invalidData);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

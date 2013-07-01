@@ -10,6 +10,7 @@ import org.ohmage.domain.Observer;
 import org.ohmage.domain.Observer.Stream;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.service.ObserverServices.InvalidPoint;
 
 public interface IObserverQueries {
 	/**
@@ -181,6 +182,24 @@ public interface IObserverQueries {
 		final Observer observer,
 		final Collection<DataStream> data)
 		throws DataAccessException;
+	
+	/**
+	 * Stores stream data that is marked as invalid.
+	 * 
+	 * @param username The username of the user to which the data must belong.
+	 * 				   Required.
+	 * 
+	 * @param observer The observer to which the data is associated.
+	 * 
+	 * @param invalidData The invalid data to store.
+	 * 
+	 * @throws DataAccessException There was a problem storing the data.
+	 */
+	public void storeInvalidData(
+			final String username,
+			final Observer observer,
+			final Collection<InvalidPoint> invalidData)
+			throws DataAccessException;
 
 	/**
 	 * Retrieves the data for a stream.
