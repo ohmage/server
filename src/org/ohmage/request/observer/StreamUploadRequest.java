@@ -85,7 +85,7 @@ public class StreamUploadRequest extends UserRequest {
 	private final String observerId;
 	private final Long observerVersion;
 	private final JsonParser data;
-	private final boolean optIn;
+	private final boolean preserveInvalidPoints;
 
 	private long numValidPoints = 0;
 	private long numDuplicatePoints = 0;
@@ -151,7 +151,7 @@ public class StreamUploadRequest extends UserRequest {
 		this.observerId = tObserverId;
 		this.observerVersion = tObserverVersion;
 		this.data = tData;
-		this.optIn = optIn;
+		this.preserveInvalidPoints = optIn;
 	}
 	
 	/**
@@ -230,17 +230,18 @@ public class StreamUploadRequest extends UserRequest {
 						"The data was missing: " + InputKeys.DATA);
 				}
 				
-				t = getParameterValues(InputKeys.OPT_IN);
+				t = getParameterValues(InputKeys.PRESERVE_INVALID_POINTS);
 				if(t.length > 1) {
 					throw new ValidationException(
-						ErrorCode.OBSERVER_INVALID_OPT_IN,
-						"Multiple opt-in values were given: " + 
-							InputKeys.OPT_IN);
+						ErrorCode.OBSERVER_INVALID_PRESERVE_INVALID_POINTS,
+						"Multiple preservation values were given: " + 
+							InputKeys.PRESERVE_INVALID_POINTS);
 				}
 				else if(t.length == 1) {
 					tOptIn = StringUtils.decodeBoolean(t[0]);
 					
-					// If the opt-in value was not given, set it to false.
+					// If the preserve invalid points value was not given, set
+					// it to false.
 					if(tOptIn == null) {
 						tOptIn = false;
 					}
@@ -255,7 +256,7 @@ public class StreamUploadRequest extends UserRequest {
 		observerId = tObserverId;
 		observerVersion = tObserverVersion;
 		data = tData;
-		optIn = tOptIn;
+		preserveInvalidPoints = tOptIn;
 	}
 	
 	/*
@@ -319,7 +320,7 @@ public class StreamUploadRequest extends UserRequest {
 				observer,
 				dataStreams);
 			
-			if(optIn) {
+			if(preserveInvalidPoints) {
 				LOGGER
 					.info(
 						"Storing the invalid data: " +
