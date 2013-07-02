@@ -207,8 +207,8 @@ public class DocumentUpdateRequest extends UserRequest {
 				setFailed(ErrorCode.DOCUMENT_INVALID_ID, "Multiple document ID parameters were given.");
 				throw new ValidationException("Multiple document ID parameters were given.");
 			}
-			
-			tNewContents = getMultipartValue(httpRequest, InputKeys.DOCUMENT);
+
+			tNewContents = getParameter(httpRequest, InputKeys.DOCUMENT);
 			
 			tNewName = DocumentValidators.validateName(httpRequest.getParameter(InputKeys.DOCUMENT_NAME));
 			if((tNewName != null) && (httpRequest.getParameterValues(InputKeys.DOCUMENT_NAME).length > 1)) {
