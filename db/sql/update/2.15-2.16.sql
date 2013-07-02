@@ -99,7 +99,8 @@ BEGIN
     CREATE TABLE IF NOT EXISTS `observer_stream_data_invalid` (
         `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
         `user_id` int(10) unsigned NOT NULL,
-        `observer_stream_link_id` int(10) unsigned NOT NULL,
+        `observer_id` int(10) unsigned NOT NULL,
+        `time_recorded` bigint(20) NOT NULL,
         `point_index` int(20) unsigned NOT NULL,
         `reason` text NOT NULL,
         `data` longtext NOT NULL,
@@ -112,9 +113,9 @@ BEGIN
             REFERENCES `user` (`id`)
             ON DELETE CASCADE
             ON UPDATE CASCADE,
-        CONSTRAINT `observer_stream_data_invalid_fk_observer_stream_link_id`
-          FOREIGN KEY (`observer_stream_link_id`)
-          REFERENCES `observer_stream_link` (`id`)
+        CONSTRAINT `observer_stream_data_invalid_fk_observer_id`
+          FOREIGN KEY (`observer_id`)
+          REFERENCES `observer` (`id`)
           ON DELETE CASCADE
           ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

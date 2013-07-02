@@ -323,7 +323,8 @@ public class ObserverPayloadId implements PayloadId {
 					parameters,
 					observerId,
 					null,
-					resultWriter.toString());
+					resultWriter.toString(),
+					false);
 		}
 		catch(IOException e) {
 			throw new DomainException(

@@ -212,6 +212,7 @@ public final class InputKeys {
 	public static final String STREAM_VERSION = "stream_version";
 	public static final String STREAM_IDS_WITH_VERSION = "stream_ids_with_version";
 	public static final String CHRONOLOGICAL = "chronological";
+	public static final String OPT_IN = "opt_in";
 	
 	// OMH Constants
 	public static final String OMH_REQUESTER = "requester";

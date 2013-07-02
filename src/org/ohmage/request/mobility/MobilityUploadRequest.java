@@ -328,7 +328,8 @@ public class MobilityUploadRequest extends Request {
 							getParameterMap(),
 							OBSERVER_ID,
 							OBSERVER_VERSION,
-							resultDataArray.toString());
+							resultDataArray.toString(),
+							false);
 				}
 			}
 			catch(ValidationException e) {

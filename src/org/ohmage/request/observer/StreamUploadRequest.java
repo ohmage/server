@@ -24,6 +24,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ObserverServices;
 import org.ohmage.service.ObserverServices.InvalidPoint;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.ObserverValidators;
 
 /**
@@ -80,14 +81,11 @@ public class StreamUploadRequest extends UserRequest {
 		"observer_stream_data_num_duplicate_points";
 	private static final String AUDIT_NUM_INVALID_POINTS =
 		"observer_stream_data_num_invalid_points";
-	private static final String AUDIT_INVALID_POINTS = 
-		"observer_stream_data_upload_invalid_point";
-	private static final String AUDIT_INVALID_POINT_REASON =
-		"observer_stream_data_upload_invalid_point_reason";
 
 	private final String observerId;
 	private final Long observerVersion;
 	private final JsonParser data;
+	private final boolean optIn;
 
 	private long numValidPoints = 0;
 	private long numDuplicatePoints = 0;
@@ -115,7 +113,8 @@ public class StreamUploadRequest extends UserRequest {
 			final Map<String, String[]> parameters,
 			final String observerId,
 			final Long observerVersion,
-			final String data)
+			final String data,
+			final boolean optIn)
 			throws IOException, InvalidRequestException {
 		
 		super(httpRequest, false, TokenLocation.PARAMETER, parameters);
@@ -152,6 +151,7 @@ public class StreamUploadRequest extends UserRequest {
 		this.observerId = tObserverId;
 		this.observerVersion = tObserverVersion;
 		this.data = tData;
+		this.optIn = optIn;
 	}
 	
 	/**
@@ -173,6 +173,7 @@ public class StreamUploadRequest extends UserRequest {
 		String tObserverId = null;
 		Long tObserverVersion = null;
 		JsonParser tData = null;
+		Boolean tOptIn = false;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a stream upload request.");
@@ -228,6 +229,22 @@ public class StreamUploadRequest extends UserRequest {
 						ErrorCode.OBSERVER_INVALID_STREAM_DATA,
 						"The data was missing: " + InputKeys.DATA);
 				}
+				
+				t = getParameterValues(InputKeys.OPT_IN);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.OBSERVER_INVALID_OPT_IN,
+						"Multiple opt-in values were given: " + 
+							InputKeys.OPT_IN);
+				}
+				else if(t.length == 1) {
+					tOptIn = StringUtils.decodeBoolean(t[0]);
+					
+					// If the opt-in value was not given, set it to false.
+					if(tOptIn == null) {
+						tOptIn = false;
+					}
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -238,6 +255,7 @@ public class StreamUploadRequest extends UserRequest {
 		observerId = tObserverId;
 		observerVersion = tObserverVersion;
 		data = tData;
+		optIn = tOptIn;
 	}
 	
 	/*
@@ -301,12 +319,19 @@ public class StreamUploadRequest extends UserRequest {
 				observer,
 				dataStreams);
 			
-			LOGGER
-				.info(
-					"Storing the invalid data: " +
-						invalidPoints.size() +
-						" points");
-			
+			if(optIn) {
+				LOGGER
+					.info(
+						"Storing the invalid data: " +
+							invalidPoints.size() +
+							" points");
+				ObserverServices
+					.instance()
+					.storeInvalidData(
+						getUser().getUsername(),
+						observer,
+						invalidPoints);
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -356,80 +381,6 @@ public class StreamUploadRequest extends UserRequest {
 			.put(
 				AUDIT_NUM_INVALID_POINTS, 
 				new String[] { Integer.toString(invalidPoints.size()) });
-		
-		// Get the index that we will use when adding our stuff.
-		int i;
-		
-		// Get the parent's array, so that we don't overwrite theirs.
-		String[] auditInvalidPoints = result.get(AUDIT_INVALID_POINTS);
-		// If one did not exist, create it from our list of invalid points.
-		if(auditInvalidPoints == null) {
-			// The initial index will be 0.
-			i = 0;
-			auditInvalidPoints = new String[invalidPoints.size()];
-		}
-		// If one did exist, create a new array prepended with the old data.
-		else {
-			// The initial index will be after all of the old data.
-			i = auditInvalidPoints.length;
-			
-			// Create a temporary array that contains enough space for the old
-			// data and the new data.
-			String[] tempAuditInvalidPoints = 
-				new String[i + invalidPoints.size()];
-			
-			// Add the old data to the temporary array.
-			for(int j = 0; j < i; j++) {
-				tempAuditInvalidPoints[j] = auditInvalidPoints[j];
-			}
-			
-			// Set our array to the temporary array.
-			auditInvalidPoints = tempAuditInvalidPoints;
-		}
-		// Be sure to save our new array over the old one now that we have
-		// preserved the old data.
-		result.put(AUDIT_INVALID_POINTS, auditInvalidPoints);
-		
-		// Add our data.
-		for(InvalidPoint invalidPoint : invalidPoints) {
-			auditInvalidPoints[i++] = invalidPoint.getData();
-		}
-		
-		// This will be used to record the reason that some points were
-		// rejected.
-		String[] auditInvalidPointReason = 
-			result.get(AUDIT_INVALID_POINT_REASON);
-		if(auditInvalidPointReason == null) {
-			// The initial index will be 0.
-			i = 0;
-			auditInvalidPointReason = new String[invalidPoints.size()];
-		}
-		// If one did exist, create a new array prepended with the old data.
-		else {
-			// The initial index will be after all of the old data.
-			i = auditInvalidPointReason.length;
-			
-			// Create a temporary array that contains enough space for the old
-			// data and the new data.
-			String[] tempAuditInvalidPointReason = 
-				new String[i + invalidPoints.size()];
-			
-			// Add the old data to the temporary array.
-			for(int j = 0; j < i; j++) {
-				tempAuditInvalidPointReason[j] = auditInvalidPointReason[j];
-			}
-			
-			// Set our array to the temporary array.
-			auditInvalidPointReason = tempAuditInvalidPointReason;
-		}
-		// Be sure to save our new array over the old one now that we have
-		// preserved the old data.
-		result.put(AUDIT_INVALID_POINT_REASON, auditInvalidPointReason);
-		
-		// Add our data.
-		for(InvalidPoint invalidPoint : invalidPoints) {
-			auditInvalidPointReason[i++] = invalidPoint.getReason();
-		}
 		
 		return result;
 	}

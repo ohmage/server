@@ -58,6 +58,7 @@ import org.ohmage.request.mobility.MobilityUploadRequest;
 import org.ohmage.request.observer.ObserverCreationRequest;
 import org.ohmage.request.observer.ObserverReadRequest;
 import org.ohmage.request.observer.ObserverUpdateRequest;
+import org.ohmage.request.observer.StreamReadInvalidRequest;
 import org.ohmage.request.observer.StreamReadRequest;
 import org.ohmage.request.observer.StreamUploadRequest;
 import org.ohmage.request.omh.OmhAuthenticateRequest;
@@ -182,6 +183,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiObserverUpdate;
 	private String apiStreamUpload;
 	private String apiStreamRead;
+	private String apiStreamInvalidRead;
 	
 	// OMH
 	private String apiOmhAuth;
@@ -325,6 +327,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiObserverUpdate = apiRoot + "/observer/update";
 		apiStreamUpload = apiRoot + "/stream/upload";
 		apiStreamRead = apiRoot + "/stream/read";
+		apiStreamInvalidRead = apiRoot + "/stream/invalid/read";
 		
 		// OMH
 		apiOmhAuth = apiRoot + "/omh/v1.0/authenticate";
@@ -545,6 +548,9 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiStreamRead.equals(requestUri)) {
 			return new StreamReadRequest(httpRequest);
 		}
+		else if(apiStreamInvalidRead.equals(requestUri)) {
+			return new StreamReadInvalidRequest(httpRequest);
+		}
 		// OMH
 		else if(apiOmhAuth.equals(requestUri)) {
 			return new OmhAuthenticateRequest(httpRequest);
@@ -721,6 +727,7 @@ public final class RequestBuilder implements ServletContextAware {
 				apiObserverUpdate.equals(uri) ||
 				apiStreamUpload.equals(uri) ||
 				apiStreamRead.equals(uri) ||
+				apiStreamInvalidRead.equals(uri) ||
 				// OMH
 				apiOmhAuth.equals(uri) ||
 				apiOmhRegistryCreate.equals(uri) ||
@@ -1180,6 +1187,15 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiStreamRead() {
 		return apiStreamRead;
+	}
+
+	/**
+	 * Returns apiStreamInvalidRead.
+	 *
+	 * @return The apiStreamInvalidRead.
+	 */
+	public String getApiStreamInvalidRead() {
+		return apiStreamInvalidRead;
 	}
 
 	/**

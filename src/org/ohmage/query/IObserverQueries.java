@@ -241,6 +241,37 @@ public interface IObserverQueries {
 		final long numToSkip,
 		final long numToReturn) 
 		throws DataAccessException;
+
+	/**
+	 * Retrieves the data for a stream.
+	 * 
+	 * @param observer
+	 *        The observer to which the data must be associated.
+	 * 
+	 * @param startDate
+	 *        The earliest data point to return. Optional.
+	 * 
+	 * @param endDate
+	 *        The latest point data point to return. Optional.
+	 * 
+	 * @param numToSkip
+	 *        The number of data points to skip. Required.
+	 * 
+	 * @param numToReturn
+	 *        The number of data points to return. Required.
+	 * 
+	 * @return A collection of data points that match the query.
+	 * 
+	 * @throws ServiceException
+	 *         There was an error.
+	 */
+	public Collection<InvalidPoint> readInvalidData(
+		final Observer observer,
+		final DateTime startDate,
+		final DateTime endDate,
+		final long numToSkip,
+		final long numToReturn) 
+		throws DataAccessException;
 	
 	/**
 	 * Updates an observer.

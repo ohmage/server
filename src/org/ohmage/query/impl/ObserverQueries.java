@@ -1007,25 +1007,20 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		String sql =
 			"INSERT INTO observer_stream_data_invalid (" +
 				"user_id, " +
-				"observer_stream_link_id, " +
+				"observer_id, " +
+				"time_recorded, " +
 				"point_index, " +
 				"reason, " +
 				"data) " +
 			"VALUES (" +
 				"(SELECT id FROM user WHERE username = ?), " +
 				"(" +
-					"SELECT osl.id " +
-					"FROM " +
-						"observer o, " +
-						"observer_stream os, " +
-						"observer_stream_link osl " +
-					"WHERE o.observer_id = ? " +
-					"AND o.version = ? " +
-					"AND os.stream_id = ? " +
-					"AND os.version = ? " +
-					"AND o.id = osl.observer_id " +
-					"AND os.id = osl.observer_stream_id" +
+					"SELECT id " +
+					"FROM observer " +
+					"WHERE observer_id = ? " +
+					"AND version = ?" +
 				"), " +
+				"?, " +
 				"?, " +
 				"?, " +
 				"?)";
@@ -1036,6 +1031,8 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				new Object[] {
 					username,
 					observer.getId(),
+					observer.getVersion(),
+					System.currentTimeMillis(),
 					currData.getIndex(),
 					currData.getReason(),
 					currData.getData()
@@ -1290,6 +1287,93 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			throw new DataAccessException(
 				"Error executing SQL '" + 
 					builder.toString() + 
+					"' with parameters: " +
+					parameters,
+				e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IObserverQueries#readInvalidData(org.ohmage.domain.Observer, org.joda.time.DateTime, org.joda.time.DateTime, long, long)
+	 */
+	@Override
+	public Collection<InvalidPoint> readInvalidData(
+		final Observer observer,
+		final DateTime startDate,
+		final DateTime endDate,
+		final long numToSkip,
+		final long numToReturn) 
+		throws DataAccessException {
+		
+		// Build the SQL.
+		StringBuilder sqlBuilder =
+			new StringBuilder(
+				"SELECT osdi.point_index, osdi.reason, osdi.data " +
+					"FROM " +
+						"observer o, " +
+						"observer_stream_data_invalid osdi " +
+					"WHERE o.id = osdi.observer_id " +
+					"AND o.observer_id = ? " +
+					"AND o.version = ? ");
+		
+		// Create the list of parameters.
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(observer.getId());
+		parameters.add(observer.getVersion());
+		
+		// If the start date was given, add it.
+		if(startDate != null) {
+			sqlBuilder.append("AND time_recorded >= ? ");
+			parameters.add(startDate.getMillis());
+		}
+		
+		// If the end date was given, add it.
+		if(endDate != null) {
+			sqlBuilder.append("AND time_recorded <= ? ");
+			parameters.add(endDate.getMillis());
+		}
+		
+		// Add the ordering.
+		sqlBuilder.append("ORDER BY time_recorded ");
+		
+		// Add the paging parameters.
+		sqlBuilder.append("LIMIT ?, ?");
+		parameters.add(numToSkip);
+		parameters.add(numToReturn);
+		
+		try {
+			return
+				getJdbcTemplate()
+					.query(
+						sqlBuilder.toString(),
+						parameters.toArray(),
+						new RowMapper<InvalidPoint>() {
+							/*
+							 * (non-Javadoc)
+							 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
+							 */
+							@Override
+							public InvalidPoint mapRow(
+								final ResultSet resultSet,
+								final int rowNum)
+								throws SQLException {
+
+								// Create the point and return it.
+								return
+									new InvalidPoint(
+										resultSet.getLong("point_index"),
+										resultSet.getString("data"),
+										resultSet.getString("reason"),
+										null);
+							}
+						}
+					);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" + 
+					sqlBuilder.toString() + 
 					"' with parameters: " +
 					parameters,
 				e);

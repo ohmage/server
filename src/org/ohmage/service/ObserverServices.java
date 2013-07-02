@@ -14,6 +14,9 @@ import org.apache.log4j.Logger;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParser;
 import org.codehaus.jackson.JsonProcessingException;
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.DataStream;
@@ -25,6 +28,14 @@ import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IObserverQueries;
 
+/**
+ * <p>
+ * This class provides all of the services necessary for reading, writing, and
+ * manipulating observers, streams, and their data.
+ * </p>
+ *
+ * @author John Jenkins
+ */
 public class ObserverServices {
 	private static final Logger LOGGER = 
 		Logger.getLogger(ObserverServices.class);
@@ -36,10 +47,41 @@ public class ObserverServices {
 	 *
 	 * @author John Jenkins
 	 */
+	@JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
 	public static class InvalidPoint {
+		/**
+		 * The JSON key for the invalid point's index.
+		 */
+		public static final String JSON_KEY_INDEX = "index";
+		/**
+		 * The JSON key for the invalid point's data.
+		 */
+		public static final String JSON_KEY_DATA = "data";
+		/**
+		 * The JSON key for the reason the invalid point was rejected.
+		 */
+		public static final String JSON_KEY_REASON = "reason";
+		
+		/**
+		 * The invalid point's index.
+		 */
+		@JsonProperty(JSON_KEY_INDEX)
 		private final long index;
+		/**
+		 * The invalid point's data.
+		 */
+		@JsonProperty(JSON_KEY_DATA)
 		private final String data;
+		/**
+		 * The reason the invalid point was rejected.
+		 */
+		@JsonProperty(JSON_KEY_REASON)
 		private final String reason;
+		/**
+		 * Any exception that may have been thrown when this point was
+		 * rejected.
+		 */
+		@JsonIgnore
 		private final Throwable cause;
 		
 		/**
@@ -308,9 +350,59 @@ public class ObserverServices {
 	}
 	
 	/**
+	 * Verifies that the user is the owner of an observer.
+	 * 
+	 * @param username
+	 *        The user's username.
+	 * 
+	 * @param observerId
+	 *        The observer's unique identifier.
+	 * 
+	 * @param observerVersion
+	 *        The observer's version.
+	 * 
+	 * @throws ServiceException
+	 *         The user is not the owner of the observer or there was an issue
+	 *         querying the database.
+	 */
+	public void verifyUserOwnsObserver(
+		final String username,
+		final String observerId)
+		throws ServiceException {
+		
+		try {
+			// Get the owner.
+			String owner = observerQueries.getOwner(observerId);
+			
+			// If the owner doesn't exist, throw an exception.
+			if(owner == null) {
+				throw
+					new ServiceException(
+						ErrorCode.OBSERVER_INVALID_ID,
+						"An observer with this ID does not exist: " +
+							observerId);
+			}
+			
+			if(! owner.equals(username)) {
+				throw
+					new ServiceException(
+						ErrorCode.OBSERVER_INSUFFICIENT_PERMISSIONS,
+						"The requesting user does not have sufficient " +
+							"permission to modify the observer: " +
+							observerId);
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Retrieves the observer.
 	 * 
 	 * @param observerId The observer's unique identifier.
+	 * 
+	 * @param observerVersion The observer's version.
 	 * 
 	 * @return The observer.
 	 * 
@@ -780,6 +872,52 @@ public class ObserverServices {
 					chronological,
 					numToSkip,
 					numToReturn);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Retrieves the invalid data for a stream.
+	 * 
+	 * @param observer
+	 *        The observer to which the data must be associated.
+	 * 
+	 * @param startDate
+	 *        The earliest data point to return. Optional.
+	 * 
+	 * @param endDate
+	 *        The latest point data point to return. Optional.
+	 * 
+	 * @param numToSkip
+	 *        The number of data points to skip. Required.
+	 * 
+	 * @param numToReturn
+	 *        The number of data points to return. Required.
+	 * 
+	 * @return A collection of data points that match the query.
+	 * 
+	 * @throws ServiceException
+	 *         There was an error.
+	 */
+	public Collection<InvalidPoint> getInvalidStreamData(
+			final Observer observer,
+			final DateTime startDate,
+			final DateTime endDate,
+			final long numToSkip,
+			final long numToReturn) 
+			throws ServiceException {
+		
+		try {
+			return 
+				observerQueries
+					.readInvalidData(
+						observer,
+						startDate,
+						endDate,
+						numToSkip,
+						numToReturn);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
