@@ -36,6 +36,7 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 
@@ -171,6 +172,20 @@ public class CampaignCreationRequest extends UserRequest {
 				else if(t.length == 1) {
 					id = CampaignValidators.validateCampaignId(t[0]);
 				}
+				
+				String name = null;
+				t = getParameterValues(InputKeys.CAMPAIGN_NAME);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_NAME,
+						"Multiple names were found: " +
+							InputKeys.CAMPAIGN_NAME);
+				}
+				else if(t.length == 1) {
+					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						name = t[0];
+					}
+				}
 
 				byte[] xml = getParameter(httpRequest, InputKeys.XML);
 				if(xml == null) {
@@ -183,6 +198,7 @@ public class CampaignCreationRequest extends UserRequest {
 						CampaignValidators
 							.validateCampaign(
 								id,
+								name,
 								new String(xml),
 								description, 
 								runningState, 

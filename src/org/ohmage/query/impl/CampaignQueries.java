@@ -848,6 +848,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 							try {
 								return new Campaign(
 										null,
+										null,
 										rs.getString("description"),
 										Campaign.RunningState.getValue(
 												rs.getString("running_state")),
@@ -1250,20 +1251,9 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 										new QueryResultListBuilder<Campaign>();
 								
 								while(rs.next()) {
-									URL iconUrl = null;
-									String iconUrlString =
-											rs.getString("icon_url");
-									if(iconUrlString != null) {
-										try {
-											iconUrl = new URL(iconUrlString);
-										}
-										catch(MalformedURLException e) {
-											throw new SQLException(e);
-										}
-									}
-									
 									result.addResult(
 											new Campaign(
+													null,
 													null,
 													rs.getString("description"),
 													Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
@@ -1419,6 +1409,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 							try {
 								return
 									new Campaign(
+										null,
 										null,
 										rs.getString("description"),
 										Campaign.RunningState.getValue(rs.getString("running_state")),

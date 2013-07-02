@@ -574,7 +574,7 @@ public class Campaign {
 			Element root = document.getRootElement();
 			
 			tId = getId(root, id);
-			tName = getName(root);
+			tName = getName(root, null);
 
 			tIconUrl = getIconUrl(root);
 			tAuthoredBy = getAuthoredBy(root);
@@ -636,6 +636,7 @@ public class Campaign {
 	 */
 	public Campaign(
 			final String id,
+			final String name,
 			final String description,
 			final RunningState runningState, 
 			final PrivacyState privacyState, 
@@ -678,7 +679,7 @@ public class Campaign {
 		Element root = document.getRootElement();
 		
 		this.id = getId(root, id);
-		name = getName(root);
+		this.name = getName(root, name);
 		this.description = description;
 		
 		iconUrl = getIconUrl(root);
@@ -735,7 +736,7 @@ public class Campaign {
 		Element root = document.getRootElement();
 		
 		String id = getId(root, null);
-		String name = getName(root);
+		String name = getName(root, null);
 		getIconUrl(root);
 		getAuthoredBy(root);
 		getSurveys(root);
@@ -2119,35 +2120,59 @@ public class Campaign {
 	 * 
 	 * @param root The root of the XML being validated.
 	 * 
+	 * @param name The name of the campaign.
+	 * 
 	 * @return The campaign's name.
 	 * 
 	 * @throws DomainException The name is missing, there are multiple names,
 	 * 						   or the name fails validation.
 	 */
-	private static String getName(final Node root) throws DomainException {
+	private static String getName(
+		final Element root,
+		final String name)
+		throws DomainException {
+		
+		// Get the name.
+		String internalName;
 		Nodes names = root.query(XML_NAME);
 		if(names.size() == 0) {
-			throw new DomainException("The campaign name is missing.");
+			if(name == null) {
+				throw new DomainException("The campaign name is missing.");
+			}
+			else {
+				internalName = name;
+				
+				Element nameElement = new Element("campaignName");
+				nameElement.appendChild(internalName);
+				root.appendChild(nameElement);
+			}
 		}
 		else if(names.size() > 1) {
 			throw new DomainException("Multiple campaign names were found.");
 		}
 		else {
-			String name = names.get(0).getValue().trim();
+			internalName = names.get(0).getValue().trim();
 			
-			if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-				throw new DomainException("The name tag exists but the value is empty.");
+			if(StringUtils.isEmptyOrWhitespaceOnly(internalName)) {
+				throw
+					new DomainException(
+						"The name tag exists but the value is empty.");
 			}
-			else if(name.length() > MAX_NAME_LENGTH) {
-				throw new DomainException(
-						"The name cannot be longer than " +
-							MAX_NAME_LENGTH +
-							" characters.");
-			}
-			else {
-				return name;
+			else if((name != null) && (! internalName.equals(name))) {
+				throw
+					new DomainException(
+						"The given name and name from the XML do not match.");
 			}
 		}
+		
+		if(internalName.length() > MAX_NAME_LENGTH) {
+			throw new DomainException(
+					"The name cannot be longer than " +
+						MAX_NAME_LENGTH +
+						" characters.");
+		}
+		
+		return internalName;
 	}
 	
 	/**

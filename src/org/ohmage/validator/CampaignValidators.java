@@ -306,6 +306,8 @@ public final class CampaignValidators {
 	 * 
 	 * @param id The campaign's ID.
 	 * 
+	 * @param name The campaign's name.
+	 * 
 	 * @param xml The XML to be validated.
 	 * 
 	 * @param description The description of the campaign or null.
@@ -322,6 +324,7 @@ public final class CampaignValidators {
 	 */
 	public static Campaign validateCampaign(
 			final String id,
+			final String name,
 			final String xml,
 			final String description,
 			final Campaign.RunningState runningState,
@@ -337,6 +340,7 @@ public final class CampaignValidators {
 			return 
 				new Campaign(
 					id,
+					name,
 					description, 
 					runningState, 
 					privacyState, 
