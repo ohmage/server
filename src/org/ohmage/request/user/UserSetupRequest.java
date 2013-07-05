@@ -208,7 +208,7 @@ public class UserSetupRequest extends UserRequest {
 				password = getRandomPassword();
 				
 				LOGGER.info("Retrieving the requesting user's email address.");
-				String emailAddress =
+				emailAddress =
 					UserServices
 						.instance()
 						.getUserEmail(getUser().getUsername());
@@ -223,6 +223,7 @@ public class UserSetupRequest extends UserRequest {
 						false,
 						true,
 						false,
+						true,
 						true);
 				
 				LOGGER.info("Adding the user's personal information.");
@@ -253,6 +254,8 @@ public class UserSetupRequest extends UserRequest {
 				// Store the requesting user's email address.
 				this.emailAddress =
 					UserServices.instance().getUserEmail(username);
+				this.password =
+					UserServices.instance().getPlaintextPassword(username);
 			}
 		}
 		catch(ServiceException e) {
@@ -273,12 +276,8 @@ public class UserSetupRequest extends UserRequest {
 		JSONObject response = new JSONObject();
 		try {
 			response.put("username", username);
-			if(password != null) {
-				response.put("password", password);
-			}
-			if(emailAddress != null) {
-				response.put("email_address", emailAddress);
-			}
+			response.put("password", password);
+			response.put("email_address", emailAddress);
 			
 			super.respond(httpRequest, httpResponse, response);
 		}

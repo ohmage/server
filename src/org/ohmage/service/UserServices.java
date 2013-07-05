@@ -183,13 +183,24 @@ public final class UserServices {
 			final Boolean admin, 
 			final Boolean enabled, 
 			final Boolean newAccount, 
-			final Boolean campaignCreationPrivilege)
+			final Boolean campaignCreationPrivilege,
+			final boolean storePlaintextPassword)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword =
+				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
-			userQueries.createUser(username, hashedPassword, emailAddress, admin, enabled, newAccount, campaignCreationPrivilege);
+			userQueries
+				.createUser(
+					username, 
+					((storePlaintextPassword) ? password : null),
+					hashedPassword, 
+					emailAddress, 
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -579,6 +590,32 @@ public final class UserServices {
 	public String getUserEmail(final String username) throws ServiceException {
 		try {
 			return userQueries.getEmailAddress(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * THIS SHOULD NEVER BE USED.
+	 * 
+	 * @param username
+	 *        The user's username.
+	 * 
+	 * @return The user's plain-text password or null if the user is unknown or
+	 *         their plain-text password was not stored.
+	 * 
+	 * @throws ServiceException
+	 *         There was a problem getting the password.
+	 * 
+	 * @deprecated THIS SHOULD NEVER BE USED.
+	 */
+	public String getPlaintextPassword(
+		final String username)
+		throws ServiceException {
+		
+		try {
+			return userQueries.getPlaintextPassword(username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

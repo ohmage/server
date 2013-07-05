@@ -30,6 +30,8 @@ public interface IUserQueries {
 	 * 
 	 * @param username The username for the new user.
 	 * 
+	 * @param plaintextPassword This should ALWAYS be null!
+	 * 
 	 * @param hashedPassword The hashed password for the new user.
 	 * 
 	 * @param emailAddress The user's email address, which may be null.
@@ -46,6 +48,7 @@ public interface IUserQueries {
 	 */
 	void createUser(
 			final String username, 
+			final String plaintextPassword,
 			final String hashedPassword, 
 			final String emailAddress,
 			final Boolean admin,
@@ -95,6 +98,24 @@ public interface IUserQueries {
 	 * @throws DataAccessException There was an error.
 	 */
 	String getEmailAddress(String username) throws DataAccessException;
+	
+	/**
+	 * THIS SHOULD NEVER BE USED.
+	 * 
+	 * @param username
+	 *        The user's username.
+	 * 
+	 * @return The user's plain-text password or null if the user is unknown or
+	 *         their plain-text password was not stored.
+	 * 
+	 * @throws DataAccessException
+	 *         There was a problem getting the password.
+	 * 
+	 * @deprecated THIS SHOULD NEVER BE USED.
+	 */
+	public String getPlaintextPassword(
+		final String username)
+		throws DataAccessException;
 
 	/**
 	 * Gets whether or not the user is an admin.

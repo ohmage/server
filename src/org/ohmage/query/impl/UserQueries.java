@@ -215,8 +215,8 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, password, email_address, admin, enabled, new_account, campaign_creation_privilege) " +
-		"VALUES (?,?,?,?,?,?,?)";
+		"INSERT INTO user(username, password, plaintext_password, email_address, admin, enabled, new_account, campaign_creation_privilege) " +
+		"VALUES (?,?,?,?,?,?,?,?)";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
 	// insert the email address or JSON data; to add these, update the record
@@ -381,8 +381,10 @@ public class UserQueries extends Query implements IUserQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#createUser(java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
 	 */
+	@Override
 	public void createUser(
 			final String username, 
+			final String plaintextPassword,
 			final String hashedPassword, 
 			final String emailAddress, 
 			final Boolean admin, 
@@ -427,12 +429,12 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, plaintextPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + plaintextPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			// Commit the transaction.
@@ -683,6 +685,44 @@ public class UserQueries extends Query implements IUserQueries {
 			throws DataAccessException {
 		
 		String sql = "SELECT email_address FROM user WHERE username = ?";
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+				sql,
+				new Object[] { username },
+				String.class
+				);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			// If the user doesn't exist, return null.
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			
+			throw new DataAccessException(
+					"Multiple users have the same username: " + username, 
+					e);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing '" + 
+						sql + 
+						"' with parameter: " + 
+						username,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getPlaintextPassword(java.lang.String)
+	 */
+	@Override
+	public String getPlaintextPassword(
+			final String username) 
+			throws DataAccessException {
+		
+		String sql = "SELECT plaintext_password FROM user WHERE username = ?";
 		
 		try {
 			return getJdbcTemplate().queryForObject(

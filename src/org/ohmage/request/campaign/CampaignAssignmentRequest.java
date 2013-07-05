@@ -289,6 +289,7 @@ public class CampaignAssignmentRequest extends UserRequest {
 						false, 
 						true, 
 						false, 
+						false,
 						false);
 			}
 			

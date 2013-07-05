@@ -119,6 +119,11 @@ BEGIN
           ON DELETE CASCADE
           ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    
+    -- Add the plaintext password to the database.
+    -- NOTE: THIS TABLE SHOULD _NEVER_ BE USED UNDER ANY CIRCUMSTANCES.
+    ALTER TABLE user
+        ADD COLUMN plaintext_password text CHARACTER SET utf8 DEFAULT NULL;
 
     -- Set the result to 0.
     SET resultCode = 0;
