@@ -122,8 +122,16 @@ BEGIN
     
     -- Add the plaintext password to the database.
     -- NOTE: THIS COLUMN SHOULD _NEVER_ BE USED UNDER ANY CIRCUMSTANCES.
-    ALTER TABLE user
-        ADD COLUMN plaintext_password text CHARACTER SET utf8 DEFAULT NULL;
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = 'ohmage'
+        AND TABLE_NAME = 'user'
+        AND COLUMN_NAME = 'plaintext_password'))
+    THEN
+        ALTER TABLE user
+            ADD COLUMN `plaintext_password`
+            text CHARACTER SET utf8 DEFAULT NULL;
+    END IF;
 
     -- Set the result to 0.
     SET resultCode = 0;
