@@ -457,7 +457,7 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all audio prompt responses have their corresponding audio files attached.");
 			SurveyResponseServices.instance().verifyAudioFilesExistForAudioPromptResponses(surveyResponses, audioContentsMap);
 			
-			LOGGER.info("Inserting the data into the database.");
+			LOGGER.info("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 
 				SurveyResponseServices.instance().createSurveyResponses(
 					((owner == null) ? getUser().getUsername() : owner), 
