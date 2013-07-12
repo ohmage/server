@@ -1126,7 +1126,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		
 		// If the observer's version is specified, add it to the sub-query.
 		if(observerVersion != null) {
-			builder.append(" AND o.version = ?)");
+			builder.append(" AND version = ?)");
 			parameters.add(observerVersion);
 		}
 		// Otherwise, end the subquery.
