@@ -88,14 +88,14 @@ public class ClassQueries extends Query implements IClassQueries {
 		"FROM class " +
 		"WHERE urn LIKE ?";
 	
-	// Returns the class IDs that contain the paritial class name. Be sure to 
+	// Returns the class IDs that contain the partial class name. Be sure to 
 	// add the "%" around the given value.
 	private static final String SQL_GET_LIKE_CLASS_NAME =
 		"SELECT urn " +
 		"FROM class " +
 		"WHERE name LIKE ?";
 	
-	// Returns the class IDs that contain the paritial class description. Be 
+	// Returns the class IDs that contain the partial class description. Be 
 	// sure to add the "%" around the given value.
 	private static final String SQL_GET_LIKE_CLASS_DESCRIPTION =
 		"SELECT urn " +
@@ -214,46 +214,6 @@ public class ClassQueries extends Query implements IClassQueries {
 			"FROM user_role " +
 			"WHERE role = ?" +
 		")";
-	
-	/**
-	 * Inner class for aggregating a username and class role for a class.
-	 * 
-	 * @author John Jenkins
-	 *
-	public static final class UserAndClassRole {
-		private final String username;
-		private final Clazz.Role role;
-		
-		/**
-		 * Convenience constructor.
-		 * 
-		 * @param username The username of a member of a class.
-		 * 
-		 * @param role The user's role in the class.
-		 *
-		public UserAndClassRole(String username, Clazz.Role role) {
-			this.username = username;
-			this.role = role;
-		}
-		
-		/**
-		 * Returns the user's username.
-		 * 
-		 * @return The user's username.
-		 *
-		public String getUsername() {
-			return username;
-		}
-		
-		/**
-		 * Returns the user's class role.
-		 * 
-		 * @return The user's class role.
-		 *
-		public Clazz.Role getRole() {
-			return role;
-		}
-	}*/
 	
 	/**
 	 * Creates this object.

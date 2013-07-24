@@ -739,4 +739,47 @@ CREATE TABLE `omh_authentication` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `omh_authentication_unique_domain_key` (`domain`,`auth_key`),
   KEY `omh_authentication_index_domain` (`domain`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- The campaign mask table that includes both survey and prompt IDs.
+-- --------------------------------------------------------------------
+CREATE TABLE `campaign_mask_survey_prompt_map` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `campaign_mask_id` int(10) unsigned NOT NULL,
+    `survey_id` varchar(255) NOT NULL,
+    `prompt_id` varchar(255) NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `campaing_mask_unique_mask_survey_prompt`
+        (`campaign_mask_id`,`survey_id`, `prompt_id`),
+    CONSTRAINT `campaign_mask_fk_survey_prompt_map`
+        FOREIGN KEY (`campaign_mask_id`) REFERENCES `campaign_mask` (`id`)
+        ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------------------
+-- The table to store the invalid data.
+-- --------------------------------------------------------------------
+CREATE TABLE `observer_stream_data_invalid` (
+    `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+    `user_id` int(10) unsigned NOT NULL,
+    `observer_id` int(10) unsigned NOT NULL,
+    `time_recorded` bigint(20) NOT NULL,
+    `point_index` int(20) unsigned NOT NULL,
+    `reason` text NOT NULL,
+    `data` longtext NOT NULL,
+    `last_modified_timestamp` timestamp NOT NULL
+        DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `observer_stream_data_invalid_fk_user_id`
+        FOREIGN KEY (`user_id`)
+        REFERENCES `user` (`id`)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
+    CONSTRAINT `observer_stream_data_invalid_fk_observer_id`
+      FOREIGN KEY (`observer_id`)
+      REFERENCES `observer` (`id`)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

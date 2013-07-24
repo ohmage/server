@@ -1095,6 +1095,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 			final long numToReturn) 
 			throws DataAccessException {
 		
+		// Create the initial query and required set of parameters.
 		StringBuilder builder = 
 			new StringBuilder(
 				"SELECT " +
@@ -1108,48 +1109,44 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"osd.location_provider, " +
 					"osd.data " +
 				"FROM " +
-					"observer_stream_data osd " +
-				// We use sub-queries here instead of a single join because it
-				// makes the sorting much faster. A single join creates a giant
-				// table of all data points multiplied by the number of users, 
-				// the number of observers, the number of streams, and the
-				// number of links between observers and streams, then that
-				// list is sorted. Sub-queries prune out the data to only the
-				// subset of all data points for a given user, then that list
-				// is sorted.
+					"observer_stream_data AS osd " +
+						"LEFT JOIN observer_stream_link AS osl " +
+						"ON osd.observer_stream_link_id = osl.id " +
 				"WHERE " +
 					"osd.user_id = (" +
 						"SELECT id " +
 						"FROM user " +
 						"WHERE username = ?" +
-					")" +
-					"AND osd.observer_stream_link_id IN (" +
-						"SELECT osl.id " +
-						"FROM " +
-							"observer o, " +
-							"observer_stream os, " +
-							"observer_stream_link osl " +
-						"WHERE " +
-							"o.observer_id = ? " +
-							"AND os.stream_id = ? " +
-							"AND os.version = ? " +
-							"AND o.id = osl.observer_id " +
-							"AND os.id = osl.observer_stream_id");
+					") " +
+				"AND osl.observer_id = " +
+					"(SELECT id FROM observer WHERE observer_id = ?");
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		parameters.add(observerId);
-		parameters.add(stream.getId());
-		parameters.add(stream.getVersion());
 		
 		// If the observer's version is specified, add it to the sub-query.
 		if(observerVersion != null) {
-			builder.append(" AND o.version = ?)");
+			builder.append(" AND version = ?)");
 			parameters.add(observerVersion);
 		}
 		// Otherwise, end the subquery.
 		else {
 			builder.append(')');
 		}
+		
+		// Add the remainder of the required parameters and their query
+		// components.
+		builder
+			.append(
+				" AND osl.observer_stream_id = " +
+					"(" +
+						"SELECT id " +
+						"FROM observer_stream " +
+						"WHERE stream_id = ? " +
+						"AND version = ?" +
+					")");
+		parameters.add(stream.getId());
+		parameters.add(stream.getVersion());
 		
 		// If a start date is given, add it to the overall query.
 		if(startDate != null) {
@@ -1170,11 +1167,9 @@ public class ObserverQueries extends Query implements IObserverQueries {
 				" ORDER BY osd.time " + ((chronological) ? "ASC" : "DESC"));
 		
 		// Limit the number of results based on the paging.
-		builder
-			.append(" LIMIT ")
-			.append(numToSkip)
-			.append(", ")
-			.append(numToReturn);
+		builder.append(" LIMIT ?, ?");
+		parameters.add(numToSkip);
+		parameters.add(numToReturn);
 		
 		// Create a JSON factory, which will be used by each data point to
 		// deserialize its data into a JsonNode.

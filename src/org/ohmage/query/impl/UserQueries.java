@@ -57,7 +57,7 @@ public class UserQueries extends Query implements IUserQueries {
 	// Returns a boolean representing whether or not a user exists
 	private static final String SQL_EXISTS_USER = 
 		"SELECT EXISTS(" +
-			"SELECT username " +
+			"SELECT id " +
 			"FROM user " +
 			"WHERE username = ?" +
 		")";
