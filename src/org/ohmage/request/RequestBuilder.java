@@ -89,6 +89,7 @@ import org.ohmage.request.user.UserPasswordResetRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserRegistrationRequest;
 import org.ohmage.request.user.UserSearchRequest;
+import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
 import org.ohmage.request.video.VideoReadRequest;
@@ -212,6 +213,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserUpdate;
 	private String apiUserChangePassword;
 	private String apiUserDelete;
+	private String apiUserSetup;
 	
 	// Registration
 	private String apiRegistrationRead;
@@ -355,6 +357,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserUpdate = apiRoot + "/user/update";
 		apiUserChangePassword = apiRoot + "/user/change_password";
 		apiUserDelete = apiRoot + "/user/delete";
+		apiUserSetup = apiRoot + "/user/setup";
 
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
@@ -620,6 +623,9 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiUserDelete.equals(requestUri)) {
 			return new UserDeletionRequest(httpRequest);
 		}
+		else if(apiUserSetup.equals(requestUri)) {
+			return new UserSetupRequest(httpRequest);
+		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {
 			return new RegistrationReadRequest(httpRequest);
@@ -748,6 +754,7 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserUpdate.equals(uri) ||
 				apiUserChangePassword.equals(uri) ||
 				apiUserDelete.equals(uri) ||
+				apiUserSetup.equals(uri) ||
 				// Registration
 				apiRegistrationRead.equals(uri) ||
 				// Video
