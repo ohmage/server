@@ -796,6 +796,98 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Aliens.
+	 * 
+	 * @param requester
+	 *        The user that is attempting to change another user's password.
+	 * 
+	 * @param requestee
+	 *        The user that whose password is being changed.
+	 * 
+	 * @throws ServiceException
+	 *         The requesting user cannot change the requestee user's password.
+	 */
+	public void verifyUserCanChangeOtherUsersPassword(
+		final String requester,
+		final String requestee)
+		throws ServiceException {
+		
+		try {
+			// If the user is not an admin, make sure they have the
+			// Mobilize-specific requirements.
+			if(userQueries.userIsAdmin(requester)) {
+				// Get the list of class IDs where the requesting user is
+				// privileged.
+				Collection<String> requesterClassIds =
+					userClassQueries
+						.getClassIdsForUserWithRole(
+							requester,
+							Clazz.Role.PRIVILEGED);
+
+				// Get the map of class IDs and the requestee's role in that
+				// class.
+				Map<String, Clazz.Role> requesteeClassIds =
+					userClassQueries
+						.getClassAndRoleForUser(requestee);
+				
+				// If there is no intersection between the two class lists,
+				// then fail out.
+				boolean requesterPrivilegedRequesteeRestricted = false;
+				for(String classId : requesterClassIds) {
+					if(
+						requesteeClassIds.containsKey(classId) &&
+						Clazz
+							.Role
+							.RESTRICTED
+							.equals(requesteeClassIds.get(classId))) {
+						
+						requesterPrivilegedRequesteeRestricted = true;
+						break;
+					}
+				}
+				if(! requesterPrivilegedRequesteeRestricted) {
+					throw
+						new ServiceException(
+							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user does not have permission to change " +
+								"another user's password.",
+							"The requesting user is not privileged in any " +
+								"class where the requestee user is" +
+								"restricted.");
+				}
+				
+				// The requestee user cannot be privileged in any class.
+				for(Clazz.Role role : requesteeClassIds.values()) {
+					if(Clazz.Role.PRIVILEGED.equals(role)) {				
+						throw
+							new ServiceException(
+								ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+								"The user does not have permission to " +
+									"change another user's password.",
+								"The requestee is privileged in a class.");
+					}
+				}
+				
+				// The user must have been setup via the user/setup call. If,
+				// and only if, this happened would their plain-text password
+				// be stored in the database.
+				if(userQueries.getPlaintextPassword(requestee) == null) {
+					throw
+						new ServiceException(
+							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user does not have permission to change " +
+								"another user's password.",
+							"The requestee was not setup via the user/setup " +
+								"API.");
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Validates that a registration ID still exists, hasn't been used, and 
 	 * hasn't expired.
 	 * 
