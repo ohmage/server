@@ -76,8 +76,6 @@
     <include name="guava-14.0.1.jar"/>
     <include name="slf4j-api-1.7.5.jar"/>
     <include name="slf4j-log4j12-1.7.5.jar"/>
-    <include name="tomcat-dbcp.jar"/>
-    <include name="tomcat-jdbc.jar"/>
   </fileset>
 
   <path id="compile-classpath">

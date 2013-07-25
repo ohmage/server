@@ -217,62 +217,64 @@ public class Image {
 			final ImageData original)
 			throws DomainException {
 			
-			// Get the BufferedImage from the image data.
-			BufferedImage imageContents = original.getBufferedImage();
-
-			// Get the percentage to scale the image.
-			Double scalePercentage;
-			if(imageContents.getWidth() > imageContents.getHeight()) {
-				scalePercentage =
-					IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
-			}
-			else {
-				scalePercentage =
-					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
-			}
+			return original;
 			
-			// Calculate the scaled image's width and height.
-			int width = 
-				(new Double(
-					imageContents.getWidth() * scalePercentage)).intValue();
-			int height =
-				(new Double(
-					imageContents.getHeight() * scalePercentage)).intValue();
-			
-			// Create the new image of the same type as the original and of the
-			// scaled dimensions.
-			BufferedImage scaledContents =
-				new BufferedImage(width, height, imageContents.getType());
-			
-			// Paint the original image onto the scaled canvas.
-			Graphics2D graphics2d = scaledContents.createGraphics();
-			graphics2d
-				.setRenderingHint(
-					RenderingHints.KEY_INTERPOLATION,
-					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			graphics2d.drawImage(imageContents, 0, 0, width, height, null);
-			
-			// Cleanup.
-			graphics2d.dispose();
-			
-			// Create a buffer stream to read the result of the transformation.
-			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
-			
-			// Write the scaled image to the buffer.
-			try {
-				ImageIO
-					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
-			}
-			catch(IOException e) {
-				throw new DomainException("Error writing the image.", e);
-			}
-			
-			// Create an input stream to use to create the image data.
-			ByteArrayInputStream resultStream =
-				new ByteArrayInputStream(bufferStream.toByteArray());
-			
-			// Create the image data and return it.
-			return new ImageData(resultStream);
+//			// Get the BufferedImage from the image data.
+//			BufferedImage imageContents = original.getBufferedImage();
+//
+//			// Get the percentage to scale the image.
+//			Double scalePercentage;
+//			if(imageContents.getWidth() > imageContents.getHeight()) {
+//				scalePercentage =
+//					IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+//			}
+//			else {
+//				scalePercentage =
+//					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+//			}
+//			
+//			// Calculate the scaled image's width and height.
+//			int width = 
+//				(new Double(
+//					imageContents.getWidth() * scalePercentage)).intValue();
+//			int height =
+//				(new Double(
+//					imageContents.getHeight() * scalePercentage)).intValue();
+//			
+//			// Create the new image of the same type as the original and of the
+//			// scaled dimensions.
+//			BufferedImage scaledContents =
+//				new BufferedImage(width, height, imageContents.getType());
+//			
+//			// Paint the original image onto the scaled canvas.
+//			Graphics2D graphics2d = scaledContents.createGraphics();
+//			graphics2d
+//				.setRenderingHint(
+//					RenderingHints.KEY_INTERPOLATION,
+//					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//			graphics2d.drawImage(imageContents, 0, 0, width, height, null);
+//			
+//			// Cleanup.
+//			graphics2d.dispose();
+//			
+//			// Create a buffer stream to read the result of the transformation.
+//			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+//			
+//			// Write the scaled image to the buffer.
+//			try {
+//				ImageIO
+//					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+//			}
+//			catch(IOException e) {
+//				throw new DomainException("Error writing the image.", e);
+//			}
+//			
+//			// Create an input stream to use to create the image data.
+//			ByteArrayInputStream resultStream =
+//				new ByteArrayInputStream(bufferStream.toByteArray());
+//			
+//			// Create the image data and return it.
+//			return new ImageData(resultStream);
 		}
 	}
 
@@ -313,76 +315,78 @@ public class Image {
 			final ImageData original)
 			throws DomainException {
 			
-			// Get the BufferedImage from the image data.
-			BufferedImage imageContents = original.getBufferedImage();
+			return original;
 			
-			// Get the original image's width and height and the offset from
-			// the corner for the smaller image.
-			int originalWidth = imageContents.getWidth();
-			int originalHeight = imageContents.getHeight();
-			int buffer = Math.abs(originalWidth - originalHeight) / 2;
-			
-			// Create the cropped image from the center image.
-			BufferedImage croppedContents;
-			if(originalWidth < originalHeight) {
-				croppedContents =
-					imageContents
-						.getSubimage(0, buffer, originalWidth, originalWidth);
-			}
-			else {
-				croppedContents =
-					imageContents
-						.getSubimage(
-							buffer, 
-							0, 
-							originalHeight, 
-							originalHeight);
-			}
-			
-			// Create the new image of the same type as the original and of the
-			// scaled dimensions.
-			BufferedImage scaledContents =
-				new BufferedImage(
-					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-					imageContents.getType());
-			
-			// Paint the original image onto the scaled canvas.
-			Graphics2D graphics2d = scaledContents.createGraphics();
-			graphics2d
-				.setRenderingHint(
-					RenderingHints.KEY_INTERPOLATION,
-					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			graphics2d
-				.drawImage(
-					croppedContents, 
-					0, 
-					0, 
-					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-					null);
-			
-			// Cleanup.
-			graphics2d.dispose();
-			
-			// Create a buffer stream to read the result of the transformation.
-			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
-			
-			// Write the scaled image to the buffer.
-			try {
-				ImageIO
-					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
-			}
-			catch(IOException e) {
-				throw new DomainException("Error writing the image.", e);
-			}
-			
-			// Create an input stream to use to create the image data.
-			ByteArrayInputStream resultStream =
-				new ByteArrayInputStream(bufferStream.toByteArray());
-			
-			// Create the image data and return it.
-			return new ImageData(resultStream);
+//			// Get the BufferedImage from the image data.
+//			BufferedImage imageContents = original.getBufferedImage();
+//			
+//			// Get the original image's width and height and the offset from
+//			// the corner for the smaller image.
+//			int originalWidth = imageContents.getWidth();
+//			int originalHeight = imageContents.getHeight();
+//			int buffer = Math.abs(originalWidth - originalHeight) / 2;
+//			
+//			// Create the cropped image from the center image.
+//			BufferedImage croppedContents;
+//			if(originalWidth < originalHeight) {
+//				croppedContents =
+//					imageContents
+//						.getSubimage(0, buffer, originalWidth, originalWidth);
+//			}
+//			else {
+//				croppedContents =
+//					imageContents
+//						.getSubimage(
+//							buffer, 
+//							0, 
+//							originalHeight, 
+//							originalHeight);
+//			}
+//			
+//			// Create the new image of the same type as the original and of the
+//			// scaled dimensions.
+//			BufferedImage scaledContents =
+//				new BufferedImage(
+//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+//					imageContents.getType());
+//			
+//			// Paint the original image onto the scaled canvas.
+//			Graphics2D graphics2d = scaledContents.createGraphics();
+//			graphics2d
+//				.setRenderingHint(
+//					RenderingHints.KEY_INTERPOLATION,
+//					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+//			graphics2d
+//				.drawImage(
+//					croppedContents, 
+//					0, 
+//					0, 
+//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+//					null);
+//			
+//			// Cleanup.
+//			graphics2d.dispose();
+//			
+//			// Create a buffer stream to read the result of the transformation.
+//			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+//			
+//			// Write the scaled image to the buffer.
+//			try {
+//				ImageIO
+//					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+//			}
+//			catch(IOException e) {
+//				throw new DomainException("Error writing the image.", e);
+//			}
+//			
+//			// Create an input stream to use to create the image data.
+//			ByteArrayInputStream resultStream =
+//				new ByteArrayInputStream(bufferStream.toByteArray());
+//			
+//			// Create the image data and return it.
+//			return new ImageData(resultStream);
 		}
 	}
 	public static final Size ORIGINAL = Original.getInstance();

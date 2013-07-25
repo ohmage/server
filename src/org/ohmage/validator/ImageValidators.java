@@ -135,7 +135,7 @@ public final class ImageValidators {
 				new Image(
 					imageId, 
 					new ByteArrayInputStream(imageContents), 
-					true);
+					false);//true);
 		}
 		catch(DomainException e) {
 			throw new ValidationException(
