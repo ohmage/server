@@ -1131,7 +1131,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		}
 		// Otherwise, end the subquery.
 		else {
-			builder.append(')');
+			builder.append(" ORDER BY version DESC LIMIT 1)");
 		}
 		
 		// Add the remainder of the required parameters and their query
