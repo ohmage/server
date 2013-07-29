@@ -222,7 +222,7 @@ public class UserSetupRequest extends UserRequest {
 						emailAddress,
 						false,
 						true,
-						false,
+						true,
 						true,
 						true);
 				
