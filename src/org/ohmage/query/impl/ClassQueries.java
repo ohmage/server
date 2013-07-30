@@ -730,6 +730,14 @@ public class ClassQueries extends Query implements IClassQueries {
 						throw e;
 					}
 					
+					// To prevent a concurrency bug, the user may have already
+					// been deleted from the class which will be indicated by
+					// having a null value for the role. When this happens, we
+					// may continue on with the next user.
+					if(classRole == null) {
+						continue;
+					}
+					
 					// Remove the user from the class.
 					try {
 						getJdbcTemplate().update(SQL_DELETE_USER_FROM_CLASS, new Object[] { username, classId });
