@@ -3,12 +3,11 @@
 ohmage is a mobile data collection system for collecting data given explicitly
 by a user (active data) and data that is collected by backgrounded applications
 (passive data). This repository houses the server-side application. The Android
-application can be found at [https://github.com/ohmage/ohmageAndroidLib](here).
+application can be found [here](https://github.com/ohmage/ohmageAndroidLib).
 
-A description of the high-level entities can be found at 
-[here](https://github.com/ohmage/ohmageServer/wiki/About-Users,-Classes-and-Campaigns),
+A description of the high-level entities can be found [here](https://github.com/ohmage/ohmageServer/wiki/About-Users,-Classes-and-Campaigns),
 and an introduction into how to read and write from an up-and-running system
-can be found at [here](https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities).
+can be found [here](https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities).
 
 This server is an Open mHealth DSU reference implementation for the 0.1 version
 of the 
