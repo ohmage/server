@@ -6,15 +6,15 @@ by a user (active data) and data that is collected by backgrounded applications
 application can be found at [https://github.com/ohmage/ohmageAndroidLib](here).
 
 A description of the high-level entities can be found at 
-[https://github.com/ohmage/ohmageServer/wiki/About-Users,-Classes-and-Campaigns](here),
+[here](https://github.com/ohmage/ohmageServer/wiki/About-Users,-Classes-and-Campaigns),
 and an introduction into how to read and write from an up-and-running system
-can be found at [https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities](here).
+can be found at [here](https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities).
 
 This server is an Open mHealth DSU reference implementation for the 0.1 version
 of the 
-[https://github.com/openmhealth/developer/wiki/DSU-API-0.1](specification). The specification
+[specification](https://github.com/openmhealth/developer/wiki/DSU-API-0.1). The specification
 has evolved but the implementation has not kept completely up-to-date. More
-information can be found at the Open mHealth [https://github.com/openmhealth/developer/wiki](developer wiki).
+information can be found at the Open mHealth [developer wiki](https://github.com/openmhealth/developer/wiki).
 
 # Compiling
 
