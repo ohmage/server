@@ -131,11 +131,7 @@ public final class ImageValidators {
 		}
 		
 		try {
-			return
-				new Image(
-					imageId, 
-					new ByteArrayInputStream(imageContents), 
-					false);//true);
+			return new Image(imageId, new ByteArrayInputStream(imageContents));
 		}
 		catch(DomainException e) {
 			throw new ValidationException(

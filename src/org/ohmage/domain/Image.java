@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -49,10 +51,22 @@ public class Image {
 	 * @author John Jenkins
 	 */
 	public abstract static class Size {
+		/**
+		 * The file format to use to save images.
+		 */
 		public static final String IMAGE_STORE_FORMAT = "jpg";
+		/**
+		 * The dimension to use when scaling images.
+		 */
 		public static final double IMAGE_SCALED_MAX_DIMENSION = 128.0;
 		
+		/**
+		 * The name of the image without an extension.
+		 */
 		private final String name;
+		/**
+		 * The extension for the variant of the image.
+		 */
 		private final String extension;
 		
 		/**
@@ -217,64 +231,62 @@ public class Image {
 			final ImageData original)
 			throws DomainException {
 			
-			return original;
+			// Get the BufferedImage from the image data.
+			BufferedImage imageContents = original.getBufferedImage();
+
+			// Get the percentage to scale the image.
+			Double scalePercentage;
+			if(imageContents.getWidth() > imageContents.getHeight()) {
+				scalePercentage =
+					IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
+			}
+			else {
+				scalePercentage =
+					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
+			}
 			
-//			// Get the BufferedImage from the image data.
-//			BufferedImage imageContents = original.getBufferedImage();
-//
-//			// Get the percentage to scale the image.
-//			Double scalePercentage;
-//			if(imageContents.getWidth() > imageContents.getHeight()) {
-//				scalePercentage =
-//					IMAGE_SCALED_MAX_DIMENSION / imageContents.getWidth();
-//			}
-//			else {
-//				scalePercentage =
-//					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
-//			}
-//			
-//			// Calculate the scaled image's width and height.
-//			int width = 
-//				(new Double(
-//					imageContents.getWidth() * scalePercentage)).intValue();
-//			int height =
-//				(new Double(
-//					imageContents.getHeight() * scalePercentage)).intValue();
-//			
-//			// Create the new image of the same type as the original and of the
-//			// scaled dimensions.
-//			BufferedImage scaledContents =
-//				new BufferedImage(width, height, imageContents.getType());
-//			
-//			// Paint the original image onto the scaled canvas.
-//			Graphics2D graphics2d = scaledContents.createGraphics();
-//			graphics2d
-//				.setRenderingHint(
-//					RenderingHints.KEY_INTERPOLATION,
-//					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-//			graphics2d.drawImage(imageContents, 0, 0, width, height, null);
-//			
-//			// Cleanup.
-//			graphics2d.dispose();
-//			
-//			// Create a buffer stream to read the result of the transformation.
-//			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
-//			
-//			// Write the scaled image to the buffer.
-//			try {
-//				ImageIO
-//					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
-//			}
-//			catch(IOException e) {
-//				throw new DomainException("Error writing the image.", e);
-//			}
-//			
-//			// Create an input stream to use to create the image data.
-//			ByteArrayInputStream resultStream =
-//				new ByteArrayInputStream(bufferStream.toByteArray());
-//			
-//			// Create the image data and return it.
-//			return new ImageData(resultStream);
+			// Calculate the scaled image's width and height.
+			int width = 
+				(new Double(
+					imageContents.getWidth() * scalePercentage)).intValue();
+			int height =
+				(new Double(
+					imageContents.getHeight() * scalePercentage)).intValue();
+			
+			// Create the new image of the same type as the original and of the
+			// scaled dimensions.
+			BufferedImage scaledContents =
+				new BufferedImage(width, height, imageContents.getType());
+			
+			// Paint the original image onto the scaled canvas.
+			Graphics2D graphics2d = scaledContents.createGraphics();
+			graphics2d
+				.setRenderingHint(
+					RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			graphics2d.drawImage(imageContents, 0, 0, width, height, null);
+			
+			// Cleanup.
+			graphics2d.dispose();
+			
+			// Create a buffer stream to read the result of the transformation.
+			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+			
+			// Write the scaled image to the buffer.
+			try {
+				ImageIO
+					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+			}
+			catch(IOException e) {
+				throw new DomainException("Error writing the image.", e);
+			}
+			
+			// Create an input stream to use to create the image data.
+			ByteArrayInputStream resultStream =
+				new ByteArrayInputStream(bufferStream.toByteArray());
+			
+			// Create the image data and return it.
+			return new ImageData(resultStream);
 		}
 	}
 
@@ -315,78 +327,76 @@ public class Image {
 			final ImageData original)
 			throws DomainException {
 			
-			return original;
+			// Get the BufferedImage from the image data.
+			BufferedImage imageContents = original.getBufferedImage();
 			
-//			// Get the BufferedImage from the image data.
-//			BufferedImage imageContents = original.getBufferedImage();
-//			
-//			// Get the original image's width and height and the offset from
-//			// the corner for the smaller image.
-//			int originalWidth = imageContents.getWidth();
-//			int originalHeight = imageContents.getHeight();
-//			int buffer = Math.abs(originalWidth - originalHeight) / 2;
-//			
-//			// Create the cropped image from the center image.
-//			BufferedImage croppedContents;
-//			if(originalWidth < originalHeight) {
-//				croppedContents =
-//					imageContents
-//						.getSubimage(0, buffer, originalWidth, originalWidth);
-//			}
-//			else {
-//				croppedContents =
-//					imageContents
-//						.getSubimage(
-//							buffer, 
-//							0, 
-//							originalHeight, 
-//							originalHeight);
-//			}
-//			
-//			// Create the new image of the same type as the original and of the
-//			// scaled dimensions.
-//			BufferedImage scaledContents =
-//				new BufferedImage(
-//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-//					imageContents.getType());
-//			
-//			// Paint the original image onto the scaled canvas.
-//			Graphics2D graphics2d = scaledContents.createGraphics();
-//			graphics2d
-//				.setRenderingHint(
-//					RenderingHints.KEY_INTERPOLATION,
-//					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-//			graphics2d
-//				.drawImage(
-//					croppedContents, 
-//					0, 
-//					0, 
-//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-//					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
-//					null);
-//			
-//			// Cleanup.
-//			graphics2d.dispose();
-//			
-//			// Create a buffer stream to read the result of the transformation.
-//			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
-//			
-//			// Write the scaled image to the buffer.
-//			try {
-//				ImageIO
-//					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
-//			}
-//			catch(IOException e) {
-//				throw new DomainException("Error writing the image.", e);
-//			}
-//			
-//			// Create an input stream to use to create the image data.
-//			ByteArrayInputStream resultStream =
-//				new ByteArrayInputStream(bufferStream.toByteArray());
-//			
-//			// Create the image data and return it.
-//			return new ImageData(resultStream);
+			// Get the original image's width and height and the offset from
+			// the corner for the smaller image.
+			int originalWidth = imageContents.getWidth();
+			int originalHeight = imageContents.getHeight();
+			int buffer = Math.abs(originalWidth - originalHeight) / 2;
+			
+			// Create the cropped image from the center image.
+			BufferedImage croppedContents;
+			if(originalWidth < originalHeight) {
+				croppedContents =
+					imageContents
+						.getSubimage(0, buffer, originalWidth, originalWidth);
+			}
+			else {
+				croppedContents =
+					imageContents
+						.getSubimage(
+							buffer, 
+							0, 
+							originalHeight, 
+							originalHeight);
+			}
+			
+			// Create the new image of the same type as the original and of the
+			// scaled dimensions.
+			BufferedImage scaledContents =
+				new BufferedImage(
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					imageContents.getType());
+			
+			// Paint the original image onto the scaled canvas.
+			Graphics2D graphics2d = scaledContents.createGraphics();
+			graphics2d
+				.setRenderingHint(
+					RenderingHints.KEY_INTERPOLATION,
+					RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			graphics2d
+				.drawImage(
+					croppedContents, 
+					0, 
+					0, 
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					(new Double(IMAGE_SCALED_MAX_DIMENSION)).intValue(),
+					null);
+			
+			// Cleanup.
+			graphics2d.dispose();
+			
+			// Create a buffer stream to read the result of the transformation.
+			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
+			
+			// Write the scaled image to the buffer.
+			try {
+				ImageIO
+					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+			}
+			catch(IOException e) {
+				throw new DomainException("Error writing the image.", e);
+			}
+			
+			// Create an input stream to use to create the image data.
+			ByteArrayInputStream resultStream =
+				new ByteArrayInputStream(bufferStream.toByteArray());
+			
+			// Create the image data and return it.
+			return new ImageData(resultStream);
 		}
 	}
 	public static final Size ORIGINAL = Original.getInstance();
@@ -397,11 +407,13 @@ public class Image {
 	 * A lookup table of user-friendly names for the sizes to their actual Size
 	 * object.
 	 */
-	private static final Map<String, Size> SIZES = new HashMap<String, Size>();
+	private static final Map<String, Size> SIZES;
 	static {
-		SIZES.put(ORIGINAL.getName(), ORIGINAL);
-		SIZES.put(SMALL.getName(), SMALL);
-		SIZES.put(ICON.getName(), ICON);
+		Map<String, Size> temp = new HashMap<String, Size>();
+		temp.put(ORIGINAL.getName(), ORIGINAL);
+		temp.put(SMALL.getName(), SMALL);
+		temp.put(ICON.getName(), ICON);
+		SIZES = Collections.unmodifiableMap(temp);
 	}
 	
 	/**
@@ -530,9 +542,23 @@ public class Image {
 		 * 						   the data.
 		 */
 		public InputStream getInputStream() throws DomainException {
+			// If we already have an input stream, use it.
 			if(inputStream != null) {
+				// Always reset the input stream first.
+				try {
+					inputStream.reset();
+				}
+				catch(IOException e) {
+					throw
+						new DomainException(
+							"The input stream could not be reset.",
+							e);
+				}
+				
+				// Then, return it.
 				return inputStream;
 			}
+			// If we have a URL, get a new input stream and return it.
 			else if(url != null) {
 				try {
 					return url.openStream();
@@ -549,7 +575,8 @@ public class Image {
 			// to report how long the data stream that represents the data is.
 			throw 
 				new IllegalStateException(
-					"The new data format needs to have an InputStream generated.");
+					"The new data format needs to have an InputStream " +
+						"generated.");
 		}
 		
 		/**
@@ -566,9 +593,6 @@ public class Image {
 				// Get an InputStream for the image data.
 				InputStream imageStream = getInputStream();
 				
-				// Mark
-				inputStream.mark(Integer.MAX_VALUE);
-				
 				// Memoize the BufferedImage.
 				try {
 					bufferedImage = ImageIO.read(imageStream);
@@ -584,18 +608,6 @@ public class Image {
 				catch(IOException e) {
 					throw
 						new DomainException("The image could not be read.", e);
-				}
-				finally {
-					// Reset
-					try {
-						inputStream.reset();
-					}
-					catch(IOException e) {
-						throw
-							new DomainException(
-								"Could not reset the image input stream.",
-								e);
-					}
 				}
 			}
 			
@@ -618,9 +630,9 @@ public class Image {
 	 * @throws DomainException The URL is null.
 	 */
 	public Image(
-			final UUID id, 
-			final Map<Size, URL> sizeToUrlMap) 
-			throws DomainException {
+		final UUID id, 
+		final Map<Size, URL> sizeToUrlMap) 
+		throws DomainException {
 		
 		if(id == null) {
 			throw new DomainException("The image's ID is null.");
@@ -639,7 +651,8 @@ public class Image {
 		else if(! sizeToUrlMap.containsKey(ORIGINAL)) {
 			throw
 				new DomainException(
-					"The size to URL map is missing the required original size.");
+					"The size to URL map is missing the required original " +
+						"size.");
 		}
 		
 		for(Size size : sizeToUrlMap.keySet()) {
@@ -657,10 +670,9 @@ public class Image {
 	 * @throws DomainException The ID and/or data are null.
 	 */
 	public Image(
-			final UUID id, 
-			final InputStream contents,
-			final boolean validate)
-			throws DomainException {
+		final UUID id, 
+		final InputStream contents)
+		throws DomainException {
 		
 		if(id == null) {
 			throw new DomainException("The image's ID is null.");
@@ -670,12 +682,83 @@ public class Image {
 		}
 		
 		this.id = id;
+		imageData.put(ORIGINAL, new ImageData(contents));
+	}
+	
+	/**
+	 * Creates an original image from the image's contents.
+	 * 
+	 * @param id The unique identifier for this image.
+	 * 
+	 * @param url The URL for the original data.
+	 * 
+	 * @throws DomainException The ID and/or data are null.
+	 */
+	public Image(
+		final UUID id, 
+		final URL url)
+		throws DomainException {
 		
-		ImageData originalImageData = new ImageData(contents);
-		if(validate) {
-			originalImageData.getBufferedImage();
+		if(id == null) {
+			throw new DomainException("The image's ID is null.");
 		}
-		imageData.put(ORIGINAL, originalImageData);
+		if(url == null) {
+			throw new DomainException("The image's URL is null.");
+		}
+		
+		this.id = id;
+		imageData.put(ORIGINAL, new ImageData(url));
+	}
+	
+	/**
+	 * Validates that the data that this image references is valid image data.
+	 * 
+	 * @throws DomainException
+	 *         The data could not be read or is not valid image data.
+	 */
+	public void validate() throws DomainException {
+		imageData.get(ORIGINAL).getBufferedImage();
+	}
+	
+	/**
+	 * Returns whether or not a certain size of an image exists.
+	 * 
+	 * @param size
+	 *        The size in question.
+	 * 
+	 * @return Whether or not the image was saved.
+	 * 
+	 * @throws DomainException
+	 *         The size was null or this image was not built with a default
+	 *         URL.
+	 */
+	public boolean sizeExists(final Size size) throws DomainException {
+		// Validate the parameters.
+		if(size == null) {
+			throw new DomainException("The size is null.");
+		}
+		
+		// Get the original file's URL.
+		URL originalUrl = imageData.get(ORIGINAL).getUrl();
+		
+		// If the original file was not built with a URL, then the variants may
+		// or may not exist, but we have no way of checking.
+		if(originalUrl == null) {
+			throw
+				new DomainException(
+					"This Image object was not built with a default URL.");
+		}
+		
+		// Attempt to connect to the file. If it doesn't exist, an exception
+		// will be thrown.
+		try {
+			Size.getUrl(size, originalUrl).openStream().close();
+			return true;
+		}
+		// The file does not exist.
+		catch(IOException e) {
+			return false;
+		}
 	}
 	
 	/**
@@ -759,9 +842,10 @@ public class Image {
 		// This will keep track of the images as we create them.
 		Map<Size, File> files = new HashMap<Size, File>();
 		
-		// Create all of the files for their specific sizes.
+		// Save the individual sizes.
 		try {
-			for(Size size : SIZES.values()) {
+			// For sizes that have already been decoded, save the file now.
+			for(Size size : imageData.keySet()) {
 				files.put(size, saveImage(size, directory, false));
 			}
 		}
@@ -771,11 +855,45 @@ public class Image {
 				file.delete();
 			}
 			
-			throw e;
+			throw new DomainException("There was an error saving a file.", e);
 		}
 		
 		// Return only the original file.
 		return files.get(ORIGINAL);
+	}
+	
+	/**
+	 * Saves a specific size of the file. This checks to be sure that the 
+	 * original image has a URL built with it.
+	 * 
+	 * @param size The size of the file to save.
+	 * 
+	 * @see #saveImage(File)
+	 */
+	public void saveImage(final Size size) throws DomainException {
+		// Validate the input.
+		if(size == null) {
+			throw new DomainException("The size is null.");
+		}
+		// The original image must be saved with a save directory.
+		if(ORIGINAL.equals(size)) {
+			return;
+		}
+		
+		// Get the URL for the original image.
+		URL originalUrl = imageData.get(ORIGINAL).getUrl();
+		// If the original image doesn't have a URL, then it may have never
+		// been saved, which means there is nowhere to save the variants of the
+		// image.
+		try {
+			saveImage(size, new File(originalUrl.getFile()), false);
+		}
+		catch(DomainException e) {
+			throw
+				new DomainException(
+					"There was a problem creating the file.",
+					e);
+		}
 	}
 	
 	/**
@@ -828,17 +946,12 @@ public class Image {
 			fileDestination = new File(destinationBuilder.toString());
 		}
 		
-		// If a file already exists at this destination, throw an error to
-		// prevent overwriting an existing image.
-		if(fileDestination.exists()) {
-			throw
-				new DomainException(
-					"A file already exists at this destination: " + 
-						fileDestination.getAbsolutePath());
+		// If the file doesn't exist, create it. If it already exists, there is
+		// no point in overwriting it. Two images with the same ID should be a
+		// check performed elsewhere in the system.
+		if(! fileDestination.exists()) {
+			writeFile(getImageData(size), fileDestination);
 		}
-		
-		// Write the file.
-		writeFile(getImageData(size), fileDestination);
 		
 		// Return the reference to the file.
 		return fileDestination;
@@ -870,6 +983,15 @@ public class Image {
 	}
 	
 	/**
+	 * Returns all of the registered sizes.
+	 * 
+	 * @return All of the registered sizes.
+	 */
+	public static Collection<Size> getSizes() {
+		return SIZES.values();
+	}
+	
+	/**
 	 * Retrieves the image data for this image of a given size.
 	 * 
 	 * @param size The size of the desired image.
@@ -888,13 +1010,26 @@ public class Image {
 			// Get the image data for the original image.
 			ImageData originalData = imageData.get(ORIGINAL);
 			
-			// Get the image data for the new size of the image.
-			if(originalData.getUrl() == null) {
+			// Get the original file's URL.
+			URL originalUrl = originalData.getUrl();
+			
+			// If no URL exists, then the resulting image data will need to be
+			// the transformation of the existing image.
+			if(originalUrl == null) {
 				result = size.transform(originalData);
 			}
+			// If the original URL exists,
 			else {
-				result =
-					new ImageData(Size.getUrl(size, originalData.getUrl()));
+				// Check if this size's image exists as well.
+				URL sizeUrl = Size.getUrl(size, originalUrl);
+				try {
+					sizeUrl.openStream().close();
+					result = new ImageData(sizeUrl);
+				}
+				// If this size's image does not exist, create it.
+				catch(IOException e) {
+					result = size.transform(originalData);
+				}
 			}
 			
 			// Save the new image data in the map.

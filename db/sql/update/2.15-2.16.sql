@@ -120,6 +120,18 @@ BEGIN
           ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+    -- Add the 'processed' flag to the URL-based resource table.
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = 'ohmage'
+        AND TABLE_NAME = 'url_based_resource'
+        AND COLUMN_NAME = 'processed'))
+    THEN
+        ALTER TABLE url_based_resource
+            ADD COLUMN `processed`
+            BOOLEAN NOT NULL DEFAULT FALSE;
+    END IF;
+
     -- Set the result to 0.
     SET resultCode = 0;
 END //

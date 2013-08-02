@@ -16,9 +16,12 @@
 package org.ohmage.query;
 
 import java.net.URL;
+import java.util.List;
 import java.util.UUID;
 
+import org.ohmage.domain.Image;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 
 public interface IImageQueries {
 
@@ -45,6 +48,28 @@ public interface IImageQueries {
 	 * @throws DataAccessException Thrown if there is an error.
 	 */
 	URL getImageUrl(UUID imageId) throws DataAccessException;
+	
+	/**
+	 * Retrieves the Images that have not yet been processed.
+	 * 
+	 * @return A list of Images that have not yet been processed. This may be
+	 *         empty but never null.
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error communicating with the database.
+	 */
+	List<Image> getUnprocessedImages() throws DataAccessException;
+	
+	/**
+	 * Marks an image as having been processed.
+	 * 
+	 * @param imageId
+	 *        The image's unique identifier.
+	 * 
+	 * @throws ServiceException
+	 *         There was an error at the data layer.
+	 */
+	void markImageAsProcessed(final UUID imageId) throws DataAccessException;
 
 	/**
 	 * Deletes an image reference from the database and, if successful, deletes

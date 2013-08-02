@@ -16,13 +16,11 @@
 package org.ohmage.service;
 
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Image;
-import org.ohmage.domain.Image.Size;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -103,33 +101,43 @@ public final class ImageServices {
 	}
 	
 	/**
-	 * Retrieves an InputStream connected to the image.
+	 * Retrieves an image and ensures that the desired size exists. If the size
+	 * is null, no size validation is performed.
 	 * 
-	 * @param imageId The image's unique identifier.
+	 * @param imageId
+	 *        The image's unique identifier.
 	 * 
-	 * @param size An ImageSize indicating if the smaller version of the image
-	 * 			   is desired.
+	 * @param size
+	 *        The desired size of the image.
 	 * 
-	 * @return An image object representing the image.
+	 * @return An Image object representing the image.
 	 * 
-	 * @throws ServiceException Thrown if there is an error, the URL is 
-	 * 							malformed, or there is an error connecting to
-	 * 							them.
+	 * @throws ServiceException
+	 *         Thrown if there is an error, the URL is malformed, or there is
+	 *         an error connecting to them.
 	 */
 	public Image getImage(
-			final UUID imageId, 
-			final Image.Size size) 
-			throws ServiceException {
+		final UUID imageId,
+		final Image.Size size)
+		throws ServiceException {
 		
 		try {
+			// Get the image URL.
 			URL imageUrl = imageQueries.getImageUrl(imageId);
 			if(imageUrl == null) {
 				return null;
 			}
 			
-			Map<Size, URL> urlMapping = new HashMap<Size, URL>();
-			urlMapping.put(Image.ORIGINAL, imageUrl);
-			return new Image(imageId, urlMapping);
+			// Build the Image object.
+			Image result = new Image(imageId, imageUrl);
+			
+			// If given, ensure that the desired size exists.
+			if((size != null) && (! result.sizeExists(size))) {
+				result.saveImage(size);
+			}
+			
+			// Return the result.
+			return result;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -153,6 +161,43 @@ public final class ImageServices {
 	public URL getImageUrl(final UUID imageId) throws ServiceException {
 		try {
 			return imageQueries.getImageUrl(imageId);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the Images that have not yet been processed.
+	 * 
+	 * @return A list of Images that have not yet been processed.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public List<Image> getUnprocessedImages() throws ServiceException {
+		try {
+			return imageQueries.getUnprocessedImages();
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Marks an image as having been processed.
+	 * 
+	 * @param imageId
+	 *        The image's unique identifier.
+	 * 
+	 * @throws ServiceException
+	 *         There was an error at the data layer.
+	 */
+	public void markImageAsProcessed(
+		final UUID imageId)
+		throws ServiceException {
+
+		try {
+			imageQueries.markImageAsProcessed(imageId);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
