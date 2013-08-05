@@ -8,6 +8,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.exception.DomainException;
@@ -24,7 +28,9 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserValidators;
 
 public class UserSetupRequest extends UserRequest {
@@ -38,6 +44,7 @@ public class UserSetupRequest extends UserRequest {
 	private static final int USERNAME_DIGITS = 5;
 	
 	private final UserPersonal personalInfo;
+	private final Set<String> classIds;
 	
 	private String username = null;
 	private String password = null;
@@ -61,6 +68,7 @@ public class UserSetupRequest extends UserRequest {
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
 		
 		UserPersonal tPersonalInfo = null;
+		Set<String> tClassIds = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user setup request.");
@@ -160,6 +168,18 @@ public class UserSetupRequest extends UserRequest {
 								"information.",
 							e);
 				}
+				
+				// Get and validate the class ID.
+				t = getParameterValues(InputKeys.CLASS_URN_LIST);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.CLASS_INVALID_ID,
+							"Multiple class ID lists were given: " +
+								InputKeys.CLASS_URN_LIST);
+				}
+				else if(t.length == 1) {
+					tClassIds = ClassValidators.validateClassIdList(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -168,6 +188,7 @@ public class UserSetupRequest extends UserRequest {
 		}
 		
 		personalInfo = tPersonalInfo;
+		classIds = tClassIds;
 	}
 
 	/*
@@ -256,6 +277,19 @@ public class UserSetupRequest extends UserRequest {
 					UserServices.instance().getUserEmail(username);
 				this.password =
 					UserServices.instance().getPlaintextPassword(username);
+			}
+			
+			// Add them to the class, if given.
+			if(classIds != null) {
+				for(String classId : classIds) {
+					LOGGER.info("Adding the user to the class: " + classId);
+					Map<String, Clazz.Role> usersToAdd =
+						new HashMap<String, Clazz.Role>();
+					usersToAdd.put(username, Clazz.Role.RESTRICTED);
+					ClassServices
+						.instance()
+						.updateClass(classId, null, null, usersToAdd, null);
+				}
 			}
 		}
 		catch(ServiceException e) {
