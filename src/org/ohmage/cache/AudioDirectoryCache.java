@@ -382,7 +382,7 @@ public class AudioDirectoryCache {
 	private static String directoryNameBuilder(
 			final long name,
 			final int numFilesPerDirectory) {
-		
+
 		int nameLength = String.valueOf(name).length();
 		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
