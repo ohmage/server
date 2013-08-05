@@ -175,7 +175,7 @@ public class AsyncImageProcessor
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER = 
-		Logger.getLogger(RegistrationCleanup.class);
+		Logger.getLogger(AsyncImageProcessor.class);
 	
 	/**
 	 * The cleanup task that is periodically run to clean up expired 
