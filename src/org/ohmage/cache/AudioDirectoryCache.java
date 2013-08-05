@@ -412,7 +412,7 @@ public class AudioDirectoryCache {
 	 */
 	private static File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);
-		
+
 		return directories[directories.length - 1];
 	}
 }
