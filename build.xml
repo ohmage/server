@@ -351,7 +351,6 @@ it up and remove the warnings.</echo>
     <zip basedir="${build}/docs" destfile="${dist}/${ant.project.name}-docs-${app_version}.zip" encoding="UTF-8" compress="true"/>
   </target>
 
-
   <target
 	name="dist-all"
   	depends="clean,dist-ssl,dist-no_ssl,dist-docs"
