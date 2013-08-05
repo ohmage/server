@@ -356,7 +356,7 @@ public class AudioDirectoryCache {
 					}
 				}
 			}
-			
+
 			currAudioDirectory = newDirectory;
 		}
 		catch(NumberFormatException e) {
