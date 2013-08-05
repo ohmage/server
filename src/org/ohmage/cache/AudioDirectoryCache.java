@@ -365,7 +365,7 @@ public class AudioDirectoryCache {
 				e);
 		}
 	}
-	
+
 	/**
 	 * Builds the name of a folder by prepending zeroes where necessary and
 	 * converting the name into a String.
