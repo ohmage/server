@@ -514,7 +514,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 				// If it wasn't skipped and it was displayed, save the
 				// associated images.
 				if(! JsonInputKeys.PROMPT_SKIPPED.equals(imageId) && 
-					! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId)) {
+					! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId) &&
+					! JsonInputKeys.IMAGE_NOT_UPLOADED.equals(imageId)) {
 					
 					// Get the directory to save the image and save it.
 					File originalFile;
