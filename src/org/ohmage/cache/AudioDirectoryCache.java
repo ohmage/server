@@ -356,7 +356,7 @@ public class AudioDirectoryCache {
 					}
 				}
 			}
-			
+
 			currAudioDirectory = newDirectory;
 		}
 		catch(NumberFormatException e) {
@@ -365,7 +365,7 @@ public class AudioDirectoryCache {
 				e);
 		}
 	}
-	
+
 	/**
 	 * Builds the name of a folder by prepending zeroes where necessary and
 	 * converting the name into a String.
@@ -382,17 +382,17 @@ public class AudioDirectoryCache {
 	private static String directoryNameBuilder(
 			final long name,
 			final int numFilesPerDirectory) {
-		
+
 		int nameLength = String.valueOf(name).length();
 		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
-		
+
 		StringBuilder builder = new StringBuilder();
 		for(int i = 0; i < numberOfZeros; i++) {
 			builder.append("0");
 		}
 		builder.append(String.valueOf(name));
-		
+
 		return builder.toString();
 	}
 	
@@ -412,7 +412,7 @@ public class AudioDirectoryCache {
 	 */
 	private static File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);
-		
+
 		return directories[directories.length - 1];
 	}
 }

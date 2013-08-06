@@ -177,7 +177,7 @@ public class ImageReadRequest extends UserRequest {
 				UserImageServices.instance().verifyUserCanReadImage(getUser().getUsername(), imageId);
 			}
 			
-			LOGGER.info("Retrieving the image.");
+			LOGGER.info("Retrieving the original image.");
 			image = ImageServices.instance().getImage(imageId, size);
 		}
 		catch(ServiceException e) {

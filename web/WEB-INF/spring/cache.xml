@@ -15,4 +15,6 @@
   
   <bean class="org.ohmage.cache.RegistrationCleanup" />
   
+  <bean class="org.ohmage.cache.AsyncImageProcessor" />
+  
 </beans>

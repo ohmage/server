@@ -34,7 +34,6 @@
     <include name="httpclient-4.1.2.jar"/>
     <include name="httpmime-4.1.2.jar"/>
     <include name="junit-4.10.jar"/>
-    <include name="tomcat-coyote.jar"/>
     <include name="recaptcha4j-0.0.7.jar"/>
     <include name="mail.jar"/>
   	<include name="joda-time-2.1.jar"/>
@@ -76,8 +75,8 @@
     <include name="guava-14.0.1.jar"/>
     <include name="slf4j-api-1.7.5.jar"/>
     <include name="slf4j-log4j12-1.7.5.jar"/>
-    <include name="tomcat-dbcp.jar"/>
-    <include name="tomcat-jdbc.jar"/>
+    <include name="tomcat-dbcp-7.0.42.jar" />
+    <include name="tomcat-jdbc-7.0.42.jar" />
   </fileset>
 
   <path id="compile-classpath">
@@ -356,7 +355,7 @@ it up and remove the warnings.</echo>
 	name="dist-all"
   	depends="clean,dist-ssl,dist-no_ssl,dist-docs"
   	description="Creates full distribution (WAR and docs)."/>
-  
+
   <target name="sonar">
     <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="${app_version}" xmlns:sonar="antlib:org.sonar.ant">
       <sources>

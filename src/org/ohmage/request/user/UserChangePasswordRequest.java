@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -67,6 +66,8 @@ public class UserChangePasswordRequest extends UserRequest {
 	
 	private final String newPassword;
 	private final String username;
+	
+	private String hashedPassword;
 	
 	/**
 	 * Creates a password change request.
@@ -169,10 +170,16 @@ public class UserChangePasswordRequest extends UserRequest {
 			
 			LOGGER.info("Updating the user's password.");
 			if(username == null) {
-				UserServices.instance().updatePassword(getUser().getUsername(), newPassword);
+				hashedPassword =
+					UserServices
+						.instance()
+						.updatePassword(getUser().getUsername(), newPassword);
 			}
 			else {
-				UserServices.instance().updatePassword(username, newPassword);
+				hashedPassword =
+					UserServices
+						.instance()
+						.updatePassword(username, newPassword);
 			}
 		}
 		catch(ServiceException e) {
@@ -189,6 +196,11 @@ public class UserChangePasswordRequest extends UserRequest {
 	public void respond(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 		LOGGER.info("Responding to the change password request.");
 		
-		super.respond(httpRequest, httpResponse, (JSONObject) null);
+		super
+			.respond(
+				httpRequest,
+				httpResponse,
+				"hashed_password",
+				hashedPassword);
 	}
 }

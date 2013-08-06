@@ -35,6 +35,25 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class PhotoPrompt extends Prompt {
+	/**
+	 * <p>
+	 * Special NoRepsonse values for images.
+	 * </p>
+	 *
+	 * @author John Jenkins
+	 */
+	public static enum NoResponseImage {
+		/**
+		 * The image was not uploaded.
+		 */
+		IMAGE_NOT_UPLOADED;
+		
+		@Override
+		public String toString() {
+			return name();
+		}
+	}
+	
 	private static final String JSON_KEY_MAXIMUM_DIMENSION = "max_dimension";
 	
 	/**
@@ -185,14 +204,20 @@ public class PhotoPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return UUID.fromString(valueString);
+					return NoResponseImage.valueOf(valueString);
 				}
-				catch(IllegalArgumentException notUuid) {
-					throw new DomainException(
-							"The string response value was not decodable into a UUID for prompt '" +
-								getId() +
-								"': " +
-								valueString);
+				catch(IllegalArgumentException noImageNoResponse) {
+					try {
+						return UUID.fromString(valueString);
+					}
+					catch(IllegalArgumentException notUuid) {
+						throw new DomainException(
+								"The string response value was not " +
+									"decodable into a UUID for prompt '" +
+									getId() +
+									"': " +
+									valueString);
+					}
 				}
 			}
 		}

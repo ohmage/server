@@ -1826,9 +1826,11 @@ public final class UserServices {
 	 * 
 	 * @param plaintextPassword The plaintext password for the user.
 	 * 
+	 * @return The user's new, hashed password.
+	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public void updatePassword(final String username, 
+	public String updatePassword(final String username, 
 			final String plaintextPassword) throws ServiceException {
 		
 		try {
@@ -1839,6 +1841,8 @@ public final class UserServices {
 						BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
 			userQueries.updateUserPassword(username, hashedPassword, false);
+			
+			return hashedPassword;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

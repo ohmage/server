@@ -18,13 +18,19 @@ package org.ohmage.query.impl;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.ohmage.domain.Image;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.query.IImageQueries;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionException;
@@ -92,6 +98,7 @@ public final class ImageQueries extends Query implements IImageQueries {
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IImageQueries#getImageUrl(java.lang.String)
 	 */
+	@Override
 	public URL getImageUrl(UUID imageId) throws DataAccessException {
 		try {
 			return new URL(
@@ -115,9 +122,121 @@ public final class ImageQueries extends Query implements IImageQueries {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IImageQueries#getUnprocessedImages()
+	 */
+	@Override
+	public List<Image> getUnprocessedImages() throws DataAccessException {
+		try {
+			return
+				getJdbcTemplate()
+					.query(
+						"SELECT uuid, url " +
+							"FROM url_based_resource AS ubr " +
+								"LEFT JOIN prompt_response AS pr " +
+								"ON ubr.uuid = pr.response " +
+							"WHERE pr.prompt_type = 'photo' " +
+							"AND ubr.processed = false",
+						new RowMapper<Image>() {
+							/*
+							 * (non-Javadoc)
+							 * @see org.springframework.jdbc.core.RowMapper#mapRow(java.sql.ResultSet, int)
+							 */
+							@Override
+							public Image mapRow(
+								final ResultSet resultSet,
+								final int rowNum)
+								throws SQLException {
+
+								try {
+									return
+										new Image(
+											UUID.fromString(
+												resultSet.getString("uuid")),
+											resultSet.getURL("url"));
+								}
+								catch(DomainException e) {
+									throw
+										new SQLException(
+											"Could not create the Image " +
+												"object.",
+											e);
+								}
+							}
+							
+						});
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw
+				new DataAccessException(
+					"SELECT url " +
+						"FROM url_based_resource " +
+						"WHERE processed = false",
+					e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IImageQueries#markImageAsProcessed(java.util.UUID)
+	 */
+	@Override
+	public void markImageAsProcessed(
+		final UUID imageId)
+		throws DataAccessException {
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Marking an image as processed.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager =
+				new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			try {
+				getJdbcTemplate()
+					.update(
+						"UPDATE url_based_resource " +
+							"SET processed = true " +
+							"WHERE uuid = ?",
+						new Object[] { imageId.toString() });
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException(
+						"Error executing SQL '" + SQL_DELETE_IMAGE + 
+						"' with parameter: " +
+							imageId, 
+						e);
+			}
+
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw
+					new DataAccessException(
+						"Error while committing the transaction.",
+						e);
+			}
+		}
+		catch(TransactionException e) {
+			throw
+				new DataAccessException(
+					"Error while attempting to rollback the transaction.",
+					e);
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IImageQueries#deleteImage(java.lang.String)
 	 */
+	@Override
 	public void deleteImage(UUID imageId) throws DataAccessException {
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();

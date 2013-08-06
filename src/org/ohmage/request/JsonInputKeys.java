@@ -56,6 +56,7 @@ public final class JsonInputKeys {
 	public static final String PROMPT_VALUE = "value";
 	public static final String PROMPT_SKIPPED = "SKIPPED";
 	public static final String PROMPT_NOT_DISPLAYED = "NOT_DISPLAYED";
+	public static final String IMAGE_NOT_UPLOADED = "IMAGE_NOT_UPLOADED";
 	public static final String PROMPT_PROPERTY_MIN = "min";
 	public static final String PROMPT_PROPERTY_MAX = "max";
 	public static final String PROMPT_REMOTE_ACTIVITY_SCORE = "score";
