@@ -341,7 +341,7 @@ CREATE TABLE url_based_resource (
     uuid char (36) NOT NULL, -- joined with prompt_response.response to retrieve survey context for an item
     url text,
     audit_timestamp timestamp default current_timestamp on update current_timestamp,
-    
+    processed BOOLEAN NOT NULL DEFAULT FALSE,
     UNIQUE (uuid), -- disallow duplicates and index on UUID
     PRIMARY KEY (id),
     CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
