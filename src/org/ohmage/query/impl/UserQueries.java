@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
@@ -431,6 +432,14 @@ public class UserQueries extends Query implements IUserQueries {
 			try {
 				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, plaintextPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
+			catch(org.springframework.dao.DuplicateKeyException e) {
+				transactionManager.rollback(status);
+				throw
+					new DataAccessException(
+						ErrorCode.USER_INVALID_USERNAME,
+						"The user already exists.",
+						e);
+			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
@@ -514,6 +523,7 @@ public class UserQueries extends Query implements IUserQueries {
 						new Object[] { 
 								username, 
 								hashedPassword, 
+								null,
 								emailAddress, 
 								false, 
 								false, 
