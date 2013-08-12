@@ -462,6 +462,122 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#createUser(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, org.ohmage.domain.UserInformation.UserPersonal)
+	 */
+	@Override
+	public boolean createUser(
+			final String username, 
+			final String plaintextPassword,
+			final String hashedPassword, 
+			final String emailAddress, 
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final UserPersonal personalInfo) 
+			throws DataAccessException {
+		
+		Boolean tAdmin = admin;
+		if(tAdmin == null) {
+			tAdmin = false;
+		}
+		
+		Boolean tEnabled = enabled;
+		if(tEnabled == null) {
+			tEnabled = false;
+		}
+		
+		Boolean tNewAccount = newAccount;
+		if(tNewAccount == null) {
+			tNewAccount = true;
+		}
+		
+		Boolean tCampaignCreationPrivilege = campaignCreationPrivilege;
+		if(tCampaignCreationPrivilege == null) {
+			try {
+				tCampaignCreationPrivilege = PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE).equals("true");
+			}
+			catch(CacheMissException e) {
+				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
+			}
+		}
+		
+		boolean result = true;
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating a new user.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Insert the new user.
+			try {
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, plaintextPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+			}
+			catch(org.springframework.dao.DuplicateKeyException e) {
+				transactionManager.rollback(status);
+				throw
+					new DataAccessException(
+						ErrorCode.USER_INVALID_USERNAME,
+						"The user already exists.",
+						e);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
+						username + ", " + hashedPassword + ", " + plaintextPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+			}
+			
+			if(personalInfo != null) {
+				try {
+					getJdbcTemplate().update(
+							SQL_INSERT_USER_PERSONAL, 
+							username, 
+							personalInfo.getFirstName(), 
+							personalInfo.getLastName(), 
+							personalInfo.getOrganization(), 
+							personalInfo.getPersonalId());
+				}
+				catch(org.springframework.dao.DuplicateKeyException e) {
+					transactionManager.rollback(status);
+					result = false;
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+							"Error executing SQL '" +
+								SQL_INSERT_USER_PERSONAL +
+								"' with parameters: " +
+								username + ", " + 
+								personalInfo.getFirstName() + ", " + 
+								personalInfo.getLastName() + ", " + 
+								personalInfo.getOrganization() + ", " + 
+								personalInfo.getPersonalId(), 
+							e);
+				}
+			}
+			
+			// Commit the transaction.
+			try {
+				transactionManager.commit(status);
+			}
+			catch(TransactionException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while committing the transaction.", e);
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+		
+		return result;
+	}
+	
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#createUserRegistration(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	public void createUserRegistration(

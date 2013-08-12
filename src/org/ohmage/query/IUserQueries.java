@@ -58,6 +58,41 @@ public interface IUserQueries {
 			throws DataAccessException;
 	
 	/**
+	 * Creates a new user.
+	 * 
+	 * @param username The username for the new user.
+	 * 
+	 * @param plaintextPassword This should ALWAYS be null!
+	 * 
+	 * @param hashedPassword The hashed password for the new user.
+	 * 
+	 * @param emailAddress The user's email address, which may be null.
+	 * 
+	 * @param admin Whether or not the user should initially be an admin.
+	 * 
+	 * @param enabled Whether or not the user should initially be enabled.
+	 * 
+	 * @param newAccount Whether or not the new user must change their password
+	 * 					 before using any other APIs.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the new user is allowed
+	 * 									to create campaigns.
+	 * 
+	 * @param userPersonal Whether or not user creation was successful.
+	 */
+	boolean createUser(
+			final String username, 
+			final String plaintextPassword,
+			final String hashedPassword, 
+			final String emailAddress,
+			final Boolean admin,
+			final Boolean enabled, 
+			final Boolean newAccount,
+			final Boolean campaignCreationPrivilege,
+			final UserPersonal personalInfo) 
+			throws DataAccessException;
+	
+	/**
 	 * Creates a user registration by first creating the user, second adding 
 	 * them to the public class, and finally by storing their registration
 	 * information in the registration table.

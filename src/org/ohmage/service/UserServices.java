@@ -206,6 +206,63 @@ public final class UserServices {
 			throw new ServiceException(e);
 		}
 	}
+
+	/**
+	 * Creates a new user.
+	 * 
+	 * @param username The username for the new user.
+	 * 
+	 * @param password The password for the new user.
+	 * 
+	 * @param emailAddress The user's email address or null.
+	 * 
+	 * @param admin Whether or not the user should initially be an admin.
+	 * 
+	 * @param enabled Whether or not the user should initially be enabled.
+	 * 
+	 * @param newAccount Whether or not the new user must change their password
+	 * 					 before using any other APIs.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the new user is allowed
+	 * 									to create campaigns.
+	 * 
+	 * @return Whether or not the user was successfully created.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public boolean createUser(
+			final String username, 
+			final String password, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final boolean storePlaintextPassword,
+			final UserPersonal personalInfo)
+			throws ServiceException {
+		
+		try {
+			String hashedPassword =
+				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			
+			return
+				userQueries
+					.createUser(
+						username, 
+						((storePlaintextPassword) ? password : null),
+						hashedPassword, 
+						emailAddress, 
+						admin, 
+						enabled, 
+						newAccount, 
+						campaignCreationPrivilege,
+						personalInfo);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 	
 	/**
 	 * Registers the user in the system by first creating the user whose 

@@ -219,6 +219,7 @@ public class UserSetupRequest extends UserRequest {
 			
 			// If the user does not exist, create them and remember their
 			// username.
+			boolean haveUserInfo = false;
 			if(userInformation == null) {
 				LOGGER.info("The user does not exist.");
 				
@@ -235,39 +236,24 @@ public class UserSetupRequest extends UserRequest {
 						.getUserEmail(getUser().getUsername());
 				
 				LOGGER.info("Creating the user.");
-				UserServices
-					.instance()
-					.createUser(
-						username,
-						password,
-						emailAddress,
-						false,
-						true,
-						true,
-						true,
-						true);
-				
-				LOGGER.info("Adding the user's personal information.");
-				UserServices
-					.instance()
-					.updateUser(
-						username, 
-						emailAddress, 
-						null, 
-						null, 
-						null, 
-						null, 
-						null,
-						null,
-						personalInfo.getFirstName(), 
-						personalInfo.getLastName(), 
-						personalInfo.getOrganization(), 
-						personalInfo.getPersonalId(),
-						false);
+				haveUserInfo =
+					UserServices
+						.instance()
+						.createUser(
+							username,
+							password,
+							emailAddress,
+							false,
+							true,
+							true,
+							true,
+							true,
+							personalInfo);
 			}
+			
 			// If the user does exist, store their username and the email
 			// address associated with their account.
-			else {
+			if(! haveUserInfo) {
 				LOGGER.info("The user already exists.");
 				
 				// Retrieve the user's username.
