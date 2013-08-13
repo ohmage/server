@@ -66,6 +66,7 @@ public class UserChangePasswordRequest extends UserRequest {
 	
 	private final String newPassword;
 	private final String username;
+	private final boolean validSession;
 	
 	private String hashedPassword;
 	
@@ -88,6 +89,7 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		String tNewPassword = null;
 		String tUsername = null;
+		boolean tValidSession = false;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user change password request.");
@@ -128,6 +130,18 @@ public class UserChangePasswordRequest extends UserRequest {
 				else if(t.length == 1) {
 					tUsername = UserValidators.validateUsername(t[0]);
 				}
+				
+				try {
+					// If a user is returned, then the sesion is valid.
+					// Otherwise, there is not token so there is no session.
+					tValidSession = 
+						retrieveToken(httpRequest, TokenLocation.EITHER) !=
+							null;
+				}
+				// The token is unknown, so the session is no longer valid.
+				catch(ValidationException e) {
+					tValidSession = false;
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -137,6 +151,7 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		newPassword = tNewPassword;
 		username = tUsername;
+		validSession = tValidSession;
 	}
 
 	/**
@@ -147,6 +162,14 @@ public class UserChangePasswordRequest extends UserRequest {
 		LOGGER.info("Servicing the change password request.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_ALLOWED)) {
+			// If it's a valid session, change the error code.
+			if(validSession) {
+				setFailed(
+					ErrorCode.AUTHENTICATION_FAILED_BUT_NEW_ERROR_CODE_BECAUSE_WHY_NOT,
+					getAnnotator().getErrorText());
+			}
+			
+			// Exit either way.
 			return;
 		}
 		
