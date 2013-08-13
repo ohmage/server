@@ -75,7 +75,11 @@ public final class AuthenticationService {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public boolean authenticate(UserRequest request, boolean newAccountsAllowed) throws ServiceException {
+	public boolean authenticate(
+		final UserRequest request,
+		final boolean newAccountsAllowed)
+		throws ServiceException {
+		
 		// If the user is already logged in, then they are already 
 		// authenticated.
 		if(request.getUser().isLoggedIn()) {
@@ -102,13 +106,19 @@ public final class AuthenticationService {
 		// If the account is disabled, update the annotator and set the request
 		// as failed.
 		if(! userInformation.getEnabled()) {
-			request.setFailed(ErrorCode.AUTHENTICATION_ACCOUNT_DISABLED, "The account is disabled.");
+			request
+				.setFailed(
+					ErrorCode.AUTHENTICATION_ACCOUNT_DISABLED,
+					"The account is disabled.");
 			return false;
 		}
 		// If the user is a new user and we aren't allowing new users for this
 		// call, update the annotator and set the request as failed.
 		else if((! newAccountsAllowed) && userInformation.getNewAccount()) {
-			request.setFailed(ErrorCode.AUTHENTICATION_NEW_ACCOUNT, "New accounts aren't allowed to use this service.");
+			request
+				.setFailed(
+					ErrorCode.AUTHENTICATION_NEW_ACCOUNT,
+					"New accounts aren't allowed to use this service.");
 			return false;
 		}
 		// Otherwise, the user is valid and should be logged in.

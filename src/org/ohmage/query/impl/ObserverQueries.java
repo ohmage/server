@@ -1138,7 +1138,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		// components.
 		builder
 			.append(
-				" AND osl.observer_stream_id = " +
+				" AND osl.observer_stream_id IN " +
 					"(" +
 						"SELECT id " +
 						"FROM observer_stream " +
