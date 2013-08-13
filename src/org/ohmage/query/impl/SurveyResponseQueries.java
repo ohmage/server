@@ -71,6 +71,26 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		"FROM survey_response_privacy_state";
 	
 	/**
+	 * The base FROM and WHERE to join all of the survey response specific
+	 * tables.
+	 */
+	private static final String SQL_BASE_FROM_AND_WHERE =
+		// Include as few tables as possible and use sub-queries when possible.
+		"FROM " +
+			"survey_response AS sr " +
+				"LEFT JOIN user AS u ON u.id = sr.user_id " +
+				"LEFT JOIN campaign AS c ON c.id = sr.campaign_id " +
+				"LEFT JOIN survey_response_privacy_state AS srps " +
+					"ON srps.id = sr.privacy_state_id " +
+				// Note: This means that multiple rows may have the same survey 
+				// response information but have unique prompt response
+				// information.
+				"RIGHT JOIN prompt_response AS pr " +
+					"ON sr.id = pr.survey_response_id " +
+		// Begin with exactly one campaign.
+		"WHERE c.urn = ?";
+	
+	/**
 	 * Retrieves all of the necessary information for survey responses. It 
 	 * should almost certainly be used with the {@link #SQL_WHERE_ACL} in order
 	 * to ensure that a user cannot see more than they are privileged to see.
@@ -101,22 +121,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			"sr.survey_id, sr.launch_context, " +
 			"sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
-		// Include as few tables as possible and use sub-queries when possible.
-		"FROM user u, campaign c, " +
-			"survey_response sr, survey_response_privacy_state srps, " +
-			"prompt_response pr " +
-		// Begin with exactly one campaign.
-		"WHERE c.urn = ? " +
-		// Retrieve only the survey response associated with that campaign.
-		"AND c.id = sr.campaign_id " +
-		// Link the user to the survey response.
-		"AND u.id = sr.user_id " +
-		// Link the privacy state to the survey response.
-		"AND srps.id = sr.privacy_state_id " +
-		// Link the prompt responses to the survey response.
-		// Note: This means that multiple rows may have the same survey 
-		// response information but have unique prompt response information.
-		"AND pr.survey_response_id = sr.id";
+			SQL_BASE_FROM_AND_WHERE;
 	
 	/**
 	 * Retrieves all of the necessary information for survey responses. It also
@@ -146,29 +151,14 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	private static final String SQL_GET_SURVEY_RESPONSES_AGGREGATED_SURVEY =
 		// Retrieve all of the columns necessary to build a SurveyResponse
 		// object.
-		"SELECT COUNT(DISTINCT(sr.uuid)) as count, " +
+		"SELECT COUNT(DISTINCT(sr.uuid)) AS count, " +
 			"u.username, c.urn, " +
 			"sr.id, sr.uuid, sr.client, " +
 			"sr.epoch_millis, sr.phone_timezone, " +
 			"sr.survey_id, sr.launch_context, " +
 			"sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
-		// Include as few tables as possible and use sub-queries when possible.
-		"FROM user u, campaign c, " +
-			"survey_response sr, survey_response_privacy_state srps, " +
-			"prompt_response pr " +
-		// Begin with exactly one campaign.
-		"WHERE c.urn = ? " +
-		// Retrieve only the survey response associated with that campaign.
-		"AND c.id = sr.campaign_id " +
-		// Link the user to the survey response.
-		"AND u.id = sr.user_id " +
-		// Link the privacy state to the survey response.
-		"AND srps.id = sr.privacy_state_id " +
-		// Link the prompt responses to the survey response.
-		// Note: This means that multiple rows may have the same survey 
-		// response information but have unique prompt response information.
-		"AND pr.survey_response_id = sr.id";
+			SQL_BASE_FROM_AND_WHERE;
 	
 	/**
 	 * Retrieves all of the necessary information for survey responses. It also
@@ -205,22 +195,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			"sr.survey_id, sr.launch_context, " +
 			"sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
-		// Include as few tables as possible and use sub-queries when possible.
-		"FROM user u, campaign c, " +
-			"survey_response sr, survey_response_privacy_state srps, " +
-			"prompt_response pr " +
-		// Begin with exactly one campaign.
-		"WHERE c.urn = ? " +
-		// Retrieve only the survey response associated with that campaign.
-		"AND c.id = sr.campaign_id " +
-		// Link the user to the survey response.
-		"AND u.id = sr.user_id " +
-		// Link the privacy state to the survey response.
-		"AND srps.id = sr.privacy_state_id " +
-		// Link the prompt responses to the survey response.
-		// Note: This means that multiple rows may have the same survey 
-		// response information but have unique prompt response information.
-		"AND pr.survey_response_id = sr.id";
+			SQL_BASE_FROM_AND_WHERE;
 	
 	/**
 	 * This is the WHERE clause that must be included when using either
