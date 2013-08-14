@@ -9,6 +9,9 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +32,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
+import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserValidators;
@@ -209,6 +213,11 @@ public class UserSetupRequest extends UserRequest {
 				.instance()
 				.verifyUserCanSetupUsers(getUser().getUsername());
 			
+			if(classIds != null) {
+				LOGGER.info("Verifying that the classes exist.");
+				ClassServices.instance().checkClassesExistence(classIds, true);
+			}
+			
 			LOGGER.info("Determining if the user already exists.");
 			UserInformation userInformation =
 				UserServices
@@ -267,14 +276,33 @@ public class UserSetupRequest extends UserRequest {
 			
 			// Add them to the class, if given.
 			if(classIds != null) {
-				for(String classId : classIds) {
-					LOGGER.info("Adding the user to the class: " + classId);
+				// Get the set of classes that the user should belong to but
+				// doesn't yet.
+				Set<String> classesToAdd = new HashSet<String>(classIds);
+				classesToAdd
+					.removeAll(
+						UserClassServices
+							.instance()
+							.getClassesForUser(username, null));
+				
+				// For each class, reset the user's role in that class to
+				// restricted.
+				for(String classId : classesToAdd) {
+					List<String> usersToRemove = new LinkedList<String>();
+					usersToRemove.add(username);
 					Map<String, Clazz.Role> usersToAdd =
 						new HashMap<String, Clazz.Role>();
 					usersToAdd.put(username, Clazz.Role.RESTRICTED);
+					
+					LOGGER.info("Restting the user in the class: " + classId);
 					ClassServices
 						.instance()
-						.updateClass(classId, null, null, usersToAdd, null);
+						.updateClass(
+							classId, 
+							null, 
+							null, 
+							usersToAdd, 
+							usersToRemove);
 				}
 			}
 		}
