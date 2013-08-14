@@ -560,13 +560,15 @@ public class UserQueries extends Query implements IUserQueries {
 				}
 			}
 			
-			// Commit the transaction.
-			try {
-				transactionManager.commit(status);
-			}
-			catch(TransactionException e) {
-				transactionManager.rollback(status);
-				throw new DataAccessException("Error while committing the transaction.", e);
+			// Commit the transaction if necessary.
+			if(result) {
+				try {
+					transactionManager.commit(status);
+				}
+				catch(TransactionException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException("Error while committing the transaction.", e);
+				}
 			}
 		}
 		catch(TransactionException e) {

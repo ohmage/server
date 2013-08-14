@@ -9,9 +9,6 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,7 +29,6 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
-import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserValidators;
@@ -264,6 +260,12 @@ public class UserSetupRequest extends UserRequest {
 			// address associated with their account.
 			if(! haveUserInfo) {
 				LOGGER.info("The user already exists.");
+				userInformation =
+					UserServices
+						.instance()
+						.getUserInformationFromPersonalInformation(
+							getUser().getUsername(),
+							personalInfo);
 				
 				// Retrieve the user's username.
 				username = userInformation.getUsername();
@@ -276,20 +278,9 @@ public class UserSetupRequest extends UserRequest {
 			
 			// Add them to the class, if given.
 			if(classIds != null) {
-				// Get the set of classes that the user should belong to but
-				// doesn't yet.
-				Set<String> classesToAdd = new HashSet<String>(classIds);
-				classesToAdd
-					.removeAll(
-						UserClassServices
-							.instance()
-							.getClassesForUser(username, null));
-				
 				// For each class, reset the user's role in that class to
 				// restricted.
-				for(String classId : classesToAdd) {
-					List<String> usersToRemove = new LinkedList<String>();
-					usersToRemove.add(username);
+				for(String classId : classIds) {
 					Map<String, Clazz.Role> usersToAdd =
 						new HashMap<String, Clazz.Role>();
 					usersToAdd.put(username, Clazz.Role.RESTRICTED);
@@ -302,7 +293,7 @@ public class UserSetupRequest extends UserRequest {
 							null, 
 							null, 
 							usersToAdd, 
-							usersToRemove);
+							null);
 				}
 			}
 		}

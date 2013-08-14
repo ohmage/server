@@ -818,8 +818,23 @@ public class ClassQueries extends Query implements IClassQueries {
 								LOGGER.debug("The user did not exist in the class so the user is being added before any updates are attemped.");
 							}
 							
-							getJdbcTemplate().update(SQL_INSERT_USER_CLASS, new Object[] { username, classId, role.toString() } );
-							addDefaultRoles = true;
+							try {
+								getJdbcTemplate()
+									.update(
+										SQL_INSERT_USER_CLASS,
+										new Object[] { 
+											username, 
+											classId, 
+											role.toString() } 
+										);
+								addDefaultRoles = true;
+							}
+							catch(org.springframework.dao.DuplicateKeyException e) {
+								// The use is already associated with the
+								// class, so this is to mitigate concurrency
+								// issues.
+								addDefaultRoles = false;
+							}
 						}
 						
 						else  {
