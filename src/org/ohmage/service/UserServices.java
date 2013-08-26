@@ -872,7 +872,7 @@ public final class UserServices {
 		try {
 			// If the user is not an admin, make sure they have the
 			// Mobilize-specific requirements.
-			if(userQueries.userIsAdmin(requester)) {
+			if(! userQueries.userIsAdmin(requester)) {
 				// Get the list of class IDs where the requesting user is
 				// privileged.
 				Collection<String> requesterClassIds =
