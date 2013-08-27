@@ -42,11 +42,11 @@ public class PhotoPrompt extends Prompt {
 	 *
 	 * @author John Jenkins
 	 */
-	public static enum NoResponseImage {
+	public static enum NoResponseMedia {
 		/**
 		 * The image was not uploaded.
 		 */
-		IMAGE_NOT_UPLOADED;
+		MEDIA_NOT_UPLOADED;
 		
 		@Override
 		public String toString() {
@@ -204,7 +204,7 @@ public class PhotoPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return NoResponseImage.valueOf(valueString);
+					return NoResponseMedia.valueOf(valueString);
 				}
 				catch(IllegalArgumentException noImageNoResponse) {
 					try {

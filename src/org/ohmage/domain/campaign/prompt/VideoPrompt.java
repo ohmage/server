@@ -11,6 +11,7 @@ import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DomainException;
 
@@ -144,14 +145,19 @@ public class VideoPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return UUID.fromString(valueString);
+					return NoResponseMedia.valueOf(valueString);
 				}
-				catch(IllegalArgumentException notUuid) {
-					throw new DomainException(
-							"The string response value was not decodable into a UUID for prompt '" +
-								getId() +
-								"': " +
-								valueString);
+				catch(IllegalArgumentException noMediaNoResponse) {
+					try {
+						return UUID.fromString(valueString);
+					}
+					catch(IllegalArgumentException notUuid) {
+						throw new DomainException(
+								"The string response value was not decodable into a UUID for prompt '" +
+									getId() +
+									"': " +
+									valueString);
+					}
 				}
 			}
 		}
