@@ -54,6 +54,7 @@ import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
@@ -560,7 +561,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			else if(promptResponse instanceof VideoPromptResponse) {
 				// Make sure the response contains an actual video response.
 				Object responseValue = promptResponse.getResponse();
-				if(! (responseValue instanceof NoResponse)) {
+				if(! 
+					(	(responseValue instanceof NoResponse) || 
+						(responseValue instanceof NoResponseMedia)
+					)) {
+					
 					// Attempt to write it to the file system.
 					try {
 						// Get the current video directory.
@@ -651,7 +656,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			else if(promptResponse instanceof AudioPromptResponse) {
 				// Make sure the response contains an actual audio response.
 				Object responseValue = promptResponse.getResponse();
-				if(! (responseValue instanceof NoResponse)) {
+				if(! 
+					(	(responseValue instanceof NoResponse) || 
+						(responseValue instanceof NoResponseMedia)
+					)) {
+					
 					// Attempt to write it to the file system.
 					try {
 						// Get the current audio directory.
