@@ -74,21 +74,27 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	 * The base FROM and WHERE to join all of the survey response specific
 	 * tables.
 	 */
-	private static final String SQL_BASE_FROM_AND_WHERE =
+	private static final String SQL_BASE_FROM =
 		// Include as few tables as possible and use sub-queries when possible.
 		"FROM " +
 			"survey_response AS sr " +
 				"LEFT JOIN user AS u ON u.id = sr.user_id " +
 				"LEFT JOIN campaign AS c ON c.id = sr.campaign_id " +
+				"LEFT JOIN campaign_privacy_state AS cps " +
+					"ON c.privacy_state_id = cps.id " +
 				"LEFT JOIN survey_response_privacy_state AS srps " +
-					"ON srps.id = sr.privacy_state_id " +
-				// Note: This means that multiple rows may have the same survey 
-				// response information but have unique prompt response
-				// information.
-				"RIGHT JOIN prompt_response AS pr " +
-					"ON sr.id = pr.survey_response_id " +
-		// Begin with exactly one campaign.
-		"WHERE c.urn = ?";
+					"ON srps.id = sr.privacy_state_id ";
+	
+	/**
+	 * The additional component of the FROM clause to include the prompt
+	 * responses.
+	 */
+	private static final String SQL_FROM_WITH_PROMPT_RESPONSE =
+		// Note: This means that multiple rows may have the same survey 
+		// response information but have unique prompt response
+		// information.
+		"RIGHT JOIN prompt_response AS pr " +
+			"ON sr.id = pr.survey_response_id ";
 	
 	/**
 	 * Retrieves all of the necessary information for survey responses. It 
@@ -121,7 +127,8 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			"sr.survey_id, sr.launch_context, " +
 			"sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
-			SQL_BASE_FROM_AND_WHERE;
+			SQL_BASE_FROM +
+			SQL_FROM_WITH_PROMPT_RESPONSE;
 	
 	/**
 	 * Retrieves all of the necessary information for survey responses. It also
@@ -151,14 +158,13 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	private static final String SQL_GET_SURVEY_RESPONSES_AGGREGATED_SURVEY =
 		// Retrieve all of the columns necessary to build a SurveyResponse
 		// object.
-		"SELECT COUNT(DISTINCT(sr.uuid)) AS count, " +
+		"SELECT COUNT(sr.id) AS count, " +
 			"u.username, c.urn, " +
 			"sr.id, sr.uuid, sr.client, " +
 			"sr.epoch_millis, sr.phone_timezone, " +
 			"sr.survey_id, sr.launch_context, " +
-			"sr.location_status, sr.location, srps.privacy_state, " +
-			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
-			SQL_BASE_FROM_AND_WHERE;
+			"sr.location_status, sr.location, srps.privacy_state " +
+			SQL_BASE_FROM;
 	
 	/**
 	 * Retrieves all of the necessary information for survey responses. It also
@@ -188,79 +194,21 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	private static final String SQL_GET_SURVEY_RESPONSES_AGGREGATED_PROMPT =
 		// Retrieve all of the columns necessary to build a SurveyResponse
 		// object.
-		"SELECT COUNT(sr.uuid) as count, " +
+		"SELECT COUNT(sr.id) as count, " +
 			"u.username, c.urn, " +
 			"sr.id, sr.uuid, sr.client, " +
 			"sr.epoch_millis, sr.phone_timezone, " +
 			"sr.survey_id, sr.launch_context, " +
 			"sr.location_status, sr.location, srps.privacy_state, " +
 			"pr.prompt_id, pr.response, pr.repeatable_set_iteration " +
-			SQL_BASE_FROM_AND_WHERE;
-	
+			SQL_BASE_FROM +
+			SQL_FROM_WITH_PROMPT_RESPONSE;
+
 	/**
-	 * This is the WHERE clause that must be included when using either
-	 * {@link #SQL_GET_SURVEY_RESPONSES_INDIVIDUAL} or
-	 * {@link #SQL_GET_SURVEY_RESPONSES_AGGREGATED}. This includes the 
-	 * directives for SQL to properly align the tables and then incorporate the
-	 * ACL. Without this section, one will get all of the information about all
-	 * of the survey responses in all of the campaigns. No one should ever 
-	 * query this much information at once. Even admins should break it down by
-	 * campaign at the most course grained level.
-	 * 
-	 * Note: Maybe we should move the linking aspect of this WHERE clause to 
-	 * the two SELECT/FROM clauses and leave the ACL rules as an optional 
-	 * addition. This may be necessary for admins that can circumvent the ACLs.
+	 * The base WHERE clause for all queries.
 	 */
-	private static final String SQL_WHERE_ACL =
-		// ACL Rules
-		" AND EXISTS (" +
-			// Get the requesting user's information.
-			"SELECT ru.id " +
-			"FROM user ru " +
-			"WHERE ru.username = ? " +
-			"AND (" +
-				// If they are an admin,
-				"(ru.admin = true) " +
-				"OR " +
-				// If it is their own,
-				"(u.id = ru.id) " +
-				"OR " +
-				// If they are a supervisor,
-				"EXISTS (" +
-					"SELECT ur.role " +
-					"FROM user_role ur, user_role_campaign urc " +
-					"WHERE ru.id = urc.user_id " +
-					"AND c.id = urc.campaign_id " +
-					"AND ur.id = urc.user_role_id " +
-					"AND ur.role = '" + Campaign.Role.SUPERVISOR.toString() + "'" +
-				") " +
-				"OR " +
-				// If they are an author and the survey response is shared,
-				"EXISTS (" +
-					"SELECT ur.role " +
-					"FROM user_role ur, user_role_campaign urc " +
-					"WHERE ru.id = urc.user_id " +
-					"AND c.id = urc.campaign_id " +
-					"AND ur.id = urc.user_role_id " +
-					"AND ur.role = '" + Campaign.Role.AUTHOR.toString() + "' " +
-					"AND srps.privacy_state = '" + SurveyResponse.PrivacyState.SHARED.toString() + "'" +
-				") " +
-				"OR " +
-				// If they are an analyst, the survey response is shared, and 
-				// the campaign is shared.
-				"EXISTS (" +
-					"SELECT ur.role " +
-					"FROM user_role ur, user_role_campaign urc, campaign_privacy_state cps " +
-					"WHERE ru.id = urc.user_id " +
-					"AND c.id = urc.campaign_id " +
-					"AND ur.id = urc.user_role_id " +
-					"AND ur.role = '" + Campaign.Role.ANALYST.toString() + "' " +
-					"AND srps.privacy_state = '" + SurveyResponse.PrivacyState.SHARED.toString() + "' " +
-					"AND c.privacy_state_id = cps.id " +
-					"AND cps.privacy_state = '" + Campaign.PrivacyState.SHARED + "'" +
-				")" +
-			")" +
-		")";
+	private static final String SQL_BASE_WHERE =
+		"WHERE c.urn = ? ";
 	
 	/**
 	 * Limit the responses to only these survey response IDs. This SQL is
@@ -617,43 +565,56 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							String surveyResponseId =
 									surveyResponse.getSurveyResponseId().toString();
 							
-							// Now, process this prompt response and all 
-							// subsequent prompt responses.
-							do {
-								try {
-									// Retrieve the corresponding prompt 
-									// information from the campaign.
-									Prompt prompt = 
-										campaign.getPrompt(
-												surveyResponse.getSurvey().getId(),
-												rs.getString("prompt_id")
+							boolean processPrompts = true;
+							try {
+								rs.getString("prompt_id");
+							}
+							catch(SQLException e) {
+								processPrompts = false;
+							}
+							
+							if(processPrompts) {
+								// Now, process this prompt response and all 
+								// subsequent prompt responses.
+								do {
+									try {
+										// Retrieve the corresponding prompt 
+										// information from the campaign.
+										Prompt prompt = 
+											campaign.getPrompt(
+													surveyResponse.getSurvey().getId(),
+													rs.getString("prompt_id")
+												);
+										
+										// Generate the prompt response and add it to
+										// the survey response.
+										surveyResponse.addPromptResponse(
+												prompt.createResponse(
+														(Integer) rs.getObject(
+																"repeatable_set_iteration", 
+																typeMapping),
+														rs.getObject("response")
+													)
 											);
-									
-									// Generate the prompt response and add it to
-									// the survey response.
-									surveyResponse.addPromptResponse(
-											prompt.createResponse(
-													(Integer) rs.getObject(
-															"repeatable_set_iteration", 
-															typeMapping),
-													rs.getObject("response")
-												)
-										);
-								}
-								catch(DomainException e) {
-									throw new SQLException(
-											"The prompt response value from the database is not a valid response value for this prompt.", 
-											e);
-								}
-							} while(
-									// Get the next prompt response unless we
-									// just read the last prompt response in
-									// the result,
-									rs.next() && 
-									// and continue as long as that prompt 
-									// response pertains to this survey 
-									// response.
-									surveyResponseId.equals(rs.getString("uuid")));
+									}
+									catch(DomainException e) {
+										throw new SQLException(
+												"The prompt response value from the database is not a valid response value for this prompt.", 
+												e);
+									}
+								} while(
+										// Get the next prompt response unless we
+										// just read the last prompt response in
+										// the result,
+										rs.next() && 
+										// and continue as long as that prompt 
+										// response pertains to this survey 
+										// response.
+										surveyResponseId.equals(rs.getString("uuid")));
+							}
+							else {
+								rs.next();
+							}
 									
 							// If we exited the loop because we passed the last
 							// record, break out of the survey response 
@@ -697,19 +658,22 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 			return totalCount.iterator().next();
 		}
 		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-					"Error executing SQL '" +  
-						sql +
-						"' with parameters: " + 
-						campaign.getId() + " (campaign ID), " +
-						usernames + " (usernames), " +
-						startDate + " (start date), " +
-						endDate + " (end date), " +
-						privacyState + " (privacy state), " + 
-						surveyIds + " (survey IDs), " +
-						promptIds + " (prompt IDs), " +
-						promptType + " (prompt type)",
-					e);
+			StringBuilder errorBuilder =
+				new StringBuilder(
+					"Error executing SQL '" + sql + "' with parameters: ");
+			
+			boolean firstPass = true;
+			for(Object parameter : parameters) {
+				if(firstPass) {
+					firstPass = false;
+				}
+				else {
+					errorBuilder.append(", ");
+				}
+				errorBuilder.append(parameter.toString());
+			}
+			
+			throw new DataAccessException(errorBuilder.toString(), e);
 		}
 	}
 	
@@ -860,29 +824,100 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 	 * @return The list of parameters that corresponds with the generated SQL.
 	 */
 	private String buildSqlAndParameters(
-			final Campaign campaign,
-			final String username,
-			final Set<UUID> surveyResponseIds,
-			final Collection<String> usernames, 
-			final DateTime startDate,
-			final DateTime endDate, 
-			final SurveyResponse.PrivacyState privacyState,
-			final Collection<String> surveyIds,
-			final Collection<String> promptIds,
-			final String promptType,
-			final Set<String> promptResponseSearchTokens,
-			final Collection<ColumnKey> columns,
-			final List<SortParameter> sortOrder,
-			final Collection<Object> parameters) {
+		final Campaign campaign,
+		final String username,
+		final Set<UUID> surveyResponseIds,
+		final Collection<String> usernames, 
+		final DateTime startDate,
+		final DateTime endDate, 
+		final SurveyResponse.PrivacyState privacyState,
+		final Collection<String> surveyIds,
+		final Collection<String> promptIds,
+		final String promptType,
+		final Set<String> promptResponseSearchTokens,
+		final Collection<ColumnKey> columns,
+		final List<SortParameter> sortOrder,
+		final Collection<Object> parameters) 
+		throws DataAccessException {
 		
 		// Begin with the SQL string which gets all results or the one that
 		// aggregates results.
-		StringBuilder sqlBuilder = 
-				new StringBuilder(SQL_WHERE_ACL);
-		
-		// Begin with the campaign's ID and the requester's username.
+		StringBuilder sqlBuilder = new StringBuilder(SQL_BASE_WHERE);
 		parameters.add(campaign.getId());
-		parameters.add(username);
+		
+		// Catch any query exceptions.
+		try {
+			// If the requesting user is an admin, don't bother applying the
+			// ACLs.
+			if(!
+				getJdbcTemplate()
+					.queryForObject(
+						"SELECT admin FROM user WHERE username = ?",
+						new Object[] { username },
+						Boolean.class)) {
+				
+				// Get the roles for the user in the campaign.
+				List<Campaign.Role> roles =
+					getJdbcTemplate().query(
+						"SELECT ur.role " +
+							"FROM user u, campaign c, user_role ur, user_role_campaign urc " +
+							"WHERE u.username = ? " +
+							"AND u.id = urc.user_id " +
+							"AND c.urn = ? " +
+							"AND c.id = urc.campaign_id " +
+							"AND urc.user_role_id = ur.id", 
+						new Object[] { username, campaign.getId() }, 
+						new RowMapper<Campaign.Role>() {
+							@Override
+							public Campaign.Role mapRow(
+								final ResultSet rs,
+								final int rowNum)
+								throws SQLException {
+								
+								return
+									Campaign
+										.Role
+										.getValue(rs.getString("role"));
+							}
+						}
+					);
+				
+				// If the user is not a supervisor in the campaign, then we
+				// will add additional ACLs based on their role.
+				if(! roles.contains(Campaign.Role.SUPERVISOR)) {
+					// Users are always allowed to query about themselves.
+					sqlBuilder.append(" AND ((u.username = ?)");
+					parameters.add(username);
+					
+					// If the user is an author or analyst, they may see shared
+					// responses as well.
+					if(
+						roles.contains(Campaign.Role.AUTHOR) ||
+						roles.contains(Campaign.Role.ANALYST)) {
+						
+						// Add the shared survey responses.
+						sqlBuilder
+							.append(" OR ((srps.privacy_state = 'shared')");
+						
+						// However, if the user is only an analyst, the
+						// campaign must also be shared.
+						if(! roles.contains(Campaign.Role.AUTHOR)) {
+							sqlBuilder
+								.append(" AND (cps.privacy_state = 'shared')");
+						}
+						
+						// Finally, close the OR.
+						sqlBuilder.append(')');
+					}
+					
+					// Finally, close the AND.
+					sqlBuilder.append(')');
+				}
+			}
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error querying about the user.", e);
+		}
 		
 		// Check all of the criteria and if any are non-null add their SQL and
 		// append the parameters.

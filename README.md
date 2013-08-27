@@ -3,19 +3,16 @@
 ohmage is a mobile data collection system for collecting data given explicitly
 by a user (active data) and data that is collected by backgrounded applications
 (passive data). This repository houses the server-side application. The Android
-application can be found at https://github.com/ohmage/ohmageAndroidLib.
+application can be found at [here](https://github.com/ohmage/ohmageAndroidLib).
 
-A description of the high-level entities can be found at,
-https://github.com/cens/ohmageServer/wiki/About-Users,-Classes-and-Campaigns,
+A description of the high-level entities can be found at [here](https://github.com/cens/ohmageServer/wiki/About-Users,-Classes-and-Campaigns),
 and an introduction into how to read and write from an up-and-running system
-can be found at,
-https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities.
+can be found [here](https://github.com/cens/ohmageServer/wiki/About-the-Client-Server-Protocol-and-System-Entities).
 
-This server is an Open mHealth DSU reference implementation for the 0.1 version
-of the specification, which can be found at
-https://github.com/openmhealth/developer/wiki/DSU-API-0.1. The specification
+This server is an Open mHealth DSU reference implementation for the [0.1 version](https://github.com/openmhealth/developer/wiki/DSU-API-0.1)
+of the specification. The specification
 has evolved but the implementation has not kept completely up-to-date. More
-information can be found at, https://github.com/openmhealth/developer/wiki.
+information can be found at the Open mHealth [Developer Wiki](https://github.com/openmhealth/developer/wiki).
 
 # Setup
 
@@ -25,8 +22,8 @@ servlet container.
 ## Setting Up the Database
 
 ohmage depends on a MySQL instance. To update the database configuration,
-update the appropriate web/WEB-INF/spring/system.xml options. The default is a
-server on the local machine at the standard port of 3306 and a user named
+update the appropriate `web/WEB-INF/spring/system.xml` options. The default is a
+server on the local machine at the standard port of '3306' and a user named
 'ohmage' with a password '&!sickly' that has full permissions on a database
 named 'ohmage'.
 

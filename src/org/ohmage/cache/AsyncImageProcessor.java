@@ -135,7 +135,11 @@ public class AsyncImageProcessor
 				image.validate();
 			}
 			catch(DomainException e) {
-				LOGGER.error("The image data is invalid.", e);
+				LOGGER
+					.error(
+						"The image data is invalid: " + 
+							image.getId().toString(),
+						e);
 				return;
 			}
 			
@@ -151,7 +155,9 @@ public class AsyncImageProcessor
 			catch(DomainException e) {
 				LOGGER
 					.error(
-						"One of the sizes of the image could not be created.",
+						"One of the sizes of the image could not be " +
+							"created: " + 
+							image.getId().toString(),
 						e);
 				return;
 			}
@@ -161,7 +167,11 @@ public class AsyncImageProcessor
 				ImageServices.instance().markImageAsProcessed(image.getId());
 			}
 			catch(ServiceException e) {
-				LOGGER.error("The image could not be marked as processed.", e);
+				LOGGER
+					.error(
+						"The image could not be marked as processed: " + 
+							image.getId().toString(),
+						e);
 				return;
 			}
 		}
