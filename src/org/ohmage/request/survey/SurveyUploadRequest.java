@@ -243,6 +243,7 @@ public class SurveyUploadRequest extends UserRequest {
 						"No value found for 'surveys' parameter or multiple surveys parameters were found.");
 				}
 				else {
+					LOGGER.debug(new String(surveyDataBytes));
 					try {
 						tJsonData =
 							CampaignValidators
