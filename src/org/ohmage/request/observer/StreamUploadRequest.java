@@ -215,6 +215,16 @@ public class StreamUploadRequest extends UserRequest {
 				}
 				
 				t = getParameterValues(InputKeys.DATA);
+				if(t.length == 0) {
+					LOGGER
+						.info(
+							"Attempting to get the data as a multipart part.");
+					t = new String[1];
+					t[0] =
+						new String(
+							getMultipartValue(httpRequest, InputKeys.DATA));
+				}
+				
 				if(t.length > 1) {
 					throw new ValidationException(
 						ErrorCode.OBSERVER_INVALID_STREAM_DATA,

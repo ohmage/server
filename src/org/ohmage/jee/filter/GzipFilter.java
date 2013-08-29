@@ -2,7 +2,6 @@ package org.ohmage.jee.filter;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,7 +27,14 @@ import org.ohmage.util.StringUtils;
  * allowed, we have been letting it happen. Therefore, to keep 
  * backwards-compatability, we are going to continue to allow it; however, the
  * 3.0 version should remove this and replace it with a filter that rejects
- * such requests. 
+ * such requests.
+ * 
+ * <p>
+ * This is now only being used to pull the parameters from the request and
+ * store them as an attribute. This was a legacy requirement, but, given that
+ * this version of the application is dying, there is no reason to do a more
+ * comprehensive fix.
+ * </p>
  *
  * @author John Jenkins
  */
@@ -135,54 +141,60 @@ public class GzipFilter implements Filter {
 			final HttpServletRequest httpRequest,
 			final HttpServletResponse httpResponse) {
 
-		// Create a reference to the result.
-		Map<String, String[]> result = null;
+//		// Create a reference to the result.
+//		Map<String, String[]> result = null;
+//		
+//		// Get the "Content-Encoding" headers.
+//		Enumeration<String> contentEncodingHeaders = 
+//				httpRequest.getHeaders(KEY_CONTENT_ENCODING);
+//		
+//		// Look for a GZIP content encoding header.
+//		boolean containsGzipContentEncoding = false;
+//		while(contentEncodingHeaders.hasMoreElements()) {
+//			// If one is found, gunzip the request.
+//			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
+//				containsGzipContentEncoding = true;
+//				break;
+//			}
+//		}
+//		
+//		// If the "Content-Encoding" header was given and its value was "gzip",
+//		// then we decode the parameters.
+//		if(containsGzipContentEncoding) {
+//			result = gunzipRequest(httpRequest, httpResponse);
+//		}
+//		// If no "Content-Encoding" header was given, then use the parameters
+//		// that our servlet container decoded for us.
+//		else {
+//			result = httpRequest.getParameterMap();
+//			
+//			if(result == null) {
+//				LOGGER
+//					.warn(
+//						"The servlet container failed to create a parameter map.");
+//				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//			}
+//		}
+//		
+//		// If our GZIP decoding failed or the HTTP servlet request couldn't
+//		// generate a map, as opposed to just generating an empty map, we 
+//		// should return that we failed.
+//		if(result == null) {
+//			return false;
+//		}
+//		// Otherwise, we have successfully retrieved the parameter map, and
+//		// we should save it to the request and return success.
+//		else {
+//			// Save the parameter map as an element of the request.
+//			httpRequest.setAttribute(ATTRIBUTE_KEY_PARAMETERS, result);
+//			return true;
+//		}
 		
-		// Get the "Content-Encoding" headers.
-		Enumeration<String> contentEncodingHeaders = 
-				httpRequest.getHeaders(KEY_CONTENT_ENCODING);
-		
-		// Look for a GZIP content encoding header.
-		boolean containsGzipContentEncoding = false;
-		while(contentEncodingHeaders.hasMoreElements()) {
-			// If one is found, gunzip the request.
-			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
-				containsGzipContentEncoding = true;
-				break;
-			}
-		}
-		
-		// If the "Content-Encoding" header was given and its value was "gzip",
-		// then we decode the parameters.
-		if(containsGzipContentEncoding) {
-			result = gunzipRequest(httpRequest, httpResponse);
-		}
-		// If no "Content-Encoding" header was given, then use the parameters
-		// that our servlet container decoded for us.
-		else {
-			result = httpRequest.getParameterMap();
-			
-			if(result == null) {
-				LOGGER
-					.warn(
-						"The servlet container failed to create a parameter map.");
-				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			}
-		}
-		
-		// If our GZIP decoding failed or the HTTP servlet request couldn't
-		// generate a map, as opposed to just generating an empty map, we 
-		// should return that we failed.
-		if(result == null) {
-			return false;
-		}
-		// Otherwise, we have successfully retrieved the parameter map, and
-		// we should save it to the request and return success.
-		else {
-			// Save the parameter map as an element of the request.
-			httpRequest.setAttribute(ATTRIBUTE_KEY_PARAMETERS, result);
-			return true;
-		}
+		httpRequest
+			.setAttribute(
+				ATTRIBUTE_KEY_PARAMETERS,
+				httpRequest.getParameterMap());
+		return true;
 	}
 	
 	/**

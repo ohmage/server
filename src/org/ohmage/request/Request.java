@@ -25,6 +25,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import javax.servlet.ServletException;
@@ -556,8 +557,18 @@ public abstract class Request {
 			if(part == null) {
 				return null;
 			}
-			
+
+			// Get the input stream.
 			InputStream partInputStream = part.getInputStream();
+			
+			// Wrap the input stream in a GZIP de-compressor if it is GZIP'd.
+			String contentType = part.getContentType();
+			if((contentType != null) && contentType.contains("gzip")) {
+				LOGGER.info("Part was GZIP'd: " + key);
+				partInputStream = new GZIPInputStream(partInputStream);
+			}
+			
+			// Parse the data.
 			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 			byte[] chunk = new byte[4096];
 			int amountRead;
@@ -578,9 +589,13 @@ public abstract class Request {
 			throw new ValidationException(e);
 		}
 		catch(IOException e) {
-			LOGGER.error("There was an error reading the message from the input stream.", e);
-			setFailed();
-			throw new ValidationException(e);
+			LOGGER
+				.info("There was a problem with the zipping of the data.", e);
+			throw
+				new ValidationException(
+					ErrorCode.SERVER_INVALID_GZIP_DATA,
+					"The zipped data was not valid zip data.",
+					e);
 		}
 	}
 	
