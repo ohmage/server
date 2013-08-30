@@ -2,6 +2,7 @@ package org.ohmage.jee.filter;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -141,60 +142,60 @@ public class GzipFilter implements Filter {
 			final HttpServletRequest httpRequest,
 			final HttpServletResponse httpResponse) {
 
-//		// Create a reference to the result.
-//		Map<String, String[]> result = null;
-//		
-//		// Get the "Content-Encoding" headers.
-//		Enumeration<String> contentEncodingHeaders = 
-//				httpRequest.getHeaders(KEY_CONTENT_ENCODING);
-//		
-//		// Look for a GZIP content encoding header.
-//		boolean containsGzipContentEncoding = false;
-//		while(contentEncodingHeaders.hasMoreElements()) {
-//			// If one is found, gunzip the request.
-//			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
-//				containsGzipContentEncoding = true;
-//				break;
-//			}
-//		}
-//		
-//		// If the "Content-Encoding" header was given and its value was "gzip",
-//		// then we decode the parameters.
-//		if(containsGzipContentEncoding) {
-//			result = gunzipRequest(httpRequest, httpResponse);
-//		}
-//		// If no "Content-Encoding" header was given, then use the parameters
-//		// that our servlet container decoded for us.
-//		else {
-//			result = httpRequest.getParameterMap();
-//			
-//			if(result == null) {
-//				LOGGER
-//					.warn(
-//						"The servlet container failed to create a parameter map.");
-//				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//			}
-//		}
-//		
-//		// If our GZIP decoding failed or the HTTP servlet request couldn't
-//		// generate a map, as opposed to just generating an empty map, we 
-//		// should return that we failed.
-//		if(result == null) {
-//			return false;
-//		}
-//		// Otherwise, we have successfully retrieved the parameter map, and
-//		// we should save it to the request and return success.
-//		else {
-//			// Save the parameter map as an element of the request.
-//			httpRequest.setAttribute(ATTRIBUTE_KEY_PARAMETERS, result);
-//			return true;
-//		}
+		// Create a reference to the result.
+		Map<String, String[]> result = null;
 		
-		httpRequest
-			.setAttribute(
-				ATTRIBUTE_KEY_PARAMETERS,
-				httpRequest.getParameterMap());
-		return true;
+		// Get the "Content-Encoding" headers.
+		Enumeration<String> contentEncodingHeaders = 
+				httpRequest.getHeaders(KEY_CONTENT_ENCODING);
+		
+		// Look for a GZIP content encoding header.
+		boolean containsGzipContentEncoding = false;
+		while(contentEncodingHeaders.hasMoreElements()) {
+			// If one is found, gunzip the request.
+			if(VALUE_GZIP.equals(contentEncodingHeaders.nextElement())) {
+				containsGzipContentEncoding = true;
+				break;
+			}
+		}
+		
+		// If the "Content-Encoding" header was given and its value was "gzip",
+		// then we decode the parameters.
+		if(containsGzipContentEncoding) {
+			result = gunzipRequest(httpRequest, httpResponse);
+		}
+		// If no "Content-Encoding" header was given, then use the parameters
+		// that our servlet container decoded for us.
+		else {
+			result = httpRequest.getParameterMap();
+			
+			if(result == null) {
+				LOGGER
+					.warn(
+						"The servlet container failed to create a parameter map.");
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			}
+		}
+		
+		// If our GZIP decoding failed or the HTTP servlet request couldn't
+		// generate a map, as opposed to just generating an empty map, we 
+		// should return that we failed.
+		if(result == null) {
+			return false;
+		}
+		// Otherwise, we have successfully retrieved the parameter map, and
+		// we should save it to the request and return success.
+		else {
+			// Save the parameter map as an element of the request.
+			httpRequest.setAttribute(ATTRIBUTE_KEY_PARAMETERS, result);
+			return true;
+		}
+		
+//		httpRequest
+//			.setAttribute(
+//				ATTRIBUTE_KEY_PARAMETERS,
+//				httpRequest.getParameterMap());
+//		return true;
 	}
 	
 	/**
