@@ -28,7 +28,14 @@ import org.ohmage.util.StringUtils;
  * allowed, we have been letting it happen. Therefore, to keep 
  * backwards-compatability, we are going to continue to allow it; however, the
  * 3.0 version should remove this and replace it with a filter that rejects
- * such requests. 
+ * such requests.
+ * 
+ * <p>
+ * This is now only being used to pull the parameters from the request and
+ * store them as an attribute. This was a legacy requirement, but, given that
+ * this version of the application is dying, there is no reason to do a more
+ * comprehensive fix.
+ * </p>
  *
  * @author John Jenkins
  */
@@ -183,6 +190,12 @@ public class GzipFilter implements Filter {
 			httpRequest.setAttribute(ATTRIBUTE_KEY_PARAMETERS, result);
 			return true;
 		}
+		
+//		httpRequest
+//			.setAttribute(
+//				ATTRIBUTE_KEY_PARAMETERS,
+//				httpRequest.getParameterMap());
+//		return true;
 	}
 	
 	/**
