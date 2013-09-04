@@ -131,6 +131,10 @@ BEGIN
             ADD COLUMN `processed`
             BOOLEAN NOT NULL DEFAULT FALSE;
     END IF;
+    
+    -- Make sure the character encoding on the stream data can handle up to
+    -- UTF-16.
+    ALTER TABLE observer_stream_data CONVERT TO CHARACTER SET 'utf16';
 
     -- Set the result to 0.
     SET resultCode = 0;
