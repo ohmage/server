@@ -224,7 +224,7 @@ public class StreamUploadRequest extends UserRequest {
 						new String(
 							getMultipartValue(httpRequest, InputKeys.DATA));
 				}
-				
+
 				if(t.length > 1) {
 					throw new ValidationException(
 						ErrorCode.OBSERVER_INVALID_STREAM_DATA,
@@ -414,7 +414,10 @@ public class StreamUploadRequest extends UserRequest {
 					.put(
 						JSON_KEY_INVALID_POINT_INDEX, 
 						invalidPoint.getIndex());
-				point.put(JSON_KEY_INVALID_POINT_PERSISTED, false);
+				point
+					.put(
+						JSON_KEY_INVALID_POINT_PERSISTED,
+						preserveInvalidPoints);
 				point
 					.put(
 						JSON_KEY_INVALID_POINT_COMMENT, 

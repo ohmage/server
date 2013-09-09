@@ -1489,9 +1489,10 @@ public class UserQueries extends Query implements IUserQueries {
 						"AND (" +
 								settingUpUser +
 							" OR " +
-								"(ru.admin = true)" +
+								"(u.id = ru.id)" +
 							" OR " +
-								"EXISTS(" +
+								"(ru.admin = true)" +
+							" OR EXISTS(" +
 								// If the requesting user shares a campaign
 								// with the desired user and is a 
 								// supervisor in that campaign.
