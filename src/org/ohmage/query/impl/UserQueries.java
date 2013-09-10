@@ -1779,7 +1779,7 @@ public class UserQueries extends Query implements IUserQueries {
 						"AND c.id = urc.campaign_id" +
 					")");
 			
-			parameters.add(campaignIds);
+			parameters.addAll(campaignIds);
 		}
 		
 		// If a collection of class IDs is present, add a WHERE clause 
@@ -1801,7 +1801,7 @@ public class UserQueries extends Query implements IUserQueries {
 						"AND c.id = uc.class_id" +
 					")");
 			
-			parameters.add(classIds);
+			parameters.addAll(classIds);
 		}
 		
 		// Always order the results by username to facilitate paging.
