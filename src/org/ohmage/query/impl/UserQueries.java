@@ -1794,7 +1794,7 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			sql.append(
 					" AND u.id IN (" +
-						"SELECT uc.id " +
+						"SELECT uc.user_id " +
 						"FROM class c, user_class uc " +
 						"WHERE c.urn IN " +
 							StringUtils.generateStatementPList(classIds.size()) + " " +
