@@ -21,10 +21,11 @@ servlet container.
 
 The default ohmage technology stack runs on various Linux distros and requires:
 * Java 7
-* MariaDB or MySQL 5.5
-* Tomcat 7.0.26 (at the very minimum Tomcat 7.0.24 is required)
-* nginx 1.4.2 or Apache httpd (used by the ohmage Linux installers)
+* MariaDB 5.5 or MySQL 5.5
+* Tomcat 7.0.28 or later. 
 
+For internal hosting and development, the ohmage team uses nginx 1.4.2 for 
+serving up static content and better SSL performance. Apache httpd is shipped with the ohmage Linux installs.
 
 ## Setting Up the Database
 
