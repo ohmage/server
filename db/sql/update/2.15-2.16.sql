@@ -136,6 +136,42 @@ BEGIN
     -- UTF-16.
     ALTER TABLE observer_stream_data CONVERT TO CHARACTER SET 'utf16';
 
+    -- Add the 'processed' flag to the URL-based resource table.
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = 'ohmage'
+        AND TABLE_NAME = 'url_based_resource'
+        AND COLUMN_NAME = 'processed'))
+    THEN
+        ALTER TABLE url_based_resource
+            ADD COLUMN `processed`
+            BOOLEAN NOT NULL DEFAULT FALSE;
+    END IF;
+
+    -- Add the index for the observer stream data.
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE TABLE_SCHEMA = 'ohmage'
+        AND TABLE_NAME = 'observer_stream_data'
+        AND INDEX_NAME = 'observer_stream_data_query'))
+    THEN
+        CREATE INDEX `observer_stream_data_query`
+            ON observer_stream_data
+            (`user_id`,`observer_stream_link_id`,`time_adjusted`,`time`);
+    END IF;
+
+    -- Add the index for the Mobility dates query.
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE TABLE_SCHEMA = 'ohmage'
+        AND TABLE_NAME = 'observer_stream_data'
+        AND INDEX_NAME = 'observer_stream_data_index_link_user_adjusted'))
+    THEN
+        CREATE INDEX `observer_stream_data_index_link_user_adjusted`
+            ON observer_stream_data
+            (`observer_stream_link_id`, `user_id`, `time_adjusted`);
+    END IF;
+
     -- Set the result to 0.
     SET resultCode = 0;
 END //

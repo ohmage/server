@@ -72,7 +72,6 @@
   	<include name="jackson-all-1.9.7.jar"/>
     <include name="js.jar"/>
     <include name="RunKeeperOmhLayer.jar"/>
-    <include name="guava-14.0.1.jar"/>
     <include name="slf4j-api-1.7.5.jar"/>
     <include name="slf4j-log4j12-1.7.5.jar"/>
     <include name="tomcat-dbcp-7.0.42.jar" />
