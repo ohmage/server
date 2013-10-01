@@ -128,16 +128,19 @@ public final class UserMobilityQueries extends AbstractUploadQuery implements IU
 	// Retrieves the epoch millisecond values for all of the mobility points 
 	// for a user within the date ranges.
 	private static final String SQL_GET_MIN_MAX_MILLIS_FOR_USER_WITHIN_RANGE_GROUPED_BY_TIME_AND_TIMEZONE =
-		"SELECT osd.time, osd.time_zone " +
-		"FROM user u, observer o, observer_stream_link osl, observer_stream_data osd " +
-		"WHERE o.observer_id = 'edu.ucla.cens.Mobility' " +
-		"AND o.id = osl.observer_id " +
-		"AND osl.id = osd.observer_stream_link_id " +
-		"AND u.username = ? " +
-		"AND u.id = osd.user_id " +
-		"AND osd.time_adjusted >= ? " +
-		"AND osd.time_adjusted <= ? " +
-		"GROUP BY (osd.time_adjusted DIV " + MILLIS_PER_DAY + ")";
+		"SELECT time, time_zone " +
+		"FROM observer_stream_data " +
+		"WHERE user_id = (SELECT id FROM user WHERE username = ?) " +
+		"AND observer_stream_link_id IN (" +
+			"SELECT id FROM observer_stream_link WHERE observer_id IN (" +
+				"SELECT id " +
+				"FROM observer " +
+				"WHERE observer_id = 'edu.ucla.cens.Mobility'" +
+			")" +
+		") " +
+		"AND time_adjusted >= ? " +
+		"AND time_adjusted <= ? " +
+		"GROUP BY (time_adjusted DIV " + MILLIS_PER_DAY + ")";
 	
 	// Inserts a mode-only entry into the database.
 	private static final String SQL_INSERT =

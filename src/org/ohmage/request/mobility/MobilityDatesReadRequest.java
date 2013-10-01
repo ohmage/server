@@ -36,8 +36,8 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.MobilityServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
-import org.ohmage.util.StringUtils;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.MobilityValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -213,6 +213,7 @@ public class MobilityDatesReadRequest extends UserRequest {
 				UserServices.instance().checkUserExistance(username, true);
 			}
 			
+			LOGGER.info("Retreiving the dates.");
 			dates = 
 					MobilityServices.instance().getDates(
 							startDate, 
