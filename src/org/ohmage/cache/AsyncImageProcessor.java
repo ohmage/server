@@ -118,7 +118,6 @@ public class AsyncImageProcessor
 				else {
 					processImage(nextUrl);
 				}
-				
 			}
 		}
 		
