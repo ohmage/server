@@ -272,10 +272,15 @@ public class Image {
 			// Create a buffer stream to read the result of the transformation.
 			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
 			
+			// Get an image type.
+			String imageType = original.getImageType();
+			if(imageType == null) {
+				imageType = IMAGE_STORE_FORMAT;
+			}
+			
 			// Write the scaled image to the buffer.
 			try {
-				ImageIO
-					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+				ImageIO.write(scaledContents, imageType, bufferStream);
 			}
 			catch(IOException e) {
 				throw new DomainException("Error writing the image.", e);
@@ -382,10 +387,15 @@ public class Image {
 			// Create a buffer stream to read the result of the transformation.
 			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
 			
+			// Get an image type.
+			String imageType = original.getImageType();
+			if(imageType == null) {
+				imageType = IMAGE_STORE_FORMAT;
+			}
+			
 			// Write the scaled image to the buffer.
 			try {
-				ImageIO
-					.write(scaledContents, IMAGE_STORE_FORMAT, bufferStream);
+				ImageIO.write(scaledContents, imageType, bufferStream);
 			}
 			catch(IOException e) {
 				throw new DomainException("Error writing the image.", e);
@@ -424,6 +434,7 @@ public class Image {
 	private static class ImageData {
 		private final InputStream inputStream;
 		private final URL url;
+		private final String imageType;
 		
 		// A memoized version of the image that has already been validated.
 		private BufferedImage bufferedImage = null;
@@ -445,6 +456,7 @@ public class Image {
 			
 			this.inputStream = inputStream;
 			this.url = null;
+			imageType = null;
 		}
 		
 		/**
@@ -461,6 +473,14 @@ public class Image {
 			
 			this.inputStream = null;
 			this.url = url;
+			
+			try {
+				imageType =
+					url.openConnection().getContentType().split("/")[1];
+			}
+			catch(IOException e) {
+				throw new DomainException("Could not connect to the file.", e);
+			}
 		}
 		
 		/**
@@ -577,6 +597,15 @@ public class Image {
 				new IllegalStateException(
 					"The new data format needs to have an InputStream " +
 						"generated.");
+		}
+		
+		/**
+		 * Returns the image type of the image or null if it was unknown.
+		 * 
+		 * @return The image type of the image or null if it was unknown.
+		 */
+		public String getImageType() {
+			return imageType;
 		}
 		
 		/**
@@ -795,18 +824,7 @@ public class Image {
 	 * 						   type.
 	 */
 	public String getType(final Size size) throws DomainException {
-		if(! size.equals(ORIGINAL)) {
-			return "image/" + Size.IMAGE_STORE_FORMAT;
-		}
-		
-		try {
-			return
-				getImageData(size).getUrl().openConnection().getContentType();
-		}
-		catch(IOException e) {
-			throw
-				new DomainException("Error reading the image's content type.");
-		}
+		return "image/" + getImageData(size).getImageType();
 	}
 	
 	/**
