@@ -247,9 +247,9 @@ public abstract class UserRequest extends Request {
 	public Map<String, String[]> getAuditInformation() {
 		Map<String, String[]> result = super.getAuditInformation();
 		
-		if(! isFailed()) {
+		if(user != null) {
 			String[] userArray = new String[1];
-			userArray[0] = getUser().getUsername();
+			userArray[0] = user.getUsername();
 			result.put(InputKeys.USER, userArray);
 		}
 		
