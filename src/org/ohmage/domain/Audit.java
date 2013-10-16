@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.exception.DomainException;
@@ -305,7 +306,10 @@ public class Audit {
 			
 			result.put(JSON_KEY_RECEIVED_MILLIS, receivedMillis);
 			result.put(JSON_KEY_RESPONDED_MILLIS, respondedMillis);
-			result.put(JSON_KEY_DB_TIMESTAMP, dbTimestamp.toString());
+			result
+				.put(
+					JSON_KEY_DB_TIMESTAMP,
+					ISODateTimeFormat.dateTime().print(dbTimestamp.getTime()));
 			
 			result.put(JSON_KEY_PARAMETERS, parameters);
 			result.put(JSON_KEY_EXTRAS, extras);
