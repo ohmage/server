@@ -85,7 +85,7 @@ public final class Message extends SurveyItem {
 		
 		throw
 			new DomainException(
-				"Conditions are not allowed for remote activity prompts.");
+				"Conditions are not allowed on messages unless the SKIPPED or NOT_DISPLAYED is the value being compared.");
 	}
 	
 	/**
