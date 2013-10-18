@@ -3253,14 +3253,15 @@ public class Campaign {
 			SurveyItem conditionSurveyItem = null;
 			for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
 				if(surveyItem.getId().equals(promptId)) {
-//					if(surveyItem instanceof Prompt) {
-					conditionSurveyItem = surveyItem;
+					if(surveyItem instanceof Prompt) {
+						conditionSurveyItem = surveyItem;
 						break;
-//					}
-//					else {
-//						throw new DomainException(
-//							"Only prompts values may be part of a condition.");
-//					}
+					}
+					else {
+						throw new DomainException(
+							"Only prompts values may be part of a condition. The offending ID is " 
+							    + promptId + " and the parent id is " + surveyItemContainerId);
+					}
 				}
 			}
 			if(conditionSurveyItem == null) {
