@@ -107,9 +107,6 @@ public abstract class OhmageDomainObject {
 		final Long internalReadVersion,
 		final Long internalWriteVersion) {
 		
-		// FIXME: Actually, maybe I really shouldn't have null here. Force
-		// callers to use some 'getDefaultInternalVersion()' method.
-		
 		this.internalReadVersion =
 			(internalReadVersion == null) ?
 				DEFAULT_INTERNAL_VERSION :

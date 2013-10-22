@@ -1,6 +1,6 @@
 package org.ohmage.mongodb.domain;
 
-import java.util.Map;
+import java.util.List;
 
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
@@ -60,7 +60,7 @@ public class MongoUser extends User implements MongoDbObject {
 		@JsonProperty(JSON_KEY_EMAIL) final String email,
 		@JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
 		@JsonProperty(JSON_KEY_PROVIDERS)
-			final Map<String, ProviderUserInformation> providers,
+			final List<ProviderUserInformation> providers,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 		

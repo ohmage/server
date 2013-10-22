@@ -1,6 +1,8 @@
 package org.ohmage.domain;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.validator.routines.EmailValidator;
@@ -13,6 +15,7 @@ import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * <p>
@@ -267,7 +270,7 @@ public class User extends OhmageDomainObject {
 					password, 
 					email, 
 					fullName,
-					providers,
+					providers.values(),
 					internalReadVersion, 
 					internalWriteVersion);
 		}
@@ -348,6 +351,7 @@ public class User extends OhmageDomainObject {
 	 * The list of providers that have been linked to this account.
 	 */
 	@JsonProperty(JSON_KEY_PROVIDERS)
+	@JsonSerialize(contentAs = List.class)
 	private final Map<String, ProviderUserInformation> providers;
 
 	/**
@@ -377,7 +381,7 @@ public class User extends OhmageDomainObject {
 		final String password,
 		final String email,
 		final String fullName,
-		final Map<String, ProviderUserInformation> providers)
+		final List<ProviderUserInformation> providers)
 		throws InvalidArgumentException {
 		
 		// Pass through to the builder constructor.
@@ -422,7 +426,7 @@ public class User extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_EMAIL) final String email,
 		@JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
 		@JsonProperty(JSON_KEY_PROVIDERS)
-			final Map<String, ProviderUserInformation> providers,
+			final List<ProviderUserInformation> providers,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws InvalidArgumentException {
 		
@@ -471,7 +475,7 @@ public class User extends OhmageDomainObject {
 		final String password,
 		final String email,
 		final String fullName,
-		final Map<String, ProviderUserInformation> providers,
+		final Collection<ProviderUserInformation> providers,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws InvalidArgumentException {
@@ -492,8 +496,13 @@ public class User extends OhmageDomainObject {
 		this.password = password;
 		this.email = validateEmail(email);
 		this.fullName = validateName(fullName);
-		this.providers =
-			new HashMap<String, ProviderUserInformation>(providers);
+		
+		this.providers = new HashMap<String, ProviderUserInformation>();
+		if(providers != null) {
+			for(ProviderUserInformation information : providers) {
+				this.providers.put(information.getProviderId(), information);
+			}
+		}
 	}
 
 	/**
