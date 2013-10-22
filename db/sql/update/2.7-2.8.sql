@@ -1,1 +1,0 @@
--- There were no database changes between 2.7 and 2.8.

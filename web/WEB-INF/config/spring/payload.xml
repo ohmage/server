@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+        http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.2.xsd
+        http://www.springframework.org/schema/mvc
+            http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+        http://www.springframework.org/schema/util
+            http://www.springframework.org/schema/util/spring-util-3.2.xsd">
+
+    <!-- Use annotations. -->
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <bean 
+                class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+
+                <property name="objectMapper">
+                    <bean class="org.ohmage.domain.jackson.OhmageObjectMapper" />
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
+    
+    <!--
+        Don't map these static resources to handlers, just serve them directly.
+     -->
+    <mvc:resources mapping="/**" location="*.html" />
+    
+    <!-- Tells Spring to do automatic handling of multipart requests. -->
+    <bean
+        id="multipartResolver"
+        class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        
+        <!--
+            The maximum allowed size for an upload is 5 MB. Feel free to update this 
+            as you please.
+         -->
+        <property name="maxUploadSize" value="5242880" />
+    </bean>
+    
+    <!-- Register our universal exception handler. -->
+    <bean class="org.ohmage.servlet.spring.OhmageHandlerExceptionResolver" />
+        
+    <!--
+        Tell Spring where to scan for annotations that link HTTP paths to their
+        handlers.
+     -->
+    <context:component-scan base-package="org.ohmage" />
+</beans>

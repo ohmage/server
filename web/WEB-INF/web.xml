@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://java.sun.com/xml/ns/javaee 
+            http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
+    
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+<!--                       Web Application Settings                         -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+    <!-- The name and description of this web application.  -->
+    <display-name>ohmage</display-name>
+    <description>The ohmage server.</description>
+    
+    <!-- 
+        Define a small and/or large icon for this web application. The value of
+        these sub-tags should begin from the "web" folder, i.e. 
+        "/images/icon/my.ico" references the file 
+        "http://my.domain/my/app/images/icon/my.ico". The small image should be
+        16x16 pixels and the large image should be 32x32 pixels.
+     -->
+    <!-- 
+    <icon>
+        <small-icon>/images/icon/small.png</small-icon>
+        <large-icon>/images/icon/large.png</large-icon>
+    </icon>
+     -->
+     
+    <!--
+        The welcome file is the default file that will be served when someone
+        visits the root of your application context. If this is a function-only
+        web app, e.g. it doesn't serve static content, then this may not be
+        necessary. Also, the server's default web.xml may handle this for you,
+        and adding this will overwrite what the default web.xml states. In this
+        case, you would not want to define this.
+     -->
+    <!-- 
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+        <welcome-file>index.htm</welcome-file>
+        <welcome-file>index.jsp</welcome-file>
+    </welcome-file-list>
+     -->
+    
+    <!--
+        The error page listing give pointers to static files that should be
+        served when a Servlet or the server encounter return a specific HTTP
+        status code is returned or when a specific exception is thrown.
+     -->
+    <!--
+    <error-page>
+        <error-code>400</error-code>
+        <location>/error/error.jsp</location>
+    </error-page>
+     -->
+    <!--
+    <error-page>
+        <exception-type>
+            org.ohmage.exception.Http404Exception
+        </exception-type>
+        <location>/error/404.html</location>
+    </error-page>
+     -->
+    <!-- Catch all errors and send them to our singular error page. -->
+    <error-page>
+        <location>/WEB-INF/error/error.jsp</location>
+    </error-page>
+     
+    <!--
+       The session configuration defines on the session timeout which is the
+       maximum number of minutes the Servlet is allowed to run before the
+       container forcibly kills it. Here we set a modest default of 1 minute.
+     -->
+    <session-config>
+       <session-timeout>1</session-timeout>
+    </session-config>
+
+    <!--  
+        The main configuration files for this Spring web application.  
+     -->  
+    <context-param>  
+        <param-name>contextConfigLocation</param-name>  
+        <param-value>/WEB-INF/config/spring/*.xml</param-value>  
+    </context-param>
+    
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+<!--                               Listeners                                -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+    <!-- Loads the configuration file. -->
+    <listener>
+        <listener-class>
+            org.ohmage.servlet.listener.ConfigurationFileImport
+        </listener-class>
+    </listener>
+
+    <!--
+        Sets up the connection to the database. This must come after the
+        configuration file import listener.
+     -->
+     <listener>
+        <listener-class>
+            org.ohmage.servlet.listener.DatabaseSetup
+        </listener-class>
+    </listener>
+
+    <!--
+        Adds all of the known providers to the provider registry.
+     -->
+     <listener>
+        <listener-class>
+            org.ohmage.servlet.listener.ProviderRegistryBuilder
+        </listener-class>
+    </listener>
+  
+    <!--  
+        Loads the Spring web application context using the configuration file
+        defined above.  
+    -->  
+    <listener>  
+        <listener-class>
+            org.springframework.web.context.ContextLoaderListener
+        </listener-class>  
+    </listener>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+<!--                                Filters                                 -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+
+    <!-- Exception Filter -->
+    <filter>
+        <description>Catches any exceptions that are thrown and converts them into their appropriate HTTP status codes.</description>
+        <display-name>Exception Filter</display-name>
+        <filter-name>exceptionFilter</filter-name>
+        <filter-class>
+            org.ohmage.servlet.filter.ExceptionFilter
+        </filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>exceptionFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+    <!-- Authentication Filter -->
+    <filter>
+        <description>Looks for authentication information and stores any found with the request.</description>
+        <display-name>Authentication Filter</display-name>
+        <filter-name>authenticationFilter</filter-name>
+        <filter-class>
+            org.ohmage.servlet.filter.AuthFilter
+        </filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>authenticationFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+<!--                               Servlets                                 -->
+<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
+    <!--
+        An example Servlet.
+     -->
+    <!-- 
+    <servlet>
+        <description>This is an example Servlet.</description>
+        <display-name>Example Servlet</display-name>
+        <servlet-name>exampleServlet</servlet-name>
+        <servlet-class>
+            org.ohmage.servlet.Example
+        </servlet-class>
+        <init-param>
+            <description>This is an out-of-order parameter.</description>
+            <param-name>myParam</param-name>
+            <param-value>0</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>exampleServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+    </servlet-mapping>
+     -->
+    
+    <!--  
+        The Spring Dispatcher Servlet for the REST services. The
+        'contextConfigLocation' parameter with an empty value means that the  
+        Spring Context won't try to load a default file called
+        "restservices-servlet.xml".  
+    -->  
+    <servlet>  
+        <servlet-name>ohmageController</servlet-name>  
+        <servlet-class>
+            org.springframework.web.servlet.DispatcherServlet
+        </servlet-class>  
+        <init-param>  
+             <param-name>contextConfigLocation</param-name>  
+             <param-value></param-value>  
+        </init-param>  
+        <load-on-startup>1</load-on-startup>  
+    </servlet>  
+    <!--  
+        This will be responsible for handling all requests.
+    -->  
+    <servlet-mapping>  
+        <servlet-name>ohmageController</servlet-name>  
+        <url-pattern>/</url-pattern>  
+    </servlet-mapping>
+</web-app>

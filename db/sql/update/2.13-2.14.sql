@@ -1,2 +1,0 @@
--- The only change was a change to the data, not a change to the schema.
-SELECT 'Change the \'fully_qualified_domain_name\' in the preferences table to the actual fully qualified domain name without the protocol, e.g. http.';

@@ -1,368 +1,290 @@
 <?xml version="1.0"?>
-<project name="webapp-ohmage" basedir="." default="dist-all">
-  <property file="build.properties"/>
-  <property name="library" location="lib"/>
-  <property name="app_name" value="ohmage"/>
-  <property name="app_version" value="2.16"/>
-  <property name="src" location="src"/>
-  <property name="test" location="test"/>
-  <property name="view" location="view"/>
-  <property name="resources" location="web"/>
-  <property name="build" location="build"/>
-  <property name="dist"  location="dist"/>
-  <property name="condition" location="condition"/>
+<project name="ohmage" basedir="." default="dist">
+	<!-- The version of application. -->
+    <property name="version" value="3.0" />
+	
+    <!-- Create the properties to be used throughout this build file. -->
+    <property name="dist" location="dist" />
+    <property name="build" location="build" />
+    <property name="doc" location="${dist}/doc"/>
+    <property name="doc-library" location="${doc}/library" />
+    <property name="doc-server" location="${doc}/server" />
+	<property name="home" location="." />
+    <property name="lib" location="lib" />
+    <property name="src" location="src" />
+    <property name="test" location="test"/>
+    <property name="web" location="web" />
 
-  <fileset id="compile-dependencies" dir="${library}">
-    <include name="log4j-1.2.16.jar"/>
-    <include name="servlet-api-3.0.jar"/>
-    <include name="org.springframework.beans-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.context-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.core-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.jdbc-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.transaction-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.web-3.1.1.RELEASE.jar" />
-    <include name="commons-logging-1.1.1.jar"/>
-    <include name="commons-io-1.3.2.jar"/>
-    <include name="commons-fileupload-1.2.2.jar"/>
-    <include name="commons-pool-1.5.4.jar"/>
-    <include name="cors-filter-1.3.1-ohmage.jar"/>
-    <include name="json.org-2013-05-22.jar"/>
-    <include name="jbcrypt-0.3.jar"/>
-    <include name="xom-1.2.6.jar"/>
-    <include name="mobility-classifier-1.3.7.jar"/>
-    <include name="httpcore-4.1.2.jar"/>
-    <include name="httpclient-4.1.2.jar"/>
-    <include name="httpmime-4.1.2.jar"/>
-    <include name="junit-4.10.jar"/>
-    <include name="recaptcha4j-0.0.7.jar"/>
-    <include name="mail.jar"/>
-  	<include name="joda-time-2.1.jar"/>
-    <include name="jackson-all-1.9.7.jar"/>
-    <include name="js.jar"/>
-    <include name="catalina-2012-09-10.jar"/>
-    <include name="RunKeeperOmhLayer.jar"/>
-  </fileset>
-
-  <fileset id="run-dependencies" dir="${library}">
-    <include name="log4j-1.2.16.jar"/>
-    <include name="org.springframework.asm-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.beans-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.context-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.core-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.expression-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.jdbc-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.transaction-3.1.1.RELEASE.jar" />
-    <include name="org.springframework.web-3.1.1.RELEASE.jar" />
-    <include name="mysql-connector-java-5.1.25-bin.jar"/>
-    <include name="commons-logging-1.1.1.jar"/>
-    <include name="commons-io-1.3.2.jar"/>
-    <include name="commons-fileupload-1.2.2.jar"/>
-    <include name="commons-pool-1.5.4.jar"/>
-    <include name="cors-filter-1.3.1-ohmage.jar"/>
-    <include name="json.org-2013-05-22.jar"/>
-    <include name="jbcrypt-0.3.jar"/>
-    <include name="xom-1.2.6.jar"/>
-    <include name="mobility-classifier-1.3.7.jar"/>
-    <include name="httpcore-4.1.2.jar"/>
-    <include name="httpclient-4.1.2.jar"/>
-    <include name="httpmime-4.1.2.jar"/>
-    <include name="recaptcha4j-0.0.7.jar"/>
-    <include name="mail.jar"/>
-    <include name="joda-time-2.1.jar"/>
-  	<include name="jackson-all-1.9.7.jar"/>
-    <include name="js.jar"/>
-    <include name="RunKeeperOmhLayer.jar"/>
-    <include name="slf4j-api-1.7.5.jar"/>
-    <include name="slf4j-log4j12-1.7.5.jar"/>
-    <include name="tomcat-dbcp-7.0.42.jar" />
-    <include name="tomcat-jdbc-7.0.42.jar" />
-  </fileset>
-
-  <path id="compile-classpath">
-    <fileset refid="compile-dependencies"/>
-  </path>
-
-  <path id="run-classpath">
-    <fileset refid="run-dependencies"/>
-  </path>
-  
-  <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
-    <classpath path="${library}/sonar-ant-task-1.1.jar" /> 
-  </taskdef>
-
-  <target name="clean" description="Removes output directories (e.g. build and dist).">
-    <delete dir="${build}"/>
-    <delete dir="${dist}"/>
-    <delete dir="condition/gen"/>
-    <delete file="web/WEB-INF/properties/system.properties"/>
-  </target>
-
-  <target name="javac" description="Compiles Java files.">
-    <mkdir dir="${build}/classes"/>
-    <javac destdir="${build}/classes" source="1.7" target="1.7"
-          debug="true" deprecation="true" optimize="true" failonerror="true" 
-          encoding="UTF-8">
-      <compilerarg value="-Xlint:unchecked"/>
-      <src path="${src}"/>
-      <src path="${test}"/>
-      <exclude name="org/ohmage/test"/>
-      <classpath refid="compile-classpath"/>
-    </javac>
-  </target>
+    <!-- Create the list of necessary libraries for compiling. -->
+    <fileset id="dependencies.compile" dir="${lib}">
+        <include name="bson4jackson-2.2.0.jar" />
+        <include name="commons-codec-1.8.jar" />
+        <include name="commons-fileupload-1.3.jar" />
+        <include name="commons-io-2.4.jar" />
+        <include name="commons-logging-api-1.1.3.jar" />
+        <include name="commons-validator-1.4.0.jar" />
+        <include name="Concordia-1.1.jar" />
+        <include name="httpclient-4.3.jar" />
+        <include name="httpcore-4.3.jar" />
+        <include name="httpmime-4.3.jar" />
+        <include name="jackson-annotations-2.2.2.jar" />
+        <include name="jackson-core-2.2.2.jar" />
+        <include name="jackson-databind-2.2.2.jar" />
+        <include name="jbcrypt-0.3m.jar" />
+        <include name="joda-time-2.3.jar" />
+        <include name="junit-4.11.jar" />
+        <include name="log4j-api-2.0-beta8.jar" />
+        <include name="log4j-core-2.0-beta8.jar" />
+        <include name="mongojack-2.0.0-RC5.jar" />
+        <include name="mongo-java-driver-2.11.2.jar" />
+        <include name="persistence-api-1.0.2.jar" />
+        <include name="recaptcha4j-0.0.7.jar" />
+        <include name="servlet-api-3.1.0.jar" />
+        <include name="spring-aop-3.2.4.RELEASE.jar" />
+        <include name="spring-beans-3.2.4.RELEASE.jar" />
+        <include name="spring-context-3.2.4.RELEASE.jar" />
+        <include name="spring-context-support-3.2.4.RELEASE.jar" />
+        <include name="spring-core-3.2.4.RELEASE.jar" />
+        <include name="spring-expression-3.2.4.RELEASE.jar" />
+        <include name="spring-instrument-3.2.4.RELEASE.jar" />
+        <include name="spring-jdbc-3.2.4.RELEASE.jar" />
+        <include name="spring-oxm-3.2.4.RELEASE.jar" />
+        <include name="spring-tx-3.2.4.RELEASE.jar" />
+        <include name="spring-web-3.2.4.RELEASE.jar" />
+        <include name="spring-webmvc-3.2.4.RELEASE.jar" />
+    </fileset>
+    <path id="classpath.compile">
+        <fileset refid="dependencies.compile"/>
+    </path>
+	
+    <!-- Create the list of necessary libraries for testing. -->
+    <path id="classpath.test">
+        <fileset refid="dependencies.compile"/>
+        <pathelement location="${build}/classes"/>
+    </path>
     
-  <target name="javac-validator" description="Compiles Java files to create the campaign validator.">
-    <mkdir dir="${build}/classes"/>
-    <javac destdir="${build}/classes" source="1.7" target="1.7"
-          debug="true" deprecation="true" optimize="true" failonerror="true" 
-          encoding="UTF-8">
-      <compilerarg value="-Xlint:unchecked"/>
-      <src path="${src}"/>
-      <include name="org/ohmage/config/**" />
-      <include name="org/ohmage/util/StringUtils.java" />
-      <classpath refid="compile-classpath"/>
-    </javac>
-  </target>
+    <!-- Create the list of necessary libraries for running. -->
+    <fileset id="dependencies.run" dir="${lib}">
+        <include name="bson4jackson-2.2.0.jar" />
+        <include name="commons-codec-1.8.jar" />
+        <include name="commons-fileupload-1.3.jar" />
+        <include name="commons-io-2.4.jar" />
+        <include name="commons-logging-api-1.1.3.jar" />
+        <include name="commons-validator-1.4.0.jar" />
+        <include name="Concordia-1.1.jar" />
+        <include name="httpclient-4.3.jar" />
+        <include name="httpcore-4.3.jar" />
+        <include name="httpmime-4.3.jar" />
+        <include name="hamcrest-core-1.3.jar" />
+        <include name="jackson-annotations-2.2.2.jar" />
+        <include name="jackson-core-2.2.2.jar" />
+        <include name="jackson-databind-2.2.2.jar" />
+        <include name="jbcrypt-0.3m.jar" />
+        <include name="joda-time-2.3.jar" />
+        <include name="junit-4.11.jar" />
+        <include name="log4j-api-2.0-beta8.jar" />
+        <include name="log4j-core-2.0-beta8.jar" />
+        <include name="mongojack-2.0.0-RC5.jar" />
+        <include name="mongo-java-driver-2.11.2.jar" />
+        <include name="persistence-api-1.0.2.jar" />
+        <include name="recaptcha4j-0.0.7.jar" />
+        <include name="spring-aop-3.2.4.RELEASE.jar" />
+        <include name="spring-beans-3.2.4.RELEASE.jar" />
+        <include name="spring-context-3.2.4.RELEASE.jar" />
+        <include name="spring-context-support-3.2.4.RELEASE.jar" />
+        <include name="spring-core-3.2.4.RELEASE.jar" />
+        <include name="spring-expression-3.2.4.RELEASE.jar" />
+        <include name="spring-instrument-3.2.4.RELEASE.jar" />
+        <include name="spring-jdbc-3.2.4.RELEASE.jar" />
+        <include name="spring-oxm-3.2.4.RELEASE.jar" />
+        <include name="spring-tx-3.2.4.RELEASE.jar" />
+        <include name="spring-web-3.2.4.RELEASE.jar" />
+        <include name="spring-webmvc-3.2.4.RELEASE.jar" />
+    </fileset>
     
-  <target name="javac-library" description="Compiles Java files to create the ohmage library.">
-    <mkdir dir="${build}/classes"/>
-    <javac destdir="${build}/classes" source="1.7" target="1.7"
-          debug="true" deprecation="true" optimize="true" failonerror="true" 
-          encoding="UTF-8" includeantruntime="false">
-      <compilerarg value="-Xlint:unchecked"/>
-      <src path="${src}"/>
-      <include name="org/ohmage/domain/**" />
-      <include name="org/ohmage/lib/**" />
-      <include name="org/ohmage/util/**" />
-      <include name="org/ohmage/exception/WorkflowException.java" />
-      <include name="org/ohmage/exception/DomainException.java" />
-      <exclude name="org/ohmage/domain/Audit.java" />
-      <classpath refid="compile-classpath"/>
-    </javac>
-  </target>
+    <!-- Cleans up all of the temporary files generated during building. -->
+    <target name="clean" depends="" description="Cleans the project.">
+        <delete dir="${build}" />
+        <delete dir="${dist}" />
+    </target>
+    
+    <!-- Target to build the JavaDoc. -->
+    <target name="javadoc" description="Creates the complete documentation.">
+        <mkdir dir="${doc-server}"/>
+        <javadoc destdir="${doc-server}" additionalparam="-quiet">
+            <fileset dir="${src}">
+                <include name="**/*.java"/>
+            </fileset>
+            <classpath refid="classpath.compile"/>
+        </javadoc>
+    </target>
 
-  <target name="javadoc" description="Compiles Javadocs.">
-    <mkdir dir="${build}/docs"/>
-    <javadoc destdir="${build}/docs" private="true" link="http://java.sun.com/javase/6/docs/api/"
-             encoding="UTF-8" additionalparam="-quiet">
-      <fileset dir="${src}">
-        <include name="**/*.java"/>
-      </fileset>
-       <classpath refid="compile-classpath"/>
-    </javadoc>
-  </target>
+    <!-- Compiles the Java files into their class objects. -->
+    <target name="javac" description="Compiles Java files.">
+        <mkdir dir="${build}/classes"/>
+        <javac 
+            destdir="${build}/classes"
+            source="1.7"
+            target="1.7"
+            debug="true"
+            optimize="true"
+            failonerror="true" 
+            encoding="UTF-8"
+        	includeantruntime="false">
+            
+            <src path="${src}"/>
+        	<src path="${test}"/>
+            <classpath refid="classpath.compile"/>
+        </javac>
+    </target>
     
-  <target name="javadoc-library" description="Compiles Javadocs for the library only.">
-    <mkdir dir="${build}/docs"/>
-    <javadoc destdir="${build}/docs" private="true" link="http://java.sun.com/javase/6/docs/api/"
-             encoding="UTF-8" additionalparam="-quiet">
-      <fileset dir="${src}">
-        <include name="org/ohmage/domain/**" />
-        <include name="org/ohmage/lib/**" />
-        <include name="org/ohmage/util/**" />
-        <include name="org/ohmage/annotator/**" />
-        <include name="org/ohmage/exception/WorkflowException.java" />
-        <include name="org/ohmage/exception/DomainException.java" />
-        <exclude name="org/ohmage/domain/Audit.java" />
-      </fileset>
-      <classpath refid="compile-classpath"/>
-    </javadoc>
-  </target>
-    
-  <path id="classpath.test">
-    <fileset refid="compile-dependencies"/>
-    <pathelement location="${build}/classes"/>
-  </path>
-    
-  <target name="test" depends="javac" description="Executes the JUnit tests.">
-    <junit printsummary="yes" haltonfailure="yes">
-      <classpath refid="classpath.test"/>
-      <formatter type="plain" usefile="false" />
+    <!-- Target to test the code. -->
+    <target
+        name="test"
+        depends="javac"
+        description="Executes the JUnit tests.">
 
-      <test name="org.ohmage.validator.ValidatorTests"/>
-    </junit>
-  </target>
-    
-  <target 
-      name="condition-grammar" 
-      description="Recompiles the condition grammar.">
-    
-    <!-- Make the directory to house the files as generate them. -->
-    <property name="gen" location="${condition}/gen" />
-    <mkdir dir="${gen}" />
-    
-    <!-- Annotate the condition grammar. -->
-    <java fork="true" jar="${library}/jtb132.jar" failonerror="true">
-      <arg value="-p" />
-      <arg value="org.ohmage.config.grammar" />
-      <arg value="-o" />
-      <arg value="${gen}/condition-grammar.jtb" />
-      <arg value="${condition}/condition-grammar.jj" />
-    </java>
-    
-    <!-- Compile the annotated grammar into Java source code. -->
-    <java 
-        classpath="${library}/javacc-5.0.jar" classname="javacc" 
-        failonerror="true">
-        
-      <arg value="-LOOKAHEAD=2" />
-      <arg value="-OUTPUT_DIRECTORY=${gen}" />
-      <arg value="${gen}/condition-grammar.jtb" />
-    </java>
-    
-    <!-- Move the generated files into the 'gen' folder to keep them out of the
-         way but persist them in case they need to be reviewed. -->
-    <move file="syntaxtree" todir="${gen}" />
-    <move file="visitor" todir="${gen}" />
-    
-    <!-- Tell the user what they must do now. -->
-    <property name="grammar" location="${src}/org/ohmage/config/grammar" />
-    <property name="parser" location="${grammar}/parser" />
-    <property name="syntaxtree" location="${grammar}/syntaxtree" />
-    <property name="visitor" location="${grammar}/grammar" />
-    <echo>
-TODO:
-The Java source files have been generated and placed in condition/gen. To have
-them build with the rest of the project, you must move the following objects to
-the following places:
-    - ${gen}/*.java -> ${parser}
-    - ${gen}/syntaxtree/* -> ${syntaxtree}
-    - ${gen}/visitor/* -> ${visitor}
-The reason this wasn't done automatically is because it would overwrite any 
-non-generated, custom code. While we highly discourage editing generated code,
-we want to be safe just in case.
-That said, JavaCC creates very ugly code. It is common for us to edit the code
-by opening it in Eclipse and using Eclipse's aut-correct functionality to clean
-it up and remove the warnings.</echo>
-  </target>
+        <junit printsummary="yes" haltonfailure="yes">
+            <classpath refid="classpath.test"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest>
+                <fileset dir="${test}">
+                    <include name="**"/>
+                </fileset>
+            </batchtest>
+        </junit>
+    </target>
 
-  <target name="dist-ssl" depends="test, javac" description="Compiles Java files and creates WAR.">
-    <mkdir dir="${dist}"/>
-    <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">
-      <arg value="log"/>
-      <arg value="--pretty=format:%h"/>
-      <arg value="-1"/>
-    </exec>
-    <propertyfile file="system.properties" comment="This file is automatically generated - DO NOT EDIT!">
-      <entry key="application.name" default="${app_name}"/>
-      <entry key="application.version" default="${app_version}"/>
-      <entry key="application.build" default="${git.revision}"/>
-    </propertyfile>
-    <move file="system.properties" todir="web/WEB-INF/properties"/>
-    <war webxml="${resources}/WEB-INF/web-ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}-ssl.war">
-      <classes dir="${build}/classes"/>
-      <exclude name="**/*Test.java"/>
-      <lib refid="run-dependencies"/>
-      <webinf dir="${resources}/WEB-INF">
-        <exclude name="web-no_ssl.xml"/>
-        <exclude name="web-ssl.xml"/>
-      </webinf>
-      <metainf dir="${resources}/META-INF">
-        <exclude name="MANIFEST.MF"/>
-      </metainf>
-      <zipfileset dir="${resources}">
-        <exclude name="META-INF/**"/>
-        <exclude name="WEB-INF/**"/>
-      </zipfileset>
-    </war>
-  </target>
+	<!-- Builds the WAR file. -->
+    <target name="dist" depends="javac" description="Builds the WAR file.">
+        <!-- Create the META-INF directory if it doesn't exist. -->
+        <mkdir dir="${web}/META-INF" />
+    	
+    	<!-- Create the directory for the results if they don't exist. -->
+        <mkdir dir="${dist}" />
+    	
+    	<!-- Get the git build version if it exists. -->
+        <exec
+            executable="git"
+        	outputproperty="git.revision"
+        	failifexecutionfails="false">
+        	
+        	<arg value="--git-dir=${home}/.git"/>
+        	<arg value="--work-tree=${home}"/>
+            <arg value="log"/>
+            <arg value="--pretty=format:%h"/>
+            <arg value="-1"/>
+        </exec>
+    	
+    	<!--
+            Create a property file that can be used to determine exact build
+            information. Place the properties file in the WEB-INF directory to
+            be included by the WAR file builder.
+         -->
+        <propertyfile
+        	file="system.properties"
+        	comment="This file is automatically generated - DO NOT EDIT!">
+        	
+            <entry key="application.name" default="${ant.project.name}"/>
+            <entry key="application.version" default="${version}"/>
+            <entry key="application.build" default="${git.revision}"/>
+        </propertyfile>
+    	<move file="system.properties" todir="web/WEB-INF/config"/>
+    	
+        <!-- Create the WAR file. -->
+        <war
+            webxml="${web}/WEB-INF/web.xml"
+            destfile="${dist}/ohmage.war">
+            
+            <classes dir="${build}/classes" />
+            <lib refid="dependencies.run" />
+            <webinf dir="${web}/WEB-INF" />
+            <metainf dir="${web}/META-INF" />
+            <zipfileset dir="${web}">
+                <exclude name="META-INF/**" />
+                <exclude name="WEB-INF/**" />
+            </zipfileset>
+        </war>
+    </target>
+	
+	<!-- Creates a the JavaDoc for the library. -->
+    <target
+    	name="library-javadoc"
+    	description="Compiles the JavaDocs for the library.">
+    	
+    	<!-- Create the documents folder in the build directory. -->
+        <mkdir dir="${doc-library}"/>
+    	
+    	<!-- Run the JavaDoc command. -->
+        <javadoc destdir="${doc-library}" additionalparam="-quiet">
+            <fileset dir="${src}">
+                <include name="org/ohmage/domain/**/*.java" />
+                <include name="org/ohmage/bin/**/*.java" />
+            </fileset>
+            <classpath refid="classpath.compile"/>
+        </javadoc>
+    </target>
 
-  <target name="dist-no_ssl" depends="test, javac" description="Compiles Java files and creates WAR.">
-    <mkdir dir="${dist}"/>
-    <exec executable="git" outputproperty="git.revision" failifexecutionfails="true">
-      <arg value="log"/>
-      <arg value="--pretty=format:%h"/>
-      <arg value="-1"/>
-    </exec>
-    <propertyfile file="system.properties" comment="This file is automatically generated - DO NOT EDIT!">
-      <entry key="application.name" default="${app_name}"/>
-      <entry key="application.version" default="${app_version}"/>
-      <entry key="application.build" default="${git.revision}"/>
-    </propertyfile>
-    <move file="system.properties" todir="web/WEB-INF/properties"/>
-    <war webxml="${resources}/WEB-INF/web-no_ssl.xml" destfile="${dist}/${ant.project.name}-${app_version}-no_ssl.war">
-      <classes dir="${build}/classes"/>
-      <exclude name="**/*Test.java"/>
-      <lib refid="run-dependencies"/>
-      <webinf dir="${resources}/WEB-INF">
-        <exclude name="web-no_ssl.xml"/>
-        <exclude name="web-ssl.xml"/>
-      </webinf>
-      <metainf dir="${resources}/META-INF">
-        <exclude name="MANIFEST.MF"/>
-      </metainf>
-      <zipfileset dir="${resources}">
-        <exclude name="META-INF/**"/>
-        <exclude name="WEB-INF/**"/>
-      </zipfileset>
-    </war>
-  </target>
-    
-  <target
-	name="dist"
-  	depends="dist-no_ssl"
-  	description="The 'default' 'dist' target builds the WAR without SSL enabled."/>
-    
-  <target name="dist-validator" depends="javac-validator" 
-        description="Compiles Java files and creates an executable jar file with the dependencies embedded.">
-    <mkdir dir="${dist}"/>
-    <jar destfile="${dist}/${app_name}-${app_version}-validator.jar">
-      <fileset dir="${build}/classes">
-        <include name="org/ohmage/config/**" />
-        <include name="org/ohmage/util/StringUtils.class" />
-      </fileset>
-      <zipfileset src="${library}/json.org-2013-05-22.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/log4j-1.2.16.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/xercesImpl-2.11.0.jar" excludes="META-INF/*" />
-      <manifest>
-        <attribute name="Main-Class" value="org.ohmage.config.xml.CampaignValidator" />
-      </manifest>
-    </jar>
-  </target>
+    <!-- Compiles the Java files into their class objects. -->
+    <target
+        name="library-javac"
+        description="Compiles Java files for the library.">
 
-  <target name="dist-library" depends="javac-library, javadoc-library"
-        description="Compiles java files to create the library JAR.">
-    <mkdir dir="${dist}"/>
-    <jar destfile="${dist}/ohmage-${app_version}-api.jar">
-      <fileset dir="${build}/classes">
-        <include name="org/ohmage/domain/**" />
-        <include name="org/ohmage/lib/**" />
-        <include name="org/ohmage/util/**" />
-        <include name="org/ohmage/exception/WorkflowException.java" />
-        <include name="org/ohmage/exception/DomainException.java" />
-        <exclude name="org/ohmage/domain/Audit.java" />
-      </fileset>
-      <fileset dir="${build}">
-        <include name="docs/**" />
-      </fileset>
-      <zipfileset src="${library}/xom-1.2.6.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/json.org-2013-05-22.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/httpcore-4.1.2.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/httpclient-4.1.2.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/httpmime-4.1.2.jar" excludes="META-INF/*" />
-      <zipfileset src="${library}/commons-logging-1.1.1.jar" excludes="META-INF/*" />
-    </jar>
-  </target>
+        <!-- Creates the source folder if it doesn't exist. -->
+        <mkdir dir="${build}/classes"/>
 
-  <target name="dist-docs" depends="javadoc" description="Compiles Javadocs and creates gzipped tarball.">
-    <mkdir dir="${dist}"/>
-    <tar basedir="${build}/docs" destfile="${dist}/${ant.project.name}-docs-${app_version}.tar.gz" longfile="gnu" compression="gzip"/>
-    <zip basedir="${build}/docs" destfile="${dist}/${ant.project.name}-docs-${app_version}.zip" encoding="UTF-8" compress="true"/>
-  </target>
+        <!-- Compile only the library components. -->
+        <javac 
+            destdir="${build}/classes"
+            source="1.7"
+            target="1.7"
+            debug="true"
+            optimize="true"
+            failonerror="true" 
+            encoding="UTF-8"
+            includeantruntime="false">
+            
+            <src path="${src}"/>
+            <src path="${test}"/>
+            <include name="org/ohmage/domain/**/*.java" />
+            <include name="org/ohmage/bin/**/*.java" />
+            <classpath refid="classpath.compile"/>
+        </javac>
+    </target>
 
-  <target
-	name="dist-all"
-  	depends="clean,dist-ssl,dist-no_ssl,dist-docs"
-  	description="Creates full distribution (WAR and docs)."/>
+    <!-- Builds the Library and associated JARs. -->
+    <target
+        name="library"
+        depends="library-javadoc,library-javac"
+        description="Builds the library files, including the source and JavaDoc ones.">
 
-  <target name="sonar">
-    <sonar:sonar workDir="${user.home}/tmp" key="org.ohmage:example" version="${app_version}" xmlns:sonar="antlib:org.sonar.ant">
-      <sources>
-        <path location="${src}" />
-      </sources>
-      <property key="sonar.java.source" value="1.7" />
-      <property key="sonar.java.target" value="1.7" />
-    </sonar:sonar>
-  </target>
-  
+        <!-- Create the directory for the results if they don't exist. -->
+        <mkdir dir="${dist}" />
+
+        <!-- Create the library JAR. -->
+        <jar
+        	destfile="${dist}/ohmage-${version}.jar"
+        	basedir="${build}/classes">
+        	
+            <include name="org/ohmage/domain/**/*.class" />
+            <include name="org/ohmage/bin/**/*.class" />
+        </jar>
+
+        <!-- Create the source JAR. -->
+        <jar destfile="${dist}/ohmage-${version}-sources.jar" basedir="${src}">
+            <include name="org/ohmage/domain/**/*.java" />
+            <include name="org/ohmage/bin/**/*.java" />
+        </jar>
+
+        <!-- Create the JavaDoc JAR. -->
+        <jar
+        	destfile="${dist}/ohmage-${version}-javadoc.jar"
+        	basedir="${doc-library}" />
+    </target>
+
+    <!-- A "catch-all" target for all other targets." -->
+    <target
+        name="all"
+        depends="clean,test,dist,library"
+        description="Creates all target elements." />
 </project>
