@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
@@ -37,6 +38,10 @@ public class SchemaServlet {
 	 * The path and parameter key for schema versions.
 	 */
 	public static final String KEY_SCHEMA_VERSION = "version";
+	/**
+	 * The name of the parameter for querying for specific values.
+	 */
+	public static final String KEY_QUERY = "query";
 	
 	/**
 	 * The logger for this class.
@@ -47,17 +52,23 @@ public class SchemaServlet {
 	/**
 	 * Returns a list of visible schema IDs.
 	 * 
+	 * @param query
+	 *        A value that should appear in either the name or description.
+	 * 
 	 * @return A list of visible schema IDs.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody List<String> getSchemaIds() {
+	public static @ResponseBody List<String> getSchemaIds(
+		@RequestParam(value = KEY_QUERY, required = false)
+			final String query) {
+		
 		LOGGER.log(Level.INFO, "Creating a schema ID read request.");
 		 
 		LOGGER.log(Level.FINE, "Creating the result object.");
 		List<String> result = new ArrayList<String>();
 		
 		LOGGER.log(Level.INFO, "Retrieving the stream IDs.");
-		result.addAll(StreamBin.getInstance().getStreamIds());
+		result.addAll(StreamBin.getInstance().getStreamIds(query));
 		
 		LOGGER.log(Level.INFO, "Returning the schema IDs.");
 		return result;
@@ -75,7 +86,9 @@ public class SchemaServlet {
 		value = "{" + KEY_SCHEMA_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody List<Long> getSchemaVersions(
-		@PathVariable(KEY_SCHEMA_ID) final String schemaId) {
+		@PathVariable(KEY_SCHEMA_ID) final String schemaId,
+		@RequestParam(value = KEY_QUERY, required = false)
+			final String query) {
 		
 		LOGGER
 			.log(
@@ -91,7 +104,11 @@ public class SchemaServlet {
 		if(StreamBin.getInstance().exists(schemaId, null)) {
 			LOGGER.log(Level.INFO, "The schema ID is a stream ID.");
 			LOGGER.log(Level.INFO, "Retrieving the stream versions.");
-			result.addAll(StreamBin.getInstance().getStreamVersions(schemaId));
+			result
+				.addAll(
+					StreamBin
+						.getInstance()
+						.getStreamVersions(schemaId, query));
 		}
 
 		LOGGER.log(Level.INFO, "Returning the schema versions.");

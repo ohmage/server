@@ -168,7 +168,7 @@ public class AuthenticationToken extends OhmageDomainObject {
 	 *         expired.
 	 */
 	@JsonCreator
-	protected AuthenticationToken(
+	public AuthenticationToken(
 		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
 		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
 		@JsonProperty(User.JSON_KEY_USERNAME) final String username,

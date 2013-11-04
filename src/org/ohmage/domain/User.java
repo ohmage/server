@@ -9,6 +9,7 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.mindrot.jbcrypt.BCrypt;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
+import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
@@ -53,7 +54,8 @@ public class User extends OhmageDomainObject {
 		/**
 		 * The authenticated information from a provider about this user.
 		 */
-		protected Map<String, ProviderUserInformation> providers;
+		protected Map<String, ProviderUserInformation> providers =
+			new HashMap<String, ProviderUserInformation>();
 		
 		/**
 		 * Creates a new builder with the outward-facing allowed parameters.
@@ -270,7 +272,7 @@ public class User extends OhmageDomainObject {
 					password, 
 					email, 
 					fullName,
-					providers.values(),
+					(providers == null) ? null : providers.values(),
 					internalReadVersion, 
 					internalWriteVersion);
 		}
@@ -351,7 +353,7 @@ public class User extends OhmageDomainObject {
 	 * The list of providers that have been linked to this account.
 	 */
 	@JsonProperty(JSON_KEY_PROVIDERS)
-	@JsonSerialize(contentAs = List.class)
+	@JsonSerialize(using = MapValuesJsonSerializer.class)
 	private final Map<String, ProviderUserInformation> providers;
 
 	/**

@@ -142,12 +142,9 @@ public class ProviderUserInformation {
 	 */
 	@JsonCreator
 	public ProviderUserInformation(
-		@JsonProperty(JSON_KEY_PROVIDER_ID)
-			final String providerId,
-		@JsonProperty(JSON_KEY_USER_ID)
-			final String userId,
-		@JsonProperty(JSON_KEY_EMAIL)
-			final String email)
+		@JsonProperty(JSON_KEY_PROVIDER_ID) final String providerId,
+		@JsonProperty(JSON_KEY_USER_ID) final String userId,
+		@JsonProperty(JSON_KEY_EMAIL) final String email)
 		throws IllegalArgumentException {
 
 		if(providerId == null) {

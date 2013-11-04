@@ -162,6 +162,10 @@ public class ExceptionFilter implements Filter {
 					
 					httpResponse
 						.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					httpResponse
+						.addHeader(
+							"WWW-Authenticate",
+							"ohmage realm=\"/ohmage/auth_token\"");
 				}
 				// If we do not have a specific handler this exception but it
 				// was one we knew about and handled, set the status code to

@@ -5,20 +5,20 @@ import java.util.List;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.Project;
-import org.ohmage.mongodb.bin.MongoProjectBin;
+import org.ohmage.domain.Community;
+import org.ohmage.mongodb.bin.MongoCommunityBin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A MongoDB extension of the {@link Project} type.
+ * A MongoDB extension of the {@link Community} type.
  * </p>
  *
  * @author John Jenkins
  */
-@MongoCollection(name = MongoProjectBin.COLLECTION_NAME)
-public class MongoProject extends Project implements MongoDbObject {
+@MongoCollection(name = MongoCommunityBin.COLLECTION_NAME)
+public class MongoCommunity extends Community implements MongoDbObject {
 	/**
 	 * The database ID for this object.
 	 */
@@ -26,39 +26,35 @@ public class MongoProject extends Project implements MongoDbObject {
 	private final String dbId;
 
 	/**
-	 * Creates a {@link Project} object via Jackson from the data layer.
+	 * Creates a {@link Community} object via Jackson from the data layer.
 	 * 
 	 * @param dbId
 	 *        The database ID for this authentication token.
 	 * 
-	 * @param projectId
-	 *        The ID for the project or null for a randomly generated one.
-	 * 
-	 * @param version
-	 *        The version of this project.
+	 * @param communityId
+	 *        The ID for the community or null for a randomly generated one.
 	 * 
 	 * @param name
-	 *        The name of this project.
+	 *        The name of this community.
 	 * 
 	 * @param description
-	 *        The description of this project.
+	 *        The description of this community.
 	 * 
 	 * @param owner
-	 *        The owner of this project.
+	 *        The owner of this community.
 	 * 
 	 * @param schemas
-	 *        The schemas that define this project.
+	 *        The schemas that define this community.
 	 * 
 	 * @param triggers
-	 *        The triggers for this project.
+	 *        The triggers for this community.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         A required parameter was missing or any parameter was invalid.
 	 */
-	protected MongoProject(
+	protected MongoCommunity(
 		@Id @ObjectId final String dbId, 
-		@JsonProperty(JSON_KEY_ID) final String projectId,
-		@JsonProperty(JSON_KEY_VERSION) final long version,
+		@JsonProperty(JSON_KEY_ID) final String communityId,
 		@JsonProperty(JSON_KEY_NAME) final String name,
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
@@ -68,8 +64,7 @@ public class MongoProject extends Project implements MongoDbObject {
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final long internalVersion) {
 		
 		super(
-			projectId, 
-			version, 
+			communityId, 
 			name, 
 			description, 
 			owner, 

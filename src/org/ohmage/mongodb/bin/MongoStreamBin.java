@@ -1,12 +1,14 @@
 package org.ohmage.mongodb.bin;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.mongojack.DBCursor;
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
+import org.ohmage.mongodb.domain.stream.MongoStream;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -26,8 +28,10 @@ public class MongoStreamBin extends StreamBin {
 	 */
 	public static final String COLLECTION_NAME = "stream_bin";
 	
-	// Get the connection to the registry with the Jackson wrapper.
-	private static final JacksonDBCollection<Stream, Object> COLLECTION =
+	/**
+	 * Get the connection to the stream bin with the Jackson wrapper.
+	 */
+	private static final JacksonDBCollection<Stream, String> COLLECTION =
 		JacksonDBCollection
 			.wrap(
 				MongoBinController
@@ -35,7 +39,22 @@ public class MongoStreamBin extends StreamBin {
 					.getDb()
 					.getCollection(COLLECTION_NAME),
 				Stream.class,
-				Object.class,
+				String.class,
+				MongoBinController.getObjectMapper());
+	
+	/**
+	 * Get the connection to the stream bin with the Jackson wrapper,
+	 * specifically for {@link MongoStream} objects.
+	 */
+	private static final JacksonDBCollection<MongoStream, String> MONGO_COLLECTION =
+		JacksonDBCollection
+			.wrap(
+				MongoBinController
+					.getInstance()
+					.getDb()
+					.getCollection(COLLECTION_NAME),
+				MongoStream.class,
+				String.class,
 				MongoBinController.getObjectMapper());
 	
 	/**
@@ -94,30 +113,59 @@ public class MongoStreamBin extends StreamBin {
 		catch(MongoException.DuplicateKey e) {
 			throw
 				new InvalidArgumentException(
-					"A stream with the same ID-version pair already exists.");
+					"A stream with the same ID-version pair already exists.",
+					e);
 		}
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamBin#getStreamIds()
+	 * @see org.ohmage.bin.StreamBin#getStreamIds(java.lang.String)
 	 */
 	@Override
-	public List<String> getStreamIds() {
+	public List<String> getStreamIds(final String query) {
+		// Build the query
+		QueryBuilder queryBuilder = QueryBuilder.start();
+				
+		// If given, add the query for the name and description.
+		if(query != null) {
+			// Build the query pattern.
+			Pattern queryPattern = Pattern.compile(".*" + query + ".*");
+			
+			// Create a query builder for the name portion.
+			QueryBuilder nameQueryBuilder = QueryBuilder.start();
+			
+			// Add the name.
+			nameQueryBuilder.and(Stream.JSON_KEY_NAME).regex(queryPattern);
+			
+			// Create a query builder for the version protion.
+			QueryBuilder versionQueryBuilder = QueryBuilder.start();
+			
+			// Add the version.
+			versionQueryBuilder
+				.and(Stream.JSON_KEY_VERSION)
+				.regex(queryPattern);
+			
+			// Add the name and version queries to the root query.
+			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
+		}
+		
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
-		List<String> result = COLLECTION.distinct(Stream.JSON_KEY_ID);
+		List<String> result =
+			MONGO_COLLECTION.distinct(Stream.JSON_KEY_ID, queryBuilder.get());
 		
 		return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamBin#getStreamVersions(java.lang.String)
+	 * @see org.ohmage.bin.StreamBin#getStreamVersions(java.lang.String, java.lang.String)
 	 */
 	@Override
 	public List<Long> getStreamVersions(
-		final String streamId)
+		final String streamId,
+		final String query)
 		throws IllegalArgumentException {
 		
 		// Validate the input.
@@ -125,13 +173,40 @@ public class MongoStreamBin extends StreamBin {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
 		
+		// Build the query
+		QueryBuilder queryBuilder = QueryBuilder.start();
+		
+		// Add the ID.
+		queryBuilder.and(Stream.JSON_KEY_ID).is(streamId);
+		
+		// If given, add the query for the name and description.
+		if(query != null) {
+			// Build the query pattern.
+			Pattern queryPattern = Pattern.compile(".*" + query + ".*");
+			
+			// Create a query builder for the name portion.
+			QueryBuilder nameQueryBuilder = QueryBuilder.start();
+			
+			// Add the name.
+			nameQueryBuilder.and(Stream.JSON_KEY_NAME).regex(queryPattern);
+			
+			// Create a query builder for the version protion.
+			QueryBuilder versionQueryBuilder = QueryBuilder.start();
+			
+			// Add the version.
+			versionQueryBuilder
+				.and(Stream.JSON_KEY_VERSION)
+				.regex(queryPattern);
+			
+			// Add the name and version queries to the root query.
+			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
+		}
+		
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
 		List<Long> result =
-			COLLECTION
-				.distinct(
-					Stream.JSON_KEY_VERSION,
-					new BasicDBObject(Stream.JSON_KEY_ID, streamId));
+			MONGO_COLLECTION
+				.distinct(Stream.JSON_KEY_VERSION, queryBuilder.get());
 		
 		return result;
 	}
@@ -164,7 +239,7 @@ public class MongoStreamBin extends StreamBin {
 		queryBuilder.and(Stream.JSON_KEY_VERSION).is(streamVersion);
 		
 		// Execute query.
-		return COLLECTION.findOne(queryBuilder.get());
+		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
 
 	/*
@@ -191,7 +266,7 @@ public class MongoStreamBin extends StreamBin {
 		}
 		
 		// The result is based on whether or not any results were found.
-		return (COLLECTION.count(query) > 0);
+		return (MONGO_COLLECTION.findOne() != null);
 	}
 
 	/*
@@ -218,8 +293,10 @@ public class MongoStreamBin extends StreamBin {
 		DBObject sort = new BasicDBObject(Stream.JSON_KEY_VERSION, -1);
 
 		// Make the query.
-		DBCursor<Stream> result =
-			COLLECTION.find(queryBuilder.get()).sort(sort).limit(1);
+		DBCursor<MongoStream> result =
+			MONGO_COLLECTION.find(queryBuilder.get()).sort(sort).limit(1);
+		
+		
 		
 		// Return null or the schema based on what the query returned.
 		if(result.count() == 0) {

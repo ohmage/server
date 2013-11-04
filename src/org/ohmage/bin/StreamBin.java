@@ -53,9 +53,12 @@ public abstract class StreamBin {
 	/**
 	 * Returns a list of the visible stream IDs.
 	 * 
+	 * @param query
+	 *        A value that should appear in either the name or description.
+	 * 
 	 * @return A list of the visible stream IDs.
 	 */
-	public abstract List<String> getStreamIds();
+	public abstract List<String> getStreamIds(final String query);
 
 	/**
 	 * Returns a list of the versions for a given stream.
@@ -63,13 +66,17 @@ public abstract class StreamBin {
 	 * @param streamId
 	 *        The unique identifier for the stream.
 	 * 
+	 * @param query
+	 *        A value that should appear in either the name or description.
+	 * 
 	 * @return A list of the versions of the stream.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         The stream ID is null.
 	 */
 	public abstract List<Long> getStreamVersions(
-		final String streamId)
+		final String streamId,
+		final String query)
 		throws IllegalArgumentException;
 
 	/**

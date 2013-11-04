@@ -1,15 +1,21 @@
 package org.ohmage.servlet;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.ohmage.bin.StreamBin;
+import org.ohmage.bin.StreamDataBin;
 import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.MultiValueResult;
+import org.ohmage.domain.User;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.stream.Stream;
+import org.ohmage.domain.stream.StreamData;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -17,6 +23,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
 
@@ -61,6 +68,14 @@ public class StreamServlet {
 	 * The path and parameter key for stream versions.
 	 */
 	public static final String KEY_STREAM_DEFINITION = "definition";
+	/**
+	 * The path and parameter key for stream point IDs.
+	 */
+	public static final String KEY_STREAM_POINT_ID = "point_id";
+	/**
+	 * The name of the parameter for querying for specific values.
+	 */
+	public static final String KEY_QUERY = "query";
 	
 	/**
 	 * The logger for this class.
@@ -90,7 +105,7 @@ public class StreamServlet {
 	 *        A builder to use to create this new stream.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
-	public static @ResponseBody void createStream(
+	public static @ResponseBody Stream createStream(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
@@ -101,45 +116,38 @@ public class StreamServlet {
 		LOGGER.log(Level.INFO, "Creating a stream creation request.");
 		
 		LOGGER
-			.log(
-				Level.FINE,
-				"Ensuring that an authentication token is given.");
-		if(token == null) {
-			throw
-				new InvalidArgumentException(
-					"The authentication token is missing.");
-		}
-		LOGGER
-			.log(
-				Level.FINE,
-				"Ensuring that the authentication token is a parameter.");
-		if(! tokenIsParam) {
-			throw
-				new InvalidArgumentException(
-					"The authentication token must be a parameter, " +
-						"not just a header.");
-		}
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
 		
 		LOGGER.log(Level.FINE, "Setting the owner of the stream.");
-		streamBuilder.setOwner(token.getUsername());
+		streamBuilder.setOwner(user.getUsername());
 		
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating the stream and adding it to the database.");
-		StreamBin.getInstance().addStream(streamBuilder.build());
+		LOGGER.log(Level.FINE, "Building the updated stream.");
+		Stream result = streamBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Saving the new stream.");
+		StreamBin.getInstance().addStream(result);
+		
+		LOGGER.log(Level.INFO, "Returning the updated stream.");
+		return result;
 	}
 	
 	/**
 	 * Returns a list of visible stream IDs.
 	 * 
+	 * @param search
+	 *        A value that should appear in either the name or description.
+	 * 
 	 * @return A list of visible stream IDs.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody List<String> getStreamIds() {
+	public static @ResponseBody List<String> getStreamIds(
+		@RequestParam(value = KEY_QUERY, required = false)
+			final String query) {
+		
 		LOGGER.log(Level.INFO, "Creating a stream ID read request.");
 
-		return StreamBin.getInstance().getStreamIds();
+		return StreamBin.getInstance().getStreamIds(query);
 	}
 	
 	/**
@@ -154,7 +162,9 @@ public class StreamServlet {
 		value = "{" + KEY_STREAM_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody List<Long> getStreamVersions(
-		@PathVariable(KEY_STREAM_ID) final String streamId) {
+		@PathVariable(KEY_STREAM_ID) final String streamId,
+		@RequestParam(value = KEY_QUERY, required = false)
+			final String query) {
 		
 		LOGGER
 			.log(
@@ -162,15 +172,17 @@ public class StreamServlet {
 				"Creating a request to read the versions of a stream: " +
 					streamId);
 		
-		return StreamBin.getInstance().getStreamVersions(streamId);	
+		return StreamBin.getInstance().getStreamVersions(streamId, query);	
 	}
 	
 	/**
 	 * Returns the definition for a given stream.
 	 * 
-	 * @param streamId The stream's unique identifier.
+	 * @param streamId
+	 *        The stream's unique identifier.
 	 * 
-	 * @param streamVersion The version of the stream.
+	 * @param streamVersion
+	 *        The version of the stream.
 	 * 
 	 * @return The stream definition.
 	 */
@@ -224,7 +236,7 @@ public class StreamServlet {
 	@RequestMapping(
 		value = "{" + KEY_STREAM_ID + "}",
 		method = RequestMethod.POST)
-	public static @ResponseBody void updateStream(
+	public static @ResponseBody Stream updateStream(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
@@ -239,26 +251,9 @@ public class StreamServlet {
 				"Creating a request to update a stream with a new version: " +
 					streamId);
 		
-		LOGGER.log(Level.FINE, "Validating the parameters.");
 		LOGGER
-			.log(
-				Level.FINER,
-				"Ensuring that an authentication token is given.");
-		if(token == null) {
-			throw
-				new InvalidArgumentException(
-					"The authentication token is missing.");
-		}
-		LOGGER
-			.log(
-				Level.FINER,
-				"Ensuring that the authentication token is a parameter.");
-		if(! tokenIsParam) {
-			throw
-				new InvalidArgumentException(
-					"The authentication token must be a parameter, " +
-						"not just a header.");
-		}
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
 		
 		LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
 		Stream latestSchema =
@@ -284,7 +279,7 @@ public class StreamServlet {
 				Level.INFO,
 				"Verifying that the user updating the stream is the owner " +
 					"of the original stream.");
-		if(! latestSchema.getOwner().equals(token.getUsername())) {
+		if(! latestSchema.getOwner().equals(user.getUsername())) {
 			throw
 				new InsufficientPermissionsException(
 					"Only the owner of this schema may update it.");
@@ -294,9 +289,187 @@ public class StreamServlet {
 			.log(
 				Level.FINE,
 				"Setting the request user as the owner of this new stream.");
-		streamBuilder.setOwner(token.getUsername());
+		streamBuilder.setOwner(user.getUsername());
+		
+		LOGGER.log(Level.FINE, "Building the updated stream.");
+		Stream result = streamBuilder.build();
 		
 		LOGGER.log(Level.INFO, "Saving the updated stream.");
-		StreamBin.getInstance().addStream(streamBuilder.build());
+		StreamBin.getInstance().addStream(result);
+		
+		LOGGER.log(Level.INFO, "Returning the updated stream.");
+		return result;
+	}
+	
+	/**
+	 * Stores data points.
+	 * 
+	 * @param streamId
+	 *        The stream's unique identifier.
+	 * 
+	 * @param streamVersion
+	 *        The version of the stream.
+	 * 
+	 * @param data
+	 *        The list of data points to save.
+	 */
+	@RequestMapping(
+		value = "{" + KEY_STREAM_ID + "}/{" + KEY_STREAM_VERSION + "}/data",
+		method = RequestMethod.POST)
+	public static @ResponseBody void storeData(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_STREAM_ID) final String streamId,
+		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
+		@RequestBody final List<StreamData.Builder> dataBuilders) {
+		
+		LOGGER.log(Level.INFO, "Storing some new stream data.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+
+		LOGGER.log(Level.INFO, "Retrieving the stream.");
+		Stream stream =
+			StreamBin
+				.getInstance()
+				.getStream(streamId, streamVersion);
+		
+		LOGGER.log(Level.FINE, "Ensuring that a stream was found.");
+		if(stream == null) {
+			throw
+				new UnknownEntityException(
+					"The stream ID-verion pair is unknown.");
+		}
+		
+		LOGGER.log(Level.INFO, "Validating the data.");
+		List<StreamData> data = new ArrayList<StreamData>(dataBuilders.size());
+		for(StreamData.Builder dataBuilder : dataBuilders) {
+			data.add(dataBuilder.setOwner(user.getUsername()).build(stream));
+		}
+		
+		LOGGER.log(Level.INFO, "Storing the validated data.");
+		StreamDataBin.getInstance().addStreamData(data);
+	}
+	
+	/**
+	 * Retrieves the data for the requesting user.
+	 * 
+	 * @param authenticationToken
+	 *        The requesting user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the requesting user's authentication token was a
+	 *        parameter.
+	 * 
+	 * @param authorizationToken
+	 *        An authorization token sent by the requesting user.
+	 * 
+	 * @param streamId
+	 *        The unique identifier of the stream whose data is being
+	 *        requested.
+	 * 
+	 * @param streamVersion
+	 *        The version of the stream whose data is being requested.
+	 * 
+	 * @return The data that conforms to the request parameters.
+	 */
+	@RequestMapping(
+		value = "{" + KEY_STREAM_ID + "}/{" + KEY_STREAM_VERSION + "}/data",
+		method = RequestMethod.GET)
+	public static @ResponseBody MultiValueResult<? extends StreamData> getData(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken authenticationToken,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN)
+			final AuthorizationToken authorizationToken,
+		@PathVariable(KEY_STREAM_ID) final String streamId,
+		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion) {
+		
+		LOGGER.log(Level.INFO, "Retrieving some stream data.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user =
+			AuthFilter
+				.retrieveUserFromAuth(
+					authorizationToken, 
+					authenticationToken, 
+					tokenIsParam);
+		
+		LOGGER.log(Level.INFO, "Finding and returning the requested data.");
+		return
+			StreamDataBin
+				.getInstance()
+				.getStreamData(user.getUsername(), streamId, streamVersion);
+	}
+	
+	/**
+	 * Deletes a point.
+	 * 
+	 * @param authenticationToken
+	 *        The requesting user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the requesting user's authentication token was a
+	 *        parameter.
+	 * 
+	 * @param authorizationToken
+	 *        An authorization token sent by the requesting user.
+	 * 
+	 * @param streamId
+	 *        The unique identifier of the stream whose data is being
+	 *        requested.
+	 * 
+	 * @param streamVersion
+	 *        The version of the stream whose data is being requested.
+	 * 
+	 * @param pointId
+	 *        The unique identifier for a specific point.
+	 * 
+	 * @return The data that conforms to the request parameters.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_STREAM_ID + "}" +
+			"/" +
+			"{" + KEY_STREAM_VERSION + "}" +
+			"/data" +
+			"/" +
+			"{" + KEY_STREAM_POINT_ID + "}",
+		method = RequestMethod.DELETE)
+	public static @ResponseBody void deletePoint(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken authenticationToken,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN)
+			final AuthorizationToken authorizationToken,
+		@PathVariable(KEY_STREAM_ID) final String streamId,
+		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
+		@PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
+		
+		LOGGER.log(Level.INFO, "Retrieving a specific stream data point.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user =
+			AuthFilter
+				.retrieveUserFromAuth(
+					authorizationToken, 
+					authenticationToken, 
+					tokenIsParam);
+		
+		LOGGER.log(Level.INFO, "Deleting the stream data.");
+		StreamDataBin
+			.getInstance()
+			.deleteStreamData(
+				user.getUsername(),
+				streamId,
+				streamVersion,
+				pointId);
 	}
 }

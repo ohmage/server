@@ -95,21 +95,14 @@ public class AuthorizationToken extends OhmageDomainObject {
 		final AuthorizationToken oldToken)
 		throws IllegalArgumentException {
 		
-		// Initialize the parent.
-		super(null, null);
-		
-		// Validate the token.
-		if(oldToken == null) {
-			throw new IllegalArgumentException("The token is null.");
-		}
-
-		// Store the relevant information.
-		this.authorizationCode = oldToken.authorizationCode;
-		this.accessToken = UUID.randomUUID().toString();
-		this.refreshToken = UUID.randomUUID().toString();
-		this.creationTime = DateTime.now().getMillis();
-		this.expirationTime =
-			this.creationTime + DEFAULT_TOKEN_LIFETIME_MILLIS;
+		// Pass through to the builder constructor.
+		this(
+			oldToken.authorizationCode,
+			UUID.randomUUID().toString(),
+			UUID.randomUUID().toString(),
+			System.currentTimeMillis(),
+			System.currentTimeMillis() + DEFAULT_TOKEN_LIFETIME_MILLIS,
+			null);
 	}
 	
 	/**
@@ -149,58 +142,98 @@ public class AuthorizationToken extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
 		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
 		@JsonProperty(JSON_KEY_CREATION_TIME) final long creationTime,
-		@JsonProperty(JSON_KEY_EXPIRATION_TIME) final long expirationTime)
+		@JsonProperty(JSON_KEY_EXPIRATION_TIME) final long expirationTime,
+		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
+		throws IllegalArgumentException {
+
+		// Pass through to the builder constructor.
+		this(
+			authorizationCode,
+			accessToken,
+			refreshToken,
+			creationTime,
+			expirationTime,
+			internalVersion,
+			null);
+	}
+	
+	/**
+	 * Builds the AuthorizationToken object.
+	 * 
+	 * @param authorizationCode
+	 *        The unique identifier for the authorization code that backs this
+	 *        token.
+	 * 
+	 * @param accessToken
+	 *        The access token value for this authorization token.
+	 * 
+	 * @param refreshToken
+	 *        The refresh token value for this authorization token.
+	 * 
+	 * @param creationTime
+	 *        The number of milliseconds since the epoch at which time this
+	 *        token was created.
+	 * 
+	 * @param expirationTime
+	 *        The number of milliseconds since the epoch at which time this
+	 *        token expires.
+	 * 
+	 * @param internalReadVersion
+	 *        The internal version of this authentication token when it was
+	 *        read from the database.
+	 * 
+	 * @param internalWriteVersion
+	 *        The new internal version of this authentication token when it
+	 *        will be written back to the database.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The token and/or user-name are null, the token is being granted
+	 *         in the future, or the token is being granted after it has
+	 *         expired.
+	 */
+	private AuthorizationToken(
+		final String authorizationCode,
+		final String accessToken,
+		final String refreshToken,
+		final long creationTime,
+		final long expirationTime,
+		final Long internalReadVersion,
+		final Long internalWriteVersion)
 		throws IllegalArgumentException {
 		
-		// Initialize the parent.
-		super(null, null);
+		// Pass the versioning parameters to the parent.
+		super(internalReadVersion, internalWriteVersion);
 		
-		// Validate the authorization code.
+		// Validate the parameters.
 		if(authorizationCode == null) {
 			throw
 				new IllegalArgumentException("The authorization code is null.");
 		}
-		else {
-			this.authorizationCode = authorizationCode;
-		}
-		
-		// Validate the access token.
 		if(accessToken == null) {
 			throw new IllegalArgumentException("The access token is null.");
 		}
-		else {
-			this.accessToken = accessToken;
-		}
-		
-		// Validate the refresh token.
 		if(refreshToken == null) {
 			throw new IllegalArgumentException("The refresh token is null.");
 		}
-		else {
-			this.refreshToken = refreshToken;
-		}
 		
-		// Validate the creation time.
 		DateTime creationTimeDateTime = new DateTime(creationTime);
 		if(creationTimeDateTime.isAfterNow()) {
 			throw
 				new IllegalArgumentException(
 					"The token's creation time cannot be in the future.");
 		}
-		else {
-			this.creationTime = creationTime;
-		}
-		
-		// Validate the expiration time.
 		if(creationTimeDateTime.isAfter(expirationTime)) {
 			throw
 				new IllegalArgumentException(
 					"The token's expiration time cannot be before its " +
 						"creation time.");
 		}
-		else {
-			this.expirationTime = expirationTime;
-		}
+		
+		this.authorizationCode = authorizationCode;
+		this.accessToken = accessToken;
+		this.refreshToken = refreshToken;
+		this.creationTime = creationTime;
+		this.expirationTime = expirationTime;
 	}
 	
 	/**
@@ -256,6 +289,15 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 *         may be negative if the token has already expired.
 	 */
 	public long getExpirationIn() {
-		return expirationTime - DateTime.now().getMillis();
+		return expirationTime - System.currentTimeMillis();
+	}
+	
+	/**
+	 * Returns whether or not the token is still valid.
+	 * 
+	 * @return Whether or not the token is still valid.
+	 */
+	public boolean isValid() {
+		return expirationTime < System.currentTimeMillis();
 	}
 }

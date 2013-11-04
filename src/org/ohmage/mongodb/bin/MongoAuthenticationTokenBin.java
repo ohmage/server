@@ -1,8 +1,5 @@
 package org.ohmage.mongodb.bin;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
@@ -12,8 +9,6 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.mongodb.domain.MongoAuthenticationToken;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.CommandFailureException;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 
@@ -32,36 +27,42 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 	 */
 	public static final String COLLECTION_NAME = "authentication_token_bin";
 	
-	/**
-	 * The logger for this class.
+	/** 
+	 * Get the connection to the authentication token bin with the Jackson
+	 * wrapper.
 	 */
-	private static final Logger LOGGER =
-		Logger.getLogger(MongoAuthenticationTokenBin.class.getName());
+	private static final JacksonDBCollection<AuthenticationToken, String> COLLECTION =
+		JacksonDBCollection
+			.wrap(
+				MongoBinController
+					.getInstance()
+					.getDb()
+					.getCollection(COLLECTION_NAME),
+				AuthenticationToken.class,
+				String.class,
+				MongoBinController.getObjectMapper());
+	
+	/** 
+	 * Get the connection to the authentication token bin with the Jackson
+	 * wrapper, specifically for {@link MongoAuthenticationToken} objects.
+	 */
+	private static final JacksonDBCollection<MongoAuthenticationToken, Object> MONGO_COLLECTION =
+		JacksonDBCollection
+			.wrap(
+				MongoBinController
+					.getInstance()
+					.getDb()
+					.getCollection(COLLECTION_NAME),
+				MongoAuthenticationToken.class,
+				Object.class,
+				MongoBinController.getObjectMapper());
 	
 	/**
 	 * Default constructor.
 	 */
 	protected MongoAuthenticationTokenBin() {
-		// Get the collection to add indexes to.
-		DBCollection collection =
-			MongoBinController
-			.getInstance()
-			.getDb()
-			.getCollection(COLLECTION_NAME);
-		
-		// Remove the old "token" index, if it still exists.
-		try {
-			collection.dropIndex(COLLECTION_NAME + "_" + "token" + "_unique");
-		}
-		catch(CommandFailureException e) {
-			LOGGER
-				.log(
-					Level.INFO,
-					"The 'token' index had already been removed.");
-		}
-
 		// Ensure that there is an index on the access token.
-		collection
+		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
 					AuthenticationToken.JSON_KEY_ACCESS_TOKEN,
@@ -70,7 +71,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 					AuthenticationToken.JSON_KEY_ACCESS_TOKEN + "_unique",
 				true);
 		// Ensure that there is an index on the refresh token.
-		collection
+		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
 					AuthenticationToken.JSON_KEY_REFRESH_TOKEN,
@@ -79,7 +80,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 					AuthenticationToken.JSON_KEY_REFRESH_TOKEN + "_unique",
 				true);
 		// Ensure that there is an index on the expiration time.
-		collection
+		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(AuthenticationToken.JSON_KEY_EXPIRES, 1),
 				COLLECTION_NAME + 
@@ -103,21 +104,9 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			throw new IllegalArgumentException("The token is null.");
 		}
 		
-		// Get the authentication token collection.
-		JacksonDBCollection<AuthenticationToken, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController
-						.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					AuthenticationToken.class,
-					Object.class,
-					MongoBinController.getObjectMapper());
-		
 		// Save it.
 		try {
-			collection.insert(token);
+			COLLECTION.insert(token);
 		}
 		catch(MongoException.DuplicateKey e) {
 			throw new InvalidArgumentException("The token already exists.");
@@ -138,19 +127,6 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			throw new IllegalArgumentException("The access token is null.");
 		}
 		
-		// Get the connection to the authentication token bin with the Jackson
-		// wrapper.
-		JacksonDBCollection<MongoAuthenticationToken, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController
-						.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					MongoAuthenticationToken.class,
-					Object.class,
-					MongoBinController.getObjectMapper());
-		
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 		
@@ -160,7 +136,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			.is(accessToken);
 		
 		// Execute query.
-		return collection.findOne(queryBuilder.get());
+		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
 	
 	/*
@@ -177,19 +153,6 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			throw new IllegalArgumentException("The refresh token is null.");
 		}
 		
-		// Get the connection to the authentication token bin with the Jackson
-		// wrapper.
-		JacksonDBCollection<MongoAuthenticationToken, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController
-						.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					MongoAuthenticationToken.class,
-					Object.class,
-					MongoBinController.getObjectMapper());
-		
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 		
@@ -199,7 +162,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			.is(refreshToken);
 		
 		// Execute query.
-		return collection.findOne(queryBuilder.get());
+		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
 
 	/*
@@ -215,18 +178,6 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 		if(token == null) {
 			throw new IllegalArgumentException("The token is null.");
 		}
-
-		// Get the authentication token collection.
-		JacksonDBCollection<AuthenticationToken, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController
-						.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					AuthenticationToken.class,
-					Object.class,
-					MongoBinController.getObjectMapper());
 		
 		// Ensure that we are only updating the given authentication token.
 		Query query =
@@ -235,6 +186,6 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 					token.getAccessToken());
 		
 		// Update the token.
-		collection.update(query, token);
+		COLLECTION.update(query, token);
 	}
 }

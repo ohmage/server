@@ -16,6 +16,7 @@ import org.ohmage.bin.AuthenticationTokenBin;
 import org.ohmage.bin.AuthorizationTokenBin;
 import org.ohmage.domain.AuthenticationToken;
 import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.User;
 import org.ohmage.domain.exception.AuthenticationException;
 
 /**
@@ -41,7 +42,7 @@ public class AuthFilter implements Filter {
 	 * The key for a header and/or parameter that represents the an
 	 * authentication token.
 	 */
-	public static final String AUTHENTICATION_TOKEN_KEY = "auth_token";
+	public static final String KEY_AUTHENTICATION_TOKEN = "auth_token";
 	
 	/**
 	 * The attribute for an authenticated authentication token from the
@@ -62,10 +63,17 @@ public class AuthFilter implements Filter {
 		"authenticated_authorization_token";
 	
 	/**
-	 * An invalid, placeholder value for attributes. This is necessary because
-	 * using "null" causes the attribute to be removed, which causes errors.
+	 * An invalid authentication token to use when an authentication token is
+	 * not given.
 	 */
-	public static final String ATTRIBUTE_VALUE_INVALID = "";
+	public static final AuthenticationToken INVALID_AUTHENTICATION_TOKEN =
+		new AuthenticationToken("", "", "", 0, 0, false, null);
+	/**
+	 * An invalid authentication token to use when an authentication token is
+	 * not given.
+	 */
+	public static final AuthorizationToken INVALID_AUTHORIZATION_TOKEN =
+		new AuthorizationToken("", "", "", 0, 0, null);
 	
 	/*
 	 * (non-Javadoc)
@@ -104,7 +112,7 @@ public class AuthFilter implements Filter {
 			// match the authentication cookie name.
 			if(cookies != null) {
 				for(Cookie cookie : cookies) {
-					if(AUTHENTICATION_TOKEN_KEY.equals(cookie.getName())) {
+					if(KEY_AUTHENTICATION_TOKEN.equals(cookie.getName())) {
 						// If we have not yet found a token, save this one.
 						if(authToken == null) {
 							authToken = cookie.getValue();
@@ -125,7 +133,7 @@ public class AuthFilter implements Filter {
 		// Get the authentication tokens from the parameters.
 		boolean authTokenIsFromParameters = false;
 		String[] authTokenParameters =
-			request.getParameterValues(AUTHENTICATION_TOKEN_KEY);
+			request.getParameterValues(KEY_AUTHENTICATION_TOKEN);
 		// If any authentication token parameters exist, validate that there is
 		// only one and then remember it.
 		if(authTokenParameters != null) {
@@ -156,7 +164,7 @@ public class AuthFilter implements Filter {
 		
 		// If we never caught an authentication token, still add one with a
 		// value of null.
-		AuthenticationToken authTokenObject = null;
+		AuthenticationToken authTokenObject = INVALID_AUTHENTICATION_TOKEN;
 		if(authToken != null) {
 			// Attempt to get the authentication token.
 			authTokenObject =
@@ -203,7 +211,7 @@ public class AuthFilter implements Filter {
 		}
 		
 		// Attempt to get the authentication from the third-party.
-		AuthorizationToken authorizationToken = null;
+		AuthorizationToken authorizationToken = INVALID_AUTHORIZATION_TOKEN;
 		if(request instanceof HttpServletRequest) {
 			// Cast the request.
 			HttpServletRequest httpRequest = (HttpServletRequest) request;
@@ -264,8 +272,14 @@ public class AuthFilter implements Filter {
 				if(authorizationToken == null) {
 					throw
 						new AuthenticationException(
-							"The authorization token is unknown or " +
-								"expired.");
+							"The authorization token is unknown.");
+				}
+				
+				// Make sure the token is still valid.
+				if(! authorizationToken.isValid()) {
+					throw
+						new AuthenticationException(
+							"The authorization token is no longer valid.");
 				}
 			}
 		}
@@ -295,5 +309,85 @@ public class AuthFilter implements Filter {
 	@Override
 	public void destroy() {
 		// Do nothing.
+	}
+	
+	/**
+	 * Ensures that at least one of the two tokens, authentication or
+	 * authorization, were given and retrieves the user associated with that
+	 * token. The order of checking the tokens is authorization token first and
+	 * authentication token second.
+	 * 
+	 * @param authorizationToken
+	 *        The authorization token to check or null if the authorization
+	 *        token should not be checked.
+	 * 
+	 * @param authenticationToken
+	 *        The authentication token to check or null if the authentication
+	 *        token should not be checked.
+	 * 
+	 * @param authenticationTokenIsFromParameters
+	 *        Whether or not the authentication token was sent as a parameter.
+	 *        If this is null, it means it doesn't matter. If this is non-null
+	 *        then it must be true or an exception will be thrown indicating
+	 *        such.
+	 * 
+	 * @return The {@link User} associated with one of the tokens.
+	 * 
+	 * @throws AuthenticationException
+	 *         None of the given tokens were given or the authentication token
+	 *         was given but not as a parameter.
+	 */
+	public static User retrieveUserFromAuth(
+		final AuthorizationToken authorizationToken,
+		final AuthenticationToken authenticationToken,
+		final Boolean authenticationTokenIsFromParameters)
+		throws AuthenticationException {
+		
+		// Be sure that at least one of the two, authentication or
+		// authorization, tokens were given.
+		if(
+			(
+				(authenticationToken == null) ||
+				INVALID_AUTHENTICATION_TOKEN.equals(authenticationToken)
+			)
+			&&
+			(
+				(authorizationToken == null) ||
+				INVALID_AUTHORIZATION_TOKEN.equals(authorizationToken)
+			)) {
+			
+			throw
+				new AuthenticationException(
+					"No authentication credentials were given.");
+		}
+		
+		// First, check if the authorization token was given, and, if so,
+		// return the user associated with the token.
+		if(! INVALID_AUTHORIZATION_TOKEN.equals(authorizationToken)) {
+			// FIXME: This should dereference the authorization token and
+			// return the user that owns it.
+			return null;
+		}
+		
+		// Then, check if the authentication token was given.
+		if(! INVALID_AUTHENTICATION_TOKEN.equals(authenticationToken)) {
+			// Verify that, if the flag was given, it is true.
+			if(
+				(authenticationTokenIsFromParameters != null) &&
+				(! authenticationTokenIsFromParameters)) {
+				
+				throw
+					new AuthenticationException(
+						"The authentication token must be a parameter.");
+			}
+			
+			// Return the user associated with the token.
+			return authenticationToken.getUser();
+		}
+		
+		// This cannot happen.
+		throw
+			new IllegalStateException(
+				"One of the two tokens exists, except not really.");
 	}
 }

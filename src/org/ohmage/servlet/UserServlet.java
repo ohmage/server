@@ -152,7 +152,7 @@ public class UserServlet {
 					captchaChallenge,
 					captchaResponse);
 		
-		LOGGER.log(Level.INFO, "Ensurin the response was valid.");
+		LOGGER.log(Level.INFO, "Ensuring the response was valid.");
 		if(! reCaptchaResponse.isValid()) {
 			throw
 				new InvalidArgumentException(
@@ -266,6 +266,9 @@ public class UserServlet {
 					"the user object.");
 		userBuilder.setEmail(userInformation.getEmail());
 		
+		LOGGER.log(Level.FINE, "Building the user.");
+		user = userBuilder.build();
+		
 		LOGGER.log(Level.INFO, "Storing the user.");
 		UserBin.getInstance().addUser(user);
 		
@@ -284,6 +287,10 @@ public class UserServlet {
 			final AuthenticationToken token) {
 		
 		LOGGER.log(Level.INFO, "Requesting a list of visible users.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
 
 		LOGGER.log(Level.FINE, "Create the result list.");
 		Set<String> result = new HashSet<String>(1);
@@ -292,9 +299,8 @@ public class UserServlet {
 				Level.INFO,
 				"If the calling user authenticated themselves, adding them " +
 					"to the result list.");
-		if(token != null) {
-			result.add(token.getUsername());
-		}
+		result.add(user.getUsername());
+
 		return result;
 	}
 	
@@ -319,16 +325,9 @@ public class UserServlet {
 		
 		LOGGER.log(Level.INFO, "Requesting information about a user.");
 		
-		LOGGER.log(Level.FINE, "Validating the parameters.");
 		LOGGER
-			.log(
-				Level.FINER,
-				"Ensuring that an authentication token is given.");
-		if(token == null) {
-			throw
-				new AuthenticationException(
-					"The authentication token is missing.");
-		}
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
 		
 		// Users are only visible to read their own data at this time.
 		LOGGER
@@ -336,7 +335,7 @@ public class UserServlet {
 				Level.INFO,
 				"Verifying that the user is requesting information about " +
 					"themselves.");
-		if(! token.getUsername().equals(username)) {
+		if(! user.getUsername().equals(username)) {
 			throw
 				new InsufficientPermissionsException(
 					"A user may only view their own information.");
@@ -344,7 +343,7 @@ public class UserServlet {
 		
 		// Pull the user object from the token.
 		LOGGER.log(Level.INFO, "Retreiving the user object.");
-		return token.getUser();
+		return user;
 	}
 	
 	/**

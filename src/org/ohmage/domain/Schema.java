@@ -26,7 +26,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 public abstract class Schema extends OhmageDomainObject {
 	/**
 	 * <p>
-	 * A builder for a {@link Schema}.
+	 * A builder for {@link Schema}s.
 	 * </p>
 	 *
 	 * @author John Jenkins
@@ -365,7 +365,7 @@ public abstract class Schema extends OhmageDomainObject {
 	 * 
 	 * @return The unique ID for this schema.
 	 */
-	public String getDbId() {
+	public String getId() {
 		return schemaId;
 	}
 	

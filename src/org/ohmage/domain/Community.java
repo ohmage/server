@@ -18,19 +18,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * 
  * @author John Jenkins
  */
-public class Project extends OhmageDomainObject {
+public class Community extends OhmageDomainObject {
 	/**
 	 * <p>
-	 * A builder for {@link Project}s.
+	 * A builder for {@link Community}s.
 	 * </p>
 	 * 
 	 * @author John Jenkins
 	 */
-	public static class Builder extends OhmageDomainObject.Builder<Project> {
-		/**
-		 * The version of this project.
-		 */
-		private long version;
+	public static class Builder extends OhmageDomainObject.Builder<Community> {
 		/**
 		 * The name of this project.
 		 */
@@ -52,16 +48,13 @@ public class Project extends OhmageDomainObject {
 		 */
 		private List<SchemaReference> surveys;
 		/**
-		 * The triggers for this project that define when certain surveys should be
-		 * prompted for the user.
+		 * The triggers for this project that define when certain surveys
+		 * should be prompted for the user.
 		 */
 		private List<String> triggers;
 		
 		/**
-		 * Creates a new Project builder object.
-		 * 
-		 * @param version
-		 *        The version of this project.
+		 * Creates a new Community builder object.
 		 * 
 		 * @param name
 		 *        The name of this project.
@@ -83,7 +76,6 @@ public class Project extends OhmageDomainObject {
 		 *        project.
 		 */
 		public Builder(
-			@JsonProperty(JSON_KEY_VERSION) final long version,
 			@JsonProperty(JSON_KEY_NAME) final String name,
 			@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 			@JsonProperty(JSON_KEY_OWNER) final String owner,
@@ -95,7 +87,6 @@ public class Project extends OhmageDomainObject {
 			
 			super(null);
 			
-			this.version = version;
 			this.name = name;
 			this.description = description;
 			this.owner = owner;
@@ -105,31 +96,21 @@ public class Project extends OhmageDomainObject {
 		}
 
 		/**
-		 * Creates a new builder based on an existing Project object.
+		 * Creates a new builder based on an existing Community object.
 		 * 
 		 * @param project
-		 *        The existing Project object on which this Builder should be
+		 *        The existing Community object on which this Builder should be
 		 *        based.
 		 */
-		public Builder(final Project project) {
+		public Builder(final Community project) {
 			super(project);
 			
-			this.version = project.version;
 			this.name = project.name;
 			this.description = project.description;
 			this.owner = project.owner;
 			this.streams = project.streams;
 			this.surveys = project.surveys;
 			this.triggers = project.triggers;
-		}
-		
-		/**
-		 * Returns the currently set version.
-		 * 
-		 * @return The currently set version.
-		 */
-		public long getVersion() {
-			return version;
 		}
 		
 		/**
@@ -152,18 +133,17 @@ public class Project extends OhmageDomainObject {
 		}
 		
 		/**
-		 * Creates a new Project object from the state of this builder.
+		 * Creates a new Community object from the state of this builder.
 		 * 
-		 * @return A new Project object from the state of this builder.
+		 * @return A new Community object from the state of this builder.
 		 * 
 		 * @throws OhmageException
 		 *         The state of the builder contained invalid fields.
 		 */
-		public Project build() {
+		public Community build() {
 			return
-				new Project(
+				new Community(
 					getRandomId(),
-					version, 
 					name, 
 					description, 
 					owner, 
@@ -257,11 +237,7 @@ public class Project extends OhmageDomainObject {
 	/**
 	 * The JSON key for the ID.
 	 */
-	public static final String JSON_KEY_ID = "project_id";
-	/**
-	 * The JSON key for the version.
-	 */
-	public static final String JSON_KEY_VERSION = "project_version";
+	public static final String JSON_KEY_ID = "community_id";
 	/**
 	 * The JSON key for the name.
 	 */
@@ -292,11 +268,6 @@ public class Project extends OhmageDomainObject {
 	 */
 	@JsonProperty(JSON_KEY_ID)
 	private final String projectId;
-	/**
-	 * The version of this project.
-	 */
-	@JsonProperty(JSON_KEY_VERSION)
-	private final long version;
 	/**
 	 * The name of this project.
 	 */
@@ -357,7 +328,7 @@ public class Project extends OhmageDomainObject {
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
-	public Project(
+	public Community(
 		final long version,
 		final String name,
 		final String description,
@@ -370,7 +341,6 @@ public class Project extends OhmageDomainObject {
 		// Pass through to the builder constructor.
 		this(
 			getRandomId(),
-			version,
 			name,
 			description,
 			owner,
@@ -385,9 +355,6 @@ public class Project extends OhmageDomainObject {
 	 * 
 	 * @param id
 	 *        The ID for the project or null for a randomly generated one.
-	 * 
-	 * @param version
-	 *        The version of this project.
 	 * 
 	 * @param name
 	 *        The name of this project.
@@ -417,9 +384,8 @@ public class Project extends OhmageDomainObject {
 	 *         A parameter is invalid.
 	 */
 	@JsonCreator
-	protected Project(
+	protected Community(
 		@JsonProperty(JSON_KEY_ID) final String id,
-		@JsonProperty(JSON_KEY_VERSION) final long version,
 		@JsonProperty(JSON_KEY_NAME) final String name,
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
@@ -432,7 +398,6 @@ public class Project extends OhmageDomainObject {
 		// Pass through to the builder constructor.
 		this(
 			id, 
-			version, 
 			name, 
 			description, 
 			owner, 
@@ -444,13 +409,10 @@ public class Project extends OhmageDomainObject {
 	}
 	
 	/**
-	 * Builds the Project object.
+	 * Builds the Community object.
 	 * 
 	 * @param id
 	 *        The ID for the project or null for a randomly generated one.
-	 * 
-	 * @param version
-	 *        The version of this project.
 	 * 
 	 * @param name
 	 *        The name of this project.
@@ -485,9 +447,8 @@ public class Project extends OhmageDomainObject {
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
-	private Project(
+	private Community(
 		final String id,
-		final long version,
 		final String name,
 		final String description,
 		final String owner,
@@ -522,7 +483,6 @@ public class Project extends OhmageDomainObject {
 
 		// Save the state.
 		this.projectId = id;
-		this.version = version;
 		this.name = name;
 		this.description = description;
 		this.owner = owner;
@@ -538,15 +498,6 @@ public class Project extends OhmageDomainObject {
 			((triggers == null) ?
 				Collections.<String>emptyList() :
 				Collections.unmodifiableList(triggers));
-	}
-	
-	/**
-	 * Returns the version of this project.
-	 * 
-	 * @return The version of this project.
-	 */
-	public long getVersion() {
-		return version;
 	}
 	
 	/**

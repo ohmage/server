@@ -1,12 +1,15 @@
 package org.ohmage.domain.stream;
 
 import name.jenkins.paul.john.concordia.Concordia;
+import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.stream.StreamData.MetaData;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * <p>
@@ -62,9 +65,13 @@ public class Stream extends Schema {
 
 		/**
 		 * Creates a new Stream object from the state of this builder.
+		 * 
+		 * @throws InvalidArgumentException
+		 *         The state of this builder is insufficient to build a new
+		 *         {@link Stream} object.
 		 */
 		@Override
-		public Stream build() {
+		public Stream build() throws InvalidArgumentException {
 			return
 				new Stream(
 					getRandomId(),
@@ -217,5 +224,34 @@ public class Stream extends Schema {
 			definition, 
 			internalReadVersion,
 			internalWriteVersion);
+	}
+	
+	/**
+	 * Validates that some meta-data and data conform to this stream's
+	 * definition.
+	 * 
+	 * @param metaData
+	 *        The {@link MetaData} to validate.
+	 * 
+	 * @param data
+	 *        The data to validate.
+	 * 
+	 * @throws InvalidArgumentException
+	 *         The meta-data or data were invalid.
+	 */
+	public void validate(
+		final StreamData.MetaData metaData,
+		final JsonNode data)
+		throws InvalidArgumentException {
+		
+		try {
+			getDefinition().validateData(data);
+		}
+		catch(ConcordiaException e) {
+			throw
+				new InvalidArgumentException(
+					"The data does not conform to the schema.",
+					e);
+		}
 	}
 }

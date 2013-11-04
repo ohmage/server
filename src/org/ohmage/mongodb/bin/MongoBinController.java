@@ -122,7 +122,8 @@ public class MongoBinController extends BinController {
 		new MongoUserBin();
 		new MongoAuthenticationTokenBin();
 		new MongoStreamBin();
-		new MongoProjectBin();
+		new MongoStreamDataBin();
+		new MongoCommunityBin();
 	}
 	
 	/**
