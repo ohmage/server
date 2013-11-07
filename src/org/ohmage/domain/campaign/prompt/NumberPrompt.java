@@ -111,7 +111,8 @@ public class NumberPrompt extends BoundedPrompt {
 			index);
 		
 		if(wholeNumber == null) {
-			this.wholeNumber = false;
+			this.wholeNumber = true; // Hack for HT to handle pre-2.16 campaigns with number prompts.
+			                         // The previous spec only allowed whole numbers.
 		}
 		else {
 			this.wholeNumber = wholeNumber;
