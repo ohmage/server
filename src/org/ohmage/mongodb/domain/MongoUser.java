@@ -1,10 +1,12 @@
 package org.ohmage.mongodb.domain;
 
 import java.util.List;
+import java.util.Set;
 
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
+import org.ohmage.domain.Community.SchemaReference;
 import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
 import org.ohmage.mongodb.bin.MongoUserBin;
@@ -49,6 +51,22 @@ public class MongoUser extends User implements MongoDbObject {
 	 *        The collection of information about providers that have
 	 *        authenticated this user.
 	 * 
+	 * @param communities
+	 *        The set of communities to which the user is associated and their
+	 *        specific view of that community.
+	 * 
+	 * @param streams
+	 *        A set of stream identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
+	 * @param surveys
+	 *        A set of survey identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
+	 * @param internalVersion
+	 *        The internal version of this entity used for checking for update
+	 *        collisions.
+	 * 
 	 * @throws IllegalArgumentException
 	 *         A required parameter is null or invalid.
 	 */
@@ -61,10 +79,23 @@ public class MongoUser extends User implements MongoDbObject {
 		@JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
 		@JsonProperty(JSON_KEY_PROVIDERS)
 			final List<ProviderUserInformation> providers,
+		@JsonProperty(JSON_KEY_COMMUNITIES) final
+			Set<CommunityReference> communities,
+		@JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
+		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 		
-		super(username, password, email, fullName, providers, internalVersion);
+		super(
+			username, 
+			password, 
+			email, 
+			fullName, 
+			providers, 
+			communities, 
+			streams, 
+			surveys, 
+			internalVersion);
 		
 		// Store the MongoDB ID.
 		if(dbId == null) {

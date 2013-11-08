@@ -11,7 +11,9 @@ import java.util.HashSet;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.BeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter.SerializeExceptFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
@@ -86,6 +88,18 @@ public class OhmageObjectMapper extends ObjectMapper {
      * Creates the object mapper and initializes the filters.
      */
     public OhmageObjectMapper() {
+    	// Setup the mapper to use lower-case strings for enums and return
+    	// unknown enums as null.
+    	enable(
+    		DeserializationFeature.READ_ENUMS_USING_TO_STRING,
+    		DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);
+    	
+    	// Don't allow clients to send the ordinal for enums.
+    	disable(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS);
+    	
+    	// Write the enums using their toString() function.
+    	enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
+    	
     	// Ensure that unknown fields are ignored.
     	FILTER_PROVIDER.setFailOnUnknownId(false);
     	

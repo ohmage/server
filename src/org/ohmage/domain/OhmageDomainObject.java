@@ -115,7 +115,7 @@ public abstract class OhmageDomainObject {
 		this.internalWriteVersion =
 			(internalWriteVersion == null) ?
 				this.internalReadVersion :
-				internalReadVersion;
+				internalWriteVersion;
 	}
 	
 	/**

@@ -88,7 +88,7 @@ public abstract class UserBin {
 	 * Updates the user in the database.
 	 * 
 	 * @param user
-	 *        The new user object.
+	 *        The updated User object.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         The user is null.

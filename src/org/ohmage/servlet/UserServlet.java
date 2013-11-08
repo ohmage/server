@@ -1,5 +1,6 @@
 package org.ohmage.servlet;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -7,14 +8,19 @@ import java.util.logging.Logger;
 
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
+import org.ohmage.bin.CommunityBin;
+import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.Community;
+import org.ohmage.domain.Community.SchemaReference;
 import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
+import org.ohmage.domain.stream.Stream;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -364,7 +370,8 @@ public class UserServlet {
 	 * @return The desired user's information.
 	 */
 	@RequestMapping(
-		value = "{" + KEY_USERNAME + ":.+" + "}" + "/password",
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_PASSWORD,
 		method = RequestMethod.POST)
 	public static @ResponseBody void updateUserPassword(
 		@PathVariable(KEY_USERNAME) final String username,
@@ -402,6 +409,604 @@ public class UserServlet {
 		UserBin.getInstance().updateUser(user);
 		
 		// Should we also invalidate all authentication tokens?
+	}
+	
+	/**
+	 * Retrieves the set of communities that this user is part of.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the user's authentication token was sent as a
+	 *        parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name, which, for now, must match the
+	 *        authentication token.
+	 * 
+	 * @return The set of communities that this user is part of.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_COMMUNITIES,
+		method = RequestMethod.GET)
+	public static @ResponseBody Collection<User.CommunityReference> getFollowedCommunities(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to track a stream.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is querying their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only query their own accounts.");
+		}
+		
+		LOGGER.log(Level.INFO, "Returning the set of stream references.");
+		return user.getCommunities();
+	}
+	
+	/**
+	 * Retrieves the specific information for a community that the user is
+	 * following.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the user's authentication token was sent as a
+	 *        parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name, which, for now, must match the
+	 *        authentication token.
+	 * 
+	 * @param communityId
+	 *        The community's unique identifier.
+	 * 
+	 * @return The user-specific information about a community that they are
+	 *         following.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			User.JSON_KEY_COMMUNITIES + "/" +
+			"{" + Community.JSON_KEY_ID + "}",
+		method = RequestMethod.GET)
+	public static @ResponseBody User.CommunityReference getFollowedCommunity(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(Community.JSON_KEY_ID) final String communityId) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to track a stream.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is reading their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only read their own accounts.");
+		}
+		
+		LOGGER.log(Level.INFO, "Returning the set of stream references.");
+		return user.getCommunity(communityId);
+	}
+	
+	/**
+	 * Retrieves the specific information for a community that the user is
+	 * following.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the user's authentication token was sent as a
+	 *        parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name, which, for now, must match the
+	 *        authentication token.
+	 * 
+	 * @param communityId
+	 *        The community's unique identifier.
+	 * 
+	 * @return The user-specific information about a community that they are
+	 *         following.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			User.JSON_KEY_COMMUNITIES + "/" +
+			"{" + Community.JSON_KEY_ID + "}",
+		method = RequestMethod.DELETE)
+	public static @ResponseBody void leaveCommunity(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(Community.JSON_KEY_ID) final String communityId) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request to disassociate a user with a community.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		LOGGER.log(Level.INFO, "Retrieving the community.");
+		Community community =
+			CommunityBin.getInstance().getCommunity(communityId);
+		
+		LOGGER.log(Level.INFO, "Checking if the community exists.");
+		if(community != null) {
+			LOGGER
+				.log(
+					Level.INFO,
+					"The community exists, so the user is being removed.");
+			
+			LOGGER.log(Level.INFO, "Removing the user from the community.");
+			Community.Builder communityBuilder = new Community.Builder(community);
+			communityBuilder.removeMember(user.getUsername());
+			Community updatedCommunity = communityBuilder.build();
+			
+			LOGGER.log(Level.INFO, "Removing the user from the community.");
+			CommunityBin.getInstance().updateCommunity(updatedCommunity);
+		}
+		else {
+			LOGGER.log(Level.INFO, "The community does not exist.");
+		}
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Removing the community from the user's profile.");
+		User.Builder updatedUserBuilder = new User.Builder(user);
+		updatedUserBuilder.removeCommunity(communityId);
+		User updatedUser = updatedUserBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Storing the updated user.");
+		UserBin.getInstance().updateUser(updatedUser);
+	}
+	
+	/**
+	 * Allows a user to follow a stream. The user can optionally supply a
+	 * version. If the version is given, that indicates that the user wishes to
+	 * follow a specific version of the stream. If a version is not given, that
+	 * indicates that a user wishes to follow the latest version of the stream.
+	 * 
+	 * @param token
+	 *        The requesting user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user-name of the user that is following this stream. For now,
+	 *        a user may only update their own profile, so this must match the
+	 *        authentication token's user.
+	 * 
+	 * @param streamReference
+	 *        A reference to the stream that must include the stream's unique
+	 *        identifier and may include a specific version of the stream.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
+		method = RequestMethod.POST)
+	public static @ResponseBody void followStream(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@RequestBody final SchemaReference streamReference) {
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to track a stream.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		LOGGER.log(Level.FINE, "Retrieving the stream.");
+		Stream stream;
+		if(streamReference.getVersion() == null) {
+			stream =
+				StreamBin
+					.getInstance()
+					.getLatestStream(streamReference.getSchemaId());
+		}
+		else {
+			stream =
+				StreamBin
+					.getInstance()
+					.getStream(
+						streamReference.getSchemaId(),
+						streamReference.getVersion());
+		}
+		
+		LOGGER.log(Level.INFO, "Verifying that the stream exists.");
+		if(stream == null) {
+			throw
+				new InvalidArgumentException("The stream does not exist.");
+		}
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Adding the stream to the list of streams being followed.");
+		User.Builder updatedUserBuilder = new User.Builder(user);
+		updatedUserBuilder.addStream(streamReference);
+		User updatedUser = updatedUserBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Storing the updated user.");
+		UserBin.getInstance().updateUser(updatedUser);
+	}
+	
+	/**
+	 * Retrieves the set of streams that this user is watching.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the user's authentication token was sent as a
+	 *        parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name, which, for now, must match the
+	 *        authentication token.
+	 * 
+	 * @return The set of stream references that this user is watching.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
+		method = RequestMethod.GET)
+	public static @ResponseBody Set<SchemaReference> getFollowedStreams(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to view streams they are " +
+					"following.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		LOGGER.log(Level.INFO, "Returning the set of stream references.");
+		return user.getStreams();
+	}
+	
+	/**
+	 * Stops a user from following a stream.
+	 * 
+	 * @param token
+	 *        The requesting user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user-name of the user that is following this stream. For now,
+	 *        a user may only update their own profile, so this must match the
+	 *        authentication token's user.
+	 * 
+	 * @param streamReference
+	 *        A reference to the stream that must include the stream's unique
+	 *        identifier and may include a specific version of the stream.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
+		method = RequestMethod.DELETE)
+	public static @ResponseBody void forgetStream(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@RequestBody final SchemaReference streamReference) {
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to stop tracking a stream.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Adding the stream to the list of streams being followed.");
+		User.Builder updatedUserBuilder = new User.Builder(user);
+		updatedUserBuilder.removeStream(streamReference);
+		User updatedUser = updatedUserBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Storing the updated user.");
+		UserBin.getInstance().updateUser(updatedUser);
+	}
+	
+	/**
+	 * Allows a user to follow a survey. The user can optionally supply a
+	 * version. If the version is given, that indicates that the user wishes to
+	 * follow a specific version of the stream. If a version is not given, that
+	 * indicates that a user wishes to follow the latest version of the stream.
+	 * 
+	 * @param token
+	 *        The requesting user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user-name of the user that is following this survey. For now,
+	 *        a user may only update their own profile, so this must match the
+	 *        authentication token's user.
+	 * 
+	 * @param surveyReference
+	 *        A reference to the survey that must include the survey's unique
+	 *        identifier and may include a specific version of the survey.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
+		method = RequestMethod.POST)
+	public static @ResponseBody void followSurvey(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@RequestBody final SchemaReference surveyReference) {
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to track a survey.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		// TODO: Implement surveys, remove this, and un-comment below it.
+		throw new InvalidArgumentException("Surveys are not yet implemented.");
+		
+//		LOGGER.log(Level.FINE, "Retrieving the survey.");
+//		Survey survey;
+//		if(surveyReference.getVersion() == null) {
+//			survey =
+//				SurveyBin
+//					.getInstance()
+//					.getLatestSurvey(surveyReference.getSchemaId());
+//		}
+//		else {
+//			survey =
+//				SurveyBin
+//					.getInstance()
+//					.getSurvey(
+//						surveyReference.getSchemaId(),
+//						surveyReference.getVersion());
+//		}
+//		
+//		LOGGER.log(Level.INFO, "Verifying that the survey exists.");
+//		if(survey == null) {
+//			throw
+//				new InvalidArgumentException("The survey does not exist.");
+//		}
+//		
+//		LOGGER
+//			.log(
+//				Level.INFO,
+//				"Adding the stream to the list of surveys being followed.");
+//		User.Builder updatedUserBuilder = new User.Builder(user);
+//		updatedUserBuilder.addSurvey(surveyReference);
+//		User updatedUser = updatedUserBuilder.build();
+//		
+//		LOGGER.log(Level.INFO, "Storing the updated user.");
+//		UserBin.getInstance().updateUser(updatedUser);
+	}
+	
+	/**
+	 * Retrieves the set of surveys that this user is watching.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the user's authentication token was sent as a
+	 *        parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name, which, for now, must match the
+	 *        authentication token.
+	 * 
+	 * @return The set of survey references that this user is watching.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
+		method = RequestMethod.GET)
+	public static @ResponseBody Set<SchemaReference> getFollowedSurveys(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to view surveys they are " +
+					"following.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		LOGGER.log(Level.INFO, "Returning the set of survey references.");
+		return user.getSurveys();
+	}
+	
+	/**
+	 * Stops a user from following a survey.
+	 * 
+	 * @param token
+	 *        The requesting user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user-name of the user that is following this survey. For now,
+	 *        a user may only update their own profile, so this must match the
+	 *        authentication token's user.
+	 * 
+	 * @param surveyReference
+	 *        A reference to the survey that must include the survey's unique
+	 *        identifier and may include a specific version of the survey.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
+		method = RequestMethod.DELETE)
+	public static @ResponseBody void forgetSurvey(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@RequestBody final SchemaReference surveyReference) {
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to stop tracking a survey.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is updating their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only modify their own accounts.");
+		}
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Adding the stream to the list of surveys being followed.");
+		User.Builder updatedUserBuilder = new User.Builder(user);
+		updatedUserBuilder.removeSurvey(surveyReference);
+		User updatedUser = updatedUserBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Storing the updated user.");
+		UserBin.getInstance().updateUser(updatedUser);
 	}
 	
 	/**

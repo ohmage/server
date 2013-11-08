@@ -51,7 +51,8 @@ public class MongoAuthenticationToken
 	 *        The time when the token expires.
 	 * 
 	 * @param internalVersion
-	 *        The internal version of this authentication token.
+	 *        The internal version of this entity used for checking for update
+	 *        collisions.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         The token and/or user-name are null, the token is being granted

@@ -6,6 +6,8 @@ import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
 import org.ohmage.domain.Community;
+import org.ohmage.domain.Community.PrivacyState;
+import org.ohmage.domain.Community.Role;
 import org.ohmage.mongodb.bin.MongoCommunityBin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,31 +48,56 @@ public class MongoCommunity extends Community implements MongoDbObject {
 	 * @param schemas
 	 *        The schemas that define this community.
 	 * 
-	 * @param triggers
-	 *        The triggers for this community.
+	 * @param reminders
+	 *        The list of default reminders for users that download this
+	 *        community.
+	 * 
+	 * @param members
+	 *        The members of this community.
+	 * 
+	 * @param privacyState
+	 *        The {@link PrivacyState} of this community.
+	 * 
+	 * @param inviteRole
+	 *        The minimum required {@link Role} to invite other users to this
+	 *        community.
+	 * 
+	 * @param visibilityRole
+	 *        The minimum required {@link Role} to view data supplied by the
+	 *        members of this community.
+	 * 
+	 * @param internalVersion
+	 *        The internal version of this entity used for checking for update
+	 *        collisions.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         A required parameter was missing or any parameter was invalid.
 	 */
 	protected MongoCommunity(
 		@Id @ObjectId final String dbId, 
-		@JsonProperty(JSON_KEY_ID) final String communityId,
+		@JsonProperty(JSON_KEY_ID) final String id,
 		@JsonProperty(JSON_KEY_NAME) final String name,
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
-		@JsonProperty(JSON_KEY_OWNER) final String owner,
 		@JsonProperty(JSON_KEY_STREAMS) final List<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final List<SchemaReference> surveys,
-		@JsonProperty(JSON_KEY_TRIGGERS) final List<String> triggers,
-		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final long internalVersion) {
+		@JsonProperty(JSON_KEY_REMINDERS) final List<String> reminders,
+		@JsonProperty(JSON_KEY_MEMBERS) final List<Member> members,
+		@JsonProperty(JSON_KEY_PRIVACY_STATE) final PrivacyState privacyState,
+		@JsonProperty(JSON_KEY_INVITE_ROLE) final Role inviteRole,
+		@JsonProperty(JSON_KEY_VISIBILITY_ROLE) final Role visibilityRole,
+		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion) {
 		
 		super(
-			communityId, 
+			id, 
 			name, 
-			description, 
-			owner, 
+			description,
 			streams, 
 			surveys, 
-			triggers, 
+			reminders,
+			members,
+			privacyState,
+			inviteRole,
+			visibilityRole,
 			internalVersion);
 		
 		// Store the MongoDB ID.

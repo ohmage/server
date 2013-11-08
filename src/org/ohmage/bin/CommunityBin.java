@@ -53,12 +53,17 @@ public abstract class CommunityBin {
 	/**
 	 * Returns a list of the visible community IDs.
 	 * 
+	 * @param username
+	 *        The user-name of the user making the request.
+	 * 
 	 * @param query
 	 *        A value that should appear in either the name or description.
 	 * 
 	 * @return A list of the visible community IDs.
 	 */
-	public abstract List<String> getCommunityIds(final String query);
+	public abstract List<String> getCommunityIds(
+		final String username,
+		final String query);
 	
 	/**
 	 * Returns a Community object for the desired community.
@@ -72,6 +77,32 @@ public abstract class CommunityBin {
 	 *         The community ID is null.
 	 */
 	public abstract Community getCommunity(
+		final String communityId)
+		throws IllegalArgumentException;
+	
+	/**
+	 * Updates the community in the database.
+	 * 
+	 * @param community
+	 *        The updated Community object.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The community is null.
+	 */
+	public abstract void updateCommunity(
+		final Community community)
+		throws IllegalArgumentException;
+	
+	/**
+	 * Deletes the given community.
+	 * 
+	 * @param communityId
+	 *        The unique identifier for the community to delete.
+	 * 
+	 * @throws IllegalArgumentException
+	 *         The community identifier is null.
+	 */
+	public abstract void deleteCommunity(
 		final String communityId)
 		throws IllegalArgumentException;
 }

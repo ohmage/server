@@ -25,12 +25,12 @@ import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.mongodb.domain.MongoCommunity;
 import org.ohmage.mongodb.domain.MongoUser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 import com.mongodb.WriteConcern;
@@ -55,7 +55,7 @@ public class MongoUserBin extends UserBin {
 	private static final ObjectMapper JSON_MAPPER;
 	static {
 		// Create the object mapper.
-		ObjectMapper mapper = new ObjectMapper();
+		ObjectMapper mapper = MongoBinController.getObjectMapper();
 		
 		// Create the FilterProvider.
 		SimpleFilterProvider filterProvider = new SimpleFilterProvider();
@@ -68,15 +68,40 @@ public class MongoUserBin extends UserBin {
 	}	
 	
 	/**
+	 * Get the connection to the community bin with the Jackson wrapper.
+	 */
+	private static final JacksonDBCollection<User, Object> COLLECTION =
+		JacksonDBCollection
+			.wrap(
+				MongoBinController
+					.getInstance()
+					.getDb()
+					.getCollection(COLLECTION_NAME),
+				User.class,
+				Object.class,
+				JSON_MAPPER);
+	
+	/**
+	 * Get the connection to the community bin with the Jackson wrapper,
+	 * specifically for {@link MongoCommunity} objects.
+	 */
+	private static final JacksonDBCollection<MongoUser, Object> MONGO_COLLECTION =
+		JacksonDBCollection
+			.wrap(
+				MongoBinController
+					.getInstance()
+					.getDb()
+					.getCollection(COLLECTION_NAME),
+				MongoUser.class,
+				Object.class,
+				JSON_MAPPER);
+	
+	/**
 	 * Default constructor that creates any tables and indexes if necessary.
 	 */
 	protected MongoUserBin() {
-		// Get the collection to add indexes to.
-		DBCollection collection =
-			MongoBinController.getInstance().getDb().getCollection(COLLECTION_NAME);
-		
 		// Ensure that there is an index on the username.
-		collection
+		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(User.JSON_KEY_USERNAME, 1),
 				COLLECTION_NAME + "_" + User.JSON_KEY_USERNAME + "_unique",
@@ -97,20 +122,9 @@ public class MongoUserBin extends UserBin {
 			throw new IllegalArgumentException("The user is null.");
 		}
 		
-		// Get the user collection.
-		JacksonDBCollection<User, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					User.class,
-					Object.class,
-					JSON_MAPPER);
-		
 		// Attempt to add the user.
 		try {
-			collection.insert(user, WriteConcern.REPLICA_ACKNOWLEDGED);
+			COLLECTION.insert(user);
 		}
 		// If the user already exists, throw an exception.
 		catch(MongoException.DuplicateKey e) {
@@ -132,17 +146,6 @@ public class MongoUserBin extends UserBin {
 			throw new IllegalArgumentException("The username is null.");
 		}
 		
-		// Get the user collection.
-		JacksonDBCollection<MongoUser, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					MongoUser.class,
-					Object.class,
-					JSON_MAPPER);
-		
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 		
@@ -150,7 +153,7 @@ public class MongoUserBin extends UserBin {
 		queryBuilder.and(MongoUser.JSON_KEY_USERNAME).is(username);
 		
 		// Execute the query.
-		return collection.findOne(queryBuilder.get());
+		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
 
 	/*
@@ -169,17 +172,6 @@ public class MongoUserBin extends UserBin {
 		if(userId == null) {
 			throw new IllegalArgumentException("The user ID is null.");
 		}
-		
-		// Get the user collection.
-		JacksonDBCollection<MongoUser, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					MongoUser.class,
-					Object.class,
-					JSON_MAPPER);
 
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
@@ -201,7 +193,7 @@ public class MongoUserBin extends UserBin {
 			.is(userId);
 		
 		// Execute the query.
-		return collection.findOne(queryBuilder.get());
+		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
 	
 	/*
@@ -213,17 +205,6 @@ public class MongoUserBin extends UserBin {
 		if(user == null) {
 			throw new IllegalArgumentException("The user is null.");
 		}
-		
-		// Get the user collection.
-		JacksonDBCollection<User, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					User.class,
-					Object.class,
-					JSON_MAPPER);
 		
 		// Create the query.
 		// Limit the query only to this user.
@@ -237,7 +218,7 @@ public class MongoUserBin extends UserBin {
 		// Commit the update and don't return until the collection has heard
 		// the result.
 		WriteResult<User, Object> result =
-			collection
+			COLLECTION
 				.update(
 					query,
 					user,
@@ -267,20 +248,9 @@ public class MongoUserBin extends UserBin {
 			throw new IllegalArgumentException("The username is null.");
 		}
 		
-		// Get the user collection.
-		JacksonDBCollection<MongoUser, Object> collection =
-			JacksonDBCollection
-				.wrap(
-					MongoBinController.getInstance()
-						.getDb()
-						.getCollection(COLLECTION_NAME),
-					MongoUser.class,
-					Object.class,
-					JSON_MAPPER);
-		
 		// FIXME: For testing purposes, this actually deletes the object. In
 		// the future, we will probably want to simply mark the account as
 		// deleted.
-		collection.remove(DBQuery.is(User.JSON_KEY_USERNAME, username));
+		COLLECTION.remove(DBQuery.is(User.JSON_KEY_USERNAME, username));
 	}
 }

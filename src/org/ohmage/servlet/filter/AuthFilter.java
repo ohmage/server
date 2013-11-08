@@ -343,34 +343,25 @@ public class AuthFilter implements Filter {
 		final Boolean authenticationTokenIsFromParameters)
 		throws AuthenticationException {
 		
-		// Be sure that at least one of the two, authentication or
-		// authorization, tokens were given.
-		if(
-			(
-				(authenticationToken == null) ||
-				INVALID_AUTHENTICATION_TOKEN.equals(authenticationToken)
-			)
-			&&
+		// First, check if the authorization token was given, and, if so,
+		// return the user associated with the token.
+		if(!
 			(
 				(authorizationToken == null) ||
 				INVALID_AUTHORIZATION_TOKEN.equals(authorizationToken)
 			)) {
 			
-			throw
-				new AuthenticationException(
-					"No authentication credentials were given.");
-		}
-		
-		// First, check if the authorization token was given, and, if so,
-		// return the user associated with the token.
-		if(! INVALID_AUTHORIZATION_TOKEN.equals(authorizationToken)) {
 			// FIXME: This should dereference the authorization token and
 			// return the user that owns it.
 			return null;
 		}
-		
 		// Then, check if the authentication token was given.
-		if(! INVALID_AUTHENTICATION_TOKEN.equals(authenticationToken)) {
+		else if(!
+			(
+				(authenticationToken == null) ||
+				INVALID_AUTHENTICATION_TOKEN.equals(authenticationToken)
+			)) {
+			
 			// Verify that, if the flag was given, it is true.
 			if(
 				(authenticationTokenIsFromParameters != null) &&
@@ -384,10 +375,12 @@ public class AuthFilter implements Filter {
 			// Return the user associated with the token.
 			return authenticationToken.getUser();
 		}
-		
-		// This cannot happen.
-		throw
-			new IllegalStateException(
-				"One of the two tokens exists, except not really.");
+		// Otherwise, neither token was given, so we return a more generic
+		// error.
+		else {	
+			throw
+				new AuthenticationException(
+					"No authentication credentials were given.");
+		}
 	}
 }

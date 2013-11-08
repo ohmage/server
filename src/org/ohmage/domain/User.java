@@ -1,12 +1,16 @@
 package org.ohmage.domain;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.mindrot.jbcrypt.BCrypt;
+import org.ohmage.domain.Community.SchemaReference;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.MapValuesJsonSerializer;
@@ -56,6 +60,20 @@ public class User extends OhmageDomainObject {
 		 */
 		protected Map<String, ProviderUserInformation> providers =
 			new HashMap<String, ProviderUserInformation>();
+		/**
+		 * The collection of communities to which this user has subscribed.
+		 */
+		private Map<String, CommunityReference> communities;
+		/**
+		 * The set of streams and, optionally, a version of each stream that
+		 * the user is tracking.
+		 */
+		private Set<SchemaReference> streams;
+		/**
+		 * The set of surveys and, optionally, a version of each survey that
+		 * the user is tracking.
+		 */
+		private Set<SchemaReference> surveys;
 		
 		/**
 		 * Creates a new builder with the outward-facing allowed parameters.
@@ -100,6 +118,9 @@ public class User extends OhmageDomainObject {
 			this.email = user.email;
 			this.fullName = user.fullName;
 			this.providers = user.providers;
+			this.communities = user.communities;
+			this.streams = user.streams;
+			this.surveys = user.surveys;
 		}
 		
 		/**
@@ -258,6 +279,125 @@ public class User extends OhmageDomainObject {
 		}
 		
 		/**
+		 * Adds a community to the list of communities being watched by this
+		 * user.
+		 * 
+		 * @param communityReference
+		 *        The information referencing the community and the user's
+		 *        specific view of the community.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder addCommunity(
+			final CommunityReference communityReference) {
+			
+			if(communities == null) {
+				communities = new HashMap<String, CommunityReference>();
+			}
+			
+			communities
+				.put(communityReference.getCommunityId(), communityReference);
+			
+			return this;
+		}
+		
+		/**
+		 * Ensures that a user is no longer watching a community.
+		 * 
+		 * @param communityId
+		 *        The community's unique identifier.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder removeCommunity(final String communityId) {
+			if(communities == null) {
+				return this;
+			}
+			
+			communities.remove(communityId);
+			
+			return this;
+		}
+		
+		/**
+		 * Adds a stream to the set of streams being followed by this user.
+		 * 
+		 * @param streamReference
+		 *        The stream's reference.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder addStream(final SchemaReference streamReference) {
+			if(streams == null) {
+				streams = new HashSet<SchemaReference>();
+			}
+			
+			streams.add(streamReference);
+			
+			return this;
+		}
+		
+		/**
+		 * Ensures that a user is no longer following a stream. If a specific
+		 * version is given, the user will no longer be following that version.
+		 * If no version is given, the user will no longer be following the
+		 * latest version but may still be following other, specific versions.
+		 * 
+		 * @param streamReference
+		 *        The reference to the stream.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder removeStream(final SchemaReference streamReference) {
+			if(streams == null) {
+				streams = new HashSet<SchemaReference>();
+			}
+			
+			streams.remove(streamReference);
+			
+			return this;
+		}
+		
+		/**
+		 * Adds a survey to the set of surveys being followed by this user.
+		 * 
+		 * @param surveyReference
+		 *        The survey's reference.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder addSurvey(final SchemaReference surveyReference) {
+			if(surveys == null) {
+				surveys = new HashSet<SchemaReference>();
+			}
+			
+			surveys.add(surveyReference);
+			
+			return this;
+		}
+		
+		/**
+		 * Ensures that a user is no longer following a survey. If a specific
+		 * version is given, the user will no longer be following that version.
+		 * If no version is given, the user will no longer be following the
+		 * latest version but may still be following other, specific versions.
+		 * 
+		 * @param surveyReference
+		 *        The reference to the survey.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder removeSurvey(final SchemaReference surveyReference) {
+			if(surveys == null) {
+				surveys = new HashSet<SchemaReference>();
+			}
+			
+			surveys.remove(surveyReference);
+			
+			return this;
+		}
+		
+		/**
 		 * Creates a {@link User} object based on the state of this builder.
 		 * 
 		 * @return A {@link User} object based on the state of this builder.
@@ -273,8 +413,296 @@ public class User extends OhmageDomainObject {
 					email, 
 					fullName,
 					(providers == null) ? null : providers.values(),
+					(communities == null) ? null : communities.values(),
+					streams,
+					surveys,
 					internalReadVersion, 
 					internalWriteVersion);
+		}
+	}
+	
+	/**
+	 * <p>
+	 * A reference to a community and, optionally, specific streams and surveys
+	 * that that community defines that should be ignored by this user.
+	 * </p>
+	 *
+	 * @author John Jenkins
+	 */
+	public static class CommunityReference {
+		/**
+		 * <p>
+		 * A builder for {@link CommunityReference}s.
+		 * </p>
+		 *
+		 * @author John Jenkins
+		 */
+		public static class Builder {
+			/**
+			 * The community's unique identifier.
+			 */
+			private String communityId;
+			/**
+			 * Specific stream references that should be ignored.
+			 */
+			private Set<SchemaReference> ignoredStreams;
+			/**
+			 * Specific survey references that should be ignored.
+			 */
+			private Set<SchemaReference> ignoredSurveys;
+			
+			/**
+			 * Creates a new builder.
+			 * 
+			 * @param communityId
+			 *        The community's unique identifier.
+			 * 
+			 * @param ignoredStreams
+			 *        The set of stream references that should be ignored.
+			 * 
+			 * @param ignoredSurveys
+			 *        The set of survey references that should be ignored.
+			 */
+			@JsonCreator
+			public Builder(
+				@JsonProperty(JSON_KEY_COMMUNITY_ID) final String communityId,
+				@JsonProperty(JSON_KEY_IGNORED_STREAMS)
+					final Set<SchemaReference> ignoredStreams,
+				@JsonProperty(JSON_KEY_IGNORED_SURVEYS)
+					final Set<SchemaReference> ignoredSurveys) {
+				
+				this.communityId = communityId;
+				this.ignoredStreams = ignoredStreams;
+				this.ignoredSurveys = ignoredSurveys;
+			}
+			
+			/**
+			 * Sets the unique identifier for this community.
+			 * 
+			 * @param communityId
+			 *        The community's unique identifier.
+			 * 
+			 * @return This builder to facilitate chaining.
+			 */
+			public Builder setCommunityId(final String communityId) {
+				this.communityId = communityId;
+				
+				return this;
+			}
+			
+			/**
+			 * Returns the unique identifier for the community.
+			 * 
+			 * @return The unique identifier for the community.
+			 */
+			public String getCommunityId() {
+				return communityId;
+			}
+			
+			/**
+			 * Adds a stream to ignore.
+			 * 
+			 * @param streamReference
+			 *        The reference to the stream that should be ignored.
+			 * 
+			 * @return This builder to facilitate chaining.
+			 */
+			public Builder addStream(final SchemaReference streamReference) {
+				if(ignoredStreams == null) {
+					ignoredStreams = new HashSet<SchemaReference>();
+				}
+				
+				ignoredStreams.add(streamReference);
+				
+				return this;
+			}
+			
+			/**
+			 * Removes a stream that is being ignored, meaning it should now be
+			 * seen by the user.
+			 * 
+			 * @param streamReference
+			 *        The reference to the stream.
+			 * 
+			 * @return This builder to facilitate chaining.
+			 */
+			public Builder removeStream(
+				final SchemaReference streamReference) {
+				
+				if(ignoredStreams == null) {
+					return this;
+				}
+				
+				ignoredStreams.remove(streamReference);
+				
+				return this;
+			}
+			
+			/**
+			 * Adds a survey to be ignored.
+			 * 
+			 * @param surveyReference
+			 *        The reference to the survey that should be ignored.
+			 *        
+			 * @return This builder to facilitate chaining.
+			 */
+			public Builder addSurvey(final SchemaReference surveyReference) {
+				if(ignoredSurveys == null) {
+					ignoredSurveys = new HashSet<SchemaReference>();
+				}
+				
+				ignoredSurveys.add(surveyReference);
+				
+				return this;
+			}
+			
+			/**
+			 * Removes a survey that is being ignored, meaning it should now be
+			 * seen by the user.
+			 * 
+			 * @param surveyReference
+			 *        The reference to the survey.
+			 * 
+			 * @return This builder to facilitate chaining.
+			 */
+			public Builder removeSurvey(
+				final SchemaReference surveyReference) {
+				
+				if(ignoredSurveys == null) {
+					return this;
+				}
+				
+				ignoredSurveys.remove(surveyReference);
+				
+				return this;
+			}
+			
+			/**
+			 * Builds a {@link CommunityReference} based on the state of this
+			 * builder.
+			 * 
+			 * @return A {@link CommunityReference} based on the state of this
+			 *         builder.
+			 * 
+			 * @throws InvalidArgumentException
+			 *         The state of this builder was not valid to build a new
+			 *         {@link CommunityReference} object.
+			 */
+			public CommunityReference build() throws InvalidArgumentException {
+				return
+					new CommunityReference(
+						communityId, 
+						ignoredStreams, 
+						ignoredSurveys);
+			}
+		}
+		
+		/**
+		 * The JSON key for the community's unique identifier.
+		 */
+		public static final String JSON_KEY_COMMUNITY_ID = "community_id";
+		/**
+		 * The JSON key for the set of stream references that should be
+		 * ignored.
+		 */
+		public static final String JSON_KEY_IGNORED_STREAMS =
+			"ignored_streams";
+		/**
+		 * The JSON key for the set of survey references that should be
+		 * ignored.
+		 */
+		public static final String JSON_KEY_IGNORED_SURVEYS =
+			"ignored_surveys";
+		
+		/**
+		 * The unique identifier for the community that this object references.
+		 */
+		@JsonProperty(JSON_KEY_COMMUNITY_ID)
+		private final String communityId;
+		/**
+		 * The set of stream references that the community define(d) that
+		 * should be ignored.
+		 */
+		@JsonProperty(JSON_KEY_IGNORED_STREAMS)
+		private final Set<SchemaReference> ignoredStreams;
+		/**
+		 * The set of survey references that the community define(d) that
+		 * should be ignored.
+		 */
+		@JsonProperty(JSON_KEY_IGNORED_SURVEYS)
+		private final Set<SchemaReference> ignoredSurveys;
+		
+		/**
+		 * Creates a new reference to a community.
+		 * 
+		 * @param communityId
+		 *        The community's unique identifier.
+		 * 
+		 * @param ignoredStreams
+		 *        The set of stream references that are defined by the
+		 *        community but should be ignored.
+		 * 
+		 * @param ignoredSurveys
+		 *        The set of survey references that are defined by the
+		 *        community but should be ignored.
+		 * 
+		 * @throws InvalidArgumentException
+		 *         The community identifier is null.
+		 */
+		@JsonCreator
+		public CommunityReference(
+			@JsonProperty(JSON_KEY_COMMUNITY_ID) final String communityId,
+			@JsonProperty(JSON_KEY_IGNORED_STREAMS)
+				final Set<SchemaReference> ignoredStreams,
+			@JsonProperty(JSON_KEY_IGNORED_SURVEYS)
+				final Set<SchemaReference> ignoredSurveys)
+			throws InvalidArgumentException {
+			
+			if(communityId == null) {
+				throw
+					new InvalidArgumentException("The community ID is null.");
+			}
+			
+			this.communityId = communityId;
+			this.ignoredStreams =
+				(ignoredStreams == null) ?
+					new HashSet<SchemaReference>() :
+					new HashSet<SchemaReference>(ignoredStreams);
+			this.ignoredSurveys =
+				(ignoredSurveys == null) ?
+					new HashSet<SchemaReference>() :
+					new HashSet<SchemaReference>(ignoredSurveys);
+		}
+		
+		/**
+		 * Returns the unique identifier for the community.
+		 * 
+		 * @return The unique identifier for the community.
+		 */
+		public String getCommunityId() {
+			return communityId;
+		}
+		
+		/**
+		 * Returns the streams that the community defines but that should be
+		 * ignored.
+		 * 
+		 * @return The streams that the community defines but that should be
+		 *         ignored.
+		 */
+		public Set<SchemaReference> getIgnoredStreams() {
+			return Collections.unmodifiableSet(ignoredStreams);
+		}
+		
+		/**
+		 * Returns the surveys that the community defines but that should be
+		 * ignored.
+		 * 
+		 * @return The surveys that the community defines but that should be
+		 *         ignored.
+		 */
+		public Set<SchemaReference> getIgnoredSurveys() {
+			return Collections.unmodifiableSet(ignoredSurveys);
 		}
 	}
 	
@@ -327,6 +755,18 @@ public class User extends OhmageDomainObject {
 	 * The JSON key for the list of providers.
 	 */
 	public static final String JSON_KEY_PROVIDERS = "providers";
+	/**
+	 * The JSON key for the communities.
+	 */
+	public static final String JSON_KEY_COMMUNITIES = "communities";
+	/**
+	 * The JSON key for the streams.
+	 */
+	public static final String JSON_KEY_STREAMS = "streams";
+	/**
+	 * The JSON key for the surveys.
+	 */
+	public static final String JSON_KEY_SURVEYS = "surveys";
 
 	/**
 	 * The user's user-name.
@@ -355,6 +795,24 @@ public class User extends OhmageDomainObject {
 	@JsonProperty(JSON_KEY_PROVIDERS)
 	@JsonSerialize(using = MapValuesJsonSerializer.class)
 	private final Map<String, ProviderUserInformation> providers;
+	/**
+	 * The list of communities to which this user has subscribed.
+	 */
+	@JsonProperty(JSON_KEY_COMMUNITIES)
+	@JsonSerialize(using = MapValuesJsonSerializer.class)
+	private final Map<String, CommunityReference> communities;
+	/**
+	 * The set of streams and, optionally, a version associated with each
+	 * stream, that this user is tracking.
+	 */
+	@JsonProperty(JSON_KEY_STREAMS)
+	private final Set<SchemaReference> streams;
+	/**
+	 * The set of surveys and, optionally, a version associated with each
+	 * survey, that this user is tracking.
+	 */
+	@JsonProperty(JSON_KEY_SURVEYS)
+	private final Set<SchemaReference> surveys;
 
 	/**
 	 * Creates a new User object.
@@ -375,6 +833,18 @@ public class User extends OhmageDomainObject {
 	 *        The collection of information about providers that have
 	 *        authenticated this user.
 	 * 
+	 * @param communities
+	 *        The set of communities to which the user is associated and their
+	 *        specific view of that community.
+	 * 
+	 * @param streams
+	 *        A set of stream identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
+	 * @param surveys
+	 *        A set of survey identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
 	 * @throws InvalidArgumentException
 	 *         A required parameter is null or invalid.
 	 */
@@ -383,7 +853,10 @@ public class User extends OhmageDomainObject {
 		final String password,
 		final String email,
 		final String fullName,
-		final List<ProviderUserInformation> providers)
+		final List<ProviderUserInformation> providers,
+		final Set<CommunityReference> communities,
+		final Set<SchemaReference> streams,
+		final Set<SchemaReference> surveys)
 		throws InvalidArgumentException {
 		
 		// Pass through to the builder constructor.
@@ -393,6 +866,9 @@ public class User extends OhmageDomainObject {
 			email,
 			fullName,
 			providers,
+			communities,
+			streams,
+			surveys,
 			null);
 	}
 
@@ -415,6 +891,18 @@ public class User extends OhmageDomainObject {
 	 *        The collection of information about providers that have
 	 *        authenticated this user.
 	 * 
+	 * @param communities
+	 *        The set of communities to which the user is associated and their
+	 *        specific view of that community.
+	 * 
+	 * @param streams
+	 *        A set of stream identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
+	 * @param surveys
+	 *        A set of survey identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
 	 * @param internalVersion
 	 *        The internal version of this entity.
 	 * 
@@ -429,6 +917,10 @@ public class User extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
 		@JsonProperty(JSON_KEY_PROVIDERS)
 			final List<ProviderUserInformation> providers,
+		@JsonProperty(JSON_KEY_COMMUNITIES)
+			final Set<CommunityReference> communities,
+		@JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
+		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws InvalidArgumentException {
 		
@@ -439,6 +931,9 @@ public class User extends OhmageDomainObject {
 			email,
 			fullName,
 			providers,
+			communities,
+			streams,
+			surveys,
 			internalVersion,
 			null);
 	}
@@ -462,6 +957,18 @@ public class User extends OhmageDomainObject {
 	 *        The collection of information about providers that have
 	 *        authenticated this user.
 	 * 
+	 * @param communities
+	 *        The set of communities to which the user is associated and their
+	 *        specific view of that community.
+	 * 
+	 * @param streams
+	 *        A set of stream identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
+	 * @param surveys
+	 *        A set of survey identifiers and, optionally, a version that this
+	 *        user is tracking.
+	 * 
 	 * @param internalReadVersion
 	 *        The version of this entity when it was read from the database.
 	 * 
@@ -478,6 +985,9 @@ public class User extends OhmageDomainObject {
 		final String email,
 		final String fullName,
 		final Collection<ProviderUserInformation> providers,
+		final Collection<CommunityReference> communities,
+		final Set<SchemaReference> streams,
+		final Set<SchemaReference> surveys,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws InvalidArgumentException {
@@ -505,6 +1015,23 @@ public class User extends OhmageDomainObject {
 				this.providers.put(information.getProviderId(), information);
 			}
 		}
+
+		this.communities = new HashMap<String, CommunityReference>();
+		for(CommunityReference communityReference : communities) {
+			this.communities
+				.put(
+					communityReference.getCommunityId(),
+					communityReference);
+		}
+		
+		this.streams =
+			(streams == null) ?
+				new HashSet<SchemaReference>() :
+				new HashSet<SchemaReference>(streams);
+		this.surveys =
+			(surveys == null) ?
+				new HashSet<SchemaReference>() :
+				new HashSet<SchemaReference>(surveys);
 	}
 
 	/**
@@ -572,6 +1099,53 @@ public class User extends OhmageDomainObject {
 			(new Builder(this))
 				.addProvider(information.getProviderId(), information)
 				.build();
+	}
+	
+	/**
+	 * Returns the unmodifiable collection of community IDs that this user is
+	 * watching.
+	 * 
+	 * @return The unmodifiable collection of community IDs that this user is
+	 *         watching.
+	 */
+	public Collection<CommunityReference> getCommunities() {
+		return Collections.unmodifiableCollection(communities.values());
+	}
+	
+	/**
+	 * Returns the community reference associated with this user if such a
+	 * community exists. Otherwise, null is returned.
+	 * 
+	 * @param communityId
+	 *        The community's unique identifier.
+	 * 
+	 * @return The community's reference or null if the user is not associated
+	 *         with the community.
+	 */
+	public CommunityReference getCommunity(final String communityId) {
+		return communities.get(communityId);
+	}
+	
+	/**
+	 * Returns the unmodifiable set of stream references that this user is
+	 * watching.
+	 * 
+	 * @return The unmodifiable set of stream references that this user is
+	 *         watching.
+	 */
+	public Set<SchemaReference> getStreams() {
+		return Collections.unmodifiableSet(streams);
+	}
+	
+	/**
+	 * Returns the unmodifiable set of survey references that this user is
+	 * watching.
+	 * 
+	 * @return The unmodifiable set of survey references that this user is
+	 *         watching.
+	 */
+	public Set<SchemaReference> getSurveys() {
+		return Collections.unmodifiableSet(surveys);
 	}
 
 	/**

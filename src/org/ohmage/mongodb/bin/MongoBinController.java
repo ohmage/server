@@ -9,6 +9,7 @@ import org.mongojack.internal.MongoJackModule;
 import org.ohmage.bin.BinController;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
@@ -51,6 +52,9 @@ public class MongoBinController extends BinController {
 		SimpleFilterProvider filterProvider = new SimpleFilterProvider();
 		filterProvider.setFailOnUnknownId(false);
 		mapper.setFilters(filterProvider);
+		
+		// Ensure that it stores and reads enums using their ordinal value.
+		mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
 		
 		// Finally, we must configure the mapper to work with the MongoJack
 		// configuration.

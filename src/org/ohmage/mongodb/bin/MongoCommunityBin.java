@@ -3,9 +3,14 @@ package org.ohmage.mongodb.bin;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.mongojack.DBQuery;
+import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
 import org.ohmage.bin.CommunityBin;
 import org.ohmage.domain.Community;
+import org.ohmage.domain.User;
+import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.mongodb.domain.MongoCommunity;
@@ -85,7 +90,7 @@ public class MongoCommunityBin extends CommunityBin {
 		
 		// Save it.
 		try {
-			COLLECTION.insert(community, WriteConcern.REPLICA_ACKNOWLEDGED);
+			COLLECTION.insert(community);
 		}
 		catch(MongoException.DuplicateKey e) {
 			throw
@@ -96,34 +101,64 @@ public class MongoCommunityBin extends CommunityBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.CommunityBin#getCommunityIds(java.lang.String)
+	 * @see org.ohmage.bin.CommunityBin#getCommunityIds(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public List<String> getCommunityIds(final String query) {
+	public List<String> getCommunityIds(
+		final String username,
+		final String query) {
+		
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
+		
+		// Be sure that they are visible.
+		queryBuilder
+			.and(
+				QueryBuilder
+					.start()
+					.or(
+						// Either, the community's privacy state must be
+						// INVITE_ONLY+.
+						QueryBuilder
+							.start()
+							.and(Community.JSON_KEY_PRIVACY_STATE)
+							.greaterThanEquals(
+								Community.PrivacyState.INVITE_ONLY.ordinal())
+							.get(),
+						// Or, the user must already be a member.
+						QueryBuilder
+							.start()
+							.and(Community.JSON_KEY_MEMBERS +
+								"." +
+								Community.Member.JSON_KEY_MEMBER_ID)
+							.is(username)
+							.get())
+				.get());
 				
 		// If given, add the query for the name and description.
 		if(query != null) {
 			// Build the query pattern.
 			Pattern queryPattern = Pattern.compile(".*" + query + ".*");
 			
-			// Create a query builder for the name portion.
-			QueryBuilder nameQueryBuilder = QueryBuilder.start();
-			
-			// Add the name.
-			nameQueryBuilder.and(Stream.JSON_KEY_NAME).regex(queryPattern);
-			
-			// Create a query builder for the version protion.
-			QueryBuilder versionQueryBuilder = QueryBuilder.start();
-			
-			// Add the version.
-			versionQueryBuilder
-				.and(Stream.JSON_KEY_VERSION)
-				.regex(queryPattern);
-			
-			// Add the name and version queries to the root query.
-			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
+			// Add the query fields.
+			queryBuilder
+				.and(
+					QueryBuilder
+						.start()
+						.or(
+							// Add the query for the name.
+							QueryBuilder
+								.start()
+								.and(Stream.JSON_KEY_NAME)
+								.regex(queryPattern)
+								.get(),
+							// Add the query for the description.
+							QueryBuilder
+								.start()
+								.and(Stream.JSON_KEY_VERSION)
+								.regex(queryPattern)
+								.get())
+						.get());
 		}
 		
 		// Get the list of results.
@@ -156,5 +191,69 @@ public class MongoCommunityBin extends CommunityBin {
 		
 		// Execute query.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.bin.CommunityBin#updateCommunity(org.ohmage.domain.Community)
+	 */
+	@Override
+	public void updateCommunity(
+		final Community community)
+		throws IllegalArgumentException {
+		
+		if(community == null) {
+			throw new IllegalArgumentException("The community is null.");
+		}
+
+		// Create the query.
+		// Limit the query only to this community.
+		Query query = DBQuery.is(Community.JSON_KEY_ID, community.getId());
+		// Ensure that the community has not been updated elsewhere.
+		query =
+			query
+				.is(User.JSON_KEY_INTERNAL_VERSION,
+					community.getInternalReadVersion());
+		
+		// Commit the update and don't return until the collection has heard
+		// the result.
+		WriteResult<Community, Object> result =
+			COLLECTION
+				.update(
+					query,
+					community,
+					false,
+					false,
+					WriteConcern.REPLICA_ACKNOWLEDGED);
+		
+		// Be sure that at least one document was updated.
+		if(result.getN() == 0) {
+			throw
+				new InconsistentDatabaseException(
+					"A conflict occurred. Please, try again.");
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.bin.CommunityBin#deleteCommunity(java.lang.String)
+	 */
+	@Override
+	public void deleteCommunity(String communityId)
+		throws IllegalArgumentException {
+		
+		// Validate the input.
+		if(communityId == null) {
+			throw new IllegalArgumentException("The community ID is null.");
+		}
+		
+		// Build the query
+		QueryBuilder queryBuilder = QueryBuilder.start();
+		
+		// Add the community ID.
+		queryBuilder.and(Community.JSON_KEY_ID).is(communityId);
+		
+		// Delete the community.
+		COLLECTION.remove(queryBuilder.get());
 	}
 }
