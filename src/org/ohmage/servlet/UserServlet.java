@@ -16,6 +16,7 @@ import org.ohmage.domain.Community;
 import org.ohmage.domain.Community.SchemaReference;
 import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
+import org.ohmage.domain.User.CommunityReference;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -606,6 +607,364 @@ public class UserServlet {
 		
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
+	}
+	
+	/**
+	 * For a specific user, marks a community's stream as being ignored meaning
+	 * that, unless followed in another community, it should not be displayed
+	 * to the user.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the authentication token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name that should be ignoring the stream.
+	 * 
+	 * @param communityId
+	 *        The unique identifier for the community in which the stream is
+	 *        referenced.
+	 * 
+	 * @param streamReference
+	 *        The reference for the stream that the community is referencing
+	 *        and that the user wants to ignore.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			User.JSON_KEY_COMMUNITIES + "/" +
+			"{" + Community.JSON_KEY_ID + "}" +
+			"/" +
+			CommunityReference.JSON_KEY_IGNORED_STREAMS,
+		method = RequestMethod.POST)
+	public static @ResponseBody void ignoreCommunityStream(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@RequestBody final SchemaReference streamReference) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to ignore a stream reference " +
+					"in a community.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is reading their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only read their own accounts.");
+		}
+		
+		LOGGER
+			.log(
+				Level.FINE,
+				"Retrieving the community reference for the user.");
+		CommunityReference communityReference = user.getCommunity(communityId);
+		
+		LOGGER
+			.log(Level.INFO, "Checking if the user is part of the community.");
+		if(communityReference == null) {
+			throw 
+				new InvalidArgumentException(
+					"The user is not part of the community.");
+		}
+		
+		LOGGER.log(Level.FINE, "Creating a new community reference.");
+		CommunityReference.Builder communityReferenceBuilder =
+			new CommunityReference.Builder(communityReference);
+		communityReferenceBuilder.addStream(streamReference);
+		CommunityReference newCommunityReference =
+			communityReferenceBuilder.build();
+		
+		LOGGER.log(Level.FINE, "Creating a new user object.");
+		User.Builder userBuilder = new User.Builder(user);
+		userBuilder.upsertCommunity(newCommunityReference);
+		User newUser = userBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Updating the user object.");
+		UserBin.getInstance().updateUser(newUser);
+	}
+	
+	/**
+	 * For a specific user, removes the mark on a community's stream that was
+	 * causing it to be ignored. The user should again see this stream. If the
+	 * user was not ignoring the stream before this call, it will essentially
+	 * have no impact.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the authentication token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name that should stop ignoring the stream.
+	 * 
+	 * @param communityId
+	 *        The unique identifier for the community in which the stream is
+	 *        referenced.
+	 * 
+	 * @param streamReference
+	 *        The reference for the stream that the community is referencing
+	 *        and that the user wants to stop ignoring.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			User.JSON_KEY_COMMUNITIES + "/" +
+			"{" + Community.JSON_KEY_ID + "}" +
+			"/" +
+			CommunityReference.JSON_KEY_IGNORED_STREAMS,
+		method = RequestMethod.DELETE)
+	public static @ResponseBody void stopIgnoringCommunityStream(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@RequestBody final SchemaReference streamReference) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to stop ignoring a stream " +
+					"reference in a community.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is reading their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only read their own accounts.");
+		}
+		
+		LOGGER
+			.log(
+				Level.FINE,
+				"Retrieving the community reference for the user.");
+		CommunityReference communityReference = user.getCommunity(communityId);
+		
+		LOGGER
+			.log(Level.INFO, "Checking if the user is part of the community.");
+		if(communityReference == null) {
+			throw 
+				new InvalidArgumentException(
+					"The user is not part of the community.");
+		}
+		
+		LOGGER.log(Level.FINE, "Creating a new community reference.");
+		CommunityReference.Builder communityReferenceBuilder =
+			new CommunityReference.Builder(communityReference);
+		communityReferenceBuilder.removeStream(streamReference);
+		CommunityReference newCommunityReference =
+			communityReferenceBuilder.build();
+		
+		LOGGER.log(Level.FINE, "Creating a new user object.");
+		User.Builder userBuilder = new User.Builder(user);
+		userBuilder.upsertCommunity(newCommunityReference);
+		User newUser = userBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Updating the user object.");
+		UserBin.getInstance().updateUser(newUser);
+	}
+	
+	/**
+	 * For a specific user, marks a community's survey as being ignored meaning
+	 * that, unless followed in another community, it should not be displayed
+	 * to the user.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the authentication token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name that should be ignoring the survey.
+	 * 
+	 * @param communityId
+	 *        The unique identifier for the community in which the survey is
+	 *        referenced.
+	 * 
+	 * @param surveyReference
+	 *        The reference for the survey that the community is referencing
+	 *        and that the user wants to ignore.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			User.JSON_KEY_COMMUNITIES + "/" +
+			"{" + Community.JSON_KEY_ID + "}" +
+			"/" +
+			CommunityReference.JSON_KEY_IGNORED_SURVEYS,
+		method = RequestMethod.POST)
+	public static @ResponseBody void ignoreCommunitySurvey(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@RequestBody final SchemaReference surveyReference) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to ignore a survey reference " +
+					"in a community.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is reading their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only read their own accounts.");
+		}
+		
+		LOGGER
+			.log(
+				Level.FINE,
+				"Retrieving the community reference for the user.");
+		CommunityReference communityReference = user.getCommunity(communityId);
+		
+		LOGGER
+			.log(Level.INFO, "Checking if the user is part of the community.");
+		if(communityReference == null) {
+			throw 
+				new InvalidArgumentException(
+					"The user is not part of the community.");
+		}
+		
+		LOGGER.log(Level.FINE, "Creating a new community reference.");
+		CommunityReference.Builder communityReferenceBuilder =
+			new CommunityReference.Builder(communityReference);
+		communityReferenceBuilder.addSurvey(surveyReference);
+		CommunityReference newCommunityReference =
+			communityReferenceBuilder.build();
+		
+		LOGGER.log(Level.FINE, "Creating a new user object.");
+		User.Builder userBuilder = new User.Builder(user);
+		userBuilder.upsertCommunity(newCommunityReference);
+		User newUser = userBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Updating the user object.");
+		UserBin.getInstance().updateUser(newUser);
+	}
+	
+	/**
+	 * For a specific user, removes the mark on a community's survey that was
+	 * causing it to be ignored. The user should again see this survey. If the
+	 * user was not ignoring the survey before this call, it will essentially
+	 * have no impact.
+	 * 
+	 * @param token
+	 *        The user's authentication token.
+	 * 
+	 * @param tokenIsParam
+	 *        Whether or not the authentication token was given as a parameter.
+	 * 
+	 * @param username
+	 *        The user's user-name that should stop ignoring the survey.
+	 * 
+	 * @param communityId
+	 *        The unique identifier for the community in which the survey is
+	 *        referenced.
+	 * 
+	 * @param surveyReference
+	 *        The reference for the survey that the community is referencing
+	 *        and that the user wants to stop ignoring.
+	 */
+	@RequestMapping(
+		value =
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			User.JSON_KEY_COMMUNITIES + "/" +
+			"{" + Community.JSON_KEY_ID + "}" +
+			"/" +
+			CommunityReference.JSON_KEY_IGNORED_SURVEYS,
+		method = RequestMethod.DELETE)
+	public static @ResponseBody void stopIgnoringCommunitySurvey(
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
+			final AuthenticationToken token,
+		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
+			final boolean tokenIsParam,
+		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@RequestBody final SchemaReference surveyReference) {
+				
+		LOGGER
+			.log(
+				Level.INFO,
+				"Creating a request for a user to stop ignoring a survey " +
+					"reference in a community.");
+		
+		LOGGER
+			.log(Level.INFO, "Retrieving the user associated with the token.");
+		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+		
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the user is reading their own profile.");
+		if(! user.getUsername().equals(username)) {
+			throw
+				new InsufficientPermissionsException(
+					"Users may only read their own accounts.");
+		}
+		
+		LOGGER
+			.log(
+				Level.FINE,
+				"Retrieving the community reference for the user.");
+		CommunityReference communityReference = user.getCommunity(communityId);
+		
+		LOGGER
+			.log(Level.INFO, "Checking if the user is part of the community.");
+		if(communityReference == null) {
+			throw 
+				new InvalidArgumentException(
+					"The user is not part of the community.");
+		}
+		
+		LOGGER.log(Level.FINE, "Creating a new community reference.");
+		CommunityReference.Builder communityReferenceBuilder =
+			new CommunityReference.Builder(communityReference);
+		communityReferenceBuilder.removeSurvey(surveyReference);
+		CommunityReference newCommunityReference =
+			communityReferenceBuilder.build();
+		
+		LOGGER.log(Level.FINE, "Creating a new user object.");
+		User.Builder userBuilder = new User.Builder(user);
+		userBuilder.upsertCommunity(newCommunityReference);
+		User newUser = userBuilder.build();
+		
+		LOGGER.log(Level.INFO, "Updating the user object.");
+		UserBin.getInstance().updateUser(newUser);
 	}
 	
 	/**

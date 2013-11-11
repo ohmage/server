@@ -302,6 +302,24 @@ public class User extends OhmageDomainObject {
 		}
 		
 		/**
+		 * Updates a reference to a community.
+		 * 
+		 * @param communityReference
+		 *        The reference to the community. If no such reference already
+		 *        exists, then a new one is created.
+		 * 
+		 * @return This builder to facilitate chaining.
+		 */
+		public Builder upsertCommunity(
+			final CommunityReference communityReference) {
+			
+			removeCommunity(communityReference.getCommunityId());
+			addCommunity(communityReference);
+			
+			return this;
+		}
+		
+		/**
 		 * Ensures that a user is no longer watching a community.
 		 * 
 		 * @param communityId
@@ -474,6 +492,20 @@ public class User extends OhmageDomainObject {
 				this.communityId = communityId;
 				this.ignoredStreams = ignoredStreams;
 				this.ignoredSurveys = ignoredSurveys;
+			}
+			
+			/**
+			 * Creates a new builder that is initialized with an existing
+			 * community reference.
+			 * 
+			 * @param communityReference
+			 *        An existing {@link CommunityReference} object.
+			 */
+			@JsonCreator
+			public Builder(final CommunityReference communityReference) {
+				this.communityId = communityReference.communityId;
+				this.ignoredStreams = communityReference.ignoredStreams;
+				this.ignoredSurveys = communityReference.ignoredSurveys;
 			}
 			
 			/**

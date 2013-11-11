@@ -364,6 +364,56 @@ public class Community extends OhmageDomainObject {
 		public Long getVersion() {
 			return version;
 		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#hashCode()
+		 */
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result =
+				prime *
+					result +
+					((schemaId == null) ? 0 : schemaId.hashCode());
+			result =
+				prime * result + ((version == null) ? 0 : version.hashCode());
+			return result;
+		}
+
+		/* (non-Javadoc)
+		 * @see java.lang.Object#equals(java.lang.Object)
+		 */
+		@Override
+		public boolean equals(final Object obj) {
+			if(this == obj) {
+				return true;
+			}
+			if(obj == null) {
+				return false;
+			}
+			if(!(obj instanceof SchemaReference)) {
+				return false;
+			}
+			SchemaReference other = (SchemaReference) obj;
+			if(schemaId == null) {
+				if(other.schemaId != null) {
+					return false;
+				}
+			}
+			else if(!schemaId.equals(other.schemaId)) {
+				return false;
+			}
+			if(version == null) {
+				if(other.version != null) {
+					return false;
+				}
+			}
+			else if(!version.equals(other.version)) {
+				return false;
+			}
+			return true;
+		}
 	}
 	
 	/**
