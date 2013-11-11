@@ -6,7 +6,7 @@ import java.util.Set;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.Community.SchemaReference;
+import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
 import org.ohmage.mongodb.bin.MongoUserBin;
@@ -53,7 +53,7 @@ public class MongoUser extends User implements MongoDbObject {
 	 * 
 	 * @param communities
 	 *        The set of communities to which the user is associated and their
-	 *        specific view of that community.
+	 *        specific view of that ohmlet.
 	 * 
 	 * @param streams
 	 *        A set of stream identifiers and, optionally, a version that this
@@ -80,7 +80,7 @@ public class MongoUser extends User implements MongoDbObject {
 		@JsonProperty(JSON_KEY_PROVIDERS)
 			final List<ProviderUserInformation> providers,
 		@JsonProperty(JSON_KEY_COMMUNITIES) final
-			Set<CommunityReference> communities,
+			Set<OhmletReference> communities,
 		@JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)

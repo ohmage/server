@@ -16,53 +16,58 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * <p>
- * A community is a group of schemas, which define the data that the members of
- * the community should be collecting and are sharing with other members of the
- * community.
+ * A ohmlet is a group of schemas, which define the data that the members of
+ * the ohmlet should be collecting and are sharing with other members of the
+ * ohmlet.
  * </p>
  * 
  * @author John Jenkins
  */
-public class Community extends OhmageDomainObject {
+public class Ohmlet extends OhmageDomainObject {
+	/**
+	 * The publicly-facing name of the ohmlet.
+	 */
+	public static final String COMMUNITY_SKIN = "ohmlet";
+	
 	/**
 	 * <p>
-	 * A builder for {@link Community}s.
+	 * A builder for {@link Ohmlet}s.
 	 * </p>
 	 * 
 	 * @author John Jenkins
 	 */
-	public static class Builder extends OhmageDomainObject.Builder<Community> {
+	public static class Builder extends OhmageDomainObject.Builder<Ohmlet> {
 		/**
-		 * The unique identifier for this community.
+		 * The unique identifier for this ohmlet.
 		 */
-		private String communityId;
+		private String ohmletId;
 		/**
-		 * The name of this community.
+		 * The name of this ohmlet.
 		 */
 		private String name;
 		/**
-		 * The description of this community.
+		 * The description of this ohmlet.
 		 */
 		private String description;
 		/**
-		 * The streams for this community.
+		 * The streams for this ohmlet.
 		 */
 		private List<SchemaReference> streams;
 		/**
-		 * The schemas for this community.
+		 * The schemas for this ohmlet.
 		 */
 		private List<SchemaReference> surveys;
 		/**
-		 * The reminders for this community that define when certain surveys
+		 * The reminders for this ohmlet that define when certain surveys
 		 * should be prompted for the user.
 		 */
 		private List<String> reminders;
 		/**
-		 * The members that are part of this community.
+		 * The members that are part of this ohmlet.
 		 */
 		private Map<String, Member> members;
 		/**
-		 * The {@link PrivacyState} of the community.
+		 * The {@link PrivacyState} of the ohmlet.
 		 */
 		private PrivacyState privacyState;
 		/**
@@ -77,40 +82,40 @@ public class Community extends OhmageDomainObject {
 		private Role visibilityRole;
 		
 		/**
-		 * Creates a new Community builder object.
+		 * Creates a new Ohmlet builder object.
 		 * 
 		 * @param name
-		 *        The name of this community.
+		 *        The name of this ohmlet.
 		 * 
 		 * @param description
-		 *        The description of this community.
+		 *        The description of this ohmlet.
 		 * 
 		 * @param owner
-		 *        The creator and subsequent owner of this community.
+		 *        The creator and subsequent owner of this ohmlet.
 		 * 
 		 * @param streams
-		 *        The list of streams that compose this community.
+		 *        The list of streams that compose this ohmlet.
 		 * 
 		 * @param surveys
-		 *        The list of surveys that compose this community.
+		 *        The list of surveys that compose this ohmlet.
 		 * 
 		 * @param reminders
 		 *        The list of default reminders for users that download this
-		 *        community.
+		 *        ohmlet.
 		 * 
 		 * @param members
-		 *        The map of member IDs to their roles of this community.
+		 *        The map of member IDs to their roles of this ohmlet.
 		 * 
 		 * @param privacyState
-		 *        The {@link PrivacyState} of this community.
+		 *        The {@link PrivacyState} of this ohmlet.
 		 * 
 		 * @param inviteRole
 		 *        The minimum required {@link Role} to invite other users to
-		 *        this community.
+		 *        this ohmlet.
 		 * 
 		 * @param visibilityRole
 		 *        The minimum required {@link Role} to view data supplied by
-		 *        the members of this community.
+		 *        the members of this ohmlet.
 		 */
 		public Builder(
 			@JsonProperty(JSON_KEY_NAME) final String name,
@@ -139,25 +144,25 @@ public class Community extends OhmageDomainObject {
 		}
 
 		/**
-		 * Creates a new builder based on an existing Community object.
+		 * Creates a new builder based on an existing Ohmlet object.
 		 * 
-		 * @param community
-		 *        The existing Community object on which this Builder should be
+		 * @param ohmlet
+		 *        The existing Ohmlet object on which this Builder should be
 		 *        based.
 		 */
-		public Builder(final Community community) {
-			super(community);
+		public Builder(final Ohmlet ohmlet) {
+			super(ohmlet);
 			
-			this.communityId = community.communityId;
-			this.name = community.name;
-			this.description = community.description;
-			this.streams = community.streams;
-			this.surveys = community.surveys;
-			this.reminders = community.reminders;
-			this.members = community.members;
-			this.privacyState = community.privacyState;
-			this.inviteRole = community.inviteRole;
-			this.visibilityRole = community.visibilityRole;
+			this.ohmletId = ohmlet.ohmletId;
+			this.name = ohmlet.name;
+			this.description = ohmlet.description;
+			this.streams = ohmlet.streams;
+			this.surveys = ohmlet.surveys;
+			this.reminders = ohmlet.reminders;
+			this.members = ohmlet.members;
+			this.privacyState = ohmlet.privacyState;
+			this.inviteRole = ohmlet.inviteRole;
+			this.visibilityRole = ohmlet.visibilityRole;
 		}
 		
 		/**
@@ -210,10 +215,10 @@ public class Community extends OhmageDomainObject {
 		}
 		
 		/**
-		 * Sets the name of this community.
+		 * Sets the name of this ohmlet.
 		 * 
 		 * @param name
-		 *        The new name for this community.
+		 *        The new name for this ohmlet.
 		 * 
 		 * @return This builder to facilitate chaining.
 		 */
@@ -224,13 +229,13 @@ public class Community extends OhmageDomainObject {
 		}
 		
 		/**
-		 * Adds a member to this community.
+		 * Adds a member to this ohmlet.
 		 * 
 		 * @param username
 		 *        The user's user-name.
 		 * 
 		 * @param role
-		 *        The member's role in the community.
+		 *        The member's role in the ohmlet.
 		 * 
 		 * @return This builder to facilitate chaining.
 		 */
@@ -245,7 +250,7 @@ public class Community extends OhmageDomainObject {
 		}
 		
 		/**
-		 * Removes a user from a community.
+		 * Removes a user from a ohmlet.
 		 * 
 		 * @param username The user-name of the user to remove.
 		 * 
@@ -262,17 +267,17 @@ public class Community extends OhmageDomainObject {
 		}
 		
 		/**
-		 * Creates a new Community object from the state of this builder.
+		 * Creates a new Ohmlet object from the state of this builder.
 		 * 
-		 * @return A new Community object from the state of this builder.
+		 * @return A new Ohmlet object from the state of this builder.
 		 * 
 		 * @throws OhmageException
 		 *         The state of the builder contained invalid fields.
 		 */
-		public Community build() {
+		public Ohmlet build() {
 			return
-				new Community(
-					(communityId == null) ? getRandomId() : communityId,
+				new Ohmlet(
+					(ohmletId == null) ? getRandomId() : ohmletId,
 					name, 
 					description,
 					streams,
@@ -418,14 +423,14 @@ public class Community extends OhmageDomainObject {
 	
 	/**
 	 * <p>
-	 * The roles a user may have within a community.
+	 * The roles a user may have within a ohmlet.
 	 * <p>
 	 *
 	 * @author John Jenkins
 	 */
 	public static enum Role {
 		/**
-		 * A user with this role has requested to become part of the community.
+		 * A user with this role has requested to become part of the ohmlet.
 		 * A user only needs to request access when the {@link PrivacyState} is
 		 * set to {@link PrivacyState#INVITE_ONLY}. A user with suitable
 		 * permission may either invite the user by escalating their
@@ -433,7 +438,7 @@ public class Community extends OhmageDomainObject {
 		 */
 		REQUESTED,
 		/**
-		 * A user with this role has been invited to join the community. This
+		 * A user with this role has been invited to join the ohmlet. This
 		 * can happen at any time, and it is now up to the user to decide to
 		 * escalate their own permission level to {@link Role#MEMBER}.
 		 */
@@ -441,30 +446,30 @@ public class Community extends OhmageDomainObject {
 		/**
 		 * <p>
 		 * The typical role for a user, this role indicates that the user's
-		 * data is visible to some members of the community. However, the
-		 * {@link Community#visibilityRole} indicates the minimum role a user
+		 * data is visible to some members of the ohmlet. However, the
+		 * {@link Ohmlet#visibilityRole} indicates the minimum role a user
 		 * must have to view other users' data.
 		 * </p>
 		 * 
 		 * <p>
-		 * For example, if the community's visibility role is set to
+		 * For example, if the ohmlet's visibility role is set to
 		 * {@link Role#MODERATOR}, a user with the role {@link Role#MODERATOR}
 		 * will be able to see the data that users have shared with this
-		 * community, but users with this role will not. They will only be
+		 * ohmlet, but users with this role will not. They will only be
 		 * supplying data.
 		 * </p>
 		 */
 		MEMBER,
 		/**
 		 * An elevated privilege, this role allows a user to make modifications
-		 * to the state of the community but not delete it. This role is mainly
+		 * to the state of the ohmlet but not delete it. This role is mainly
 		 * for owners that would like to allow other users to modify the
-		 * community without actually having ownership.
+		 * ohmlet without actually having ownership.
 		 */
 		MODERATOR,
 		/**
 		 * The highest privilege for a user, this role allows a user to do
-		 * anything with the community including delete it.
+		 * anything with the ohmlet including delete it.
 		 */
 		OWNER;
 		
@@ -506,18 +511,18 @@ public class Community extends OhmageDomainObject {
 		}
 	}
 	/**
-	 * The absolute minimum allowed role for the {@link Community#inviteRole}.
+	 * The absolute minimum allowed role for the {@link Ohmlet#inviteRole}.
 	 */
 	public static final Role MINIMUM_INVITE_ROLE = Role.MEMBER;
 	/**
 	 * The absolute minimum allowed role for the
-	 * {@link Community#visibilityRole}.
+	 * {@link Ohmlet#visibilityRole}.
 	 */
 	public static final Role MINIMUM_VISIBILITY_ROLE = Role.MEMBER;
 	
 	/**
 	 * <p>
-	 * A member of a community.
+	 * A member of a ohmlet.
 	 * </p>
 	 *
 	 * @author John Jenkins
@@ -538,7 +543,7 @@ public class Community extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_MEMBER_ID)
 		private final String memberId;
 		/**
-		 * The member's community role.
+		 * The member's ohmlet role.
 		 */
 		@JsonProperty(JSON_KEY_ROLE)
 		private final Role role;
@@ -550,7 +555,7 @@ public class Community extends OhmageDomainObject {
 		 *        The member's system-wide unique identifier.
 		 * 
 		 * @param role
-		 *        The member's role in the community.
+		 *        The member's role in the ohmlet.
 		 * 
 		 * @throws InvalidArgumentException
 		 *         The member's identifier or role were null.
@@ -583,9 +588,9 @@ public class Community extends OhmageDomainObject {
 		}
 		
 		/**
-		 * Returns the member's role in the community.
+		 * Returns the member's role in the ohmlet.
 		 * 
-		 * @return The member's role in the community.
+		 * @return The member's role in the ohmlet.
 		 */
 		public Role getRole() {
 			return role;
@@ -594,27 +599,27 @@ public class Community extends OhmageDomainObject {
 	
 	/**
 	 * <p>
-	 * The allowed privacy states of the community.
+	 * The allowed privacy states of the ohmlet.
 	 * </p>
 	 *
 	 * @author John Jenkins
 	 */
 	public static enum PrivacyState {
 		/**
-		 * This privacy state indicates that the community will not be listed
+		 * This privacy state indicates that the ohmlet will not be listed
 		 * or searchable except by those that are members. Only members may
 		 * invite other members.
 		 */
 		PRIVATE,
 		/**
-		 * This privacy state indicates that the community is listed and
-		 * searchable, however, in order to join the community, you must be
+		 * This privacy state indicates that the ohmlet is listed and
+		 * searchable, however, in order to join the ohmlet, you must be
 		 * invited. This can be done by blind invitations by existing members
 		 * or by having the user first request an invitation.
 		 */
 		INVITE_ONLY,
 		/**
-		 * This privacy state indicates that the community is listed and 
+		 * This privacy state indicates that the ohmlet is listed and 
 		 * searchable and that any user may join at any time.
 		 */
 		PUBLIC;
@@ -633,7 +638,7 @@ public class Community extends OhmageDomainObject {
 	/**
 	 * The JSON key for the ID.
 	 */
-	public static final String JSON_KEY_ID = "community_id";
+	public static final String JSON_KEY_ID = "ohmlet_id";
 	/**
 	 * The JSON key for the name.
 	 */
@@ -672,44 +677,44 @@ public class Community extends OhmageDomainObject {
 	public static final String JSON_KEY_VISIBILITY_ROLE = "visibility_role";
 
 	/**
-	 * The unique identifier for this community.
+	 * The unique identifier for this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_ID)
-	private final String communityId;
+	private final String ohmletId;
 	/**
-	 * The name of this community.
+	 * The name of this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_NAME)
 	private final String name;
 	/**
-	 * The description of this community.
+	 * The description of this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_DESCRIPTION)
 	private final String description;
 	/**
-	 * The streams for this community.
+	 * The streams for this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_STREAMS)
 	private final List<SchemaReference> streams;
 	/**
-	 * The surveys for this community.
+	 * The surveys for this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_SURVEYS)
 	private final List<SchemaReference> surveys;
 	/**
-	 * The reminders for this community that define when certain surveys should
+	 * The reminders for this ohmlet that define when certain surveys should
 	 * be prompted for the user.
 	 */
 	@JsonProperty(JSON_KEY_REMINDERS)
 	private final List<String> reminders;
 	/**
-	 * The members that are part of this community.
+	 * The members that are part of this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_MEMBERS)
 	@JsonSerialize(using = MapValuesJsonSerializer.class)
 	private final Map<String, Member> members;
 	/**
-	 * The {@link PrivacyState} of the community.
+	 * The {@link PrivacyState} of the ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_PRIVACY_STATE)
 	private final PrivacyState privacyState;
@@ -727,45 +732,45 @@ public class Community extends OhmageDomainObject {
 	private final Role visibilityRole;
 	
 	/**
-	 * Creates a new community.
+	 * Creates a new ohmlet.
 	 * 
 	 * @param owner
-	 *        The username of the user that is creating this community.
+	 *        The username of the user that is creating this ohmlet.
 	 * 
 	 * @param name
-	 *        The name of this community.
+	 *        The name of this ohmlet.
 	 * 
 	 * @param description
-	 *        The description of this community.
+	 *        The description of this ohmlet.
 	 * 
 	 * @param streams
-	 *        The list of streams that compose this community.
+	 *        The list of streams that compose this ohmlet.
 	 * 
 	 * @param surveys
-	 *        The list of surveys that compose this community.
+	 *        The list of surveys that compose this ohmlet.
 	 * 
 	 * @param reminders
 	 *        The list of default reminders for users that download this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param members
-	 *        The members of this community.
+	 *        The members of this ohmlet.
 	 * 
 	 * @param privacyState
-	 *        The {@link PrivacyState} of this community.
+	 *        The {@link PrivacyState} of this ohmlet.
 	 * 
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
-	 *        members of this community.
+	 *        members of this ohmlet.
 	 * 
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
-	public Community(
+	public Ohmlet(
 		final String name,
 		final String description,
 		final List<SchemaReference> streams,
@@ -793,42 +798,42 @@ public class Community extends OhmageDomainObject {
 	}
 
 	/**
-	 * Recreates an existing community.
+	 * Recreates an existing ohmlet.
 	 * 
 	 * @param id
-	 *        The ID for the community or null for a randomly generated one.
+	 *        The ID for the ohmlet or null for a randomly generated one.
 	 * 
 	 * @param name
-	 *        The name of this community.
+	 *        The name of this ohmlet.
 	 * 
 	 * @param description
-	 *        The description of this community.
+	 *        The description of this ohmlet.
 	 * 
 	 * @param streams
-	 *        The list of streams that compose this community.
+	 *        The list of streams that compose this ohmlet.
 	 * 
 	 * @param surveys
-	 *        The list of surveys that compose this community.
+	 *        The list of surveys that compose this ohmlet.
 	 * 
 	 * @param reminders
-	 *        The reminders for this community.
+	 *        The reminders for this ohmlet.
 	 * 
 	 * @param members
-	 *        The members of this community.
+	 *        The members of this ohmlet.
 	 * 
 	 * @param privacyState
-	 *        The {@link PrivacyState} of this community.
+	 *        The {@link PrivacyState} of this ohmlet.
 	 * 
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
-	 *        members of this community.
+	 *        members of this ohmlet.
 	 * 
 	 * @param internalVersion
-	 *        The internal version of this community.
+	 *        The internal version of this ohmlet.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         The ID is invalid.
@@ -837,7 +842,7 @@ public class Community extends OhmageDomainObject {
 	 *         A parameter is invalid.
 	 */
 	@JsonCreator
-	protected Community(
+	protected Ohmlet(
 		@JsonProperty(JSON_KEY_ID) final String id,
 		@JsonProperty(JSON_KEY_NAME) final String name,
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
@@ -868,47 +873,47 @@ public class Community extends OhmageDomainObject {
 	}
 	
 	/**
-	 * Builds the Community object.
+	 * Builds the Ohmlet object.
 	 * 
 	 * @param id
-	 *        The ID for the community or null for a randomly generated one.
+	 *        The ID for the ohmlet or null for a randomly generated one.
 	 * 
 	 * @param name
-	 *        The name of this community.
+	 *        The name of this ohmlet.
 	 * 
 	 * @param description
-	 *        The description of this community.
+	 *        The description of this ohmlet.
 	 * 
 	 * @param streams
-	 *        The list of streams that compose this community.
+	 *        The list of streams that compose this ohmlet.
 	 * 
 	 * @param surveys
-	 *        The list of surveys that compose this community.
+	 *        The list of surveys that compose this ohmlet.
 	 * 
 	 * @param reminders
 	 *        The list of default reminders for users that download this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param members
-	 *        The members of this community.
+	 *        The members of this ohmlet.
 	 * 
 	 * @param privacyState
-	 *        The {@link PrivacyState} of this community.
+	 *        The {@link PrivacyState} of this ohmlet.
 	 * 
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
-	 *        members of this community.
+	 *        members of this ohmlet.
 	 * 
 	 * @param internalReadVersion
-	 *        The internal version of this community when it was read from the
+	 *        The internal version of this ohmlet when it was read from the
 	 *        database.
 	 * 
 	 * @param internalWriteVersion
-	 *        The new internal version of this community when it will be
+	 *        The new internal version of this ohmlet when it will be
 	 *        written back to the database.
 	 * 
 	 * @throws IllegalArgumentException
@@ -917,7 +922,7 @@ public class Community extends OhmageDomainObject {
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
-	private Community(
+	private Ohmlet(
 		final String id,
 		final String name,
 		final String description,
@@ -983,7 +988,7 @@ public class Community extends OhmageDomainObject {
 		}
 
 		// Save the state.
-		this.communityId = id;
+		this.ohmletId = id;
 		this.name = name;
 		this.description = description;
 		this.streams =
@@ -1009,12 +1014,12 @@ public class Community extends OhmageDomainObject {
 	}
 	
 	/**
-	 * Returns the unique identifier for this community.
+	 * Returns the unique identifier for this ohmlet.
 	 * 
-	 * @return The unique identifier for this community.
+	 * @return The unique identifier for this ohmlet.
 	 */
 	public String getId() {
-		return communityId;
+		return ohmletId;
 	}
 	
 	/**
@@ -1036,37 +1041,37 @@ public class Community extends OhmageDomainObject {
 	}
 	
 	/**
-	 * Returns the privacy state for this community.
+	 * Returns the privacy state for this ohmlet.
 	 * 
-	 * @return The privacy state for this community.
+	 * @return The privacy state for this ohmlet.
 	 */
 	public PrivacyState getPrivacyState() {
 		return privacyState;
 	}
 	
 	/**
-	 * Returns the minimum required role to invite users to this community.
+	 * Returns the minimum required role to invite users to this ohmlet.
 	 * 
-	 * @return The minimum required role to invite users to this community.
+	 * @return The minimum required role to invite users to this ohmlet.
 	 */
 	public Role getInviteRole() {
 		return inviteRole;
 	}
 	
 	/**
-	 * Returns whether or not a user has any role within the community.
+	 * Returns whether or not a user has any role within the ohmlet.
 	 * 
 	 * @param username
 	 *        The user's user-name.
 	 * 
-	 * @return Whether or not a user has any role within the community.
+	 * @return Whether or not a user has any role within the ohmlet.
 	 */
 	public boolean hasRole(final String username) {
 		return members.containsKey(username);
 	}
 	
 	/**
-	 * Returns whether or not a user has a role in the community that is equal
+	 * Returns whether or not a user has a role in the ohmlet that is equal
 	 * to or greater than some specific role.
 	 * 
 	 * @param username
@@ -1094,8 +1099,8 @@ public class Community extends OhmageDomainObject {
 	 * @param username
 	 *        The user's user-name.
 	 * 
-	 * @return The user's role in the community or null if the user has no role
-	 *         in the community.
+	 * @return The user's role in the ohmlet or null if the user has no role
+	 *         in the ohmlet.
 	 */
 	public Role getRole(final String username) {
 		Member member = members.get(username);
@@ -1108,15 +1113,15 @@ public class Community extends OhmageDomainObject {
 	}
 	
 	/**
-	 * Returns whether or not a user is allowed to modify a community. This
+	 * Returns whether or not a user is allowed to modify a ohmlet. This
 	 * includes everything except the the people and their roles within the
-	 * community.
+	 * ohmlet.
 	 * 
 	 * @param username The user's user-name.
 	 * 
-	 * @return True if the user is allowed to modify the community.
+	 * @return True if the user is allowed to modify the ohmlet.
 	 */
-	public boolean canModifyCommunity(final String username) {
+	public boolean canModifyOhmlet(final String username) {
 		return hasRole(username, Role.MODERATOR);
 	}
 }

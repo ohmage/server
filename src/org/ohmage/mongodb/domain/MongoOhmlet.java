@@ -5,22 +5,22 @@ import java.util.List;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.Community;
-import org.ohmage.domain.Community.PrivacyState;
-import org.ohmage.domain.Community.Role;
-import org.ohmage.mongodb.bin.MongoCommunityBin;
+import org.ohmage.domain.Ohmlet;
+import org.ohmage.domain.Ohmlet.PrivacyState;
+import org.ohmage.domain.Ohmlet.Role;
+import org.ohmage.mongodb.bin.MongoOhmletBin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A MongoDB extension of the {@link Community} type.
+ * A MongoDB extension of the {@link Ohmlet} type.
  * </p>
  *
  * @author John Jenkins
  */
-@MongoCollection(name = MongoCommunityBin.COLLECTION_NAME)
-public class MongoCommunity extends Community implements MongoDbObject {
+@MongoCollection(name = MongoOhmletBin.COLLECTION_NAME)
+public class MongoOhmlet extends Ohmlet implements MongoDbObject {
 	/**
 	 * The database ID for this object.
 	 */
@@ -28,43 +28,43 @@ public class MongoCommunity extends Community implements MongoDbObject {
 	private final String dbId;
 
 	/**
-	 * Creates a {@link Community} object via Jackson from the data layer.
+	 * Creates a {@link Ohmlet} object via Jackson from the data layer.
 	 * 
 	 * @param dbId
 	 *        The database ID for this authentication token.
 	 * 
-	 * @param communityId
-	 *        The ID for the community or null for a randomly generated one.
+	 * @param ohmletId
+	 *        The ID for the ohmlet or null for a randomly generated one.
 	 * 
 	 * @param name
-	 *        The name of this community.
+	 *        The name of this ohmlet.
 	 * 
 	 * @param description
-	 *        The description of this community.
+	 *        The description of this ohmlet.
 	 * 
 	 * @param owner
-	 *        The owner of this community.
+	 *        The owner of this ohmlet.
 	 * 
 	 * @param schemas
-	 *        The schemas that define this community.
+	 *        The schemas that define this ohmlet.
 	 * 
 	 * @param reminders
 	 *        The list of default reminders for users that download this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param members
-	 *        The members of this community.
+	 *        The members of this ohmlet.
 	 * 
 	 * @param privacyState
-	 *        The {@link PrivacyState} of this community.
+	 *        The {@link PrivacyState} of this ohmlet.
 	 * 
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
-	 *        community.
+	 *        ohmlet.
 	 * 
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
-	 *        members of this community.
+	 *        members of this ohmlet.
 	 * 
 	 * @param internalVersion
 	 *        The internal version of this entity used for checking for update
@@ -73,7 +73,7 @@ public class MongoCommunity extends Community implements MongoDbObject {
 	 * @throws IllegalArgumentException
 	 *         A required parameter was missing or any parameter was invalid.
 	 */
-	protected MongoCommunity(
+	protected MongoOhmlet(
 		@Id @ObjectId final String dbId, 
 		@JsonProperty(JSON_KEY_ID) final String id,
 		@JsonProperty(JSON_KEY_NAME) final String name,

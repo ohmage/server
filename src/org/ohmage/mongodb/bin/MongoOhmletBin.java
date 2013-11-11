@@ -7,13 +7,13 @@ import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
 import org.mongojack.WriteResult;
-import org.ohmage.bin.CommunityBin;
-import org.ohmage.domain.Community;
+import org.ohmage.bin.OhmletBin;
+import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.User;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
-import org.ohmage.mongodb.domain.MongoCommunity;
+import org.ohmage.mongodb.domain.MongoOhmlet;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
@@ -22,75 +22,75 @@ import com.mongodb.WriteConcern;
 
 /**
  * <p>
- * The MongoDB implementation of the database-backed community repository.
+ * The MongoDB implementation of the database-backed ohmlet repository.
  * </p>
  *
  * @author John Jenkins
  */
-public class MongoCommunityBin extends CommunityBin {
+public class MongoOhmletBin extends OhmletBin {
 	/**
 	 * The name of the collection that contains all of the communities.
 	 */
-	public static final String COLLECTION_NAME = "community_bin";
+	public static final String COLLECTION_NAME = "ohmlet_bin";
 	
 	/**
-	 * Get the connection to the community bin with the Jackson wrapper.
+	 * Get the connection to the ohmlet bin with the Jackson wrapper.
 	 */
-	private static final JacksonDBCollection<Community, Object> COLLECTION =
+	private static final JacksonDBCollection<Ohmlet, Object> COLLECTION =
 		JacksonDBCollection
 			.wrap(
 				MongoBinController
 					.getInstance()
 					.getDb()
 					.getCollection(COLLECTION_NAME),
-				Community.class,
+				Ohmlet.class,
 				Object.class,
 				MongoBinController.getObjectMapper());
 	
 	/**
-	 * Get the connection to the community bin with the Jackson wrapper,
-	 * specifically for {@link MongoCommunity} objects.
+	 * Get the connection to the ohmlet bin with the Jackson wrapper,
+	 * specifically for {@link MongoOhmlet} objects.
 	 */
-	private static final JacksonDBCollection<MongoCommunity, Object> MONGO_COLLECTION =
+	private static final JacksonDBCollection<MongoOhmlet, Object> MONGO_COLLECTION =
 		JacksonDBCollection
 			.wrap(
 				MongoBinController
 					.getInstance()
 					.getDb()
 					.getCollection(COLLECTION_NAME),
-				MongoCommunity.class,
+				MongoOhmlet.class,
 				Object.class,
 				MongoBinController.getObjectMapper());
 	
 	/**
 	 * Default constructor.
 	 */
-	protected MongoCommunityBin() {
+	protected MongoOhmletBin() {
 		// Ensure that there is an index on the ID.
 		COLLECTION
 			.ensureIndex(
-				new BasicDBObject(Community.JSON_KEY_ID, 1),
-				COLLECTION_NAME + "_" + Community.JSON_KEY_ID,
+				new BasicDBObject(Ohmlet.JSON_KEY_ID, 1),
+				COLLECTION_NAME + "_" + Ohmlet.JSON_KEY_ID,
 				false);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.CommunityBin#addCommunity(org.ohmage.domain.Community)
+	 * @see org.ohmage.bin.OhmletBin#addOhmlet(org.ohmage.domain.Ohmlet)
 	 */
 	@Override
-	public void addCommunity(
-		final Community community)
+	public void addOhmlet(
+		final Ohmlet ohmlet)
 		throws IllegalArgumentException, IllegalStateException {
 		
 		// Validate the parameter.
-		if(community == null) {
-			throw new IllegalArgumentException("The community is null.");
+		if(ohmlet == null) {
+			throw new IllegalArgumentException("The ohmlet is null.");
 		}
 		
 		// Save it.
 		try {
-			COLLECTION.insert(community);
+			COLLECTION.insert(ohmlet);
 		}
 		catch(MongoException.DuplicateKey e) {
 			throw
@@ -101,10 +101,10 @@ public class MongoCommunityBin extends CommunityBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.CommunityBin#getCommunityIds(java.lang.String, java.lang.String)
+	 * @see org.ohmage.bin.OhmletBin#getOhmletIds(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public List<String> getCommunityIds(
+	public List<String> getOhmletIds(
 		final String username,
 		final String query) {
 		
@@ -117,20 +117,20 @@ public class MongoCommunityBin extends CommunityBin {
 				QueryBuilder
 					.start()
 					.or(
-						// Either, the community's privacy state must be
+						// Either, the ohmlet's privacy state must be
 						// INVITE_ONLY+.
 						QueryBuilder
 							.start()
-							.and(Community.JSON_KEY_PRIVACY_STATE)
+							.and(Ohmlet.JSON_KEY_PRIVACY_STATE)
 							.greaterThanEquals(
-								Community.PrivacyState.INVITE_ONLY.ordinal())
+								Ohmlet.PrivacyState.INVITE_ONLY.ordinal())
 							.get(),
 						// Or, the user must already be a member.
 						QueryBuilder
 							.start()
-							.and(Community.JSON_KEY_MEMBERS +
+							.and(Ohmlet.JSON_KEY_MEMBERS +
 								"." +
-								Community.Member.JSON_KEY_MEMBER_ID)
+								Ohmlet.Member.JSON_KEY_MEMBER_ID)
 							.is(username)
 							.get())
 				.get());
@@ -164,30 +164,30 @@ public class MongoCommunityBin extends CommunityBin {
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
 		List<String> result =
-			MONGO_COLLECTION.distinct(Community.JSON_KEY_ID, queryBuilder.get());
+			MONGO_COLLECTION.distinct(Ohmlet.JSON_KEY_ID, queryBuilder.get());
 		
 		return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.CommunityBin#getCommunity(java.lang.String, java.lang.Long)
+	 * @see org.ohmage.bin.OhmletBin#getOhmlet(java.lang.String, java.lang.Long)
 	 */
 	@Override
-	public Community getCommunity(
-		final String communityId)
+	public Ohmlet getOhmlet(
+		final String ohmletId)
 		throws IllegalArgumentException {
 		
 		// Validate the input.
-		if(communityId == null) {
-			throw new IllegalArgumentException("The community ID is null.");
+		if(ohmletId == null) {
+			throw new IllegalArgumentException("The ohmlet ID is null.");
 		}
 		
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
 		
-		// Add the community ID.
-		queryBuilder.and(Community.JSON_KEY_ID).is(communityId);
+		// Add the ohmlet ID.
+		queryBuilder.and(Ohmlet.JSON_KEY_ID).is(ohmletId);
 		
 		// Execute query.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
@@ -195,33 +195,33 @@ public class MongoCommunityBin extends CommunityBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.CommunityBin#updateCommunity(org.ohmage.domain.Community)
+	 * @see org.ohmage.bin.OhmletBin#updateOhmlet(org.ohmage.domain.Ohmlet)
 	 */
 	@Override
-	public void updateCommunity(
-		final Community community)
+	public void updateOhmlet(
+		final Ohmlet ohmlet)
 		throws IllegalArgumentException {
 		
-		if(community == null) {
-			throw new IllegalArgumentException("The community is null.");
+		if(ohmlet == null) {
+			throw new IllegalArgumentException("The ohmlet is null.");
 		}
 
 		// Create the query.
-		// Limit the query only to this community.
-		Query query = DBQuery.is(Community.JSON_KEY_ID, community.getId());
-		// Ensure that the community has not been updated elsewhere.
+		// Limit the query only to this ohmlet.
+		Query query = DBQuery.is(Ohmlet.JSON_KEY_ID, ohmlet.getId());
+		// Ensure that the ohmlet has not been updated elsewhere.
 		query =
 			query
 				.is(User.JSON_KEY_INTERNAL_VERSION,
-					community.getInternalReadVersion());
+					ohmlet.getInternalReadVersion());
 		
 		// Commit the update and don't return until the collection has heard
 		// the result.
-		WriteResult<Community, Object> result =
+		WriteResult<Ohmlet, Object> result =
 			COLLECTION
 				.update(
 					query,
-					community,
+					ohmlet,
 					false,
 					false,
 					WriteConcern.REPLICA_ACKNOWLEDGED);
@@ -236,24 +236,24 @@ public class MongoCommunityBin extends CommunityBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.CommunityBin#deleteCommunity(java.lang.String)
+	 * @see org.ohmage.bin.OhmletBin#deleteOhmlet(java.lang.String)
 	 */
 	@Override
-	public void deleteCommunity(String communityId)
+	public void deleteOhmlet(String ohmletId)
 		throws IllegalArgumentException {
 		
 		// Validate the input.
-		if(communityId == null) {
-			throw new IllegalArgumentException("The community ID is null.");
+		if(ohmletId == null) {
+			throw new IllegalArgumentException("The ohmlet ID is null.");
 		}
 		
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
 		
-		// Add the community ID.
-		queryBuilder.and(Community.JSON_KEY_ID).is(communityId);
+		// Add the ohmlet ID.
+		queryBuilder.and(Ohmlet.JSON_KEY_ID).is(ohmletId);
 		
-		// Delete the community.
+		// Delete the ohmlet.
 		COLLECTION.remove(queryBuilder.get());
 	}
 }

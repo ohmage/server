@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.ohmage.bin.CommunityBin;
+import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthenticationToken;
-import org.ohmage.domain.Community;
-import org.ohmage.domain.Community.SchemaReference;
+import org.ohmage.domain.Ohmlet;
+import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.User;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -27,26 +27,26 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * <p>
- * The controller for all requests to community entities.
+ * The controller for all requests to ohmlet entities.
  * </p>
  *
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(CommunityServlet.ROOT_MAPPING)
+@RequestMapping(OhmletServlet.ROOT_MAPPING)
 @SessionAttributes(
 	{
 		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN,
 		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM
 	})
-public class CommunityServlet {
+public class OhmletServlet {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
-	public static final String ROOT_MAPPING = "/communities";
+	public static final String ROOT_MAPPING = "/ohmlets";
 	
 	/**
-	 * The path and parameter key for community IDs.
+	 * The path and parameter key for ohmlet IDs.
 	 */
 	public static final String KEY_COMMUNITY_ID = "id";
 	/**
@@ -58,18 +58,18 @@ public class CommunityServlet {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(CommunityServlet.class.getName());
+		Logger.getLogger(OhmletServlet.class.getName());
 	
 	/**
 	 * The usage in this class is entirely static, so there is no need to
 	 * instantiate it.
 	 */
-	private CommunityServlet() {
+	private OhmletServlet() {
 		// Do nothing.
 	}
 
 	/**
-	 * Creates a new community.
+	 * Creates a new ohmlet.
 	 * 
 	 * @param token
 	 *        The authentication token for the user that is creating this
@@ -78,19 +78,19 @@ public class CommunityServlet {
 	 * @param tokenIsParam
 	 *        Whether or not the token was sent as a parameter.
 	 * 
-	 * @param communityBuilder
-	 *        The parts of the community that are already set.
+	 * @param ohmletBuilder
+	 *        The parts of the ohmlet that are already set.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
-	public static @ResponseBody Community createCommunity(
+	public static @ResponseBody Ohmlet createOhmlet(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@RequestBody
-			final Community.Builder communityBuilder) {
+			final Ohmlet.Builder ohmletBuilder) {
 		
-		LOGGER.log(Level.INFO, "Creating a community creation request.");
+		LOGGER.log(Level.INFO, "Creating a ohmlet creation request.");
 		
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
@@ -99,15 +99,15 @@ public class CommunityServlet {
 		LOGGER
 			.log(
 				Level.FINE,
-				"Setting the token's owner as the creator of this community.");
-		communityBuilder.addMember(user.getUsername(), Community.Role.OWNER);
+				"Setting the token's owner as the creator of this ohmlet.");
+		ohmletBuilder.addMember(user.getUsername(), Ohmlet.Role.OWNER);
 
-		LOGGER.log(Level.FINE, "Building the community.");
-		Community community = communityBuilder.build();
+		LOGGER.log(Level.FINE, "Building the ohmlet.");
+		Ohmlet ohmlet = ohmletBuilder.build();
 		
 		// Validate that the streams exist.
 		LOGGER.log(Level.INFO, "Validating that the given streams exist.");
-		List<SchemaReference> streams = community.getStreams();
+		List<SchemaReference> streams = ohmlet.getStreams();
 		for(SchemaReference stream : streams) {
 			// Get the schema ID.
 			String id = stream.getSchemaId();
@@ -131,27 +131,27 @@ public class CommunityServlet {
 		
 		// TODO: Validate that the surveys exist.
 
-		LOGGER.log(Level.INFO, "Adding the community to the database.");
-		CommunityBin.getInstance().addCommunity(community);
+		LOGGER.log(Level.INFO, "Adding the ohmlet to the database.");
+		OhmletBin.getInstance().addOhmlet(ohmlet);
 		
 		LOGGER.log(Level.INFO, "Updating the user.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
-		LOGGER.log(Level.FINE, "Building the community reference.");
-		User.CommunityReference communityReference =
-			new User.CommunityReference(community.getId(), null, null);
-		LOGGER.log(Level.FINE, "Adding the community reference to the user.");
-		updatedUserBuilder.addCommunity(communityReference);
+		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
+		User.OhmletReference ohmletReference =
+			new User.OhmletReference(ohmlet.getId(), null, null);
+		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
+		updatedUserBuilder.addOhmlet(ohmletReference);
 		LOGGER.log(Level.FINE, "Building the user.");
 		User updatedUser = updatedUserBuilder.build();
 		
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 		
-		return community;
+		return ohmlet;
 	}
 	
 	/**
-	 * Returns a list of visible community IDs.
+	 * Returns a list of visible ohmlet IDs.
 	 * 
 	 * @param token
 	 *        Used for limiting which communities are returned based on
@@ -160,25 +160,25 @@ public class CommunityServlet {
 	 * @param search
 	 *        A value that should appear in either the name or description.
 	 * 
-	 * @return A list of visible community IDs.
+	 * @return A list of visible ohmlet IDs.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody List<String> getCommunityIds(
+	public static @ResponseBody List<String> getOhmletIds(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@RequestParam(value = KEY_QUERY, required = false)
 			final String query) {
 		
-		LOGGER.log(Level.INFO, "Creating a community ID read request.");
+		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
 		
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
 
 		return
-			CommunityBin
+			OhmletBin
 				.getInstance()
-				.getCommunityIds(user.getUsername(), query);
+				.getOhmletIds(user.getUsername(), query);
 	}
 	
 	/**
@@ -186,142 +186,144 @@ public class CommunityServlet {
 	 * 
 	 * @param token
 	 *        Used to verify that this user is allowed to read information
-	 *        about a community.
+	 *        about a ohmlet.
 	 * 
-	 * @param communityId
-	 *        The community's unique identifier.
+	 * @param ohmletId
+	 *        The ohmlet's unique identifier.
 	 * 
 	 * @return A list of the visible versions.
 	 */
 	@RequestMapping(
 		value = "{" + KEY_COMMUNITY_ID + "}",
 		method = RequestMethod.GET)
-	public static @ResponseBody Community getCommunity(
+	public static @ResponseBody Ohmlet getOhmlet(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
-		@PathVariable(KEY_COMMUNITY_ID) final String communityId) {
+		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId) {
 		
 		LOGGER
 			.log(
 				Level.INFO,
-				"Creating a request to read a community: " + communityId);
+				"Creating a request to read a ohmlet: " + ohmletId);
 		
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
 		
-		LOGGER.log(Level.INFO, "Retrieving the community.");
-		Community community =
-			CommunityBin.getInstance().getCommunity(communityId);
+		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		Ohmlet ohmlet =
+			OhmletBin.getInstance().getOhmlet(ohmletId);
 		
 		LOGGER
 			.log(
 				Level.INFO,
 				"Verifying that the requesting user is allowed to query the " +
-					"community.");
-		LOGGER.log(Level.FINE, "Checking if the community is not private.");
+					"ohmlet.");
+		LOGGER.log(Level.FINE, "Checking if the ohmlet is not private.");
 		if(!
-			Community
+			Ohmlet
 				.PrivacyState
 				.PRIVATE
-				.equals(community.getPrivacyState())) {
+				.equals(ohmlet.getPrivacyState())) {
 			
 			LOGGER
 				.log(
 					Level.FINE,
-					"The community is private, so the user must already be " +
-						"assocaited with the community.");
-			if(! community.hasRole(user.getUsername())) {
+					"The ohmlet is private, so the user must already be " +
+						"assocaited with the ohmlet.");
+			if(! ohmlet.hasRole(user.getUsername())) {
 				throw 
 					new InsufficientPermissionsException(
 						"The user does not have sufficient permissions to " +
-							"view this community.");
+							"view this " + Ohmlet.COMMUNITY_SKIN + ".");
 			}
 		}
 		
-		return community;
+		return ohmlet;
 	}
 	
 	/**
-	 * Updates this community.
+	 * Updates this ohmlet.
 	 * 
 	 * @param token
-	 *        The authentication token for the user updating this community.
-	 *        This must belong to an owner of the community.
+	 *        The authentication token for the user updating this ohmlet.
+	 *        This must belong to an owner of the ohmlet.
 	 * 
 	 * @param tokenIsParam
 	 *        Whether or not the authentication token was passed as a
 	 *        parameter.
 	 * 
-	 * @param communityId
-	 *        The community's unique identifier.
+	 * @param ohmletId
+	 *        The ohmlet's unique identifier.
 	 * 
-	 * @param communityBuilder
-	 *        The parts of the community that are already set.
+	 * @param ohmletBuilder
+	 *        The parts of the ohmlet that are already set.
 	 */
 	@RequestMapping(
 		value = "{" + KEY_COMMUNITY_ID + "}",
 		method = RequestMethod.POST)
-	public static @ResponseBody void updateCommunity(
+	public static @ResponseBody void updateOhmlet(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
-		@PathVariable(KEY_COMMUNITY_ID) final String communityId,
+		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId,
 		@RequestBody
-			final Community.Builder communityBuilder) {
+			final Ohmlet.Builder ohmletBuilder) {
 
 		LOGGER
 			.log(
 				Level.INFO,
-				"Creating a request to update a community: " + communityId);
+				"Creating a request to update a ohmlet: " + ohmletId);
 		
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
 		
-		LOGGER.log(Level.INFO, "Retrieving the community.");
-		Community community =
-			CommunityBin.getInstance().getCommunity(communityId);
+		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		Ohmlet ohmlet =
+			OhmletBin.getInstance().getOhmlet(ohmletId);
 		
-		LOGGER.log(Level.INFO, "Verifying that the community exists.");
-		if(community == null) {
-			throw new UnknownEntityException("The community is unknown.");
+		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
+		if(ohmlet == null) {
+			throw
+				new UnknownEntityException(
+					"The " + Ohmlet.COMMUNITY_SKIN + " is unknown.");
 		}
 		
 		LOGGER
 			.log(
 				Level.INFO,
 				"Verifying that the requesting user is allowed to modify " +
-					"the community.");
-		if(! community.canModifyCommunity(user.getUsername())) {
+					"the ohmlet.");
+		if(! ohmlet.canModifyOhmlet(user.getUsername())) {
 			throw
 				new InsufficientPermissionsException(
 					"The user does not have sufficient permissions to " +
-						"update the campaign.");
+						"update the " + Ohmlet.COMMUNITY_SKIN + ".");
 		}
 		
 		LOGGER
 			.log(
 				Level.FINE,
-				"Creating a new builder based on the existing community.");
-		Community.Builder newCommunityBuilder =
-			new Community.Builder(community);
+				"Creating a new builder based on the existing ohmlet.");
+		Ohmlet.Builder newOhmletBuilder =
+			new Ohmlet.Builder(ohmlet);
 		
-		LOGGER.log(Level.FINE, "Merging the changes into the old community.");
-		newCommunityBuilder.merge(communityBuilder);
+		LOGGER.log(Level.FINE, "Merging the changes into the old ohmlet.");
+		newOhmletBuilder.merge(ohmletBuilder);
 		
-		LOGGER.log(Level.FINE, "Building a new community.");
-		Community newCommunity = newCommunityBuilder.build();
+		LOGGER.log(Level.FINE, "Building a new ohmlet.");
+		Ohmlet newOhmlet = newOhmletBuilder.build();
 		
-		LOGGER.log(Level.FINE, "Storing the updated community.");
-		CommunityBin.getInstance().updateCommunity(newCommunity);
+		LOGGER.log(Level.FINE, "Storing the updated ohmlet.");
+		OhmletBin.getInstance().updateOhmlet(newOhmlet);
 	}
 	
 	/**
 	 * Allows a user to modify their or another user's privileges. This can be
-	 * used by users with the {@link Community.Role#INVITED} role to elevate
-	 * their own role to {@link Community.Role#MEMBER} or by users with 
+	 * used by users with the {@link Ohmlet.Role#INVITED} role to elevate
+	 * their own role to {@link Ohmlet.Role#MEMBER} or by users with 
 	 * sufficient privileges to escalate or de-escalate another user's role.
 	 * 
 	 * @param token
@@ -331,8 +333,8 @@ public class CommunityServlet {
 	 *        Whether or not the authentication token was passed as a
 	 *        parameter.
 	 * 
-	 * @param communityId
-	 *        The community's unique identifier.
+	 * @param ohmletId
+	 *        The ohmlet's unique identifier.
 	 * 
 	 * @param member
 	 * 		  The information about the user that is being changed.
@@ -340,38 +342,40 @@ public class CommunityServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_COMMUNITY_ID + "}" +
-			"/" + Community.JSON_KEY_MEMBERS,
+			"/" + Ohmlet.JSON_KEY_MEMBERS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void updateRole(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
-		@PathVariable(KEY_COMMUNITY_ID) final String communityId,
-		@RequestBody final Community.Member member) {
+		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId,
+		@RequestBody final Ohmlet.Member member) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request to modify a user's privileges in a " +
-					"community: " +
-					communityId);
+					"ohmlet: " +
+					ohmletId);
 		
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
 		
-		LOGGER.log(Level.INFO, "Retrieving the community.");
-		Community community =
-			CommunityBin.getInstance().getCommunity(communityId);
+		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		Ohmlet ohmlet =
+			OhmletBin.getInstance().getOhmlet(ohmletId);
 		
-		LOGGER.log(Level.INFO, "Verifying that the community exists.");
-		if(community == null) {
-			throw new UnknownEntityException("The community is unknown.");
+		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
+		if(ohmlet == null) {
+			throw
+				new UnknownEntityException(
+					"The " + Ohmlet.COMMUNITY_SKIN + " is unknown.");
 		}
 
 		LOGGER.log(Level.FINE, "Retrieving the requesting user's role.");
-		Community.Role requesterRole = community.getRole(user.getUsername());
+		Ohmlet.Role requesterRole = ohmlet.getRole(user.getUsername());
 		
 		LOGGER.log(Level.INFO, "Validating the request.");
 		if(user.getUsername().equals(member.getMemberId())) {
@@ -385,18 +389,20 @@ public class CommunityServlet {
 					throw
 						new InvalidArgumentException(
 							"The user is already associated with the " +
-								"community.");
+								"ohmlet.");
 				}
 				else if(
-					Community
+					Ohmlet
 						.PrivacyState
 						.PRIVATE
-						.equals(community.getPrivacyState())) {
+						.equals(ohmlet.getPrivacyState())) {
 					
 					throw
 						new InvalidArgumentException(
-							"The community is private, therefore the user " +
-								"may not request an invite.");
+							"The " +
+								Ohmlet.COMMUNITY_SKIN +
+								" is private, therefore the user may not " +
+								"request an invite.");
 				}
 				break;
 				
@@ -409,20 +415,20 @@ public class CommunityServlet {
 				if(
 					(requesterRole == null) &&
 					(!
-						Community
+						Ohmlet
 							.PrivacyState
 							.PUBLIC
-							.equals(community.getPrivacyState()))) {
+							.equals(ohmlet.getPrivacyState()))) {
 					
 					throw
 						new InvalidArgumentException(
 							"A user may not directly join a non-public " +
-								"community.");
+								Ohmlet.COMMUNITY_SKIN + ".");
 				}
 				// Cascade.
 				
 			default:
-				if(Community.Role.MEMBER.supersedes(requesterRole)) {
+				if(Ohmlet.Role.MEMBER.supersedes(requesterRole)) {
 					throw
 						new InsufficientPermissionsException(
 							"The user cannot modify their role until they " +
@@ -454,9 +460,9 @@ public class CommunityServlet {
 			LOGGER
 				.log(
 					Level.FINE,
-					"Retreving the requestee's role in the community.");
-			Community.Role requesteeRole =
-				community.getRole(member.getMemberId());
+					"Retreving the requestee's role in the ohmlet.");
+			Ohmlet.Role requesteeRole =
+				ohmlet.getRole(member.getMemberId());
 			
 			switch(member.getRole()) {
 			case REQUESTED:
@@ -466,7 +472,7 @@ public class CommunityServlet {
 							"for another user.");
 				
 			case INVITED:
-				if(community.getInviteRole().supersedes(requesterRole)) {
+				if(ohmlet.getInviteRole().supersedes(requesterRole)) {
 					throw
 						new InsufficientPermissionsException(
 							"The user does not have sufficient permissions " +
@@ -474,13 +480,13 @@ public class CommunityServlet {
 				}
 				if(
 					(requesteeRole != null) &&
-					(! Community.Role.REQUESTED.equals(requesteeRole)) &&
-					(! Community.Role.INVITED.equals(requesteeRole))) {
+					(! Ohmlet.Role.REQUESTED.equals(requesteeRole)) &&
+					(! Ohmlet.Role.INVITED.equals(requesteeRole))) {
 					
 					throw
 						new InvalidArgumentException(
 							"The user is already associated with the " +
-								"community.");
+								Ohmlet.COMMUNITY_SKIN + ".");
 				}
 				break;
 				
@@ -503,66 +509,67 @@ public class CommunityServlet {
 		LOGGER
 			.log(
 				Level.INFO,
-				"Updating the community to reflect the role change.");
-		Community updatedCommunity =
-			(new Community.Builder(community))
+				"Updating the ohmlet to reflect the role change.");
+		Ohmlet updatedOhmlet =
+			(new Ohmlet.Builder(ohmlet))
 				.addMember(member.getMemberId(), member.getRole())
 				.build();
 		
-		LOGGER.log(Level.INFO, "Saving the updated community.");
-		CommunityBin.getInstance().updateCommunity(updatedCommunity);
+		LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
+		OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
 	}
 	
 	/**
-	 * Deletes the community. This may only be done by supervisors.
+	 * Deletes the ohmlet. This may only be done by supervisors.
 	 * 
 	 * @param token
-	 *        The authentication token for the user updating this community.
-	 *        This must belong to an owner of the community.
+	 *        The authentication token for the user updating this ohmlet.
+	 *        This must belong to an owner of the ohmlet.
 	 * 
 	 * @param tokenIsParam
 	 *        Whether or not the authentication token was passed as a
 	 *        parameter.
 	 * 
-	 * @param communityId
-	 *        The community's unique identifier.
+	 * @param ohmletId
+	 *        The ohmlet's unique identifier.
 	 */
 	@RequestMapping(
 		value = "{" + KEY_COMMUNITY_ID + "}",
 		method = RequestMethod.DELETE)
-	public static @ResponseBody void deleteCommunity(
+	public static @ResponseBody void deleteOhmlet(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
-		@PathVariable(KEY_COMMUNITY_ID) final String communityId) {
+		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId) {
 
 		LOGGER
 			.log(
 				Level.INFO,
-				"Creating a request to delete a community: " + communityId);
+				"Creating a request to delete a ohmlet: " + ohmletId);
 		
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
 		
-		LOGGER.log(Level.INFO, "Retrieving the community.");
-		Community community =
-			CommunityBin.getInstance().getCommunity(communityId);
+		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		Ohmlet ohmlet =
+			OhmletBin.getInstance().getOhmlet(ohmletId);
 		
 		LOGGER
 			.log(
 				Level.INFO,
 				"Verifying that the requesting user can delete the " +
-					"community.");
-		if(! community.hasRole(user.getUsername(), Community.Role.OWNER)) {
+					"ohmlet.");
+		if(! ohmlet.hasRole(user.getUsername(), Ohmlet.Role.OWNER)) {
 			throw
 				new InsufficientPermissionsException(
 					"The user does not have enough permissions to delete " +
-						"the community.");
+						"the " +
+						Ohmlet.COMMUNITY_SKIN + ".");
 		}
 		
-		LOGGER.log(Level.INFO, "Deleting the community.");
-		CommunityBin.getInstance().deleteCommunity(communityId);
+		LOGGER.log(Level.INFO, "Deleting the ohmlet.");
+		OhmletBin.getInstance().deleteOhmlet(ohmletId);
 	}
 }

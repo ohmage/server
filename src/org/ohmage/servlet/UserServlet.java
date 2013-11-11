@@ -8,15 +8,15 @@ import java.util.logging.Logger;
 
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
-import org.ohmage.bin.CommunityBin;
+import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthenticationToken;
-import org.ohmage.domain.Community;
-import org.ohmage.domain.Community.SchemaReference;
+import org.ohmage.domain.Ohmlet;
+import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
-import org.ohmage.domain.User.CommunityReference;
+import org.ohmage.domain.User.OhmletReference;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -52,12 +52,12 @@ public class UserServlet {
 	 * The root API mapping for this Servlet.
 	 */
 	public static final String ROOT_MAPPING = "/users";
-	
+
 	/**
 	 * The path key for the user-name.
 	 */
 	public static final String KEY_USERNAME = "username";
-	
+
 	/**
 	 * The parameter key for provider identifiers.
 	 */
@@ -66,7 +66,7 @@ public class UserServlet {
 	 * The parameter key for provider access tokens.
 	 */
 	public static final String PARAMETER_ACCESS_TOKEN = "access_token";
-	
+
 	/**
 	 * The parameter key for the Captcha challenge.
 	 */
@@ -76,40 +76,40 @@ public class UserServlet {
 	 * The parameter key for the Captcha response.
 	 */
 	public static final String PARAMETER_CAPTCHA_RESPONSE = "captcha_response";
-	
+
 	/**
 	 * The preference key for the Captcha private key.
 	 */
 	public static final String PREFERENCE_KEY_CAPTCHA_PRIVATE_KEY =
 		"ohmage.captcha_private_key";
-	
+
 	/**
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
 		Logger.getLogger(UserServlet.class.getName());
-	
+
 	/**
 	 * Creates a user user.
-	 * 
+	 *
 	 * @param username
 	 *        The new user's user-name.
-	 * 
+	 *
 	 * @param plaintextPassword
 	 *        The new user's plain-text password.
-	 * 
+	 *
 	 * @param email
 	 *        The new user's email address.
-	 * 
+	 *
 	 * @param fullName
 	 *        The new user's full name, which may be null.
-	 * 
+	 *
 	 * @param captchaChallenge
 	 *        The reCaptcha challenge key.
-	 * 
+	 *
 	 * @param captchaResponse
 	 *        The user's reCaptcha response.
-	 * 
+	 *
 	 * @param request
 	 *        The HTTP request.
 	 */
@@ -137,7 +137,7 @@ public class UserServlet {
 			final String password,
 		@RequestBody
 			final User.Builder userBuilder) {
-		
+
 		LOGGER.log(Level.INFO, "Creating a new user.");
 
 		/*
@@ -150,15 +150,15 @@ public class UserServlet {
 			ConfigurationFileImport
 				.getCustomProperties()
 				.getProperty(PREFERENCE_KEY_CAPTCHA_PRIVATE_KEY));
-		
+
 		LOGGER.log(Level.FINE, "Comparing the user's response.");
-		ReCaptchaResponse reCaptchaResponse = 
+		ReCaptchaResponse reCaptchaResponse =
 			reCaptcha
 				.checkAnswer(
 					request.getRemoteAddr(),
 					captchaChallenge,
 					captchaResponse);
-		
+
 		LOGGER.log(Level.INFO, "Ensuring the response was valid.");
 		if(! reCaptchaResponse.isValid()) {
 			throw
@@ -166,43 +166,63 @@ public class UserServlet {
 					"The reCaptcha response was invalid.");
 		}
 		*/
-		
+
 		LOGGER.log(Level.INFO, "Verifying that a user supplied a password.");
 		if(password == null) {
 			throw new InvalidArgumentException("A password was not given.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Hashing the user's password.");
 		userBuilder.setPassword(password, true);
 
 		LOGGER.log(Level.FINE, "Building the user.");
 		User validatedUser = userBuilder.build();
-		
-		// TODO: This is where the email validation process will go.
 
-		LOGGER.log(Level.INFO, "Storing the user.");
-		UserBin.getInstance().addUser(validatedUser);
+        LOGGER.log(Level.INFO, "Verifying that the account does not exist.");
+        User existingUser =
+            UserBin.getInstance().getUser(userBuilder.getUsername());
+        if(existingUser == null) {
+            // TODO: This is where the email validation process will go.
+
+            LOGGER.log(Level.INFO, "Storing the user.");
+            UserBin.getInstance().addUser(validatedUser);
+        }
+        else {
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "The user already exists. Determining if they are " +
+                        "supplying the same password.");
+            if(existingUser.verifyPassword(password)) {
+                validatedUser = existingUser;
+            }
+            else {
+                throw
+                    new InvalidArgumentException(
+                        "The username already exists.");
+            }
+        }
 
 		LOGGER.log(Level.INFO, "Echoing the user back.");
 		return validatedUser;
 	}
-	
+
 	/**
 	 * Creates a user user.
-	 * 
+	 *
 	 * @param username
 	 *        The new user's user-name.
-	 * 
+	 *
 	 * @param fullName
 	 *        The new user's full name, which may be null.
-	 * 
+	 *
 	 * @param provider
 	 *        The provider's internal identifier.
-	 * 
+	 *
 	 * @param accessToken
 	 *        The access token provided by the provider to be used to
 	 *        authenticate the user.
-	 * 
+	 *
 	 * @param request
 	 *        The HTTP request.
 	 */
@@ -221,26 +241,24 @@ public class UserServlet {
 			final String accessToken,
 		@RequestBody
 			final User.Builder userBuilder) {
-		
+
 		LOGGER.log(Level.INFO, "Creating a new user.");
-		
+
 		LOGGER.log(Level.INFO, "Verifying that a username was given.");
 		if(userBuilder.getUsername() == null) {
 			throw new InvalidArgumentException("A username was not provided.");
 		}
-		
+
 		LOGGER.log(Level.FINE, "Retrieving the provider implementation.");
 		Provider providerObject = ProviderRegistry.get(provider);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Building the user's information based on the provider.");
 		ProviderUserInformation userInformation =
 			providerObject.getUserInformation(accessToken);
-		
-		// Determine if the user has already created an account with
-		// these credentials.
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -258,43 +276,43 @@ public class UserServlet {
 					"An ohmage account is already associated with this " +
 						"provider-based user.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINER,
 				"Attaching the provider information to the user.");
 		userBuilder
 			.addProvider(userInformation.getProviderId(), userInformation);
-		
+
 		LOGGER
 			.log(
 				Level.FINER,
 				"Adding the provider-based information's email address to " +
 					"the user object.");
 		userBuilder.setEmail(userInformation.getEmail());
-		
+
 		LOGGER.log(Level.FINE, "Building the user.");
 		user = userBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Storing the user.");
 		UserBin.getInstance().addUser(user);
-		
+
 		LOGGER.log(Level.INFO, "Echoing back the user object.");
 		return user;
 	}
-	
+
 	/**
 	 * Retrieves the list of users that are visible to the requesting user.
-	 * 
+	 *
 	 * @return The list of users that are visible to the requesting user.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	public static @ResponseBody Set<String> getVisibleUsers(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token) {
-		
+
 		LOGGER.log(Level.INFO, "Requesting a list of visible users.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
@@ -310,16 +328,16 @@ public class UserServlet {
 
 		return result;
 	}
-	
+
 	/**
 	 * Retrieves the information about a user.
-	 * 
+	 *
 	 * @param token
 	 *        The authentication token used to validate the caller.
-	 * 
+	 *
 	 * @param username
 	 *        The user whose information is desired.
-	 * 
+	 *
 	 * @return The desired user's information.
 	 */
 	@RequestMapping(
@@ -329,13 +347,13 @@ public class UserServlet {
 		@ModelAttribute(value=AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@PathVariable(KEY_USERNAME) final String username) {
-		
+
 		LOGGER.log(Level.INFO, "Requesting information about a user.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
-		
+
 		// Users are only visible to read their own data at this time.
 		LOGGER
 			.log(
@@ -347,27 +365,27 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"A user may only view their own information.");
 		}
-		
+
 		// Pull the user object from the token.
 		LOGGER.log(Level.INFO, "Retreiving the user object.");
 		return user;
 	}
-	
+
 	/**
 	 * Updates a user's password.
-	 * 
+	 *
 	 * @param token
 	 *        The authentication token used to validate the caller.
-	 * 
+	 *
 	 * @param username
 	 *        The user whose information is desired.
-	 * 
+	 *
 	 * @param oldPassword
 	 *        The user's current password.
-	 * 
+	 *
 	 * @param newPassword
 	 *        The user's new password.
-	 * 
+	 *
 	 * @return The desired user's information.
 	 */
 	@RequestMapping(
@@ -381,73 +399,73 @@ public class UserServlet {
 			required = true)
 			final String oldPassword,
 		@RequestBody final String newPassword) {
-		
+
 		LOGGER.log(Level.INFO, "Updating a user's password.");
-		
+
 		LOGGER
 			.log(Level.FINE, "Verifying that the new password is not empty.");
 		if((newPassword == null) || (newPassword.length() == 0)) {
 			throw new InvalidArgumentException("The new password is missing.");
 		}
-		
+
 		LOGGER.log(Level.FINE, "Retrieving the user.");
 		User user = UserBin.getInstance().getUser(username);
-		
+
 		LOGGER.log(Level.INFO, "Verifying that the user exists.");
 		if(user == null) {
 			throw new UnknownEntityException("The user is unknown.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Verifying that the old password is correct.");
 		if(! user.verifyPassword(oldPassword)) {
 			throw new AuthenticationException("The password is incorrect.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Updating the user's password.");
 		user = user.updatePassword(User.hashPassword(newPassword));
-		
+
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(user);
-		
+
 		// Should we also invalidate all authentication tokens?
 	}
-	
+
 	/**
 	 * Retrieves the set of communities that this user is part of.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the user's authentication token was sent as a
 	 *        parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
 	 *        authentication token.
-	 * 
+	 *
 	 * @return The set of communities that this user is part of.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_COMMUNITIES,
 		method = RequestMethod.GET)
-	public static @ResponseBody Collection<User.CommunityReference> getFollowedCommunities(
+	public static @ResponseBody Collection<User.OhmletReference> getFollowedCommunities(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -457,55 +475,55 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only query their own accounts.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Returning the set of stream references.");
 		return user.getCommunities();
 	}
-	
+
 	/**
-	 * Retrieves the specific information for a community that the user is
+	 * Retrieves the specific information for a ohmlet that the user is
 	 * following.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the user's authentication token was sent as a
 	 *        parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
 	 *        authentication token.
-	 * 
-	 * @param communityId
-	 *        The community's unique identifier.
-	 * 
-	 * @return The user-specific information about a community that they are
+	 *
+	 * @param ohmletId
+	 *        The ohmlet's unique identifier.
+	 *
+	 * @return The user-specific information about a ohmlet that they are
 	 *         following.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
 			User.JSON_KEY_COMMUNITIES + "/" +
-			"{" + Community.JSON_KEY_ID + "}",
+			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.GET)
-	public static @ResponseBody User.CommunityReference getFollowedCommunity(
+	public static @ResponseBody User.OhmletReference getFollowedOhmlet(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
-		@PathVariable(Community.JSON_KEY_ID) final String communityId) {
-				
+		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -515,55 +533,55 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Returning the set of stream references.");
-		return user.getCommunity(communityId);
+		return user.getOhmlet(ohmletId);
 	}
-	
+
 	/**
-	 * Retrieves the specific information for a community that the user is
+	 * Retrieves the specific information for a ohmlet that the user is
 	 * following.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the user's authentication token was sent as a
 	 *        parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
 	 *        authentication token.
-	 * 
-	 * @param communityId
-	 *        The community's unique identifier.
-	 * 
-	 * @return The user-specific information about a community that they are
+	 *
+	 * @param ohmletId
+	 *        The ohmlet's unique identifier.
+	 *
+	 * @return The user-specific information about a ohmlet that they are
 	 *         following.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
 			User.JSON_KEY_COMMUNITIES + "/" +
-			"{" + Community.JSON_KEY_ID + "}",
+			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.DELETE)
-	public static @ResponseBody void leaveCommunity(
+	public static @ResponseBody void leaveOhmlet(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
-		@PathVariable(Community.JSON_KEY_ID) final String communityId) {
-				
+		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
+
 		LOGGER
 			.log(
 				Level.INFO,
-				"Creating a request to disassociate a user with a community.");
-		
+				"Creating a request to disassociate a user with a ohmlet.");
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -573,91 +591,93 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
-		LOGGER.log(Level.INFO, "Retrieving the community.");
-		Community community =
-			CommunityBin.getInstance().getCommunity(communityId);
-		
-		LOGGER.log(Level.INFO, "Checking if the community exists.");
-		if(community != null) {
+
+		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		Ohmlet ohmlet =
+			OhmletBin.getInstance().getOhmlet(ohmletId);
+
+		LOGGER.log(Level.INFO, "Checking if the ohmlet exists.");
+		if(ohmlet != null) {
 			LOGGER
 				.log(
 					Level.INFO,
-					"The community exists, so the user is being removed.");
-			
-			LOGGER.log(Level.INFO, "Removing the user from the community.");
-			Community.Builder communityBuilder = new Community.Builder(community);
-			communityBuilder.removeMember(user.getUsername());
-			Community updatedCommunity = communityBuilder.build();
-			
-			LOGGER.log(Level.INFO, "Removing the user from the community.");
-			CommunityBin.getInstance().updateCommunity(updatedCommunity);
+					"The " +
+						Ohmlet.COMMUNITY_SKIN +
+						" exists, so the user is being removed.");
+
+			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
+			Ohmlet.Builder ohmletBuilder = new Ohmlet.Builder(ohmlet);
+			ohmletBuilder.removeMember(user.getUsername());
+			Ohmlet updatedOhmlet = ohmletBuilder.build();
+
+			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
+			OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
 		}
 		else {
-			LOGGER.log(Level.INFO, "The community does not exist.");
+			LOGGER.log(Level.INFO, "The ohmlet does not exist.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
-				"Removing the community from the user's profile.");
+				"Removing the ohmlet from the user's profile.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
-		updatedUserBuilder.removeCommunity(communityId);
+		updatedUserBuilder.removeOhmlet(ohmletId);
 		User updatedUser = updatedUserBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
-	
+
 	/**
-	 * For a specific user, marks a community's stream as being ignored meaning
-	 * that, unless followed in another community, it should not be displayed
+	 * For a specific user, marks a ohmlet's stream as being ignored meaning
+	 * that, unless followed in another ohmlet, it should not be displayed
 	 * to the user.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the authentication token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name that should be ignoring the stream.
-	 * 
-	 * @param communityId
-	 *        The unique identifier for the community in which the stream is
+	 *
+	 * @param ohmletId
+	 *        The unique identifier for the ohmlet in which the stream is
 	 *        referenced.
-	 * 
+	 *
 	 * @param streamReference
-	 *        The reference for the stream that the community is referencing
+	 *        The reference for the stream that the ohmlet is referencing
 	 *        and that the user wants to ignore.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
 			User.JSON_KEY_COMMUNITIES + "/" +
-			"{" + Community.JSON_KEY_ID + "}" +
+			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
-			CommunityReference.JSON_KEY_IGNORED_STREAMS,
+			OhmletReference.JSON_KEY_IGNORED_STREAMS,
 		method = RequestMethod.POST)
-	public static @ResponseBody void ignoreCommunityStream(
+	public static @ResponseBody void ignoreOhmletStream(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
-		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to ignore a stream reference " +
-					"in a community.");
-		
+					"in a ohmlet.");
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -667,87 +687,91 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
-				"Retrieving the community reference for the user.");
-		CommunityReference communityReference = user.getCommunity(communityId);
-		
+				"Retrieving the ohmlet reference for the user.");
+		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
+
 		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the community.");
-		if(communityReference == null) {
-			throw 
+			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		if(ohmletReference == null) {
+			throw
 				new InvalidArgumentException(
-					"The user is not part of the community.");
+					"The user is not part of the " +
+						Ohmlet.COMMUNITY_SKIN +
+						".");
 		}
-		
-		LOGGER.log(Level.FINE, "Creating a new community reference.");
-		CommunityReference.Builder communityReferenceBuilder =
-			new CommunityReference.Builder(communityReference);
-		communityReferenceBuilder.addStream(streamReference);
-		CommunityReference newCommunityReference =
-			communityReferenceBuilder.build();
-		
+
+		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
+		OhmletReference.Builder ohmletReferenceBuilder =
+			new OhmletReference.Builder(ohmletReference);
+		ohmletReferenceBuilder.addStream(streamReference);
+		OhmletReference newOhmletReference =
+			ohmletReferenceBuilder.build();
+
 		LOGGER.log(Level.FINE, "Creating a new user object.");
 		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertCommunity(newCommunityReference);
+		userBuilder.upsertOhmlet(newOhmletReference);
 		User newUser = userBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
-	
+
 	/**
-	 * For a specific user, removes the mark on a community's stream that was
+	 * For a specific user, removes the mark on a ohmlet's stream that was
 	 * causing it to be ignored. The user should again see this stream. If the
 	 * user was not ignoring the stream before this call, it will essentially
 	 * have no impact.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the authentication token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name that should stop ignoring the stream.
-	 * 
-	 * @param communityId
-	 *        The unique identifier for the community in which the stream is
+	 *
+	 * @param ohmletId
+	 *        The unique identifier for the ohmlet in which the stream is
 	 *        referenced.
-	 * 
+	 *
 	 * @param streamReference
-	 *        The reference for the stream that the community is referencing
+	 *        The reference for the stream that the ohmlet is referencing
 	 *        and that the user wants to stop ignoring.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
 			User.JSON_KEY_COMMUNITIES + "/" +
-			"{" + Community.JSON_KEY_ID + "}" +
+			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
-			CommunityReference.JSON_KEY_IGNORED_STREAMS,
+			OhmletReference.JSON_KEY_IGNORED_STREAMS,
 		method = RequestMethod.DELETE)
-	public static @ResponseBody void stopIgnoringCommunityStream(
+	public static @ResponseBody void stopIgnoringOhmletStream(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
-		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to stop ignoring a stream " +
-					"reference in a community.");
-		
+					"reference in a " +
+					Ohmlet.COMMUNITY_SKIN +
+					".");
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -757,86 +781,88 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
-				"Retrieving the community reference for the user.");
-		CommunityReference communityReference = user.getCommunity(communityId);
-		
+				"Retrieving the ohmlet reference for the user.");
+		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
+
 		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the community.");
-		if(communityReference == null) {
-			throw 
+			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		if(ohmletReference == null) {
+			throw
 				new InvalidArgumentException(
-					"The user is not part of the community.");
+					"The user is not part of the " +
+						Ohmlet.COMMUNITY_SKIN +
+						".");
 		}
-		
-		LOGGER.log(Level.FINE, "Creating a new community reference.");
-		CommunityReference.Builder communityReferenceBuilder =
-			new CommunityReference.Builder(communityReference);
-		communityReferenceBuilder.removeStream(streamReference);
-		CommunityReference newCommunityReference =
-			communityReferenceBuilder.build();
-		
+
+		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
+		OhmletReference.Builder ohmletReferenceBuilder =
+			new OhmletReference.Builder(ohmletReference);
+		ohmletReferenceBuilder.removeStream(streamReference);
+		OhmletReference newOhmletReference =
+			ohmletReferenceBuilder.build();
+
 		LOGGER.log(Level.FINE, "Creating a new user object.");
 		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertCommunity(newCommunityReference);
+		userBuilder.upsertOhmlet(newOhmletReference);
 		User newUser = userBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
-	
+
 	/**
-	 * For a specific user, marks a community's survey as being ignored meaning
-	 * that, unless followed in another community, it should not be displayed
+	 * For a specific user, marks a ohmlet's survey as being ignored meaning
+	 * that, unless followed in another ohmlet, it should not be displayed
 	 * to the user.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the authentication token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name that should be ignoring the survey.
-	 * 
-	 * @param communityId
-	 *        The unique identifier for the community in which the survey is
+	 *
+	 * @param ohmletId
+	 *        The unique identifier for the ohmlet in which the survey is
 	 *        referenced.
-	 * 
+	 *
 	 * @param surveyReference
-	 *        The reference for the survey that the community is referencing
+	 *        The reference for the survey that the ohmlet is referencing
 	 *        and that the user wants to ignore.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
 			User.JSON_KEY_COMMUNITIES + "/" +
-			"{" + Community.JSON_KEY_ID + "}" +
+			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
-			CommunityReference.JSON_KEY_IGNORED_SURVEYS,
+			OhmletReference.JSON_KEY_IGNORED_SURVEYS,
 		method = RequestMethod.POST)
-	public static @ResponseBody void ignoreCommunitySurvey(
+	public static @ResponseBody void ignoreOhmletSurvey(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
-		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to ignore a survey reference " +
-					"in a community.");
-		
+					"in a ohmlet.");
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -846,87 +872,89 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
-				"Retrieving the community reference for the user.");
-		CommunityReference communityReference = user.getCommunity(communityId);
-		
+				"Retrieving the ohmlet reference for the user.");
+		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
+
 		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the community.");
-		if(communityReference == null) {
-			throw 
+			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		if(ohmletReference == null) {
+			throw
 				new InvalidArgumentException(
-					"The user is not part of the community.");
+					"The user is not part of the " +
+						Ohmlet.COMMUNITY_SKIN +
+						".");
 		}
-		
-		LOGGER.log(Level.FINE, "Creating a new community reference.");
-		CommunityReference.Builder communityReferenceBuilder =
-			new CommunityReference.Builder(communityReference);
-		communityReferenceBuilder.addSurvey(surveyReference);
-		CommunityReference newCommunityReference =
-			communityReferenceBuilder.build();
-		
+
+		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
+		OhmletReference.Builder ohmletReferenceBuilder =
+			new OhmletReference.Builder(ohmletReference);
+		ohmletReferenceBuilder.addSurvey(surveyReference);
+		OhmletReference newOhmletReference =
+			ohmletReferenceBuilder.build();
+
 		LOGGER.log(Level.FINE, "Creating a new user object.");
 		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertCommunity(newCommunityReference);
+		userBuilder.upsertOhmlet(newOhmletReference);
 		User newUser = userBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
-	
+
 	/**
-	 * For a specific user, removes the mark on a community's survey that was
+	 * For a specific user, removes the mark on a ohmlet's survey that was
 	 * causing it to be ignored. The user should again see this survey. If the
 	 * user was not ignoring the survey before this call, it will essentially
 	 * have no impact.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the authentication token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name that should stop ignoring the survey.
-	 * 
-	 * @param communityId
-	 *        The unique identifier for the community in which the survey is
+	 *
+	 * @param ohmletId
+	 *        The unique identifier for the ohmlet in which the survey is
 	 *        referenced.
-	 * 
+	 *
 	 * @param surveyReference
-	 *        The reference for the survey that the community is referencing
+	 *        The reference for the survey that the ohmlet is referencing
 	 *        and that the user wants to stop ignoring.
 	 */
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
 			User.JSON_KEY_COMMUNITIES + "/" +
-			"{" + Community.JSON_KEY_ID + "}" +
+			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
-			CommunityReference.JSON_KEY_IGNORED_SURVEYS,
+			OhmletReference.JSON_KEY_IGNORED_SURVEYS,
 		method = RequestMethod.DELETE)
-	public static @ResponseBody void stopIgnoringCommunitySurvey(
+	public static @ResponseBody void stopIgnoringOhmletSurvey(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
 			final AuthenticationToken token,
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
-		@PathVariable(Community.JSON_KEY_ID) final String communityId,
+		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to stop ignoring a survey " +
-					"reference in a community.");
-		
+					"reference in a ohmlet.");
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -936,54 +964,56 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
-				"Retrieving the community reference for the user.");
-		CommunityReference communityReference = user.getCommunity(communityId);
-		
+				"Retrieving the ohmlet reference for the user.");
+		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
+
 		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the community.");
-		if(communityReference == null) {
-			throw 
+			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		if(ohmletReference == null) {
+			throw
 				new InvalidArgumentException(
-					"The user is not part of the community.");
+					"The user is not part of the " +
+						Ohmlet.COMMUNITY_SKIN +
+						".");
 		}
-		
-		LOGGER.log(Level.FINE, "Creating a new community reference.");
-		CommunityReference.Builder communityReferenceBuilder =
-			new CommunityReference.Builder(communityReference);
-		communityReferenceBuilder.removeSurvey(surveyReference);
-		CommunityReference newCommunityReference =
-			communityReferenceBuilder.build();
-		
+
+		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
+		OhmletReference.Builder ohmletReferenceBuilder =
+			new OhmletReference.Builder(ohmletReference);
+		ohmletReferenceBuilder.removeSurvey(surveyReference);
+		OhmletReference newOhmletReference =
+			ohmletReferenceBuilder.build();
+
 		LOGGER.log(Level.FINE, "Creating a new user object.");
 		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertCommunity(newCommunityReference);
+		userBuilder.upsertOhmlet(newOhmletReference);
 		User newUser = userBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
-	
+
 	/**
 	 * Allows a user to follow a stream. The user can optionally supply a
 	 * version. If the version is given, that indicates that the user wishes to
 	 * follow a specific version of the stream. If a version is not given, that
 	 * indicates that a user wishes to follow the latest version of the stream.
-	 * 
+	 *
 	 * @param token
 	 *        The requesting user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user-name of the user that is following this stream. For now,
 	 *        a user may only update their own profile, so this must match the
 	 *        authentication token's user.
-	 * 
+	 *
 	 * @param streamReference
 	 *        A reference to the stream that must include the stream's unique
 	 *        identifier and may include a specific version of the stream.
@@ -999,16 +1029,16 @@ public class UserServlet {
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference streamReference) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1018,7 +1048,7 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
+
 		LOGGER.log(Level.FINE, "Retrieving the stream.");
 		Stream stream;
 		if(streamReference.getVersion() == null) {
@@ -1035,13 +1065,13 @@ public class UserServlet {
 						streamReference.getSchemaId(),
 						streamReference.getVersion());
 		}
-		
+
 		LOGGER.log(Level.INFO, "Verifying that the stream exists.");
 		if(stream == null) {
 			throw
 				new InvalidArgumentException("The stream does not exist.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1049,25 +1079,25 @@ public class UserServlet {
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		updatedUserBuilder.addStream(streamReference);
 		User updatedUser = updatedUserBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
-	
+
 	/**
 	 * Retrieves the set of streams that this user is watching.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the user's authentication token was sent as a
 	 *        parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
 	 *        authentication token.
-	 * 
+	 *
 	 * @return The set of stream references that this user is watching.
 	 */
 	@RequestMapping(
@@ -1080,17 +1110,17 @@ public class UserServlet {
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to view streams they are " +
 					"following.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1100,25 +1130,25 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Returning the set of stream references.");
 		return user.getStreams();
 	}
-	
+
 	/**
 	 * Stops a user from following a stream.
-	 * 
+	 *
 	 * @param token
 	 *        The requesting user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user-name of the user that is following this stream. For now,
 	 *        a user may only update their own profile, so this must match the
 	 *        authentication token's user.
-	 * 
+	 *
 	 * @param streamReference
 	 *        A reference to the stream that must include the stream's unique
 	 *        identifier and may include a specific version of the stream.
@@ -1134,16 +1164,16 @@ public class UserServlet {
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference streamReference) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to stop tracking a stream.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1153,7 +1183,7 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1161,28 +1191,28 @@ public class UserServlet {
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		updatedUserBuilder.removeStream(streamReference);
 		User updatedUser = updatedUserBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
-	
+
 	/**
 	 * Allows a user to follow a survey. The user can optionally supply a
 	 * version. If the version is given, that indicates that the user wishes to
 	 * follow a specific version of the stream. If a version is not given, that
 	 * indicates that a user wishes to follow the latest version of the stream.
-	 * 
+	 *
 	 * @param token
 	 *        The requesting user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user-name of the user that is following this survey. For now,
 	 *        a user may only update their own profile, so this must match the
 	 *        authentication token's user.
-	 * 
+	 *
 	 * @param surveyReference
 	 *        A reference to the survey that must include the survey's unique
 	 *        identifier and may include a specific version of the survey.
@@ -1198,16 +1228,16 @@ public class UserServlet {
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference surveyReference) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to track a survey.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1217,10 +1247,10 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
+
 		// TODO: Implement surveys, remove this, and un-comment below it.
 		throw new InvalidArgumentException("Surveys are not yet implemented.");
-		
+
 //		LOGGER.log(Level.FINE, "Retrieving the survey.");
 //		Survey survey;
 //		if(surveyReference.getVersion() == null) {
@@ -1237,13 +1267,13 @@ public class UserServlet {
 //						surveyReference.getSchemaId(),
 //						surveyReference.getVersion());
 //		}
-//		
+//
 //		LOGGER.log(Level.INFO, "Verifying that the survey exists.");
 //		if(survey == null) {
 //			throw
 //				new InvalidArgumentException("The survey does not exist.");
 //		}
-//		
+//
 //		LOGGER
 //			.log(
 //				Level.INFO,
@@ -1251,25 +1281,25 @@ public class UserServlet {
 //		User.Builder updatedUserBuilder = new User.Builder(user);
 //		updatedUserBuilder.addSurvey(surveyReference);
 //		User updatedUser = updatedUserBuilder.build();
-//		
+//
 //		LOGGER.log(Level.INFO, "Storing the updated user.");
 //		UserBin.getInstance().updateUser(updatedUser);
 	}
-	
+
 	/**
 	 * Retrieves the set of surveys that this user is watching.
-	 * 
+	 *
 	 * @param token
 	 *        The user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the user's authentication token was sent as a
 	 *        parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
 	 *        authentication token.
-	 * 
+	 *
 	 * @return The set of survey references that this user is watching.
 	 */
 	@RequestMapping(
@@ -1282,17 +1312,17 @@ public class UserServlet {
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username) {
-				
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to view surveys they are " +
 					"following.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1302,25 +1332,25 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Returning the set of survey references.");
 		return user.getSurveys();
 	}
-	
+
 	/**
 	 * Stops a user from following a survey.
-	 * 
+	 *
 	 * @param token
 	 *        The requesting user's authentication token.
-	 * 
+	 *
 	 * @param tokenIsParam
 	 *        Whether or not the token was given as a parameter.
-	 * 
+	 *
 	 * @param username
 	 *        The user-name of the user that is following this survey. For now,
 	 *        a user may only update their own profile, so this must match the
 	 *        authentication token's user.
-	 * 
+	 *
 	 * @param surveyReference
 	 *        A reference to the survey that must include the survey's unique
 	 *        identifier and may include a specific version of the survey.
@@ -1336,16 +1366,16 @@ public class UserServlet {
 			final boolean tokenIsParam,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference surveyReference) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to stop tracking a survey.");
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user associated with the token.");
 		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1355,7 +1385,7 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1363,17 +1393,17 @@ public class UserServlet {
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		updatedUserBuilder.removeSurvey(surveyReference);
 		User updatedUser = updatedUserBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
-	
+
 	/**
 	 * Disables the user's account.
-	 * 
+	 *
 	 * @param username
 	 *        The user whose account is being disabled.
-	 * 
+	 *
 	 * @param password
 	 *        The user's password to confirm the deletion.
 	 */
@@ -1388,28 +1418,28 @@ public class UserServlet {
 			value = User.JSON_KEY_PASSWORD,
 			required = true)
 			final String password) {
-		
+
 		LOGGER.log(Level.INFO, "Deleting a user.");
-		
+
 		LOGGER.log(Level.FINE, "Retreiving the user.");
 		User user = UserBin.getInstance().getUser(username);
-		
+
 		LOGGER.log(Level.INFO, "Verifying the user's password.");
 		user.verifyPassword(password);
-		
+
 		LOGGER.log(Level.INFO, "Disabling the user's account.");
 		UserBin.getInstance().disableUser(username);
 	}
-	
+
 	/**
 	 * Disables the user's account.
-	 * 
+	 *
 	 * @param username
 	 *        The user whose account is being disabled.
-	 * 
+	 *
 	 * @param providerId
 	 *        The internal unique identifier of the provider.
-	 * 
+	 *
 	 * @param accessToken
 	 *        A provider-generated access token to authenticate the user and
 	 *        validate the request.
@@ -1428,7 +1458,7 @@ public class UserServlet {
 			value = PARAMETER_ACCESS_TOKEN,
 			required = true)
 			final String accessToken) {
-		
+
 		LOGGER.log(Level.INFO, "Deleting a user.");
 
 		LOGGER
@@ -1436,14 +1466,14 @@ public class UserServlet {
 				Level.FINE,
 				"Retrieving the implementation for this provider.");
 		Provider provider = ProviderRegistry.get(providerId);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Retrieving the user based on the access token.");
 		ProviderUserInformation userInformation =
 			provider.getUserInformation(accessToken);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1465,7 +1495,7 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"The user has not yet created an ohmage account.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -1476,7 +1506,7 @@ public class UserServlet {
 				new InsufficientPermissionsException(
 					"No user can delete another user's account.");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Disabling the user's account.");
 		UserBin.getInstance().disableUser(user.getUsername());
 	}

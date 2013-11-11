@@ -25,7 +25,7 @@ import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.mongodb.domain.MongoCommunity;
+import org.ohmage.mongodb.domain.MongoOhmlet;
 import org.ohmage.mongodb.domain.MongoUser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -68,7 +68,7 @@ public class MongoUserBin extends UserBin {
 	}	
 	
 	/**
-	 * Get the connection to the community bin with the Jackson wrapper.
+	 * Get the connection to the ohmlet bin with the Jackson wrapper.
 	 */
 	private static final JacksonDBCollection<User, Object> COLLECTION =
 		JacksonDBCollection
@@ -82,8 +82,8 @@ public class MongoUserBin extends UserBin {
 				JSON_MAPPER);
 	
 	/**
-	 * Get the connection to the community bin with the Jackson wrapper,
-	 * specifically for {@link MongoCommunity} objects.
+	 * Get the connection to the ohmlet bin with the Jackson wrapper,
+	 * specifically for {@link MongoOhmlet} objects.
 	 */
 	private static final JacksonDBCollection<MongoUser, Object> MONGO_COLLECTION =
 		JacksonDBCollection
