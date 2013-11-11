@@ -236,8 +236,9 @@ public abstract class BoundedPrompt extends Prompt {
 							"): " +
 							pair.getValue());
 			}
-			// Verify that the 
-			else if(mustBeWholeNumber() && isWholeNumber(value)) {
+			// Verify that the condition is a whole number if the response
+			// must be a whole number
+			else if(mustBeWholeNumber() && ! isWholeNumber(value)) {
 				throw
 					new DomainException(
 						"The value of the condition is a decimal, but the " +
