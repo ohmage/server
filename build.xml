@@ -23,7 +23,7 @@
         <include name="commons-io-2.4.jar" />
         <include name="commons-logging-api-1.1.3.jar" />
         <include name="commons-validator-1.4.0.jar" />
-        <include name="Concordia-1.1.jar" />
+        <include name="Concordia-1.1.1.jar" />
         <include name="httpclient-4.3.jar" />
         <include name="httpcore-4.3.jar" />
         <include name="httpmime-4.3.jar" />
@@ -33,8 +33,8 @@
         <include name="jbcrypt-0.3m.jar" />
         <include name="joda-time-2.3.jar" />
         <include name="junit-4.11.jar" />
-        <include name="log4j-api-2.0-beta8.jar" />
-        <include name="log4j-core-2.0-beta8.jar" />
+        <include name="log4j-api-2.0-beta9.jar" />
+        <include name="log4j-core-2.0-beta9.jar" />
         <include name="mongojack-2.0.0-RC5.jar" />
         <include name="mongo-java-driver-2.11.2.jar" />
         <include name="persistence-api-1.0.2.jar" />
@@ -71,7 +71,7 @@
         <include name="commons-io-2.4.jar" />
         <include name="commons-logging-api-1.1.3.jar" />
         <include name="commons-validator-1.4.0.jar" />
-        <include name="Concordia-1.1.jar" />
+        <include name="Concordia-1.1.1.jar" />
         <include name="httpclient-4.3.jar" />
         <include name="httpcore-4.3.jar" />
         <include name="httpmime-4.3.jar" />
@@ -82,8 +82,8 @@
         <include name="jbcrypt-0.3m.jar" />
         <include name="joda-time-2.3.jar" />
         <include name="junit-4.11.jar" />
-        <include name="log4j-api-2.0-beta8.jar" />
-        <include name="log4j-core-2.0-beta8.jar" />
+        <include name="log4j-api-2.0-beta9.jar" />
+        <include name="log4j-core-2.0-beta9.jar" />
         <include name="mongojack-2.0.0-RC5.jar" />
         <include name="mongo-java-driver-2.11.2.jar" />
         <include name="persistence-api-1.0.2.jar" />

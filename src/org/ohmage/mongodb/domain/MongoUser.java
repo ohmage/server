@@ -79,7 +79,7 @@ public class MongoUser extends User implements MongoDbObject {
 		@JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
 		@JsonProperty(JSON_KEY_PROVIDERS)
 			final List<ProviderUserInformation> providers,
-		@JsonProperty(JSON_KEY_COMMUNITIES) final
+		@JsonProperty(JSON_KEY_OHMLETS) final
 			Set<OhmletReference> communities,
 		@JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,

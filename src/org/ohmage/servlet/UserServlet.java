@@ -391,7 +391,8 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_PASSWORD,
-		method = RequestMethod.POST)
+		method = RequestMethod.POST,
+        consumes = { "text/plain", "text/text" })
 	public static @ResponseBody void updateUserPassword(
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestParam(
@@ -448,7 +449,7 @@ public class UserServlet {
 	 */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_COMMUNITIES,
+			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_OHMLETS,
 		method = RequestMethod.GET)
 	public static @ResponseBody Collection<User.OhmletReference> getFollowedCommunities(
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
@@ -504,7 +505,7 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
-			User.JSON_KEY_COMMUNITIES + "/" +
+			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody User.OhmletReference getFollowedOhmlet(
@@ -562,7 +563,7 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
-			User.JSON_KEY_COMMUNITIES + "/" +
+			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void leaveOhmlet(
@@ -654,7 +655,7 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
-			User.JSON_KEY_COMMUNITIES + "/" +
+			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
 			OhmletReference.JSON_KEY_IGNORED_STREAMS,
@@ -746,7 +747,7 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
-			User.JSON_KEY_COMMUNITIES + "/" +
+			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
 			OhmletReference.JSON_KEY_IGNORED_STREAMS,
@@ -839,7 +840,7 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
-			User.JSON_KEY_COMMUNITIES + "/" +
+			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
 			OhmletReference.JSON_KEY_IGNORED_SURVEYS,
@@ -931,7 +932,7 @@ public class UserServlet {
 	@RequestMapping(
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
-			User.JSON_KEY_COMMUNITIES + "/" +
+			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
 			OhmletReference.JSON_KEY_IGNORED_SURVEYS,

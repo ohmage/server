@@ -3,6 +3,7 @@ package org.ohmage.mongodb.domain.stream;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
+import org.ohmage.domain.MetaData;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.stream.StreamData;

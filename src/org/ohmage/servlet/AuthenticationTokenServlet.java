@@ -44,7 +44,7 @@ public class AuthenticationTokenServlet {
 	 * The root API mapping for this Servlet.
 	 */
 	public static final String ROOT_MAPPING = "/auth_token";
-	
+
 	/**
 	 * The parameter key for user-names.
 	 */
@@ -65,16 +65,16 @@ public class AuthenticationTokenServlet {
 	 * The parameter key for provider access tokens.
 	 */
 	public static final String PARAMETER_ACCESS_TOKEN = "access_token";
-	
+
 	/**
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
 		Logger.getLogger(AuthenticationTokenServlet.class.getName());
-	
+
 	/**
 	 * <p>
-	 * An exception when a user attempts to create 
+	 * An exception when a user attempts to create
 	 * </p>
 	 *
 	 * @author John Jenkins
@@ -88,30 +88,30 @@ public class AuthenticationTokenServlet {
 		 * class.
 		 */
 		private static final long serialVersionUID = 1L;
-		
+
 		/**
 		 * Creates a new exception with only a reason.
-		 * 
+		 *
 		 * @param reason The reason this exception was thrown.
 		 */
 		public AccountNotRegisteredException(final String reason) {
 			super(reason);
 		}
-		
+
 		/**
 		 * Creates a new exception with a reason and an underlying cause.
-		 * 
+		 *
 		 * @param reason The reason this exception was thrown.
-		 * 
+		 *
 		 * @param cause The underlying exception that caused this exception.
 		 */
 		public AccountNotRegisteredException(
 			final String reason,
 			final Throwable cause) {
-			
+
 			super(reason, cause);
 		}
-		
+
 		/**
 		 * @returns {@link HttpServletResponse#SC_PRECONDITION_FAILED}
 		 */
@@ -124,15 +124,15 @@ public class AuthenticationTokenServlet {
 	/**
 	 * Creates a new authentication token for a user using their ohmage
 	 * credentials.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name.
-	 * 
+	 *
 	 * @param password
 	 *        The user's password.
-	 * 
+	 *
 	 * @return A new authentication token for the user.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The user is unknown or the password is incorrect.
 	 */
@@ -145,7 +145,7 @@ public class AuthenticationTokenServlet {
 			final String username,
 		@RequestParam(value = PARAMETER_PASSWORD, required = true)
 			final String password) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -184,27 +184,27 @@ public class AuthenticationTokenServlet {
 
 		LOGGER.log(Level.INFO, "Creating a new authentication token.");
 		AuthenticationToken token = new AuthenticationToken(user);
-		
+
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
 		AuthenticationTokenBin.getInstance().addToken(token);
-		
+
 		LOGGER.log(Level.INFO, "Returning the token to the user.");
 		return token;
 	}
-	
+
 	/**
 	 * Creates a new authentication token for a user by validating a provider's
 	 * access token and looking up the existing, associated ohmage account.
-	 * 
+	 *
 	 * @param providerId
 	 *        The provider's internal identifier.
-	 * 
+	 *
 	 * @param accessToken
 	 *        The access token the provider generated after the user
 	 *        authenticated themselves.
-	 * 
+	 *
 	 * @return A new authentication token for the user.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The provider is unknown, the access token is invalid, or there
 	 *         is no ohmage account associated with this provider-authenticated
@@ -225,18 +225,18 @@ public class AuthenticationTokenServlet {
 				Level.INFO,
 				"Creating an authentication token from a provider's access " +
 					"token.");
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
 				"Retrieving the implementation for this provider.");
 		Provider provider = ProviderRegistry.get(providerId);
-		
+
 		LOGGER
 			.log(Level.INFO, "Retrieving the user based on the access token.");
 		ProviderUserInformation newUserInformation =
 			provider.getUserInformation(accessToken);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -258,14 +258,14 @@ public class AuthenticationTokenServlet {
 				new AccountNotRegisteredException(
 					"The user has not yet created an ohmage account.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
 				"Pulling out the saved information from the provider.");
 		ProviderUserInformation savedUserInformation =
 			user.getProvider(newUserInformation.getProviderId());
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
@@ -273,7 +273,7 @@ public class AuthenticationTokenServlet {
 		if(! newUserInformation.equals(savedUserInformation)) {
 			LOGGER.log(Level.INFO, "Updating the user's information.");
 			user = user.updateProvider(newUserInformation);
-			
+
 			LOGGER
 				.log(
 					Level.INFO,
@@ -284,10 +284,10 @@ public class AuthenticationTokenServlet {
 
 		LOGGER.log(Level.INFO, "Creating a new authentication token.");
 		AuthenticationToken token = new AuthenticationToken(user);
-		
+
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
 		AuthenticationTokenBin.getInstance().addToken(token);
-		
+
 		LOGGER.log(Level.INFO, "Returning the token to the user.");
 		return token;
 	}
@@ -295,13 +295,13 @@ public class AuthenticationTokenServlet {
 	/**
 	 * Creates a new authentication token for a user using the ohmage refresh
 	 * they were given when they last authenticated.
-	 * 
+	 *
 	 * @param refreshToken
 	 *        The refresh token they were given from their last access token or
 	 *        refresh token request.
-	 * 
+	 *
 	 * @return A new authentication token for the user.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The refresh token is unknown or has already been used.
 	 */
@@ -312,7 +312,7 @@ public class AuthenticationTokenServlet {
 	public static @ResponseBody AuthenticationToken refreshToken(
 		@RequestParam(value = PARAMETER_REFRESH_TOKEN, required = true)
 			final String refreshToken) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -327,7 +327,7 @@ public class AuthenticationTokenServlet {
 			AuthenticationTokenBin
 				.getInstance()
 				.getTokenFromRefreshToken(refreshToken);
-		
+
 		LOGGER.log(Level.FINE, "Ensuring that the refresh token is valid.");
 		if(oldToken == null) {
 			throw
@@ -351,29 +351,29 @@ public class AuthenticationTokenServlet {
 
 		LOGGER.log(Level.INFO, "Creating a new authentication token.");
 		AuthenticationToken token = new AuthenticationToken(oldToken);
-		
+
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
 		AuthenticationTokenBin.getInstance().addToken(token);
-		
+
 		LOGGER.log(Level.INFO, "Invalidating the old token.");
 		AuthenticationTokenBin.getInstance().updateToken(oldToken);
-		
+
 		LOGGER.log(Level.INFO, "Returning the token to the user.");
 		return token;
 	}
-	
+
 	/**
 	 * Invalidates an authentication token. This would most likely be used on
 	 * logout.
-	 * 
+	 *
 	 * @param token
 	 *        The authentication token to invalidate.
-	 * 
+	 *
 	 * @param isParam
 	 *        True if the authentication token was passed as a parameter or as
 	 *        both a parameter and a header; false indicates that it was only
 	 *        passed as a header.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The authentication was not given or was not given as a
 	 *         parameter.
@@ -385,24 +385,24 @@ public class AuthenticationTokenServlet {
 		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
 			final Boolean isParam)
 		throws IllegalArgumentException {
-		
+
 		// Validate that a token was given.
 		if(token == null) {
 			throw
 				new InvalidArgumentException(
 					"No authentication token was given.");
 		}
-		
+
 		// Validate that the token was a parameter.
 		if(! isParam) {
 			throw
 				new InvalidArgumentException(
 					"No authentication token was given as a parameter.");
 		}
-		
+
 		// Invalidate the token.
 		token.invalidate();
-		
+
 		// Store the, now invalidated, token.
 		AuthenticationTokenBin.getInstance().updateToken(token);
 	}

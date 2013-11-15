@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2013 Open mHealth
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,7 @@ import javax.servlet.ServletContextListener;
  * number of the configuration options may be chosen, and all users of this
  * class should have a default in place.
  * </p>
- * 
+ *
  * <p>
  * The file will be loaded when the web application starts. The main usage for
  * this class is the {@link #getCustomProperties()} function.
@@ -44,7 +44,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 	/**
 	 * The location of the default configuration file.
 	 */
-	private static final String CONFIG_FILE_DEFAULT = 
+	private static final String CONFIG_FILE_DEFAULT =
 		"/WEB-INF/config/default.conf";
 	/**
 	 * The default location for the configuration file on POSIX-compliant
@@ -56,18 +56,18 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 */
 	private static final String CONFIG_FILE_DEFAULT_WINDOWS =
 		"%PROGRAMDATA%\\ohmage\\config\\ohmage.conf";
-	
+
 	/**
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
 		Logger.getLogger(ConfigurationFileImport.class.getName());
-	
+
 	/**
 	 * The custom properties.
 	 */
 	private static Properties customProperties;
-	
+
 	/**
 	 * Default constructor.
 	 */
@@ -80,22 +80,22 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 * properties.
 	 */
 	@Override
-	public void contextInitialized(ServletContextEvent event) {
+	public void contextInitialized(final ServletContextEvent event) {
 		LOGGER.info("Initializing the ohmage configuration.");
-		
+
 		// An empty Properties object that will first be populated with the
 		// default configuration.
 		Properties properties = new Properties();
 		LOGGER.log(Level.FINE, "Retrieving the default configuration file.");
-		File defaultConfiguration = 
+		File defaultConfiguration =
 			new File(
-				event.getServletContext().getRealPath("/") + 
+				event.getServletContext().getRealPath("/") +
 					CONFIG_FILE_DEFAULT);
 		try {
 			LOGGER.log(Level.FINER, "Loading the default configuration file.");
-			
+
 			properties.load(new FileReader(defaultConfiguration));
-			
+
 			LOGGER
 				.log(
 					Level.FINER,
@@ -105,7 +105,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 		catch(FileNotFoundException e) {
 			LOGGER
 				.log(
-					Level.WARNING, 
+					Level.WARNING,
 					"The default properties file is missing: " +
 						defaultConfiguration.getAbsolutePath(),
 					e);
@@ -114,13 +114,13 @@ public class ConfigurationFileImport implements ServletContextListener {
 		catch(IOException e) {
 			LOGGER
 				.log(
-					Level.WARNING, 
+					Level.WARNING,
 					"There was an error reading the default properties " +
 						"file: " +
 						defaultConfiguration.getAbsolutePath(),
 					e);
 		}
-		
+
 		// Get a handler for the properties file based on the operating system.
 		File propertiesFile;
 		LOGGER.log(Level.FINE, "Determining the OS.");
@@ -132,7 +132,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 			LOGGER.log(Level.FINER, "The OS is POSIX-compliant.");
 			propertiesFile = new File(CONFIG_FILE_DEFAULT_POSIX);
 		}
-		
+
 		// Attempts to retrieve the custom configuration file and store it.
 		LOGGER
 			.log(
@@ -158,12 +158,12 @@ public class ConfigurationFileImport implements ServletContextListener {
 		catch(IOException e) {
 			LOGGER
 				.log(
-					Level.WARNING, 
+					Level.WARNING,
 					"There was an error reading the properties file: " +
 						propertiesFile.getAbsolutePath(),
 					e);
 		}
-		
+
 		// Store the properties as a sub-object to the system properties.
 		LOGGER.log(Level.FINE, "Saving the configuration settings.");
 		customProperties = properties;
@@ -174,14 +174,14 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 * @see javax.servlet.ServletContextListener#contextDestroyed(javax.servlet.ServletContextEvent)
 	 */
 	@Override
-	public void contextDestroyed(ServletContextEvent event) {
+	public void contextDestroyed(final ServletContextEvent event) {
 		// Do nothing.
 	}
-	
+
 	/**
-	 * Returns the custom properties defined by the external configuration 
+	 * Returns the custom properties defined by the external configuration
 	 * file.
-	 * 
+	 *
 	 * @return A valid {@link Properties} object, which may or may not contain
 	 * 		   the desired property.
 	 */

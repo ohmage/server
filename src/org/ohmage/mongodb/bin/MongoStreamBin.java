@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 import org.mongojack.DBCursor;
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.StreamBin;
+import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.mongodb.domain.stream.MongoStream;
@@ -27,7 +28,7 @@ public class MongoStreamBin extends StreamBin {
 	 * The name of the collection that contains all of the streams.
 	 */
 	public static final String COLLECTION_NAME = "stream_bin";
-	
+
 	/**
 	 * Get the connection to the stream bin with the Jackson wrapper.
 	 */
@@ -41,7 +42,7 @@ public class MongoStreamBin extends StreamBin {
 				Stream.class,
 				String.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Get the connection to the stream bin with the Jackson wrapper,
 	 * specifically for {@link MongoStream} objects.
@@ -56,7 +57,7 @@ public class MongoStreamBin extends StreamBin {
 				MongoStream.class,
 				String.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Default constructor.
 	 */
@@ -64,34 +65,34 @@ public class MongoStreamBin extends StreamBin {
 		// Ensure that there is an index on the ID.
 		COLLECTION
 			.ensureIndex(
-				new BasicDBObject(Stream.JSON_KEY_ID, 1),
-				COLLECTION_NAME + "_" + Stream.JSON_KEY_ID,
+				new BasicDBObject(Schema.JSON_KEY_ID, 1),
+				COLLECTION_NAME + "_" + Schema.JSON_KEY_ID,
 				false);
-		
+
 		// Ensure that there is an index on the version.
 		COLLECTION
 			.ensureIndex(
-				new BasicDBObject(Stream.JSON_KEY_VERSION, 1),
-				COLLECTION_NAME + "_" + Stream.JSON_KEY_VERSION,
+				new BasicDBObject(Schema.JSON_KEY_VERSION, 1),
+				COLLECTION_NAME + "_" + Schema.JSON_KEY_VERSION,
 				false);
-		
+
 		// Create the set of indexes.
 		DBObject indexes = new BasicDBObject();
 		// Index the ID.
-		indexes.put(Stream.JSON_KEY_ID, 1);
+		indexes.put(Schema.JSON_KEY_ID, 1);
 		// Index the version.
-		indexes.put(Stream.JSON_KEY_VERSION, 1);
+		indexes.put(Schema.JSON_KEY_VERSION, 1);
 
 		// Ensure that there is a unique index on the ID and version.
 		COLLECTION
 			.ensureIndex(
-				indexes, 
+				indexes,
 				COLLECTION_NAME + "_" +
-					Stream.JSON_KEY_ID + "_" +
-					Stream.JSON_KEY_VERSION + "_unique",
+					Schema.JSON_KEY_ID + "_" +
+					Schema.JSON_KEY_VERSION + "_unique",
 				true);
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.bin.StreamBin#addStream(org.ohmage.domain.stream.Stream)
@@ -100,12 +101,12 @@ public class MongoStreamBin extends StreamBin {
 	public void addStream(
 		final Stream stream)
 		throws IllegalArgumentException, InvalidArgumentException {
-		
+
 		// Validate the parameter.
 		if(stream == null) {
 			throw new IllegalArgumentException("The stream is null.");
 		}
-		
+
 		// Save it.
 		try {
 			COLLECTION.insert(stream);
@@ -126,35 +127,35 @@ public class MongoStreamBin extends StreamBin {
 	public List<String> getStreamIds(final String query) {
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
-				
+
 		// If given, add the query for the name and description.
 		if(query != null) {
 			// Build the query pattern.
 			Pattern queryPattern = Pattern.compile(".*" + query + ".*");
-			
+
 			// Create a query builder for the name portion.
 			QueryBuilder nameQueryBuilder = QueryBuilder.start();
-			
+
 			// Add the name.
-			nameQueryBuilder.and(Stream.JSON_KEY_NAME).regex(queryPattern);
-			
+			nameQueryBuilder.and(Schema.JSON_KEY_NAME).regex(queryPattern);
+
 			// Create a query builder for the version protion.
 			QueryBuilder versionQueryBuilder = QueryBuilder.start();
-			
+
 			// Add the version.
 			versionQueryBuilder
-				.and(Stream.JSON_KEY_VERSION)
+				.and(Schema.JSON_KEY_VERSION)
 				.regex(queryPattern);
-			
+
 			// Add the name and version queries to the root query.
 			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
 		}
-		
+
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
 		List<String> result =
-			MONGO_COLLECTION.distinct(Stream.JSON_KEY_ID, queryBuilder.get());
-		
+			MONGO_COLLECTION.distinct(Schema.JSON_KEY_ID, queryBuilder.get());
+
 		return result;
 	}
 
@@ -167,47 +168,47 @@ public class MongoStreamBin extends StreamBin {
 		final String streamId,
 		final String query)
 		throws IllegalArgumentException {
-		
+
 		// Validate the input.
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
-		
-		// Build the query
+
+		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the ID.
-		queryBuilder.and(Stream.JSON_KEY_ID).is(streamId);
-		
+		queryBuilder.and(Schema.JSON_KEY_ID).is(streamId);
+
 		// If given, add the query for the name and description.
 		if(query != null) {
 			// Build the query pattern.
 			Pattern queryPattern = Pattern.compile(".*" + query + ".*");
-			
+
 			// Create a query builder for the name portion.
 			QueryBuilder nameQueryBuilder = QueryBuilder.start();
-			
+
 			// Add the name.
-			nameQueryBuilder.and(Stream.JSON_KEY_NAME).regex(queryPattern);
-			
-			// Create a query builder for the version protion.
+			nameQueryBuilder.and(Schema.JSON_KEY_NAME).regex(queryPattern);
+
+			// Create a query builder for the version portion.
 			QueryBuilder versionQueryBuilder = QueryBuilder.start();
-			
+
 			// Add the version.
 			versionQueryBuilder
-				.and(Stream.JSON_KEY_VERSION)
+				.and(Schema.JSON_KEY_VERSION)
 				.regex(queryPattern);
-			
+
 			// Add the name and version queries to the root query.
 			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
 		}
-		
+
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
 		List<Long> result =
 			MONGO_COLLECTION
-				.distinct(Stream.JSON_KEY_VERSION, queryBuilder.get());
-		
+				.distinct(Schema.JSON_KEY_VERSION, queryBuilder.get());
+
 		return result;
 	}
 
@@ -220,7 +221,7 @@ public class MongoStreamBin extends StreamBin {
 		final String streamId,
 		final Long streamVersion)
 		throws IllegalArgumentException {
-		
+
 		// Validate the input.
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
@@ -228,16 +229,16 @@ public class MongoStreamBin extends StreamBin {
 		if(streamVersion == null) {
 			throw new IllegalArgumentException("The stream version is null.");
 		}
-		
-		// Build the query
+
+		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the schema ID.
-		queryBuilder.and(Stream.JSON_KEY_ID).is(streamId);
-		
+		queryBuilder.and(Schema.JSON_KEY_ID).is(streamId);
+
 		// Add the schema version.
-		queryBuilder.and(Stream.JSON_KEY_VERSION).is(streamVersion);
-		
+		queryBuilder.and(Schema.JSON_KEY_VERSION).is(streamVersion);
+
 		// Execute query.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
@@ -251,20 +252,20 @@ public class MongoStreamBin extends StreamBin {
 		final String streamId,
 		final Long streamVersion)
 		throws IllegalArgumentException {
-		
+
 		// Validate the input.
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
-		
+
 		// Add the stream ID to the query.
-		BasicDBObject query = new BasicDBObject(Stream.JSON_KEY_ID, streamId);
-		
+		BasicDBObject query = new BasicDBObject(Schema.JSON_KEY_ID, streamId);
+
 		// Add the stream version to the query, if given.
 		if(streamVersion != null) {
-			query.put(Stream.JSON_KEY_VERSION, streamVersion);
+			query.put(Schema.JSON_KEY_VERSION, streamVersion);
 		}
-		
+
 		// The result is based on whether or not any results were found.
 		return (MONGO_COLLECTION.findOne() != null);
 	}
@@ -277,27 +278,25 @@ public class MongoStreamBin extends StreamBin {
 	public Stream getLatestStream(
 		final String streamId)
 		throws IllegalArgumentException {
-		
+
 		// Validate the input.
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
-		
-		// Build the query
+
+		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the schema ID.
-		queryBuilder.and(Stream.JSON_KEY_ID).is(streamId);
-		
+		queryBuilder.and(Schema.JSON_KEY_ID).is(streamId);
+
 		// Create the sort.
-		DBObject sort = new BasicDBObject(Stream.JSON_KEY_VERSION, -1);
+		DBObject sort = new BasicDBObject(Schema.JSON_KEY_VERSION, -1);
 
 		// Make the query.
 		DBCursor<MongoStream> result =
 			MONGO_COLLECTION.find(queryBuilder.get()).sort(sort).limit(1);
-		
-		
-		
+
 		// Return null or the schema based on what the query returned.
 		if(result.count() == 0) {
 			return null;

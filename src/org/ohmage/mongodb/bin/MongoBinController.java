@@ -29,17 +29,17 @@ public class MongoBinController extends BinController {
 	 * The default server address.
 	 */
 	public static final String DEFAULT_SERVER_ADDRESS = "localhost";
-	
+
 	/**
 	 * The default server port.
 	 */
 	public static final int DEFAULT_SERVER_PORT = 27017;
-	
+
 	/**
 	 * The default name for the database.
 	 */
 	public static final String DEFAULT_DATABASE_NAME = "ohmage";
-	
+
 	/**
 	 * The object mapper that should be used to parse any ohmage domain object.
 	 */
@@ -47,20 +47,20 @@ public class MongoBinController extends BinController {
 	static {
 		// Create the object mapper.
 		ObjectMapper mapper = new ObjectMapper();
-		
+
 		// Create the FilterProvider.
 		SimpleFilterProvider filterProvider = new SimpleFilterProvider();
 		filterProvider.setFailOnUnknownId(false);
 		mapper.setFilters(filterProvider);
-		
+
 		// Ensure that it stores and reads enums using their ordinal value.
 		mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
-		
+
 		// Finally, we must configure the mapper to work with the MongoJack
 		// configuration.
 		JSON_MAPPER = MongoJackModule.configure(mapper);
-	}	
-	
+	}
+
 	/**
 	 * The connection to the database.
 	 */
@@ -68,25 +68,25 @@ public class MongoBinController extends BinController {
 
 	/**
 	 * Default constructor, which will create the connection to the MongoDB.
-	 * 
+	 *
 	 * @param properties
 	 *        The user-defined properties to use to setup the connection.
-	 * 
+	 *
 	 * @throws IllegalStateException
 	 *         There was a problem setting up the connection to the database.
 	 */
 	public MongoBinController(
 		final Properties properties)
 		throws IllegalStateException {
-		
+
 		super(properties);
-		
+
 		// Create the singular Mongo instance.
 		try {
 			// Build the server address.
 			ServerAddress serverAddress =
 				new ServerAddress(getDatabaseAddress(), getDatabasePort());
-			
+
 			// If a username and password were given, use them.
 			String username = getDatabaseUsername();
 			String password = getDatabasePassword();
@@ -94,7 +94,7 @@ public class MongoBinController extends BinController {
 				// Create the list of credentials.
 				List<MongoCredential> credentials =
 					new LinkedList<MongoCredential>();
-				
+
 				// Add the given credentials.
 				credentials
 					.add(
@@ -103,7 +103,7 @@ public class MongoBinController extends BinController {
 								username,
 								getDatabaseName(),
 								password.toCharArray()));
-				
+
 				// Create the MongoDB client with the credentials.
 				mongo = new MongoClient(serverAddress, credentials);
 			}
@@ -118,28 +118,30 @@ public class MongoBinController extends BinController {
 					"The database could not be setup.",
 					e);
 		}
-		
+
 		// Ensure that all writes use the safest write concern.
 		mongo.setWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
-		
+
 		// Instantiate the specific components.
 		new MongoUserBin();
 		new MongoAuthenticationTokenBin();
 		new MongoStreamBin();
 		new MongoStreamDataBin();
+		new MongoSurveyBin();
+		new MongoSurveyResponseBin();
 		new MongoOhmletBin();
 	}
-	
+
 	/**
 	 * Returns the database connection to MongoDB.
-	 * 
+	 *
 	 * @return The database to MongoDB.
 	 */
 	public DB getDb() {
 		// Get the connection to the database.
 		return mongo.getDB(getDatabaseName());
 	}
-	
+
 	/**
 	 * Shuts the bin controller down.
 	 */
@@ -147,12 +149,12 @@ public class MongoBinController extends BinController {
 	public void shutdown() {
 		mongo.close();
 	}
-	
+
 	/**
 	 * Returns the instance of this bin controller as a MongoBinController.
-	 * 
+	 *
 	 * @return The instance of this bin controller as a MongoBinController.
-	 * 
+	 *
 	 * @throws IllegalStateException
 	 *         The bin controller was not built with a MongoBinController.
 	 */
@@ -193,11 +195,11 @@ public class MongoBinController extends BinController {
 	protected String getDefaultDatabaseName() {
 		return DEFAULT_DATABASE_NAME;
 	}
-	
+
 	/**
 	 * Returns an ObjectMapper that has been pre-configured to work with domain
 	 * objects.
-	 * 
+	 *
 	 * @return An ObjectMapper that has been pre-configured to work with domain
 	 *         objects.
 	 */

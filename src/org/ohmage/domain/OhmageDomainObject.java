@@ -48,7 +48,7 @@ public abstract class OhmageDomainObject {
 		/**
 		 * Creates a new builder based on an existing object and increments its
 		 * internal write version.
-		 * 
+		 *
 		 * @param user
 		 *        The existing object on which this Builder should be based.
 		 */
@@ -56,22 +56,22 @@ public abstract class OhmageDomainObject {
 			if(object == null) {
 				return;
 			}
-			
+
 			this.internalReadVersion = object.getInternalReadVersion();
 			this.internalWriteVersion = object.getInternalWriteVersion() + 1;
 		}
 	}
-	
+
 	/**
 	 * The JSON key for the internal version of the entity in the data-store.
 	 */
 	public static final String JSON_KEY_INTERNAL_VERSION = "version";
-	
+
 	/**
 	 * The default internal version.
 	 */
 	private static final long DEFAULT_INTERNAL_VERSION = 0;
-	
+
 	/**
 	 * The JSON filter value.
 	 */
@@ -81,7 +81,7 @@ public abstract class OhmageDomainObject {
 	static {
 		OhmageObjectMapper.register(OhmageDomainObject.class);
 	}
-	
+
 	/**
 	 * The internal version of the user when it was read from the data-store.
 	 */
@@ -93,52 +93,52 @@ public abstract class OhmageDomainObject {
 	@JsonProperty(JSON_KEY_INTERNAL_VERSION)
 	@JsonFilterField
 	private final long internalWriteVersion;
-	
+
 	/**
 	 * Creates a new domain object.
-	 * 
+	 *
 	 * @param internalReadVersion
 	 *        The current internal read version of this object.
-	 * 
+	 *
 	 * @param internalWriteVersion
 	 *        The current internal write version of this object.
 	 */
 	public OhmageDomainObject(
 		final Long internalReadVersion,
 		final Long internalWriteVersion) {
-		
+
 		this.internalReadVersion =
 			(internalReadVersion == null) ?
 				DEFAULT_INTERNAL_VERSION :
 				internalReadVersion;
-		
+
 		this.internalWriteVersion =
 			(internalWriteVersion == null) ?
 				this.internalReadVersion :
 				internalWriteVersion;
 	}
-	
+
 	/**
 	 * Returns the internal read version of this object.
-	 * 
+	 *
 	 * @return The internal read version of this object.
 	 */
 	public long getInternalReadVersion() {
 		return internalReadVersion;
 	}
-	
+
 	/**
 	 * Returns the internal read version of this object.
-	 * 
+	 *
 	 * @return The internal read version of this object.
 	 */
 	public long getInternalWriteVersion() {
 		return internalWriteVersion;
 	}
-	
+
 	/**
 	 * Returns a randomly generated ID.
-	 * 
+	 *
 	 * @return A randomly generated ID.
 	 */
 	protected static String getRandomId() {

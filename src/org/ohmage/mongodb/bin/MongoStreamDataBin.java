@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.StreamDataBin;
+import org.ohmage.domain.MetaData;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.StreamData;
@@ -66,11 +67,11 @@ public class MongoStreamDataBin extends StreamDataBin {
 			.ensureIndex(
 				new BasicDBObject(
 					StreamData.JSON_KEY_META_DATA + 
-						"." + StreamData.MetaData.JSON_KEY_ID,
+						"." + MetaData.JSON_KEY_ID,
 					1), 
 				COLLECTION_NAME + "_" +
 					StreamData.JSON_KEY_META_DATA + "." +
-						StreamData.MetaData.JSON_KEY_ID,
+						MetaData.JSON_KEY_ID,
 				false);
 		
 		// Create the set of indexes.
@@ -83,7 +84,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 		indexes
 			.put(
 				StreamData.JSON_KEY_META_DATA + "." +
-					StreamData.MetaData.JSON_KEY_ID,
+					MetaData.JSON_KEY_ID,
 				1);
 
 		// Ensure that there is a unique index on the stream ID and version and
@@ -95,7 +96,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 					StreamData.JSON_KEY_STREAM_ID + "_" +
 					StreamData.JSON_KEY_STREAM_VERSION + "_" +
 					StreamData.JSON_KEY_META_DATA + "." +
-						StreamData.MetaData.JSON_KEY_ID +
+						MetaData.JSON_KEY_ID +
 					"_unique",
 				true);
 	}
@@ -203,7 +204,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 			.and(
 				StreamData.JSON_KEY_META_DATA +
 					"." +
-					StreamData.MetaData.JSON_KEY_ID)
+					MetaData.JSON_KEY_ID)
 			.is(pointId);
 		
 		// Make the query and return the results.
@@ -250,7 +251,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 			.and(
 				StreamData.JSON_KEY_META_DATA +
 					"." +
-					StreamData.MetaData.JSON_KEY_ID)
+					MetaData.JSON_KEY_ID)
 			.is(pointId);
 		
 		// Delete the data point.

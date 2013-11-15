@@ -28,7 +28,7 @@ public abstract class StreamDataBin {
 
 	/**
 	 * Retrieves the singleton instance of this class.
-	 * 
+	 *
 	 * @return The singleton instance of this class.
 	 */
 	public static final StreamDataBin getInstance() {
@@ -37,31 +37,31 @@ public abstract class StreamDataBin {
 
 	/**
 	 * Adds new stream data to the repository.
-	 * 
+	 *
 	 * @param streamData
 	 *        The stream data to add.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The stream data is null.
 	 */
 	public abstract void addStreamData(
 		final List<StreamData> streamData)
 		throws IllegalArgumentException, InvalidArgumentException;
-	
+
 	/**
 	 * Retrieves data specific to a user and a stream.
-	 * 
+	 *
 	 * @param username
 	 *        The user's username.
-	 * 
+	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
-	 * 
+	 *
 	 * @param streamVersion
 	 *        The version of the stream.
-	 * 
+	 *
 	 * @return The data that matches the parameters.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         A required parameter was null.
 	 */
@@ -70,24 +70,24 @@ public abstract class StreamDataBin {
 		final String streamId,
 		final long streamVersion)
 		throws IllegalArgumentException;
-	
+
 	/**
-	 * Retrieves data specific to a user and a stream.
-	 * 
+	 * Retrieves a specific stream data point.
+	 *
 	 * @param username
 	 *        The user's username.
-	 * 
+	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
-	 * 
+	 *
 	 * @param streamVersion
 	 *        The version of the stream.
-	 * 
+	 *
 	 * @param pointId
 	 *        The unique identifier of the specific point.
-	 * 
-	 * @return The data that matches the parameters.
-	 * 
+	 *
+	 * @return The specific stream data point that matches the parameters.
+	 *
 	 * @throws IllegalArgumentException
 	 *         A required parameter was null.
 	 */
@@ -97,22 +97,22 @@ public abstract class StreamDataBin {
 		final long streamVersion,
 		final String pointId)
 		throws IllegalArgumentException;
-	
+
 	/**
-	 * Retrieves data specific to a user and a stream.
-	 * 
+	 * Deletes a specific stream data point.
+	 *
 	 * @param username
 	 *        The user's username.
-	 * 
+	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
-	 * 
+	 *
 	 * @param streamVersion
 	 *        The version of the stream.
-	 * 
+	 *
 	 * @param pointId
 	 *        The unique identifier of the specific point.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         A required parameter was null.
 	 */
