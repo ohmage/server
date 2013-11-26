@@ -1,4 +1,4 @@
-package org.ohmage.domain.survey.response;
+package org.ohmage.domain.survey;
 
 import java.util.Map;
 
@@ -6,6 +6,13 @@ import name.jenkins.paul.john.concordia.schema.Schema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 
+/**
+ * <p>
+ * Indicates whether or not a survey item may have responses.
+ * </p>
+ *
+ * @author John Jenkins
+ */
 public interface Respondable {
     /**
      * Returns the schema for a response to this survey item or null if the
@@ -13,8 +20,11 @@ public interface Respondable {
      *
      * @return The schema for a response to this survey item or null if the
      *         survey item does not have a response.
+     *
+     * @throws IllegalStateException
+     *         There was a problem building the response schema.
      */
-    public abstract Schema getResponseSchema();
+    public abstract Schema getResponseSchema() throws IllegalStateException;
 
     /**
      * Validates some response against this respondable object.

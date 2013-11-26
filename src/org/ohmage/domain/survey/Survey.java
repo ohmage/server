@@ -16,7 +16,7 @@ import name.jenkins.paul.john.concordia.schema.ObjectSchema;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.response.Respondable;
+import org.ohmage.domain.survey.condition.Condition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -153,6 +153,23 @@ public class Survey extends Schema {
             owner,
             surveyItems,
             null);
+
+        // Validate the conditions within the survey items.
+        Map<String, SurveyItem> previousItems =
+            new HashMap<String, SurveyItem>();
+        for(SurveyItem surveyItem : surveyItems) {
+            // Get the condition.
+            Condition condition = surveyItem.getCondition();
+
+            // If a condition was given, validate that it is valid.
+            if(condition != null) {
+                condition.validate(previousItems);
+            }
+
+            // Add the current survey item to the map of validated survey
+            // items.
+            previousItems.put(surveyItem.getSurveyItemId(), surveyItem);
+        }
     }
 
     /**
@@ -303,20 +320,27 @@ public class Survey extends Schema {
             // Get the survey item.
             SurveyItem surveyItem = surveyItemIter.next();
 
+            // Get the survey item's ID.
+            String surveyItemId = surveyItem.getSurveyItemId();
+
             // If it's respondable, then check for a response.
             if(surveyItem instanceof Respondable) {
                 // Cast the survey item to a prompt.
                 Respondable respondable = (Respondable) surveyItem;
 
                 // Get the response.
-                Object response =
-                    promptResponses.get(surveyItem.getSurveyItemId());
+                Object response = promptResponses.get(surveyItemId);
 
                 // Validate the response.
                 respondable.validateResponse(response, checkedResponses);
-
-                // Add the response to the list of checked responses.
-                checkedResponses.put(surveyItem.getSurveyItemId(), response);
+            }
+            // Otherwise, be sure a response was not given.
+            else if(promptResponses.containsKey(surveyItemId)) {
+                throw
+                    new InvalidArgumentException(
+                        "A survey item that should not have had a response " +
+                            "did: " +
+                            surveyItemId);
             }
         }
 

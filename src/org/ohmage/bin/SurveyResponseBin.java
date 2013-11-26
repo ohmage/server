@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.response.SurveyResponse;
+import org.ohmage.domain.survey.SurveyResponse;
 
 /**
  * <p>

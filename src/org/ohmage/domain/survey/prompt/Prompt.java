@@ -1,9 +1,12 @@
-package org.ohmage.domain.survey;
+package org.ohmage.domain.survey.prompt;
 
 import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.response.Respondable;
+import org.ohmage.domain.survey.NoResponse;
+import org.ohmage.domain.survey.Respondable;
+import org.ohmage.domain.survey.SurveyItem;
+import org.ohmage.domain.survey.condition.Condition;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -77,7 +80,7 @@ public abstract class Prompt<ResponseType>
      */
     public Prompt(
         final String surveyItemId,
-        final String condition,
+        final Condition condition,
         final String text,
         final boolean skippable,
         final ResponseType defaultResponse)
@@ -123,30 +126,58 @@ public abstract class Prompt<ResponseType>
         final Map<String, Object> previousResponses)
         throws InvalidArgumentException {
 
-        // TODO: Check if the response should have been displayed and compare
-        // that to whether or not a response exists.
-        /* if */
+        // Check if the response should have been displayed and compare that to
+        // whether or not a response exists.
+        if(! getCondition().evaluate(previousResponses)) {
+            // If it shouldn't have been displayed but an answer exists, report
+            // an error.
+            if(response != null) {
+                throw
+                    new InvalidArgumentException(
+                        "A prompt should not have been displayed, yet a " +
+                            "response was provided: " +
+                            getSurveyItemId());
+            }
+
+            // Otherwise, add the NOT_DISPLAYED response to the set of previous
+            // responses.
+            previousResponses.put(getSurveyItemId(), NoResponse.NOT_DISPLAYED);
+        }
         // If the response should have been displayed, then, if the response is
         // missing, check if this prompt is skippable.
-        /* else */ if(response == null) {
+        else if(response == null) {
+            // If it is not skippable, report an error.
             if(! skippable()) {
                 throw
                     new InvalidArgumentException(
                         "A prompt that was not skippable was skipped: " +
                             getSurveyItemId());
             }
+
+            // Otherwise, add the SKIPPED response to the set of previous
+            // responses.
+            previousResponses.put(getSurveyItemId(), NoResponse.SKIPPED);
         }
+        // Otherwise, evaluate the response.
         else {
+            // Get the response object and, if it is of the wrong type, report
+            // an error.
+            ResponseType responseObject;
             try {
-                validateResponse((ResponseType) response);
+                responseObject = (ResponseType) response;
             }
             catch(ClassCastException e) {
                 throw
                     new InvalidArgumentException(
-                        "The response is of the wrong type for prompt '" +
-                            getSurveyItemId() +
-                        "'.");
+                        "The response is of the wrong type: " +
+                            getSurveyItemId());
             }
+
+            // Validate the response.
+            validateResponse(responseObject);
+
+            // Add the response to the list of previous responses.
+            previousResponses.put(getSurveyItemId(), responseObject);
         }
     }
 

@@ -39,8 +39,8 @@
         class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         
         <!--
-            The maximum allowed size for an upload is 5 MB. Feel free to update this 
-            as you please.
+            The maximum allowed size for an upload is 5 MB. Feel free to update
+            this as you please.
          -->
         <property name="maxUploadSize" value="5242880" />
     </bean>

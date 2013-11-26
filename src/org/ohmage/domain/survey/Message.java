@@ -1,6 +1,7 @@
 package org.ohmage.domain.survey;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.condition.Condition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,7 +48,7 @@ public class Message extends SurveyItem {
     @JsonCreator
     public Message(
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
-        @JsonProperty(JSON_KEY_CONDITION) final String condition,
+        @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text)
         throws InvalidArgumentException {
 

@@ -7,7 +7,7 @@ import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.response.SurveyResponse;
+import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.bin.MongoSurveyResponseBin;
 import org.ohmage.mongodb.domain.MongoDbObject;
 

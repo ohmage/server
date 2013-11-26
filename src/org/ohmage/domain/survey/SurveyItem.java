@@ -1,6 +1,13 @@
 package org.ohmage.domain.survey;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.condition.Condition;
+import org.ohmage.domain.survey.prompt.MultiChoicePrompt;
+import org.ohmage.domain.survey.prompt.NumberPrompt;
+import org.ohmage.domain.survey.prompt.RemoteActivityPrompt;
+import org.ohmage.domain.survey.prompt.SingleChoicePrompt;
+import org.ohmage.domain.survey.prompt.TextPrompt;
+import org.ohmage.domain.survey.prompt.TimestampPrompt;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -31,8 +38,23 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         value = Message.class,
         name = Message.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
+        value = MultiChoicePrompt.class,
+        name = MultiChoicePrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = NumberPrompt.class,
+        name = NumberPrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = RemoteActivityPrompt.class,
+        name = RemoteActivityPrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = SingleChoicePrompt.class,
+        name = SingleChoicePrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
         value = TextPrompt.class,
-        name = TextPrompt.SURVEY_ITEM_TYPE)})
+        name = TextPrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = TimestampPrompt.class,
+        name = TimestampPrompt.SURVEY_ITEM_TYPE)})
 public abstract class SurveyItem {
     /**
      * The JSON key used to define which kind of survey item this is.
@@ -58,7 +80,7 @@ public abstract class SurveyItem {
      * displayed.
      */
     @JsonProperty(JSON_KEY_CONDITION)
-    private final String condition;
+    private final Condition condition;
 
     /**
      * Does nothing and should never be used. This is here only to circumvent a
@@ -84,7 +106,7 @@ public abstract class SurveyItem {
      */
     public SurveyItem(
         final String surveyItemId,
-        final String condition)
+        final Condition condition)
         throws InvalidArgumentException {
 
         if(surveyItemId == null) {
@@ -111,7 +133,7 @@ public abstract class SurveyItem {
      * @return The condition determining if this prompt should be displayed or
      *         not. This may be null if the prompt has no condition.
      */
-    public String getCondition() {
+    public Condition getCondition() {
         return condition;
     }
 }

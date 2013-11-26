@@ -1,16 +1,23 @@
 package org.ohmage.mongodb.bin;
 
+import java.math.BigDecimal;
 import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
+import org.joda.time.DateTime;
 import org.mongojack.internal.MongoJackModule;
 import org.ohmage.bin.BinController;
+import org.ohmage.domain.ISOW3CDateTimeFormat;
+import org.ohmage.domain.jackson.BigDecimalSerializer;
 
+import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
@@ -52,6 +59,27 @@ public class MongoBinController extends BinController {
 		SimpleFilterProvider filterProvider = new SimpleFilterProvider();
 		filterProvider.setFailOnUnknownId(false);
 		mapper.setFilters(filterProvider);
+
+        // Register our DateTime (de)serializer.
+        SimpleModule dateTimeModule =
+            new SimpleModule(
+                "W3C ISO-8601 DateTime (de)serialization module",
+                new Version(1, 0, 0, null, null, null));
+        dateTimeModule.addSerializer(DateTime.class, new ToStringSerializer());
+        dateTimeModule
+            .addDeserializer(
+                DateTime.class,
+                new ISOW3CDateTimeFormat.Deserializer());
+        mapper.registerModule(dateTimeModule);
+
+        // Register our BigDecimal serializer.
+        SimpleModule bigDecimalSerializer =
+            new SimpleModule(
+                "BigDecimal serialization module",
+                new Version(1, 0, 0, null, null, null));
+        bigDecimalSerializer
+            .addSerializer(BigDecimal.class, new BigDecimalSerializer());
+        mapper.registerModule(bigDecimalSerializer);
 
 		// Ensure that it stores and reads enums using their ordinal value.
 		mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);

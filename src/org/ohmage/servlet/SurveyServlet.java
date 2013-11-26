@@ -15,7 +15,7 @@ import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.survey.Survey;
-import org.ohmage.domain.survey.response.SurveyResponse;
+import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -24,8 +24,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -64,6 +66,10 @@ public class SurveyServlet {
      * The name of the parameter for querying for specific values.
      */
     public static final String KEY_QUERY = "query";
+    /**
+     * The name of all media parts in multipart requests.
+     */
+    public static final String KEY_MEDIA = "media";
 
     /**
      * The logger for this class.
@@ -319,7 +325,8 @@ public class SurveyServlet {
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
         @RequestBody
-            final List<SurveyResponse.Builder> surveyResponseBuilders) {
+            final List<SurveyResponse.Builder> surveyResponseBuilders,
+        @RequestPart(KEY_MEDIA) final List<MultipartFile> media) {
 
         LOGGER.log(Level.INFO, "Storing some new survey data.");
 

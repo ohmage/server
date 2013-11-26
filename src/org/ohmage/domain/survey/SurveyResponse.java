@@ -1,4 +1,4 @@
-package org.ohmage.domain.survey.response;
+package org.ohmage.domain.survey;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,7 +6,6 @@ import java.util.Map;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.Survey;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -7,7 +7,7 @@ import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.response.SurveyResponse;
+import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.survey.response.MongoSurveyResponse;
 
