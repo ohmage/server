@@ -1,6 +1,6 @@
 package org.ohmage.bin;
 
-import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.exception.InvalidArgumentException;
 
 /**
@@ -45,40 +45,40 @@ public abstract class AuthenticationTokenBin {
 	 *         A token with the same value already exists.
 	 */
 	public abstract void addToken(
-		final AuthenticationToken token)
+		final AuthorizationToken token)
 		throws IllegalArgumentException, IllegalStateException;
 
 	/**
-	 * Retrieves the {@link AuthenticationToken} object based on the given
+	 * Retrieves the {@link AuthorizationToken} object based on the given
 	 * access token string.
 	 * 
 	 * @param accessToken
 	 *        The authentication token.
 	 * 
-	 * @return The {@link AuthenticationToken} or null if the authentication
+	 * @return The {@link AuthorizationToken} or null if the authentication
 	 *         token string does not exist or is expired.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         The token is null.
 	 */
-	public abstract AuthenticationToken getTokenFromAccessToken(
+	public abstract AuthorizationToken getTokenFromAccessToken(
 		final String accessToken)
 		throws IllegalArgumentException, IllegalStateException;
 
 	/**
-	 * Retrieves the {@link AuthenticationToken} object based on the given
+	 * Retrieves the {@link AuthorizationToken} object based on the given
 	 * refresh token string.
 	 * 
 	 * @param refreshToken
 	 *        The refresh token.
 	 * 
-	 * @return The {@link AuthenticationToken} or null if the refresh token
+	 * @return The {@link AuthorizationToken} or null if the refresh token
 	 *         string does not exist.
 	 * 
 	 * @throws IllegalArgumentException
 	 *         The token is null.
 	 */
-	public abstract AuthenticationToken getTokenFromRefreshToken(
+	public abstract AuthorizationToken getTokenFromRefreshToken(
 		final String refreshToken)
 		throws IllegalArgumentException, IllegalStateException;
 
@@ -91,5 +91,5 @@ public abstract class AuthenticationTokenBin {
 	 * @throws IllegalArgumentException
 	 *         The token is null.
 	 */
-	public abstract void updateToken(final AuthenticationToken token);
+	public abstract void updateToken(final AuthorizationToken token);
 }

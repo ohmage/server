@@ -10,8 +10,9 @@ import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
+import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
-import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.ProviderUserInformation;
@@ -22,6 +23,7 @@ import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.stream.Stream;
+import org.ohmage.domain.survey.Survey;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -31,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * <p>
@@ -42,11 +43,6 @@ import org.springframework.web.bind.annotation.SessionAttributes;
  */
 @Controller
 @RequestMapping(UserServlet.ROOT_MAPPING)
-@SessionAttributes(
-	{
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN,
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM
-	})
 public class UserServlet {
 	/**
 	 * The root API mapping for this Servlet.
@@ -303,19 +299,29 @@ public class UserServlet {
 
 	/**
 	 * Retrieves the list of users that are visible to the requesting user.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @return The list of users that are visible to the requesting user.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	public static @ResponseBody Set<String> getVisibleUsers(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token) {
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken) {
 
 		LOGGER.log(Level.INFO, "Requesting a list of visible users.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER.log(Level.FINE, "Create the result list.");
 		Set<String> result = new HashSet<String>(1);
@@ -331,9 +337,10 @@ public class UserServlet {
 
 	/**
 	 * Retrieves the information about a user.
-	 *
-	 * @param token
-	 *        The authentication token used to validate the caller.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user whose information is desired.
@@ -344,15 +351,21 @@ public class UserServlet {
 		value = "{" + KEY_USERNAME + ":.+" + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody User getUserInformation(
-		@ModelAttribute(value=AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username) {
 
 		LOGGER.log(Level.INFO, "Requesting information about a user.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		// Users are only visible to read their own data at this time.
 		LOGGER
@@ -373,9 +386,6 @@ public class UserServlet {
 
 	/**
 	 * Updates a user's password.
-	 *
-	 * @param token
-	 *        The authentication token used to validate the caller.
 	 *
 	 * @param username
 	 *        The user whose information is desired.
@@ -433,13 +443,10 @@ public class UserServlet {
 
 	/**
 	 * Retrieves the set of communities that this user is part of.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the user's authentication token was sent as a
-	 *        parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
@@ -452,10 +459,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_OHMLETS,
 		method = RequestMethod.GET)
 	public static @ResponseBody Collection<User.OhmletReference> getFollowedCommunities(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username) {
 
 		LOGGER
@@ -463,9 +468,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -484,13 +495,10 @@ public class UserServlet {
 	/**
 	 * Retrieves the specific information for a ohmlet that the user is
 	 * following.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the user's authentication token was sent as a
-	 *        parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
@@ -509,10 +517,8 @@ public class UserServlet {
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody User.OhmletReference getFollowedOhmlet(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
 
@@ -521,9 +527,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -542,13 +554,10 @@ public class UserServlet {
 	/**
 	 * Retrieves the specific information for a ohmlet that the user is
 	 * following.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the user's authentication token was sent as a
-	 *        parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
@@ -567,10 +576,8 @@ public class UserServlet {
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void leaveOhmlet(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
 
@@ -579,9 +586,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request to disassociate a user with a ohmlet.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -634,12 +647,10 @@ public class UserServlet {
 	 * For a specific user, marks a ohmlet's stream as being ignored meaning
 	 * that, unless followed in another ohmlet, it should not be displayed
 	 * to the user.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name that should be ignoring the stream.
@@ -661,10 +672,8 @@ public class UserServlet {
 			OhmletReference.JSON_KEY_IGNORED_STREAMS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void ignoreOhmletStream(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
@@ -675,9 +684,15 @@ public class UserServlet {
 				"Creating a request for a user to ignore a stream reference " +
 					"in a ohmlet.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -726,12 +741,10 @@ public class UserServlet {
 	 * causing it to be ignored. The user should again see this stream. If the
 	 * user was not ignoring the stream before this call, it will essentially
 	 * have no impact.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name that should stop ignoring the stream.
@@ -753,10 +766,8 @@ public class UserServlet {
 			OhmletReference.JSON_KEY_IGNORED_STREAMS,
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void stopIgnoringOhmletStream(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
@@ -769,9 +780,15 @@ public class UserServlet {
 					Ohmlet.COMMUNITY_SKIN +
 					".");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -819,12 +836,10 @@ public class UserServlet {
 	 * For a specific user, marks a ohmlet's survey as being ignored meaning
 	 * that, unless followed in another ohmlet, it should not be displayed
 	 * to the user.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name that should be ignoring the survey.
@@ -846,10 +861,8 @@ public class UserServlet {
 			OhmletReference.JSON_KEY_IGNORED_SURVEYS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void ignoreOhmletSurvey(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
@@ -860,9 +873,15 @@ public class UserServlet {
 				"Creating a request for a user to ignore a survey reference " +
 					"in a ohmlet.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -911,12 +930,10 @@ public class UserServlet {
 	 * causing it to be ignored. The user should again see this survey. If the
 	 * user was not ignoring the survey before this call, it will essentially
 	 * have no impact.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name that should stop ignoring the survey.
@@ -938,10 +955,8 @@ public class UserServlet {
 			OhmletReference.JSON_KEY_IGNORED_SURVEYS,
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void stopIgnoringOhmletSurvey(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
@@ -952,9 +967,15 @@ public class UserServlet {
 				"Creating a request for a user to stop ignoring a survey " +
 					"reference in a ohmlet.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1003,12 +1024,10 @@ public class UserServlet {
 	 * version. If the version is given, that indicates that the user wishes to
 	 * follow a specific version of the stream. If a version is not given, that
 	 * indicates that a user wishes to follow the latest version of the stream.
-	 *
-	 * @param token
-	 *        The requesting user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user-name of the user that is following this stream. For now,
@@ -1024,10 +1043,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void followStream(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference streamReference) {
 
@@ -1036,9 +1053,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1087,13 +1110,10 @@ public class UserServlet {
 
 	/**
 	 * Retrieves the set of streams that this user is watching.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the user's authentication token was sent as a
-	 *        parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
@@ -1106,10 +1126,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
 		method = RequestMethod.GET)
 	public static @ResponseBody Set<SchemaReference> getFollowedStreams(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username) {
 
 		LOGGER
@@ -1118,9 +1136,15 @@ public class UserServlet {
 				"Creating a request for a user to view streams they are " +
 					"following.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1138,12 +1162,10 @@ public class UserServlet {
 
 	/**
 	 * Stops a user from following a stream.
-	 *
-	 * @param token
-	 *        The requesting user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user-name of the user that is following this stream. For now,
@@ -1159,10 +1181,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void forgetStream(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference streamReference) {
 
@@ -1171,9 +1191,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request for a user to stop tracking a stream.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1202,12 +1228,10 @@ public class UserServlet {
 	 * version. If the version is given, that indicates that the user wishes to
 	 * follow a specific version of the stream. If a version is not given, that
 	 * indicates that a user wishes to follow the latest version of the stream.
-	 *
-	 * @param token
-	 *        The requesting user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user-name of the user that is following this survey. For now,
@@ -1223,10 +1247,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void followSurvey(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference surveyReference) {
 
@@ -1235,9 +1257,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request for a user to track a survey.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1249,53 +1277,47 @@ public class UserServlet {
 					"Users may only modify their own accounts.");
 		}
 
-		// TODO: Implement surveys, remove this, and un-comment below it.
-		throw new InvalidArgumentException("Surveys are not yet implemented.");
+		LOGGER.log(Level.FINE, "Retrieving the survey.");
+		Survey survey;
+		if(surveyReference.getVersion() == null) {
+			survey =
+				SurveyBin
+					.getInstance()
+					.getLatestSurvey(surveyReference.getSchemaId());
+		}
+		else {
+			survey =
+				SurveyBin
+					.getInstance()
+					.getSurvey(
+						surveyReference.getSchemaId(),
+						surveyReference.getVersion());
+		}
 
-//		LOGGER.log(Level.FINE, "Retrieving the survey.");
-//		Survey survey;
-//		if(surveyReference.getVersion() == null) {
-//			survey =
-//				SurveyBin
-//					.getInstance()
-//					.getLatestSurvey(surveyReference.getSchemaId());
-//		}
-//		else {
-//			survey =
-//				SurveyBin
-//					.getInstance()
-//					.getSurvey(
-//						surveyReference.getSchemaId(),
-//						surveyReference.getVersion());
-//		}
-//
-//		LOGGER.log(Level.INFO, "Verifying that the survey exists.");
-//		if(survey == null) {
-//			throw
-//				new InvalidArgumentException("The survey does not exist.");
-//		}
-//
-//		LOGGER
-//			.log(
-//				Level.INFO,
-//				"Adding the stream to the list of surveys being followed.");
-//		User.Builder updatedUserBuilder = new User.Builder(user);
-//		updatedUserBuilder.addSurvey(surveyReference);
-//		User updatedUser = updatedUserBuilder.build();
-//
-//		LOGGER.log(Level.INFO, "Storing the updated user.");
-//		UserBin.getInstance().updateUser(updatedUser);
+		LOGGER.log(Level.INFO, "Verifying that the survey exists.");
+		if(survey == null) {
+			throw
+				new InvalidArgumentException("The survey does not exist.");
+		}
+
+		LOGGER
+			.log(
+				Level.INFO,
+				"Adding the stream to the list of surveys being followed.");
+		User.Builder updatedUserBuilder = new User.Builder(user);
+		updatedUserBuilder.addSurvey(surveyReference);
+		User updatedUser = updatedUserBuilder.build();
+
+		LOGGER.log(Level.INFO, "Storing the updated user.");
+		UserBin.getInstance().updateUser(updatedUser);
 	}
 
 	/**
 	 * Retrieves the set of surveys that this user is watching.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the user's authentication token was sent as a
-	 *        parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user's user-name, which, for now, must match the
@@ -1308,10 +1330,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
 		method = RequestMethod.GET)
 	public static @ResponseBody Set<SchemaReference> getFollowedSurveys(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username) {
 
 		LOGGER
@@ -1320,9 +1340,15 @@ public class UserServlet {
 				"Creating a request for a user to view surveys they are " +
 					"following.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1340,12 +1366,10 @@ public class UserServlet {
 
 	/**
 	 * Stops a user from following a survey.
-	 *
-	 * @param token
-	 *        The requesting user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the token was given as a parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param username
 	 *        The user-name of the user that is following this survey. For now,
@@ -1361,10 +1385,8 @@ public class UserServlet {
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void forgetSurvey(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestBody final SchemaReference surveyReference) {
 
@@ -1373,9 +1395,15 @@ public class UserServlet {
 				Level.INFO,
 				"Creating a request for a user to stop tracking a survey.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER
 			.log(

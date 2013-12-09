@@ -3,7 +3,7 @@ package org.ohmage.mongodb.domain;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.User;
 import org.ohmage.mongodb.bin.MongoAuthenticationTokenBin;
 
@@ -12,14 +12,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A MongoDB extension of the {@link AuthenticationToken} type.
+ * A MongoDB extension of the {@link AuthorizationToken} type.
  * </p>
  *
  * @author John Jenkins
  */
 @MongoCollection(name = MongoAuthenticationTokenBin.COLLECTION_NAME)
 public class MongoAuthenticationToken
-	extends AuthenticationToken
+	extends AuthorizationToken
 	implements MongoDbObject {
 	
 	/**
@@ -29,7 +29,7 @@ public class MongoAuthenticationToken
 	private final String dbId;
 
 	/**
-	 * Creates an {@link AuthenticationToken} object via Jackson from the data
+	 * Creates an {@link AuthorizationToken} object via Jackson from the data
 	 * layer.
 	 * 
 	 * @param dbId

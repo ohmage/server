@@ -38,11 +38,8 @@
         id="multipartResolver"
         class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
         
-        <!--
-            The maximum allowed size for an upload is 5 MB. Feel free to update
-            this as you please.
-         -->
-        <property name="maxUploadSize" value="5242880" />
+        <!-- The maximum allowed size for an upload is 25 MB. -->
+        <property name="maxUploadSize" value="26214400" />
     </bean>
     
     <!-- Register our universal exception handler. -->
@@ -53,4 +50,7 @@
         handlers.
      -->
     <context:component-scan base-package="org.ohmage" />
+    
+    <!-- Directly setup the auth filter. -->
+    <bean id="authFilter" class="org.ohmage.servlet.filter.AuthFilter"/>
 </beans>

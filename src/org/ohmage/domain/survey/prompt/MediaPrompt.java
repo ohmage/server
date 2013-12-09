@@ -1,10 +1,13 @@
 package org.ohmage.domain.survey.prompt;
 
+import java.util.Map;
+
 import name.jenkins.paul.john.concordia.schema.Schema;
 import name.jenkins.paul.john.concordia.schema.StringSchema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -83,10 +86,32 @@ public abstract class MediaPrompt extends Prompt<String> {
      * @see org.ohmage.domain.survey.Prompt#validateResponse(java.lang.Object)
      */
     @Override
-    public void validateResponse(final String response)
+    public final void validateResponse(
+        final String response,
+        final Map<String, MultipartFile> media)
         throws InvalidArgumentException {
 
-        // TODO: This should also get the entity from a map of parts, validate
-        // that the part exists, and pass it on to a per-type validator.
+        // Retrieve the media and ensure that it exists.
+        MultipartFile mediaResponse = media.get(response);
+        if(mediaResponse == null) {
+            throw
+                new InvalidArgumentException(
+                    "The media is missing: " + getSurveyItemId());
+        }
+
+        // Pass the validation onto the specific media-type validator.
+        validateResponse(mediaResponse);
     }
+
+    /**
+     * Validate that the media is valid.
+     *
+     * @param response
+     *        The media to validate.
+     *
+     * @throws InvalidArgumentException
+     *         The media is invalid.
+     */
+    public abstract void validateResponse(final MultipartFile response)
+        throws InvalidArgumentException;
 }

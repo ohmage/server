@@ -1,13 +1,20 @@
 package org.ohmage.domain.survey;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.jackson.OhmageObjectMapper;
+import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -17,7 +24,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
+@JsonFilter(SurveyResponse.JACKSON_FILTER_GROUP_ID)
 public class SurveyResponse extends OhmageDomainObject {
+    /**
+     * <p>
+     * A builder for {@link SurveyResponse} objects.
+     * </p>
+     *
+     * @author John Jenkins
+     */
     public static class Builder
         extends OhmageDomainObject.Builder<SurveyResponse> {
 
@@ -41,6 +56,11 @@ public class SurveyResponse extends OhmageDomainObject {
          * The responses that compose this survey response.
          */
         protected Map<String, Object> responses;
+        /**
+         * The set of filenames for the media associated with this survey
+         * response.
+         */
+        protected Set<String> mediaFilenames;
 
         /**
          * Creates a new builder.
@@ -124,7 +144,8 @@ public class SurveyResponse extends OhmageDomainObject {
                     surveyId,
                     surveyVersion,
                     metaData,
-                    responses);
+                    responses,
+                    mediaFilenames);
         }
 
         /**
@@ -139,6 +160,10 @@ public class SurveyResponse extends OhmageDomainObject {
          *        this data and whose reference should be used to build the
          *        {@link SurveyResponse} result.
          *
+         * @param media
+         *        A map of unique identifiers to InputStreams for media that
+         *        was uploaded with the survey responses.
+         *
          * @return The built {@link SurveyResponse} object.
          *
          * @throws InvalidArgumentException
@@ -147,19 +172,36 @@ public class SurveyResponse extends OhmageDomainObject {
          *         invalid.
          */
         public SurveyResponse build(
-            final Survey survey)
+            final Survey survey,
+            final Map<String, MultipartFile> media)
             throws InvalidArgumentException {
 
             // Validate the survey responses.
-            survey.validate(metaData, responses);
+            survey.validate(metaData, responses, media);
 
             // Update this builder's survey reference.
             surveyId = survey.getId();
             surveyVersion = survey.getVersion();
 
+            // Update the list of media filenames.
+            if(media != null) {
+                mediaFilenames = media.keySet();
+            }
+
             // Build and return the SurveyResponse object.
             return build();
         }
+    }
+
+    /**
+     * The group ID for the Jackson filter. This must be unique to our class,
+     * whatever the value is.
+     */
+    protected static final String JACKSON_FILTER_GROUP_ID =
+        "org.ohmage.domain.survey.SurveyResponse";
+    // Register this class with the ohmage object mapper.
+    static {
+        OhmageObjectMapper.register(SurveyResponse.class);
     }
 
     /**
@@ -182,6 +224,10 @@ public class SurveyResponse extends OhmageDomainObject {
      * The JSON key for the responses.
      */
     public static final String JSON_KEY_RESPONSES = "data";
+    /**
+     * The JSON key for the media filenames.
+     */
+    public static final String JSON_KEY_MEDIA_FILENAMES = "media_filenames";
 
     /**
      * The owner of the survey response.
@@ -208,6 +254,12 @@ public class SurveyResponse extends OhmageDomainObject {
      */
     @JsonProperty(JSON_KEY_RESPONSES)
     private final Map<String, Object> responses;
+    /**
+     * The filenames of the media associated with this response.
+     */
+    @JsonProperty(JSON_KEY_MEDIA_FILENAMES)
+    @JsonFilterField
+    private final Set<String> mediaFilenames;
 
     /**
      * Creates a new survey response.
@@ -226,15 +278,27 @@ public class SurveyResponse extends OhmageDomainObject {
      *
      * @param responses
      *        The list of survey responses.
+     *
+     * @param mediaFilenames
+     *        The list of filenames of the media files associated with this
+     *        response.
      */
     public SurveyResponse(
         final String owner,
         final String surveyId,
         final Long surveyVersion,
         final MetaData metaData,
-        final Map<String, Object> responses) {
+        final Map<String, Object> responses,
+        final Set<String> mediaFilenames) {
 
-        this(owner, surveyId, surveyVersion, metaData, responses, null);
+        this(
+            owner,
+            surveyId,
+            surveyVersion,
+            metaData,
+            responses,
+            mediaFilenames,
+            null);
     }
 
     /**
@@ -256,6 +320,10 @@ public class SurveyResponse extends OhmageDomainObject {
      * @param responses
      *        The list of survey responses that correspond to the survey.
      *
+     * @param mediaFilenames
+     *        The list of filenames of the media files associated with this
+     *        response.
+     *
      * @param internalVersion
      *        The internal version of this survey response.
      *
@@ -269,6 +337,8 @@ public class SurveyResponse extends OhmageDomainObject {
         @JsonProperty(JSON_KEY_SURVEY_VERSION) final Long surveyVersion,
         @JsonProperty(JSON_KEY_META_DATA) final MetaData metaData,
         @JsonProperty(JSON_KEY_RESPONSES) final Map<String, Object> responses,
+        @JsonProperty(JSON_KEY_MEDIA_FILENAMES)
+            final Set<String> mediaFilenames,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
         throws InvalidArgumentException {
 
@@ -278,6 +348,7 @@ public class SurveyResponse extends OhmageDomainObject {
             surveyVersion,
             metaData,
             responses,
+            mediaFilenames,
             internalVersion,
             null);
     }
@@ -301,6 +372,10 @@ public class SurveyResponse extends OhmageDomainObject {
      * @param responses
      *        The list of survey responses that correspond to the survey.
      *
+     * @param mediaFilenames
+     *        The list of filenames of the media files associated with this
+     *        response.
+     *
      * @param internalReadVersion
      *        The internal version of this survey response when it was read
      *        from the database.
@@ -318,6 +393,7 @@ public class SurveyResponse extends OhmageDomainObject {
         final Long surveyVersion,
         final MetaData metaData,
         final Map<String, Object> responses,
+        final Set<String> mediaFilenames,
         final Long internalReadVersion,
         final Long internalWriteVersion)
         throws InvalidArgumentException {
@@ -345,5 +421,9 @@ public class SurveyResponse extends OhmageDomainObject {
         this.surveyVersion = surveyVersion;
         this.metaData = metaData;
         this.responses = new HashMap<String, Object>(responses);
+        this.mediaFilenames =
+            (mediaFilenames == null) ?
+                Collections.<String>emptySet() :
+                new HashSet<String>(mediaFilenames);
     }
 }

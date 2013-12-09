@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2013 Open mHealth
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,12 +29,12 @@ import org.ohmage.bin.BinController;
  * <p>
  * Sets up the database.
  * </p>
- * 
+ *
  * <p>
  * This must be called after the {@link ConfigurationFileImport} listener to
  * ensure that specialized configuration options have been accounted for.
  * </p>
- * 
+ *
  * @author John Jenkins
  */
 public class DatabaseSetup implements ServletContextListener {
@@ -43,18 +43,18 @@ public class DatabaseSetup implements ServletContextListener {
 	 */
 	private static final Logger LOGGER =
 		Logger.getLogger(DatabaseSetup.class.getName());
-	
+
 	/**
 	 * The key that denotes which BinController class to use.
 	 */
 	public static final String PROPERTY_KEY_DATABASE_CLASS = "db.class";
-	
+
 	/**
 	 * The BinController object to use to control the connection to the
 	 * database.
 	 */
 	private BinController binController = null;
-	
+
 	/**
 	 * Default constructor.
 	 */
@@ -69,11 +69,11 @@ public class DatabaseSetup implements ServletContextListener {
 	@Override
 	public void contextInitialized(final ServletContextEvent event) {
 		LOGGER.log(Level.INFO, "Setting up the bin controller.");
-		
+
 		// Get the properties.
 		LOGGER.log(Level.FINE, "Retreiving the ohmage properties.");
 		Properties properties = ConfigurationFileImport.getCustomProperties();
-		
+
 		// If the database class property is missing, this is a critical error.
 		LOGGER
 			.log(Level.FINER, "Verifying that the database class is present.");
@@ -88,7 +88,7 @@ public class DatabaseSetup implements ServletContextListener {
 					"The database class is missing from the properties: " +
 						PROPERTY_KEY_DATABASE_CLASS);
 		}
-		
+
 		// Get the class string.
 		String binControllerClassString =
 			properties.getProperty(PROPERTY_KEY_DATABASE_CLASS);
@@ -120,7 +120,7 @@ public class DatabaseSetup implements ServletContextListener {
 			IllegalAccessException |
 			InvocationTargetException
 			e) {
-			
+
 			LOGGER
 				.log(
 					Level.SEVERE,

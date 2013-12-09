@@ -1,6 +1,7 @@
 package org.ohmage.mongodb.domain.survey.response;
 
 import java.util.Map;
+import java.util.Set;
 
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
@@ -51,6 +52,10 @@ public class MongoSurveyResponse
      * @param responses
      *        The list of survey responses that correspond to the survey.
      *
+     * @param mediaFilenames
+     *        The list of filenames of the media files associated with this
+     *        response.
+     *
      * @param internalVersion
      *        The internal version of this survey response.
      *
@@ -65,6 +70,8 @@ public class MongoSurveyResponse
         @JsonProperty(JSON_KEY_SURVEY_VERSION) final Long surveyVersion,
         @JsonProperty(JSON_KEY_META_DATA) final MetaData metaData,
         @JsonProperty(JSON_KEY_RESPONSES) final Map<String, Object> responses,
+        @JsonProperty(JSON_KEY_MEDIA_FILENAMES)
+            final Set<String> mediaFilenames,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
         throws InvalidArgumentException {
 
@@ -74,6 +81,7 @@ public class MongoSurveyResponse
             surveyVersion,
             metaData,
             responses,
+            mediaFilenames,
             internalVersion);
 
         // Store the MongoDB ID.

@@ -9,16 +9,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A prompt for the user to submit an audio file.
+ * A prompt for the user to submit a video file.
  * </p>
  *
  * @author John Jenkins
  */
-public class AudioPrompt extends MediaPrompt {
+public class VideoPrompt extends MediaPrompt {
     /**
      * The string type of this survey item.
      */
-    public static final String SURVEY_ITEM_TYPE = "audio_prompt";
+    public static final String SURVEY_ITEM_TYPE = "video_prompt";
 
     /**
      * The JSON key for the maximum duration.
@@ -26,13 +26,13 @@ public class AudioPrompt extends MediaPrompt {
     public static final String JSON_KEY_MAX_DURATION = "max_duration";
 
     /**
-     * The maximum allowed duration of an audio file in milliseconds.
+     * The maximum allowed duration of an audio file in seconds.
      */
     @JsonProperty(JSON_KEY_MAX_DURATION)
     private final Long maxDuration;
 
     /**
-     * Creates a new audio prompt.
+     * Creates a new video prompt.
      *
      * @param id
      *        The survey-unique identifier for this prompt.
@@ -51,13 +51,13 @@ public class AudioPrompt extends MediaPrompt {
      *        allowed.
      *
      * @param maxDuration
-     *        The maximum allowed duration in milliseconds for an audio file.
+     *        The maximum allowed duration in seconds for a video file.
      *
      * @throws InvalidArgumentException
      *         A parameter was invalid.
      */
     @JsonCreator
-    public AudioPrompt(
+    public VideoPrompt(
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
@@ -79,51 +79,7 @@ public class AudioPrompt extends MediaPrompt {
     public void validateResponse(final MultipartFile response)
         throws InvalidArgumentException {
 
-        // For now, we are not placing any audio-specific limitations on their
+        // For now, we are not placing any video-specific limitations on their
         // responses.
-
-//        // The InputStream needs to be able to reset itself, so wrap it in an
-//        // InputStream that is capable of doing that.
-//        InputStream input;
-//        try {
-//            input = new BufferedInputStream(response.getInputStream());
-//        }
-//        catch(IOException e) {
-//            throw new IllegalStateException("The media could not be read.", e);
-//        }
-//
-//        // Validate the audio.
-//        AudioInputStream audio;
-//        try {
-//            audio = AudioSystem.getAudioInputStream(input);
-//        }
-//        catch(IOException e) {
-//            throw new IllegalStateException("The media could not be read.", e);
-//        }
-//        catch(UnsupportedAudioFileException e) {
-//            throw
-//                new InvalidArgumentException(
-//                    "The audio file was not a valid audio file: " +
-//                        getSurveyItemId(),
-//                    e);
-//        }
-//
-//        // Validate that the audio file is not longer than allowed.
-//        if(maxDuration != null) {
-//            // Get the duration in seconds.
-//            double durationSeconds =
-//                ((double) audio.getFrameLength()) /
-//                    audio.getFormat().getFrameRate();
-//
-//            if((durationSeconds * 1000) > maxDuration) {
-//                throw
-//                    new InvalidArgumentException(
-//                        "The audio file is longer than the maximum allowed " +
-//                            "duration of '" +
-//                            maxDuration +
-//                            "' milliseconds: " +
-//                            getSurveyItemId());
-//            }
-//        }
     }
 }

@@ -17,6 +17,7 @@ import org.ohmage.domain.MetaData;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -305,7 +306,8 @@ public class Survey extends Schema {
      */
     public void validate(
         final MetaData metaData,
-        final Map<String, Object> promptResponses)
+        final Map<String, Object> promptResponses,
+        final Map<String, MultipartFile> media)
         throws InvalidArgumentException {
 
         // Create an iterator for the survey items.
@@ -332,7 +334,8 @@ public class Survey extends Schema {
                 Object response = promptResponses.get(surveyItemId);
 
                 // Validate the response.
-                respondable.validateResponse(response, checkedResponses);
+                respondable
+                    .validateResponse(response, checkedResponses, media);
             }
             // Otherwise, be sure a response was not given.
             else if(promptResponses.containsKey(surveyItemId)) {

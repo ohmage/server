@@ -1,6 +1,12 @@
 package org.ohmage.mongodb.bin;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.SurveyResponseBin;
@@ -10,11 +16,14 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.survey.response.MongoSurveyResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSInputFile;
 
 /**
  * <p>
@@ -29,6 +38,19 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      * The name of the collection that contains all of the survey responses.
      */
     public static final String COLLECTION_NAME = "survey_response_bin";
+
+    /**
+     * The name of the collection that contains all of the media for the survey
+     * responses.
+     */
+    private static final String SURVEY_RESPONSE_MEDIA_COLLECTION_NAME =
+        "survey_response_media";
+
+    /**
+     * The logger for this class.
+     */
+    private static final Logger LOGGER =
+        Logger.getLogger(MongoSurveyResponseBin.class.getName());
 
     /**
      * Get the connection to the survey response bin with the Jackson wrapper.
@@ -60,23 +82,18 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 MongoBinController.getObjectMapper());
 
     /**
+     * A connection to the container for the media within survey responses.
+     */
+    private final GridFS surveyResponseMediaConnection;
+
+    /**
      * Default constructor.
      */
     protected MongoSurveyResponseBin() {
-        // Ensure that there is an index on the point's version.
-        COLLECTION
-            .ensureIndex(
-                new BasicDBObject(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
-                        MetaData.JSON_KEY_ID,
-                    1),
-                COLLECTION_NAME + "_" +
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
-                        MetaData.JSON_KEY_ID,
-                false);
-
         // Create the set of indexes.
         DBObject indexes = new BasicDBObject();
+        // Index the survey ID.
+        indexes.put(SurveyResponse.JSON_KEY_OWNER, 1);
         // Index the survey ID.
         indexes.put(SurveyResponse.JSON_KEY_SURVEY_ID, 1);
         // Index the survey version.
@@ -88,33 +105,132 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                     MetaData.JSON_KEY_ID,
                 1);
 
-        // Ensure that there is a unique index on the survey ID and version and
-        // the point's ID.
+        // Ensure that there is a unique index on the user, survey ID, version
+        // and the point's ID.
         COLLECTION
             .ensureIndex(
                 indexes,
                 COLLECTION_NAME + "_" +
+                    SurveyResponse.JSON_KEY_OWNER + "_" +
                     SurveyResponse.JSON_KEY_SURVEY_ID + "_" +
                     SurveyResponse.JSON_KEY_SURVEY_VERSION + "_" +
                     SurveyResponse.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_ID +
                     "_unique",
                 true);
+
+        // Ensure that there is a unique index on the media filenames.
+        // Create the old-style of options due to a bug in MongoDB, see:
+        // https://jira.mongodb.org/browse/SERVER-3934
+        BasicDBObject options = new BasicDBObject();
+        options
+            .put(
+                "name",
+                COLLECTION_NAME + "_" +
+                    SurveyResponse.JSON_KEY_MEDIA_FILENAMES +
+                    "_unique");
+        options.put("unique", true);
+        // This means that some rows are not required to have the array or any
+        // elements in the array.
+        options.put("sparse", true);
+        // This circumvents a bug in MongoDB by using their old indexing
+        // strategy.
+        options.put("v", 0);
+        COLLECTION
+            .ensureIndex(
+                new BasicDBObject(SurveyResponse.JSON_KEY_MEDIA_FILENAMES, 1),
+                options);
+
+        // Connect to the container for the media for survey responses.
+        surveyResponseMediaConnection =
+            new GridFS(
+                MongoBinController.getInstance().getDb(),
+                SURVEY_RESPONSE_MEDIA_COLLECTION_NAME);
     }
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyResponseBin#addSurveyResponses(java.util.List)
+     * @see org.ohmage.bin.SurveyResponseBin#addSurveyResponses(java.util.List, java.util.Map)
      */
     @Override
-    public void addSurveyResponses(final List<SurveyResponse> surveyResponses)
-        throws IllegalArgumentException,
-        InvalidArgumentException {
+    public void addSurveyResponses(
+        final List<SurveyResponse> surveyResponses,
+        final Map<String, MultipartFile> media)
+        throws IllegalArgumentException, InvalidArgumentException {
 
         // Validate the parameters.
         if(surveyResponses == null) {
             throw
                 new IllegalArgumentException("The survey responses are null.");
+        }
+
+        // Save all of the relevant files.
+        if(media != null) {
+            // Create a handle for all of the files that were successfully
+            // saved.
+            List<String> savedKeys = new LinkedList<String>();
+
+            // Create a catch block to determine when things have failed.
+            boolean failed = false;
+            try {
+                // Save each media file.
+                for(String key : media.keySet()) {
+                    // Get the media file.
+                    MultipartFile currMedia = media.get(key);
+
+                    // Get the InputStream handle to the file.
+                    InputStream in;
+                    try {
+                        in = currMedia.getInputStream();
+                    }
+                    // If an error occurs, throw an exception.
+                    catch(IOException e) {
+                        failed = true;
+                        throw
+                            new IllegalArgumentException(
+                                "Could not connect to a media input stream: " +
+                                    key,
+                                e);
+                    }
+
+                    // Create the file.
+                    GridFSInputFile file =
+                        surveyResponseMediaConnection.createFile(in, key);
+
+                    // Save the file.
+                    try {
+                        file.save();
+                    }
+                    catch(MongoException e) {
+                        failed = true;
+                        throw
+                            new IllegalArgumentException(
+                                "Could not save the media file: " + key,
+                                e);
+                    }
+
+                    // Add the file to the list.
+                    savedKeys.add(key);
+                }
+            }
+            finally {
+                // If we have failed, delete the saved files.
+                if(failed) {
+                    for(String savedKey : savedKeys) {
+                        try {
+                            surveyResponseMediaConnection.remove(savedKey);
+                        }
+                        catch(MongoException e) {
+                            LOGGER
+                                .log(
+                                    Level.SEVERE,
+                                    "Error rolling back and deleting file: " +
+                                        savedKey,
+                                    e);
+                        }
+                    }
+                }
+            }
         }
 
         // Save it.
@@ -124,7 +240,10 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         catch(MongoException.DuplicateKey e) {
             throw
                 new InvalidArgumentException(
-                    "Two survey responses had the same ID.",
+                    "A survey response had the same unique key as another " +
+                        "survey response for the same user and survey, or " +
+                        "one of the media files had the same unique key as " +
+                        "any other media file.",
                     e);
         }
     }
@@ -137,7 +256,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
     public MultiValueResult<? extends SurveyResponse> getSurveyResponses(
         final String username,
         final String surveyId,
-        final long surveyVersion) throws IllegalArgumentException {
+        final long surveyVersion)
+        throws IllegalArgumentException {
 
         // Validate the parameters.
         if(username == null) {
@@ -176,7 +296,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         final String username,
         final String surveyId,
         final long surveyVersion,
-        final String pointId) throws IllegalArgumentException {
+        final String pointId)
+        throws IllegalArgumentException {
 
         // Validate the parameters.
         if(username == null) {
@@ -224,7 +345,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         final String username,
         final String surveyId,
         final long surveyVersion,
-        final String pointId) throws IllegalArgumentException {
+        final String pointId)
+        throws IllegalArgumentException {
 
         // Validate the parameters.
         if(username == null) {

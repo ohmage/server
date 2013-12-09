@@ -1,18 +1,16 @@
 package org.ohmage.domain;
 
-import java.util.UUID;
-
-import org.joda.time.DateTime;
+import org.ohmage.bin.UserBin;
+import org.ohmage.domain.exception.InsufficientPermissionsException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * The authorization token for a user to grant access to some scope to some
- * third-party.
+ * A user's authentication token.
  * </p>
- * 
+ *
  * <p>
  * This class is immutable.
  * </p>
@@ -20,20 +18,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author John Jenkins
  */
 public class AuthorizationToken extends OhmageDomainObject {
-	/**
-	 * The default number of milliseconds that a token should live.
-	 */
-	public static final long DEFAULT_TOKEN_LIFETIME_MILLIS = 1000 * 60 * 60;
+    /**
+     * The name of the header that contains the authorization information.
+     */
+    public static final String HEADER_AUTHORIZATION = "Authorization";
 
 	/**
-	 * The JSON key for the authorization code that backs this authorization
-	 * token.
-	 */
-	public static final String JSON_KEY_AUTHORIZATION_CODE = 
-		"authorization_code";
-
-	/**
-	 * The JSON key for the access token.
+	 * The JSON key for the authentication token.
 	 */
 	public static final String JSON_KEY_ACCESS_TOKEN = "access_token";
 	/**
@@ -41,24 +32,29 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 */
 	public static final String JSON_KEY_REFRESH_TOKEN = "refresh_token";
 	/**
-	 * The JSON key for the time the token was created.
+	 * The JSON key for the time the token was granted.
 	 */
-	public static final String JSON_KEY_CREATION_TIME = "creation_time";
+	public static final String JSON_KEY_GRANTED = "granted";
 	/**
 	 * The JSON key for the time the token expires.
 	 */
-	public static final String JSON_KEY_EXPIRATION_TIME = "expiration_time";
-	
+	public static final String JSON_KEY_EXPIRES = "expires";
 	/**
-	 * The authorization code that backs this authorization token. When
-	 * referencing or refreshing this token, this code and its corresponding
-	 * response should be consulted to determine the scope and whether or not
-	 * this authorization has been revoked.
+	 * The JSON key for the time the token expires.
 	 */
-	@JsonProperty(JSON_KEY_AUTHORIZATION_CODE)
-	private final String authorizationCode;
+	public static final String JSON_KEY_VALID = "valid";
 	/**
-	 * The access token.
+	 * The JSON key for the time the token expires.
+	 */
+	public static final String JSON_KEY_REFRESHED = "refreshed";
+
+	/**
+	 * The default duration of the authentication token.
+	 */
+	public static final long AUTH_TOKEN_LIFETIME = 1000 * 60 * 30;
+
+	/**
+	 * The authentication token.
 	 */
 	@JsonProperty(JSON_KEY_ACCESS_TOKEN)
 	private final String accessToken;
@@ -68,236 +64,374 @@ public class AuthorizationToken extends OhmageDomainObject {
 	@JsonProperty(JSON_KEY_REFRESH_TOKEN)
 	private final String refreshToken;
 	/**
-	 * The number of milliseconds since the epoch at which time this token was
-	 * created.
+	 * The user-name of the user to whom the token applies.
 	 */
-	@JsonProperty(JSON_KEY_CREATION_TIME)
-	private final long creationTime;
+	@JsonProperty(User.JSON_KEY_USERNAME)
+	private final String username;
 	/**
-	 * The number of milliseconds since the epoch at which time this token
-	 * expires.
+	 * The number of milliseconds since the epoch at which time the token was
+	 * granted.
 	 */
-	@JsonProperty(JSON_KEY_EXPIRATION_TIME)
-	private final long expirationTime;
-	
+	@JsonProperty(JSON_KEY_GRANTED)
+	private final long granted;
 	/**
-	 * Creates a new authentication token with new access and refresh tokens
-	 * and new creation and expiration times. This is not a copy constructor.
-	 * This is designed for creating new tokens via a refresh.
-	 * 
-	 * @param oldToken
-	 *        The old token that will be used to create the new token.
-	 * 
+	 * The number of milliseconds since the epoch at which time the token will
+	 * expire.
+	 */
+	@JsonProperty(JSON_KEY_EXPIRES)
+	private final long expires;
+	/**
+	 * Whether or not a token is valid.
+	 */
+	@JsonProperty(JSON_KEY_VALID)
+	private boolean valid;
+	/**
+	 * Whether or not a token is has been used to create a new token, in which
+	 * case it should no longer be considered valid.
+	 */
+	@JsonProperty(JSON_KEY_REFRESHED)
+	private boolean refreshed;
+
+	/**
+	 * Creates a new authentication token for a user.
+	 *
+	 * @param user
+	 *        The user about whom the authentication token should apply.
+	 *
 	 * @throws IllegalArgumentException
-	 *         The old token was null or already invalidated.
+	 *         The user is null.
+	 */
+	public AuthorizationToken(
+		final User user)
+		throws IllegalArgumentException {
+
+		// Pass through to the builder constructor.
+		this(
+			getRandomId(),
+			getRandomId(),
+			((user == null) ? null : user.getUsername()),
+			System.currentTimeMillis(),
+			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
+			true,
+			null);
+	}
+
+	/**
+	 * Refreshes an existing authentication token by creating a new one in its
+	 * place. After calling this, the old token will be invalidated.
+	 *
+	 * @param oldToken
+	 *        The original token on which this token should be based.
+	 *
+	 * @throws IllegalArgumentException
+	 *         The original token was null.
 	 */
 	public AuthorizationToken(
 		final AuthorizationToken oldToken)
 		throws IllegalArgumentException {
-		
+
 		// Pass through to the builder constructor.
 		this(
-			oldToken.authorizationCode,
-			UUID.randomUUID().toString(),
-			UUID.randomUUID().toString(),
+			getRandomId(),
+			getRandomId(),
+			((oldToken == null) ? null : oldToken.getUsername()),
 			System.currentTimeMillis(),
-			System.currentTimeMillis() + DEFAULT_TOKEN_LIFETIME_MILLIS,
+			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
+			true,
 			null);
+
+		// Mark the old token as having been used to create a new token.
+		oldToken.refreshed = true;
 	}
-	
+
 	/**
-	 * Creates an authorization token presumably from an existing one since all
-	 * of the fields are given. To create a new token, it is recommended that
-	 * {@link #AuthorizationToken(AuthorizationCodeResponse)} or
-	 * {@link #AuthorizationToken(AuthorizationToken)} be used.
-	 * 
-	 * @param authorizationCode
-	 *        The unique identifier for the authorization code that backs this
-	 *        token.
-	 * 
+	 * Recreates an existing authentication token.
+	 *
 	 * @param accessToken
-	 *        The access token value for this authorization token.
-	 * 
+	 *        The authentication token.
+	 *
 	 * @param refreshToken
-	 *        The refresh token value for this authorization token.
-	 * 
-	 * @param creationTime
-	 *        The number of milliseconds since the epoch at which time this
-	 *        token was created.
-	 * 
-	 * @param expirationTime
-	 *        The number of milliseconds since the epoch at which time this
-	 *        token expires.
-	 * 
+	 *        The refresh token.
+	 *
+	 * @param username
+	 *        The user's user-name.
+	 *
+	 * @param granted
+	 *        The time when the token was granted.
+	 *
+	 * @param expires
+	 *        The time when the token expires.
+	 *
+	 * @param valid
+	 *        Whether or not this token is valid.
+	 *
+	 * @param internalVersion
+	 *        The internal version of this authentication token.
+	 *
 	 * @throws IllegalArgumentException
-	 *         A parameter is invalid.
-	 * 
-	 * @see #AuthorizationToken(AuthorizationCodeResponse)
-	 * @see #AuthorizationToken(AuthorizationToken)
+	 *         The token and/or user-name are null, the token is being granted
+	 *         in the future, or the token is being granted after it has
+	 *         expired.
 	 */
 	@JsonCreator
 	public AuthorizationToken(
-		@JsonProperty(JSON_KEY_AUTHORIZATION_CODE)
-			final String authorizationCode,
 		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
 		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
-		@JsonProperty(JSON_KEY_CREATION_TIME) final long creationTime,
-		@JsonProperty(JSON_KEY_EXPIRATION_TIME) final long expirationTime,
+		@JsonProperty(User.JSON_KEY_USERNAME) final String username,
+		@JsonProperty(JSON_KEY_GRANTED) final long granted,
+		@JsonProperty(JSON_KEY_EXPIRES) final long expires,
+		@JsonProperty(JSON_KEY_VALID) final boolean valid,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 
 		// Pass through to the builder constructor.
 		this(
-			authorizationCode,
 			accessToken,
 			refreshToken,
-			creationTime,
-			expirationTime,
+			username,
+			granted,
+			expires,
+			valid,
 			internalVersion,
 			null);
 	}
-	
+
 	/**
 	 * Builds the AuthorizationToken object.
-	 * 
-	 * @param authorizationCode
-	 *        The unique identifier for the authorization code that backs this
-	 *        token.
-	 * 
+	 *
 	 * @param accessToken
-	 *        The access token value for this authorization token.
-	 * 
+	 *        The authentication token.
+	 *
 	 * @param refreshToken
-	 *        The refresh token value for this authorization token.
-	 * 
-	 * @param creationTime
-	 *        The number of milliseconds since the epoch at which time this
-	 *        token was created.
-	 * 
-	 * @param expirationTime
-	 *        The number of milliseconds since the epoch at which time this
-	 *        token expires.
-	 * 
+	 *        The refresh token.
+	 *
+	 * @param username
+	 *        The user's user-name.
+	 *
+	 * @param granted
+	 *        The time when the token was granted.
+	 *
+	 * @param expires
+	 *        The time when the token expires.
+	 *
+	 * @param valid
+	 *        Whether or not this token is valid.
+	 *
 	 * @param internalReadVersion
 	 *        The internal version of this authentication token when it was
 	 *        read from the database.
-	 * 
+	 *
 	 * @param internalWriteVersion
 	 *        The new internal version of this authentication token when it
 	 *        will be written back to the database.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The token and/or user-name are null, the token is being granted
 	 *         in the future, or the token is being granted after it has
 	 *         expired.
 	 */
 	private AuthorizationToken(
-		final String authorizationCode,
 		final String accessToken,
 		final String refreshToken,
-		final long creationTime,
-		final long expirationTime,
+		final String username,
+		final long granted,
+		final long expires,
+		final boolean valid,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException {
-		
+
 		// Pass the versioning parameters to the parent.
 		super(internalReadVersion, internalWriteVersion);
-		
+
 		// Validate the parameters.
-		if(authorizationCode == null) {
-			throw
-				new IllegalArgumentException("The authorization code is null.");
-		}
 		if(accessToken == null) {
-			throw new IllegalArgumentException("The access token is null.");
+			throw
+				new IllegalArgumentException(
+					"The authentication token is null.");
 		}
 		if(refreshToken == null) {
-			throw new IllegalArgumentException("The refresh token is null.");
-		}
-		
-		DateTime creationTimeDateTime = new DateTime(creationTime);
-		if(creationTimeDateTime.isAfterNow()) {
 			throw
 				new IllegalArgumentException(
-					"The token's creation time cannot be in the future.");
+					"The refresh token is null.");
 		}
-		if(creationTimeDateTime.isAfter(expirationTime)) {
+		if(username == null) {
+			throw new IllegalArgumentException("The user-name is null.");
+		}
+		if(granted > System.currentTimeMillis()) {
 			throw
 				new IllegalArgumentException(
-					"The token's expiration time cannot be before its " +
-						"creation time.");
+					"An authentication token cannot be granted in the " +
+						"future.");
 		}
-		
-		this.authorizationCode = authorizationCode;
+		if(granted > expires) {
+			throw
+				new IllegalArgumentException(
+					"A token cannot expire before it was granted.");
+		}
+
+		// Save the state.
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
-		this.creationTime = creationTime;
-		this.expirationTime = expirationTime;
+		this.username = username;
+		this.granted = granted;
+		this.expires = expires;
+		this.valid = valid;
 	}
-	
+
 	/**
-	 * Returns the authorization code that backs this authorization token.
-	 * 
-	 * @return The authorization code that backs this authorization token as a
-	 *         string.
-	 */
-	public String getAuthorizationCodeString() {
-		return authorizationCode;
-	}
-	
-	/**
-	 * Returns the access token.
-	 * 
-	 * @return The access token.
+	 * Returns the authentication token.
+	 *
+	 * @return The authentication token.
 	 */
 	public String getAccessToken() {
 		return accessToken;
 	}
-	
+
 	/**
 	 * Returns the refresh token.
-	 * 
+	 *
 	 * @return The refresh token.
 	 */
 	public String getRefreshToken() {
 		return refreshToken;
 	}
-	
+
 	/**
-	 * Returns the time that the token was created.
-	 * 
-	 * @return The time that the token was created.
+	 * Returns the user-name of the user associated with this authentication
+	 * token.
+	 *
+	 * @return The user-name of the user associated with this authentication
+	 *         token.
 	 */
-	public long getCreationTime() {
-		return creationTime;
+	public String getUsername() {
+		return username;
 	}
-	
+
 	/**
-	 * Returns the time that the token was/will expire.
-	 * 
-	 * @return The time that the token was/will expire.
+	 * Returns the user associated with this authentication token.
+	 *
+	 * @return The user associated with this authentication token.
+	 *
+	 * @throws IllegalStateException
+	 *         There is an internal error or the user associated with this
+	 *         token no longer exists.
 	 */
-	public long getExpirationTime() {
-		return expirationTime;
+	public User getUser() throws IllegalArgumentException {
+		// Attempt to get the user.
+		User user = UserBin.getInstance().getUser(username);
+
+		// If the user no longer exists, throw an exception.
+		if(user == null) {
+			throw
+				new IllegalStateException(
+					"The user that is associated with this token no longer " +
+						"exists.");
+		}
+
+		// Return the user.
+		return user;
 	}
-	
+
 	/**
-	 * Returns the number of milliseconds before the access token expires.
-	 * 
-	 * @return The number of milliseconds before the access token expires. This
-	 *         may be negative if the token has already expired.
+	 * Returns the number of milliseconds since the epoch when this token was
+	 * granted.
+	 *
+	 * @return The number of milliseconds since the epoch when this token was
+	 *         granted.
 	 */
-	public long getExpirationIn() {
-		return expirationTime - System.currentTimeMillis();
+	public long getGranted() {
+		return granted;
 	}
-	
+
 	/**
-	 * Returns whether or not the token is still valid.
-	 * 
-	 * @return Whether or not the token is still valid.
+	 * Returns the number of milliseconds since the epoch when this token
+	 * (will) expire(d).
+	 *
+	 * @return The number of milliseconds since the epoch when this token
+	 * 		   (will) expire(d).
+	 */
+	public long getExpires() {
+		return expires;
+	}
+
+	/**
+	 * Returns whether or not this token has expired.
+	 *
+	 * @return Whether or not this token has expired.
+	 */
+	public boolean isExpired() {
+		return expires < System.currentTimeMillis();
+	}
+
+	/**
+	 * Returns whether or not this token has been invalidated.
+	 *
+	 * @return Whether or not this token has been invalidated.
+	 */
+	public boolean wasInvalidated() {
+		return ! valid;
+	}
+
+	/**
+	 * Returns whether or not this token was used to create a new token via its
+	 * refresh token, which means that this token is no longer valid.
+	 *
+	 * @return Whether or not this token has been refreshed.
+	 */
+	public boolean wasRefreshed() {
+		return refreshed;
+	}
+
+	/**
+	 * Returns whether or not this token is still valid.
+	 *
+	 * @return Whether or not this token is still valid.
 	 */
 	public boolean isValid() {
-		return expirationTime < System.currentTimeMillis();
+		return ! (isExpired() || wasInvalidated() || wasRefreshed());
+	}
+
+	/**
+	 * Sets the validity of this token to false.
+	 */
+	public void invalidate() {
+		valid = false;
+	}
+
+	/**
+     * Parses the authorization header by verifying that it conforms to our
+     * format and is for our domain.
+     *
+     * @param header
+     *        The Authorization header string.
+     *
+     * @return The user-supplied token.
+     *
+     * @throws InsufficientPermissionsException
+     *         The header is missing, unintelligable, or not for our domain.
+     */
+	public static String getTokenFromHeader(
+	    final String header)
+	    throws InsufficientPermissionsException {
+
+        if(header == null) {
+            throw
+                new InsufficientPermissionsException(
+                    "No auth information was given.");
+        }
+        String[] authHeaderParts = header.split(" ");
+        if(authHeaderParts.length != 2) {
+            throw
+                new InsufficientPermissionsException(
+                    "The auth header is malformed.");
+        }
+        if(! "ohmage".equals(authHeaderParts[0])) {
+            throw
+                new InsufficientPermissionsException(
+                    "The auth header is not for 'ohmage'.");
+        }
+
+        return authHeaderParts[1];
 	}
 }

@@ -1,19 +1,23 @@
 package org.ohmage.servlet;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
-import org.ohmage.domain.AuthenticationToken;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.User;
+import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
+import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.servlet.filter.AuthFilter;
@@ -26,8 +30,13 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * <p>
@@ -38,13 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
  */
 @Controller
 @RequestMapping(SurveyServlet.ROOT_MAPPING)
-@SessionAttributes(
-    {
-        AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN,
-        AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN,
-        AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM
-    })
-public class SurveyServlet {
+public class SurveyServlet extends OhmageServlet {
     /**
      * The root API mapping for this Servlet.
      */
@@ -78,6 +81,11 @@ public class SurveyServlet {
         Logger.getLogger(SurveyServlet.class.getName());
 
     /**
+     * The {@link ObjectMapper} to use to decode the survey responses.
+     */
+    private static final ObjectMapper OBJECT_MAPPER = new OhmageObjectMapper();
+
+    /**
      * The usage in this class is entirely static, so there is no need to
      * instantiate it.
      */
@@ -88,30 +96,31 @@ public class SurveyServlet {
     /**
      * Creates a new survey.
      *
-     * @param token
-     *        The user's authentication token.
-     *
-     * @param tokenIsParam
-     *        Whether or not the authentication token was provided as a
-     *        parameter.
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
      *
      * @param surveyBuilder
      *        A builder to use to create this new survey.
      */
     @RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
     public static @ResponseBody Survey createSurvey(
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-            final AuthenticationToken token,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-            final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
         @RequestBody
             final Survey.Builder surveyBuilder) {
 
         LOGGER.log(Level.INFO, "Creating a survey creation request.");
 
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
         LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        User user = authToken.getUser();
 
         LOGGER.log(Level.FINE, "Setting the owner of the survey.");
         surveyBuilder.setOwner(user.getUsername());
@@ -214,11 +223,9 @@ public class SurveyServlet {
     /**
      * Updates an existing survey with a new version.
      *
-     * @param token
-     *        The token of the user that is attempting to update the survey.
-     *
-     * @param tokenIsParam
-     *        Whether or not the token was a parameter to the request.
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
      *
      * @param surveyId
      *        The survey's unique identifier.
@@ -231,10 +238,8 @@ public class SurveyServlet {
         value = "{" + KEY_SURVEY_ID + "}",
         method = RequestMethod.POST)
     public static @ResponseBody Survey updateSurvey(
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-            final AuthenticationToken token,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-            final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @RequestBody
             final Survey.Builder surveyBuilder) {
@@ -245,9 +250,15 @@ public class SurveyServlet {
                 "Creating a request to update a survey with a new version: " +
                     surveyId);
 
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
         LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        User user = authToken.getUser();
 
         LOGGER.log(Level.INFO, "Retrieving the latest version of the survey.");
         Survey latestSchema =
@@ -305,6 +316,10 @@ public class SurveyServlet {
     /**
      * Stores data points.
      *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
      * @param surveyId
      *        The survey's unique identifier.
      *
@@ -318,21 +333,25 @@ public class SurveyServlet {
         value = "{" + KEY_SURVEY_ID + "}/{" + KEY_SURVEY_VERSION + "}/data",
         method = RequestMethod.POST)
     public static @ResponseBody void storeData(
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-            final AuthenticationToken token,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-            final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
-        @RequestBody
-            final List<SurveyResponse.Builder> surveyResponseBuilders,
+        @RequestPart(SurveyResponse.JSON_KEY_RESPONSES)
+            final JsonNode surveyResponses,
         @RequestPart(KEY_MEDIA) final List<MultipartFile> media) {
 
         LOGGER.log(Level.INFO, "Storing some new survey data.");
 
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
         LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        User user = authToken.getUser();
 
         LOGGER.log(Level.INFO, "Retrieving the survey.");
         Survey survey =
@@ -347,32 +366,62 @@ public class SurveyServlet {
                     "The survey ID-verion pair is unknown.");
         }
 
+        LOGGER.log(Level.FINE, "Building the media map.");
+        Map<String, MultipartFile> mediaMap =
+            new HashMap<String, MultipartFile>();
+        for(MultipartFile part : media) {
+            mediaMap.put(part.getOriginalFilename(), part);
+        }
+
+        LOGGER.log(Level.INFO, "Converting the JSON into our object.");
+        List<SurveyResponse.Builder> surveyResponseBuilders;
+        try {
+            surveyResponseBuilders =
+                OBJECT_MAPPER
+                    .readValue(
+                        surveyResponses.toString(),
+                        new TypeReference<List<SurveyResponse.Builder>>() {});
+        }
+        catch(JsonParseException e) {
+            throw
+                new InvalidArgumentException(
+                    "The survey responses were not valid JSON.",
+                    e);
+        }
+        catch(JsonMappingException e) {
+            throw
+                new InvalidArgumentException("The responses are invalid.", e);
+        }
+        catch(IOException e) {
+            throw
+                new IllegalStateException(
+                    "The responses could not be read.",
+                    e);
+        }
+
         LOGGER.log(Level.INFO, "Validating the survey responses.");
-        List<SurveyResponse> surveyResponses =
+        List<SurveyResponse> surveyResponseList =
             new ArrayList<SurveyResponse>(surveyResponseBuilders.size());
-        for(SurveyResponse.Builder surveyResponseBuilder : surveyResponseBuilders) {
-            surveyResponses
+        for(SurveyResponse.Builder surveyResponse : surveyResponseBuilders) {
+            surveyResponseList
                 .add(
-                    surveyResponseBuilder.setOwner(user.getUsername())
-                        .build(survey));
+                    surveyResponse
+                        .setOwner(user.getUsername())
+                        .build(survey, mediaMap));
         }
 
         LOGGER.log(Level.INFO, "Storing the validated data.");
-        SurveyResponseBin.getInstance().addSurveyResponses(surveyResponses);
+        SurveyResponseBin
+            .getInstance()
+            .addSurveyResponses(surveyResponseList, mediaMap);
     }
 
     /**
      * Retrieves the data for the requesting user.
      *
-     * @param authenticationToken
-     *        The requesting user's authentication token.
-     *
-     * @param tokenIsParam
-     *        Whether or not the requesting user's authentication token was a
-     *        parameter.
-     *
-     * @param authorizationToken
-     *        An authorization token sent by the requesting user.
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
      *
      * @param surveyId
      *        The unique identifier of the survey whose data is being
@@ -387,25 +436,22 @@ public class SurveyServlet {
         value = "{" + KEY_SURVEY_ID + "}/{" + KEY_SURVEY_VERSION + "}/data",
         method = RequestMethod.GET)
     public static @ResponseBody MultiValueResult<? extends SurveyResponse> getData(
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-            final AuthenticationToken authenticationToken,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-            final boolean tokenIsParam,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN)
-            final AuthorizationToken authorizationToken,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion) {
 
         LOGGER.log(Level.INFO, "Retrieving some survey data.");
 
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
         LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user =
-            AuthFilter
-                .retrieveUserFromAuth(
-                    authorizationToken,
-                    authenticationToken,
-                    tokenIsParam);
+        User user = authToken.getUser();
 
         LOGGER.log(Level.INFO, "Finding and returning the requested data.");
         return
@@ -420,15 +466,9 @@ public class SurveyServlet {
     /**
      * Deletes a point.
      *
-     * @param authenticationToken
-     *        The requesting user's authentication token.
-     *
-     * @param tokenIsParam
-     *        Whether or not the requesting user's authentication token was a
-     *        parameter.
-     *
-     * @param authorizationToken
-     *        An authorization token sent by the requesting user.
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
      *
      * @param surveyId
      *        The unique identifier of the survey whose data is being
@@ -452,26 +492,23 @@ public class SurveyServlet {
             "{" + KEY_SURVEY_RESPONSE_ID + "}",
         method = RequestMethod.DELETE)
     public static @ResponseBody void deletePoint(
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-            final AuthenticationToken authenticationToken,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-            final boolean tokenIsParam,
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN)
-            final AuthorizationToken authorizationToken,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
         @PathVariable(KEY_SURVEY_RESPONSE_ID) final String pointId) {
 
         LOGGER.log(Level.INFO, "Retrieving a specific survey data point.");
 
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
         LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user =
-            AuthFilter
-                .retrieveUserFromAuth(
-                    authorizationToken,
-                    authenticationToken,
-                    tokenIsParam);
+        User user = authToken.getUser();
 
         LOGGER.log(Level.INFO, "Deleting the survey data.");
         SurveyResponseBin

@@ -1,12 +1,14 @@
 package org.ohmage.domain.survey.prompt;
 
+import java.util.Map;
+
 import name.jenkins.paul.john.concordia.schema.Schema;
 import name.jenkins.paul.john.concordia.schema.StringSchema;
 
-import org.joda.time.DateTime;
 import org.ohmage.domain.ISOW3CDateTimeFormat;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,7 +22,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
-public class TimestampPrompt extends Prompt<DateTime> {
+public class TimestampPrompt extends Prompt<String> {
     /**
      * The string type of this survey item.
      */
@@ -54,11 +56,23 @@ public class TimestampPrompt extends Prompt<DateTime> {
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
-        @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
-            final DateTime defaultResponse)
+        @JsonProperty(JSON_KEY_DEFAULT_RESPONSE) final String defaultResponse)
         throws InvalidArgumentException {
 
         super(surveyItemId, condition, text, skippable, defaultResponse);
+
+        // Verify that it is a valid date/time.
+        try {
+            ISOW3CDateTimeFormat.any().parseDateTime(defaultResponse);
+        }
+        catch(IllegalArgumentException e) {
+            throw
+                new InvalidArgumentException(
+                    "The default date time '" +
+                        defaultResponse +
+                        "' is not a valid date-time: " +
+                        getSurveyItemId());
+        }
     }
 
     /*
@@ -76,13 +90,25 @@ public class TimestampPrompt extends Prompt<DateTime> {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.domain.survey.Prompt#validateResponse(java.lang.Object)
+     * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public void validateResponse(final DateTime response)
+    public void validateResponse(
+        final String response,
+        final Map<String, MultipartFile> media)
         throws InvalidArgumentException {
 
-        // If it was successfully deserialized into a DateTime object, it is
-        // fine.
+        // Verify that it is a valid date/time.
+        try {
+            ISOW3CDateTimeFormat.any().parseDateTime(response);
+        }
+        catch(IllegalArgumentException e) {
+            throw
+                new InvalidArgumentException(
+                    "The default date time '" +
+                        response +
+                        "' is not a valid date-time: " +
+                        getSurveyItemId());
+        }
     }
 }

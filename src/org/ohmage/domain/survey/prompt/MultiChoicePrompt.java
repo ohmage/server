@@ -1,6 +1,8 @@
 package org.ohmage.domain.survey.prompt;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
@@ -10,6 +12,7 @@ import name.jenkins.paul.john.concordia.schema.StringSchema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -21,11 +24,31 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
-public class MultiChoicePrompt extends ChoicePrompt<Set<String>> {
+public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
     /**
      * The string type of this survey item.
      */
     public static final String SURVEY_ITEM_TYPE = "multi_choice_prompt";
+
+    /**
+     * The JSON key for the minimum number of choices.
+     */
+    public static final String JSON_KEY_MIN_CHOICES = "min_choices";
+    /**
+     * The JSON key for the maximum number of choices.
+     */
+    public static final String JSON_KEY_MAX_CHOICES = "max_choices";
+
+    /**
+     * The minimum number of choices the user must select.
+     */
+    @JsonProperty(JSON_KEY_MIN_CHOICES)
+    private final Integer minChoices;
+    /**
+     * The maximum number of choices the user may select.
+     */
+    @JsonProperty(JSON_KEY_MAX_CHOICES)
+    private final Integer maxChoices;
 
     /**
      * Creates a new multi-choice prompt.
@@ -52,6 +75,12 @@ public class MultiChoicePrompt extends ChoicePrompt<Set<String>> {
      * @param allowCustom
      *        Whether or not custom choices are allowed.
      *
+     * @param minChoices
+     *        The minimum number of choices the user must select.
+     *
+     * @param maxChoices
+     *        The maximum number of choices the user may select.
+     *
      * @throws InvalidArgumentException
      *         A parameter was invalid.
      */
@@ -64,7 +93,9 @@ public class MultiChoicePrompt extends ChoicePrompt<Set<String>> {
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
             final Set<String> defaultResponse,
         @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices,
-        @JsonProperty(JSON_KEY_ALLOW_CUSTOM) final Boolean allowCustom)
+        @JsonProperty(JSON_KEY_ALLOW_CUSTOM) final Boolean allowCustom,
+        @JsonProperty(JSON_KEY_MIN_CHOICES) final Integer minChoices,
+        @JsonProperty(JSON_KEY_MAX_CHOICES) final Integer maxChoices)
         throws InvalidArgumentException {
 
         super(
@@ -89,6 +120,9 @@ public class MultiChoicePrompt extends ChoicePrompt<Set<String>> {
                             getSurveyItemId());
             }
         }
+
+        this.minChoices = minChoices;
+        this.maxChoices = maxChoices;
     }
 
     /*
@@ -116,10 +150,12 @@ public class MultiChoicePrompt extends ChoicePrompt<Set<String>> {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.domain.survey.Prompt#validateResponse(java.lang.Object)
+     * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public void validateResponse(final Set<String> response)
+    public void validateResponse(
+        final Collection<String> response,
+        final Map<String, MultipartFile> media)
         throws InvalidArgumentException {
 
         if(! allowsCustom()) {
@@ -133,6 +169,24 @@ public class MultiChoicePrompt extends ChoicePrompt<Set<String>> {
                                 getSurveyItemId());
                 }
             }
+        }
+
+        if((minChoices != null) && (response.size() < minChoices)) {
+            throw
+                new InvalidArgumentException(
+                    "The user must select at least " +
+                        minChoices +
+                        " choices: " +
+                        getSurveyItemId());
+        }
+
+        if((maxChoices != null) && (response.size() > maxChoices)) {
+            throw
+                new InvalidArgumentException(
+                    "The user may select at most " +
+                        maxChoices +
+                        " choices: " +
+                        getSurveyItemId());
         }
     }
 }

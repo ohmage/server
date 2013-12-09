@@ -7,10 +7,10 @@ import java.util.logging.Logger;
 
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
-import org.ohmage.domain.AuthenticationToken;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.User;
+import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * <p>
@@ -39,12 +38,6 @@ import org.springframework.web.bind.annotation.SessionAttributes;
  */
 @Controller
 @RequestMapping(StreamServlet.ROOT_MAPPING)
-@SessionAttributes(
-	{
-		AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN,
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN,
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM
-	})
 public class StreamServlet {
 	/**
 	 * The root API mapping for this Servlet.
@@ -84,31 +77,32 @@ public class StreamServlet {
 
 	/**
 	 * Creates a new stream.
-	 *
-	 * @param token
-	 *        The user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was provided as a
-	 *        parameter.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param streamBuilder
 	 *        A builder to use to create this new stream.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
 	public static @ResponseBody Stream createStream(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@RequestBody
 			final Stream.Builder streamBuilder) {
 
 		LOGGER.log(Level.INFO, "Creating a stream creation request.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER.log(Level.FINE, "Setting the owner of the stream.");
 		streamBuilder.setOwner(user.getUsername());
@@ -210,12 +204,10 @@ public class StreamServlet {
 
 	/**
 	 * Updates an existing stream with a new version.
-	 *
-	 * @param token
-	 *        The token of the user that is attempting to update the stream.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the token was a parameter to the request.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
@@ -228,10 +220,8 @@ public class StreamServlet {
 		value = "{" + KEY_STREAM_ID + "}",
 		method = RequestMethod.POST)
 	public static @ResponseBody Stream updateStream(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@RequestBody
 			final Stream.Builder streamBuilder) {
@@ -242,9 +232,15 @@ public class StreamServlet {
 				"Creating a request to update a stream with a new version: " +
 					streamId);
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
 		Stream latestSchema =
@@ -301,6 +297,10 @@ public class StreamServlet {
 
 	/**
 	 * Stores data points.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
@@ -315,19 +315,23 @@ public class StreamServlet {
 		value = "{" + KEY_STREAM_ID + "}/{" + KEY_STREAM_VERSION + "}/data",
 		method = RequestMethod.POST)
 	public static @ResponseBody void storeData(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
 		@RequestBody final List<StreamData.Builder> dataBuilders) {
 
 		LOGGER.log(Level.INFO, "Storing some new stream data.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER.log(Level.INFO, "Retrieving the stream.");
 		Stream stream =
@@ -354,16 +358,10 @@ public class StreamServlet {
 
 	/**
 	 * Retrieves the data for the requesting user.
-	 *
-	 * @param authenticationToken
-	 *        The requesting user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the requesting user's authentication token was a
-	 *        parameter.
-	 *
-	 * @param authorizationToken
-	 *        An authorization token sent by the requesting user.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param streamId
 	 *        The unique identifier of the stream whose data is being
@@ -378,25 +376,22 @@ public class StreamServlet {
 		value = "{" + KEY_STREAM_ID + "}/{" + KEY_STREAM_VERSION + "}/data",
 		method = RequestMethod.GET)
 	public static ResponseEntity<MultiValueResult<? extends StreamData>> getData(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken authenticationToken,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN)
-			final AuthorizationToken authorizationToken,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion) {
 
 		LOGGER.log(Level.INFO, "Retrieving some stream data.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user =
-			AuthFilter
-				.retrieveUserFromAuth(
-					authorizationToken,
-					authenticationToken,
-					tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER.log(Level.INFO, "Finding the requested data.");
 		MultiValueResult<? extends StreamData> result =
@@ -418,16 +413,10 @@ public class StreamServlet {
 
 	/**
 	 * Deletes a point.
-	 *
-	 * @param authenticationToken
-	 *        The requesting user's authentication token.
-	 *
-	 * @param tokenIsParam
-	 *        Whether or not the requesting user's authentication token was a
-	 *        parameter.
-	 *
-	 * @param authorizationToken
-	 *        An authorization token sent by the requesting user.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
 	 * @param streamId
 	 *        The unique identifier of the stream whose data is being
@@ -451,26 +440,23 @@ public class StreamServlet {
 			"{" + KEY_STREAM_POINT_ID + "}",
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void deletePoint(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken authenticationToken,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHORIZATION_TOKEN)
-			final AuthorizationToken authorizationToken,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
 		@PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
 
 		LOGGER.log(Level.INFO, "Retrieving a specific stream data point.");
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user =
-			AuthFilter
-				.retrieveUserFromAuth(
-					authorizationToken,
-					authenticationToken,
-					tokenIsParam);
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		LOGGER.log(Level.INFO, "Deleting the stream data.");
 		StreamDataBin

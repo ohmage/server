@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2013 Open mHealth
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,6 +31,7 @@ import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.HttpStatusCodeExceptionResponder;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.OhmageException;
+import org.springframework.web.HttpSessionRequiredException;
 import org.springframework.web.util.NestedServletException;
 
 /**
@@ -38,13 +39,13 @@ import org.springframework.web.util.NestedServletException;
  * A filter responsible for catching exceptions thrown by the requests and
  * populating the response accordingly.
  * </p>
- * 
+ *
  * <p>
  * For example, HTTP responses have their status code set to
  * {@link HttpServletResponse#SC_BAD_REQUEST} and the body of the response is
  * the error message.
  * </p>
- * 
+ *
  * @author John Jenkins
  */
 public class ExceptionFilter implements Filter {
@@ -64,7 +65,7 @@ public class ExceptionFilter implements Filter {
 	 * Does nothing.
 	 */
 	@Override
-	public void init(FilterConfig config) throws ServletException {
+	public void init(final FilterConfig config) throws ServletException {
 		// Do nothing.
 	}
 
@@ -73,7 +74,7 @@ public class ExceptionFilter implements Filter {
 	 * If the request throws an exception, specifically a OmhException,
 	 * attempt to respond with that message from the exception.
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * For example, HTTP responses have their status codes changed to
 	 * {@link HttpServletResponse#SC_BAD_REQUEST} and the body of the response
@@ -109,6 +110,16 @@ public class ExceptionFilter implements Filter {
 				exception = e;
 			}
 		}
+        // Spring will throw this exception when the authentication and/or
+        // authorization stuff is missing.
+		catch(HttpSessionRequiredException e) {
+		    LOGGER
+		        .log(
+		            Level.INFO,
+		            "Wrapping the HttpSessionRequiredException in an " +
+		                "AuthenticationException.");
+		    exception = new AuthenticationException(e.getMessage(), e);
+		}
 		// Otherwise, store the exception,
 		catch(Throwable e) {
 			exception = e;
@@ -133,15 +144,15 @@ public class ExceptionFilter implements Filter {
 						"An unknown exception was thrown.",
 						exception);
 			}
-			
+
 			// Save the exception in the request.
 			request.setAttribute(ATTRIBUTE_KEY_EXCEPTION, exception);
-			
+
 			// If this is a HTTP request, set the status code.
 			if(response instanceof HttpServletResponse) {
 				HttpServletResponse httpResponse =
 					(HttpServletResponse) response;
-				
+
 				// Generate the appropriate status code.
 				// If the exception itself would like to inject its own status
 				// code, defer to that.
@@ -159,7 +170,7 @@ public class ExceptionFilter implements Filter {
 				else if(
 					(exception instanceof AuthenticationException) ||
 					(exception instanceof InsufficientPermissionsException)) {
-					
+
 					httpResponse
 						.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 					httpResponse
@@ -182,10 +193,11 @@ public class ExceptionFilter implements Filter {
 							HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 				}
 			}
-			
+
 			// If it is a known exception set the body of the message based on
 			// the exception.
 			if(exception instanceof OhmageException) {
+			    response.setContentType("text/text");
 				response.getOutputStream().print(exception.getMessage());
 			}
 			// Otherwise, don't return anything to the user other than the

@@ -2,12 +2,15 @@ package org.ohmage.domain.survey;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
+import org.ohmage.domain.survey.prompt.AudioPrompt;
+import org.ohmage.domain.survey.prompt.ImagePrompt;
 import org.ohmage.domain.survey.prompt.MultiChoicePrompt;
 import org.ohmage.domain.survey.prompt.NumberPrompt;
 import org.ohmage.domain.survey.prompt.RemoteActivityPrompt;
 import org.ohmage.domain.survey.prompt.SingleChoicePrompt;
 import org.ohmage.domain.survey.prompt.TextPrompt;
 import org.ohmage.domain.survey.prompt.TimestampPrompt;
+import org.ohmage.domain.survey.prompt.VideoPrompt;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -38,6 +41,12 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         value = Message.class,
         name = Message.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
+        value = AudioPrompt.class,
+        name = AudioPrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = ImagePrompt.class,
+        name = ImagePrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
         value = MultiChoicePrompt.class,
         name = MultiChoicePrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
@@ -54,7 +63,10 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         name = TextPrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
         value = TimestampPrompt.class,
-        name = TimestampPrompt.SURVEY_ITEM_TYPE)})
+        name = TimestampPrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = VideoPrompt.class,
+        name = VideoPrompt.SURVEY_ITEM_TYPE)})
 public abstract class SurveyItem {
     /**
      * The JSON key used to define which kind of survey item this is.

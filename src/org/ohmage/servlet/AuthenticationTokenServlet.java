@@ -9,21 +9,18 @@ import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
 import org.ohmage.bin.AuthenticationTokenBin;
 import org.ohmage.bin.UserBin;
-import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.User;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.HttpStatusCodeExceptionResponder;
-import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
-import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * <p>
@@ -34,11 +31,6 @@ import org.springframework.web.bind.annotation.SessionAttributes;
  */
 @Controller
 @RequestMapping(AuthenticationTokenServlet.ROOT_MAPPING)
-@SessionAttributes(
-	{
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN,
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM
-	})
 public class AuthenticationTokenServlet {
 	/**
 	 * The root API mapping for this Servlet.
@@ -140,7 +132,7 @@ public class AuthenticationTokenServlet {
 		value = { "", "/" },
 		method = { RequestMethod.GET, RequestMethod.POST },
 		params = { PARAMETER_USERNAME, PARAMETER_PASSWORD })
-	public static @ResponseBody AuthenticationToken getTokenFromOhmageAccount(
+	public static @ResponseBody AuthorizationToken getTokenFromOhmageAccount(
 		@RequestParam(value = PARAMETER_USERNAME, required = true)
 			final String username,
 		@RequestParam(value = PARAMETER_PASSWORD, required = true)
@@ -183,7 +175,7 @@ public class AuthenticationTokenServlet {
 		}
 
 		LOGGER.log(Level.INFO, "Creating a new authentication token.");
-		AuthenticationToken token = new AuthenticationToken(user);
+		AuthorizationToken token = new AuthorizationToken(user);
 
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
 		AuthenticationTokenBin.getInstance().addToken(token);
@@ -214,7 +206,7 @@ public class AuthenticationTokenServlet {
 		value = { "", "/" },
 		method = { RequestMethod.GET, RequestMethod.POST },
 		params = { PARAMETER_PROVIDER, PARAMETER_ACCESS_TOKEN })
-	public static @ResponseBody AuthenticationToken getTokenFromProvider(
+	public static @ResponseBody AuthorizationToken getTokenFromProvider(
 		@RequestParam(value = PARAMETER_PROVIDER, required = true)
 			final String providerId,
 		@RequestParam(value = PARAMETER_ACCESS_TOKEN, required = true)
@@ -283,7 +275,7 @@ public class AuthenticationTokenServlet {
 		}
 
 		LOGGER.log(Level.INFO, "Creating a new authentication token.");
-		AuthenticationToken token = new AuthenticationToken(user);
+		AuthorizationToken token = new AuthorizationToken(user);
 
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
 		AuthenticationTokenBin.getInstance().addToken(token);
@@ -309,7 +301,7 @@ public class AuthenticationTokenServlet {
 		value = { "", "/" },
 		method = { RequestMethod.GET, RequestMethod.POST },
 		params = { PARAMETER_REFRESH_TOKEN })
-	public static @ResponseBody AuthenticationToken refreshToken(
+	public static @ResponseBody AuthorizationToken refreshToken(
 		@RequestParam(value = PARAMETER_REFRESH_TOKEN, required = true)
 			final String refreshToken) {
 
@@ -323,7 +315,7 @@ public class AuthenticationTokenServlet {
 				Level.INFO,
 				"Retrieveing the authentication token based on the refresh " +
 					"token.");
-		AuthenticationToken oldToken =
+		AuthorizationToken oldToken =
 			AuthenticationTokenBin
 				.getInstance()
 				.getTokenFromRefreshToken(refreshToken);
@@ -350,7 +342,7 @@ public class AuthenticationTokenServlet {
 		}
 
 		LOGGER.log(Level.INFO, "Creating a new authentication token.");
-		AuthenticationToken token = new AuthenticationToken(oldToken);
+		AuthorizationToken token = new AuthorizationToken(oldToken);
 
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
 		AuthenticationTokenBin.getInstance().addToken(token);
@@ -365,14 +357,10 @@ public class AuthenticationTokenServlet {
 	/**
 	 * Invalidates an authentication token. This would most likely be used on
 	 * logout.
-	 *
-	 * @param token
-	 *        The authentication token to invalidate.
-	 *
-	 * @param isParam
-	 *        True if the authentication token was passed as a parameter or as
-	 *        both a parameter and a header; false indicates that it was only
-	 *        passed as a header.
+     *
+     * @param authHeader
+     *        The Authorization header with the corresponding authorization
+     *        token.
 	 *
 	 * @throws IllegalArgumentException
 	 *         The authentication was not given or was not given as a
@@ -380,30 +368,26 @@ public class AuthenticationTokenServlet {
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.DELETE)
 	public static @ResponseBody void invalidateAuthToken(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final Boolean isParam)
+        @RequestHeader(AuthorizationToken.HEADER_AUTHORIZATION)
+            final String authHeader)
 		throws IllegalArgumentException {
 
-		// Validate that a token was given.
-		if(token == null) {
-			throw
-				new InvalidArgumentException(
-					"No authentication token was given.");
-		}
+        LOGGER.log(Level.INFO, "Retrieving the authorization token.");
+        AuthorizationToken token =
+            AuthenticationTokenBin
+                .getInstance()
+                .getTokenFromAccessToken(
+                    AuthorizationToken.getTokenFromHeader(authHeader));
 
-		// Validate that the token was a parameter.
-		if(! isParam) {
-			throw
-				new InvalidArgumentException(
-					"No authentication token was given as a parameter.");
-		}
+        if(token == null) {
+            LOGGER.log(Level.INFO, "The token doesn't exist. Returning.");
+            return;
+        }
 
-		// Invalidate the token.
+        LOGGER.log(Level.INFO, "Invalidating the token.");
 		token.invalidate();
 
-		// Store the, now invalidated, token.
+		LOGGER.log(Level.INFO, "Updating the token.");
 		AuthenticationTokenBin.getInstance().updateToken(token);
 	}
 }

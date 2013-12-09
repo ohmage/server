@@ -75,10 +75,14 @@
     <session-config>
        <session-timeout>1</session-timeout>
     </session-config>
+    
+    <!-- Setup the logging information. -->
+    <context-param>
+        <param-name>log4jConfiguration</param-name>
+        <param-value>file:///etc/ohmage/log4j2.xml</param-value>
+    </context-param>
 
-    <!--  
-        The main configuration files for this Spring web application.  
-     -->  
+    <!-- The main configuration files for this Spring web application. -->  
     <context-param>  
         <param-name>contextConfigLocation</param-name>  
         <param-value>/WEB-INF/config/spring/*.xml</param-value>  
@@ -157,18 +161,17 @@
         <filter-name>exceptionFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
-    
-    <!-- Authentication Filter -->
+
+    <!-- Auth Filter -->
     <filter>
-        <description>Looks for authentication information and stores any found with the request.</description>
-        <display-name>Authentication Filter</display-name>
-        <filter-name>authenticationFilter</filter-name>
-        <filter-class>
-            org.ohmage.servlet.filter.AuthFilter
-        </filter-class>
+        <description>Parses, validates, and stores the authentication information.</description>
+        <display-name>Authorization Filter</display-name>
+        <filter-name>authFilter</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
     </filter>
+
     <filter-mapping>
-        <filter-name>authenticationFilter</filter-name>
+        <filter-name>authFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 

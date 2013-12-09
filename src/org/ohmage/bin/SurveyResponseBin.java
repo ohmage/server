@@ -1,10 +1,12 @@
 package org.ohmage.bin;
 
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.SurveyResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -41,11 +43,18 @@ public abstract class SurveyResponseBin {
      * @param surveyResponses
      *        The survey responses to add.
      *
+     * @param media
+     *        The map of ID to media to store with the data.
+     *
      * @throws IllegalArgumentException
      *         The survey responses are null.
+     *
+     * @throws InvalidArgumentException
+     *         Two survey responses have the same ID.
      */
     public abstract void addSurveyResponses(
-        final List<SurveyResponse> surveyResponses)
+        final List<SurveyResponse> surveyResponses,
+        final Map<String, MultipartFile> media)
         throws IllegalArgumentException, InvalidArgumentException;
 
     /**

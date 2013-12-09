@@ -90,9 +90,14 @@ public class MongoBinController extends BinController {
 	}
 
 	/**
-	 * The connection to the database.
+	 * The manager for the connections to the database.
 	 */
 	private final MongoClient mongo;
+
+	/**
+	 * The connection to the database.
+	 */
+	private final DB db;
 
 	/**
 	 * Default constructor, which will create the connection to the MongoDB.
@@ -150,6 +155,9 @@ public class MongoBinController extends BinController {
 		// Ensure that all writes use the safest write concern.
 		mongo.setWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
 
+		// Connect to the database.
+		db = mongo.getDB(getDatabaseName());
+
 		// Instantiate the specific components.
 		new MongoUserBin();
 		new MongoAuthenticationTokenBin();
@@ -166,8 +174,7 @@ public class MongoBinController extends BinController {
 	 * @return The database to MongoDB.
 	 */
 	public DB getDb() {
-		// Get the connection to the database.
-		return mongo.getDB(getDatabaseName());
+		return db;
 	}
 
 	/**

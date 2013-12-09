@@ -3,6 +3,7 @@ package org.ohmage.domain.survey.prompt;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 import name.jenkins.paul.john.concordia.schema.ObjectSchema;
@@ -10,6 +11,7 @@ import name.jenkins.paul.john.concordia.schema.Schema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -190,10 +192,12 @@ public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.domain.survey.Prompt#validateResponse(java.lang.Object)
+     * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public void validateResponse(final List<ObjectNode> response)
+    public void validateResponse(
+        final List<ObjectNode> response,
+        final Map<String, MultipartFile> media)
         throws InvalidArgumentException {
 
         // Ensure that the user ran the remote activity at least the minimum

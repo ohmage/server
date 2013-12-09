@@ -4,7 +4,7 @@ import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.AuthenticationTokenBin;
-import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.mongodb.domain.MongoAuthenticationToken;
 
@@ -31,14 +31,14 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 	 * Get the connection to the authentication token bin with the Jackson
 	 * wrapper.
 	 */
-	private static final JacksonDBCollection<AuthenticationToken, String> COLLECTION =
+	private static final JacksonDBCollection<AuthorizationToken, String> COLLECTION =
 		JacksonDBCollection
 			.wrap(
 				MongoBinController
 					.getInstance()
 					.getDb()
 					.getCollection(COLLECTION_NAME),
-				AuthenticationToken.class,
+				AuthorizationToken.class,
 				String.class,
 				MongoBinController.getObjectMapper());
 	
@@ -65,38 +65,38 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
-					AuthenticationToken.JSON_KEY_ACCESS_TOKEN,
+					AuthorizationToken.JSON_KEY_ACCESS_TOKEN,
 					1), 
 				COLLECTION_NAME + "_" +
-					AuthenticationToken.JSON_KEY_ACCESS_TOKEN + "_unique",
+					AuthorizationToken.JSON_KEY_ACCESS_TOKEN + "_unique",
 				true);
 		// Ensure that there is an index on the refresh token.
 		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
-					AuthenticationToken.JSON_KEY_REFRESH_TOKEN,
+					AuthorizationToken.JSON_KEY_REFRESH_TOKEN,
 					1), 
 				COLLECTION_NAME + "_" +
-					AuthenticationToken.JSON_KEY_REFRESH_TOKEN + "_unique",
+					AuthorizationToken.JSON_KEY_REFRESH_TOKEN + "_unique",
 				true);
 		// Ensure that there is an index on the expiration time.
 		COLLECTION
 			.ensureIndex(
-				new BasicDBObject(AuthenticationToken.JSON_KEY_EXPIRES, 1),
+				new BasicDBObject(AuthorizationToken.JSON_KEY_EXPIRES, 1),
 				COLLECTION_NAME + 
 					"_" +
-					AuthenticationToken.JSON_KEY_EXPIRES +
+					AuthorizationToken.JSON_KEY_EXPIRES +
 					"_index",
 				false);
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.AuthenticationTokenBin#addToken(org.ohmage.domain.AuthenticationToken)
+	 * @see org.ohmage.bin.AuthenticationTokenBin#addToken(org.ohmage.domain.AuthorizationToken)
 	 */
 	@Override
 	public void addToken(
-		final AuthenticationToken token)
+		final AuthorizationToken token)
 		throws IllegalArgumentException, InvalidArgumentException {
 		
 		// Validate the parameter.
@@ -132,7 +132,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 		
 		// Add the authentication token to the query.
 		queryBuilder
-			.and(AuthenticationToken.JSON_KEY_ACCESS_TOKEN)
+			.and(AuthorizationToken.JSON_KEY_ACCESS_TOKEN)
 			.is(accessToken);
 		
 		// Execute query.
@@ -158,7 +158,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 		
 		// Add the authentication token to the query.
 		queryBuilder
-			.and(AuthenticationToken.JSON_KEY_REFRESH_TOKEN)
+			.and(AuthorizationToken.JSON_KEY_REFRESH_TOKEN)
 			.is(refreshToken);
 		
 		// Execute query.
@@ -167,11 +167,11 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.AuthenticationTokenBin#updateToken(org.ohmage.domain.AuthenticationToken)
+	 * @see org.ohmage.bin.AuthenticationTokenBin#updateToken(org.ohmage.domain.AuthorizationToken)
 	 */
 	@Override
 	public void updateToken(
-		final AuthenticationToken token)
+		final AuthorizationToken token)
 		throws IllegalArgumentException {
 		
 		// Validate the parameter.
@@ -182,7 +182,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 		// Ensure that we are only updating the given authentication token.
 		Query query =
 			DBQuery
-				.is(AuthenticationToken.JSON_KEY_ACCESS_TOKEN,
+				.is(AuthorizationToken.JSON_KEY_ACCESS_TOKEN,
 					token.getAccessToken());
 		
 		// Update the token.

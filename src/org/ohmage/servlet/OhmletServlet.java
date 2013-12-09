@@ -6,11 +6,13 @@ import java.util.logging.Logger;
 
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
+import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
-import org.ohmage.domain.AuthenticationToken;
+import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.User;
+import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.SessionAttributes;
 
 /**
  * <p>
@@ -34,17 +35,12 @@ import org.springframework.web.bind.annotation.SessionAttributes;
  */
 @Controller
 @RequestMapping(OhmletServlet.ROOT_MAPPING)
-@SessionAttributes(
-	{
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN,
-		AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM
-	})
 public class OhmletServlet {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
 	public static final String ROOT_MAPPING = "/ohmlets";
-	
+
 	/**
 	 * The path and parameter key for ohmlet IDs.
 	 */
@@ -53,13 +49,13 @@ public class OhmletServlet {
 	 * The name of the parameter for querying for specific values.
 	 */
 	public static final String KEY_QUERY = "query";
-	
+
 	/**
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
 		Logger.getLogger(OhmletServlet.class.getName());
-	
+
 	/**
 	 * The usage in this class is entirely static, so there is no need to
 	 * instantiate it.
@@ -70,32 +66,33 @@ public class OhmletServlet {
 
 	/**
 	 * Creates a new ohmlet.
-	 * 
-	 * @param token
-	 *        The authentication token for the user that is creating this
-	 *        request.
-	 * 
-	 * @param tokenIsParam
-	 *        Whether or not the token was sent as a parameter.
-	 * 
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+	 *
 	 * @param ohmletBuilder
 	 *        The parts of the ohmlet that are already set.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
 	public static @ResponseBody Ohmlet createOhmlet(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@RequestBody
 			final Ohmlet.Builder ohmletBuilder) {
-		
+
 		LOGGER.log(Level.INFO, "Creating a ohmlet creation request.");
-		
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
 		LOGGER
 			.log(
 				Level.FINE,
@@ -104,7 +101,7 @@ public class OhmletServlet {
 
 		LOGGER.log(Level.FINE, "Building the ohmlet.");
 		Ohmlet ohmlet = ohmletBuilder.build();
-		
+
 		// Validate that the streams exist.
 		LOGGER.log(Level.INFO, "Validating that the given streams exist.");
 		List<SchemaReference> streams = ohmlet.getStreams();
@@ -128,12 +125,34 @@ public class OhmletServlet {
 							".");
 			}
 		}
-		
-		// TODO: Validate that the surveys exist.
+
+		// Validate that the surveys exist.
+        LOGGER.log(Level.INFO, "Validating that the given surveys exist.");
+        List<SchemaReference> surveys = ohmlet.getSurveys();
+        for(SchemaReference survey : surveys) {
+            // Get the schema ID.
+            String id = survey.getSchemaId();
+            // Get the schema version.
+            Long version = survey.getVersion();
+
+            LOGGER
+                .log(Level.INFO, "Checking if the survey is a known survey.");
+            if(! SurveyBin.getInstance().exists(id, version)) {
+                throw
+                    new InvalidArgumentException(
+                        "No such survey '" +
+                            id +
+                            "'" +
+                            ((version == null) ?
+                                "" :
+                                " with version '" + version + "'") +
+                            ".");
+            }
+        }
 
 		LOGGER.log(Level.INFO, "Adding the ohmlet to the database.");
 		OhmletBin.getInstance().addOhmlet(ohmlet);
-		
+
 		LOGGER.log(Level.INFO, "Updating the user.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
@@ -143,77 +162,89 @@ public class OhmletServlet {
 		updatedUserBuilder.addOhmlet(ohmletReference);
 		LOGGER.log(Level.FINE, "Building the user.");
 		User updatedUser = updatedUserBuilder.build();
-		
+
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
-		
+
 		return ohmlet;
 	}
-	
+
 	/**
 	 * Returns a list of visible ohmlet IDs.
-	 * 
-	 * @param token
-	 *        Used for limiting which communities are returned based on
-	 *        visibility.
-	 * 
-	 * @param search
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+	 *
+	 * @param query
 	 *        A value that should appear in either the name or description.
-	 * 
+	 *
 	 * @return A list of visible ohmlet IDs.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	public static @ResponseBody List<String> getOhmletIds(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@RequestParam(value = KEY_QUERY, required = false)
 			final String query) {
-		
+
 		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
-		
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
 
 		return
 			OhmletBin
 				.getInstance()
 				.getOhmletIds(user.getUsername(), query);
 	}
-	
+
 	/**
 	 * Returns a communities definition.
-	 * 
-	 * @param token
-	 *        Used to verify that this user is allowed to read information
-	 *        about a ohmlet.
-	 * 
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+	 *
 	 * @param ohmletId
 	 *        The ohmlet's unique identifier.
-	 * 
+	 *
 	 * @return A list of the visible versions.
 	 */
 	@RequestMapping(
 		value = "{" + KEY_COMMUNITY_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody Ohmlet getOhmlet(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId) {
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request to read a ohmlet: " + ohmletId);
-		
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, null);
-		
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -225,37 +256,33 @@ public class OhmletServlet {
 				.PrivacyState
 				.PRIVATE
 				.equals(ohmlet.getPrivacyState())) {
-			
+
 			LOGGER
 				.log(
 					Level.FINE,
 					"The ohmlet is private, so the user must already be " +
 						"assocaited with the ohmlet.");
 			if(! ohmlet.hasRole(user.getUsername())) {
-				throw 
+				throw
 					new InsufficientPermissionsException(
 						"The user does not have sufficient permissions to " +
 							"view this " + Ohmlet.COMMUNITY_SKIN + ".");
 			}
 		}
-		
+
 		return ohmlet;
 	}
-	
+
 	/**
 	 * Updates this ohmlet.
-	 * 
-	 * @param token
-	 *        The authentication token for the user updating this ohmlet.
-	 *        This must belong to an owner of the ohmlet.
-	 * 
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was passed as a
-	 *        parameter.
-	 * 
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+	 *
 	 * @param ohmletId
 	 *        The ohmlet's unique identifier.
-	 * 
+	 *
 	 * @param ohmletBuilder
 	 *        The parts of the ohmlet that are already set.
 	 */
@@ -263,10 +290,8 @@ public class OhmletServlet {
 		value = "{" + KEY_COMMUNITY_ID + "}",
 		method = RequestMethod.POST)
 	public static @ResponseBody void updateOhmlet(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId,
 		@RequestBody
 			final Ohmlet.Builder ohmletBuilder) {
@@ -275,22 +300,28 @@ public class OhmletServlet {
 			.log(
 				Level.INFO,
 				"Creating a request to update a ohmlet: " + ohmletId);
-		
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
-		
+
 		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
 		if(ohmlet == null) {
 			throw
 				new UnknownEntityException(
 					"The " + Ohmlet.COMMUNITY_SKIN + " is unknown.");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -302,40 +333,85 @@ public class OhmletServlet {
 					"The user does not have sufficient permissions to " +
 						"update the " + Ohmlet.COMMUNITY_SKIN + ".");
 		}
-		
+
 		LOGGER
 			.log(
 				Level.FINE,
 				"Creating a new builder based on the existing ohmlet.");
 		Ohmlet.Builder newOhmletBuilder =
 			new Ohmlet.Builder(ohmlet);
-		
+
 		LOGGER.log(Level.FINE, "Merging the changes into the old ohmlet.");
 		newOhmletBuilder.merge(ohmletBuilder);
-		
+
 		LOGGER.log(Level.FINE, "Building a new ohmlet.");
 		Ohmlet newOhmlet = newOhmletBuilder.build();
-		
+
+        // Validate that the streams exist.
+        LOGGER.log(Level.INFO, "Validating that the given streams exist.");
+        List<SchemaReference> streams = newOhmlet.getStreams();
+        for(SchemaReference stream : streams) {
+            // Get the schema ID.
+            String id = stream.getSchemaId();
+            // Get the schema version.
+            Long version = stream.getVersion();
+
+            LOGGER
+                .log(Level.INFO, "Checking if the stream is a known stream.");
+            if(! StreamBin.getInstance().exists(id, version)) {
+                throw
+                    new InvalidArgumentException(
+                        "No such stream '" +
+                            id +
+                            "'" +
+                            ((version == null) ?
+                                "" :
+                                " with version '" + version + "'") +
+                            ".");
+            }
+        }
+
+        // Validate that the surveys exist.
+        LOGGER.log(Level.INFO, "Validating that the given surveys exist.");
+        List<SchemaReference> surveys = newOhmlet.getSurveys();
+        for(SchemaReference survey : surveys) {
+            // Get the schema ID.
+            String id = survey.getSchemaId();
+            // Get the schema version.
+            Long version = survey.getVersion();
+
+            LOGGER
+                .log(Level.INFO, "Checking if the survey is a known survey.");
+            if(! SurveyBin.getInstance().exists(id, version)) {
+                throw
+                    new InvalidArgumentException(
+                        "No such survey '" +
+                            id +
+                            "'" +
+                            ((version == null) ?
+                                "" :
+                                " with version '" + version + "'") +
+                            ".");
+            }
+        }
+
 		LOGGER.log(Level.FINE, "Storing the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(newOhmlet);
 	}
-	
+
 	/**
 	 * Allows a user to modify their or another user's privileges. This can be
 	 * used by users with the {@link Ohmlet.Role#INVITED} role to elevate
-	 * their own role to {@link Ohmlet.Role#MEMBER} or by users with 
+	 * their own role to {@link Ohmlet.Role#MEMBER} or by users with
 	 * sufficient privileges to escalate or de-escalate another user's role.
-	 * 
-	 * @param token
-	 *        The authentication token for the user inviting the other user.
-	 * 
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was passed as a
-	 *        parameter.
-	 * 
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+	 *
 	 * @param ohmletId
 	 *        The ohmlet's unique identifier.
-	 * 
+	 *
 	 * @param member
 	 * 		  The information about the user that is being changed.
 	 */
@@ -345,10 +421,8 @@ public class OhmletServlet {
 			"/" + Ohmlet.JSON_KEY_MEMBERS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void updateRole(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId,
 		@RequestBody final Ohmlet.Member member) {
 
@@ -358,15 +432,21 @@ public class OhmletServlet {
 				"Creating a request to modify a user's privileges in a " +
 					"ohmlet: " +
 					ohmletId);
-		
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
-		
+
 		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
 		if(ohmlet == null) {
 			throw
@@ -376,7 +456,7 @@ public class OhmletServlet {
 
 		LOGGER.log(Level.FINE, "Retrieving the requesting user's role.");
 		Ohmlet.Role requesterRole = ohmlet.getRole(user.getUsername());
-		
+
 		LOGGER.log(Level.INFO, "Validating the request.");
 		if(user.getUsername().equals(member.getMemberId())) {
 			LOGGER
@@ -396,7 +476,7 @@ public class OhmletServlet {
 						.PrivacyState
 						.PRIVATE
 						.equals(ohmlet.getPrivacyState())) {
-					
+
 					throw
 						new InvalidArgumentException(
 							"The " +
@@ -405,12 +485,12 @@ public class OhmletServlet {
 								"request an invite.");
 				}
 				break;
-				
+
 			case INVITED:
 				throw
 					new InvalidArgumentException(
 						"A user cannot invite themselves.");
-				
+
 			case MEMBER:
 				if(
 					(requesterRole == null) &&
@@ -419,14 +499,14 @@ public class OhmletServlet {
 							.PrivacyState
 							.PUBLIC
 							.equals(ohmlet.getPrivacyState()))) {
-					
+
 					throw
 						new InvalidArgumentException(
 							"A user may not directly join a non-public " +
 								Ohmlet.COMMUNITY_SKIN + ".");
 				}
 				// Cascade.
-				
+
 			default:
 				if(Ohmlet.Role.MEMBER.supersedes(requesterRole)) {
 					throw
@@ -448,7 +528,7 @@ public class OhmletServlet {
 				.log(
 					Level.FINE,
 					"A user is attempting to modify another user's role.");
-			
+
 			LOGGER.log(Level.INFO, "Verifying that the other user exists.");
 			if(UserBin.getInstance().getUser(member.getMemberId()) == null) {
 				throw
@@ -463,14 +543,14 @@ public class OhmletServlet {
 					"Retreving the requestee's role in the ohmlet.");
 			Ohmlet.Role requesteeRole =
 				ohmlet.getRole(member.getMemberId());
-			
+
 			switch(member.getRole()) {
 			case REQUESTED:
 				throw
 					new InvalidArgumentException(
 						"A user is not allowed to make invitation requests " +
 							"for another user.");
-				
+
 			case INVITED:
 				if(ohmlet.getInviteRole().supersedes(requesterRole)) {
 					throw
@@ -482,14 +562,14 @@ public class OhmletServlet {
 					(requesteeRole != null) &&
 					(! Ohmlet.Role.REQUESTED.equals(requesteeRole)) &&
 					(! Ohmlet.Role.INVITED.equals(requesteeRole))) {
-					
+
 					throw
 						new InvalidArgumentException(
 							"The user is already associated with the " +
 								Ohmlet.COMMUNITY_SKIN + ".");
 				}
 				break;
-				
+
 			default:
 				if(member.getRole().supersedes(requesterRole)) {
 					throw
@@ -505,7 +585,7 @@ public class OhmletServlet {
 				}
 			}
 		}
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -514,22 +594,18 @@ public class OhmletServlet {
 			(new Ohmlet.Builder(ohmlet))
 				.addMember(member.getMemberId(), member.getRole())
 				.build();
-		
+
 		LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
 	}
-	
+
 	/**
 	 * Deletes the ohmlet. This may only be done by supervisors.
-	 * 
-	 * @param token
-	 *        The authentication token for the user updating this ohmlet.
-	 *        This must belong to an owner of the ohmlet.
-	 * 
-	 * @param tokenIsParam
-	 *        Whether or not the authentication token was passed as a
-	 *        parameter.
-	 * 
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+	 *
 	 * @param ohmletId
 	 *        The ohmlet's unique identifier.
 	 */
@@ -537,25 +613,29 @@ public class OhmletServlet {
 		value = "{" + KEY_COMMUNITY_ID + "}",
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void deleteOhmlet(
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN)
-			final AuthenticationToken token,
-		@ModelAttribute(AuthFilter.ATTRIBUTE_AUTHENTICATION_TOKEN_IS_PARAM)
-			final boolean tokenIsParam,
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
 		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request to delete a ohmlet: " + ohmletId);
-		
-		LOGGER
-			.log(Level.INFO, "Retrieving the user associated with the token.");
-		User user = AuthFilter.retrieveUserFromAuth(null, token, tokenIsParam);
-		
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
-		
+
 		LOGGER
 			.log(
 				Level.INFO,
@@ -568,7 +648,7 @@ public class OhmletServlet {
 						"the " +
 						Ohmlet.COMMUNITY_SKIN + ".");
 		}
-		
+
 		LOGGER.log(Level.INFO, "Deleting the ohmlet.");
 		OhmletBin.getInstance().deleteOhmlet(ohmletId);
 	}
