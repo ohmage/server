@@ -13,6 +13,7 @@ import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.survey.response.MongoSurveyResponse;
@@ -23,6 +24,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 
 /**
@@ -164,15 +166,30 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 new IllegalArgumentException("The survey responses are null.");
         }
 
-        // Save all of the relevant files.
-        if(media != null) {
-            // Create a handle for all of the files that were successfully
-            // saved.
-            List<String> savedKeys = new LinkedList<String>();
+        // Create a handle for all of the files that were successfully
+        // saved.
+        List<String> savedKeys = new LinkedList<String>();
 
-            // Create a catch block to determine when things have failed.
-            boolean failed = false;
+        // Create a catch block to determine when things have failed.
+        boolean failed = false;
+        try {
+            // Save it.
             try {
+                COLLECTION.insert(surveyResponses);
+            }
+            catch(MongoException.DuplicateKey e) {
+                failed = true;
+                throw
+                    new InvalidArgumentException(
+                        "A survey response had the same unique key as " +
+                            "another survey response for the same user and " +
+                            "survey, or one of the media files had the same " +
+                            "unique key as any other media file.",
+                        e);
+            }
+
+            // Save all of the relevant files.
+            if(media != null) {
                 // Save each media file.
                 for(String key : media.keySet()) {
                     // Get the media file.
@@ -196,6 +213,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                     // Create the file.
                     GridFSInputFile file =
                         surveyResponseMediaConnection.createFile(in, key);
+                    file.setContentType(currMedia.getContentType());
 
                     // Save the file.
                     try {
@@ -213,38 +231,24 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                     savedKeys.add(key);
                 }
             }
-            finally {
-                // If we have failed, delete the saved files.
-                if(failed) {
-                    for(String savedKey : savedKeys) {
-                        try {
-                            surveyResponseMediaConnection.remove(savedKey);
-                        }
-                        catch(MongoException e) {
-                            LOGGER
-                                .log(
-                                    Level.SEVERE,
-                                    "Error rolling back and deleting file: " +
-                                        savedKey,
-                                    e);
-                        }
+        }
+        finally {
+            // If we have failed, delete the saved files.
+            if(failed) {
+                for(String savedKey : savedKeys) {
+                    try {
+                        surveyResponseMediaConnection.remove(savedKey);
+                    }
+                    catch(MongoException e) {
+                        LOGGER
+                            .log(
+                                Level.SEVERE,
+                                "Error rolling back and deleting file: " +
+                                    savedKey,
+                                e);
                     }
                 }
             }
-        }
-
-        // Save it.
-        try {
-            COLLECTION.insert(surveyResponses);
-        }
-        catch(MongoException.DuplicateKey e) {
-            throw
-                new InvalidArgumentException(
-                    "A survey response had the same unique key as another " +
-                        "survey response for the same user and survey, or " +
-                        "one of the media files had the same unique key as " +
-                        "any other media file.",
-                    e);
         }
     }
 
@@ -334,6 +338,58 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
 
         // Make the query and return the results.
         return MONGO_COLLECTION.findOne(queryBuilder.get());
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponseForMedia(java.lang.String)
+     */
+    @Override
+    public SurveyResponse getSurveyResponseForMedia(final String mediaId) {
+        // Validate the parameters.
+        if(mediaId == null) {
+            throw new IllegalArgumentException("The media ID is null.");
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the point ID.
+        queryBuilder.and(SurveyResponse.JSON_KEY_MEDIA_FILENAMES).is(mediaId);
+
+        // Make the query and return the results.
+        return MONGO_COLLECTION.findOne(queryBuilder.get());
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.SurveyResponseBin#getMedia(java.lang.String)
+     */
+    @Override
+    public Media getMedia(final String mediaId) {
+        // Get all of the files with the given filename.
+        List<GridFSDBFile> files = surveyResponseMediaConnection.find(mediaId);
+
+        // If no files were found, return null.
+        if(files.size() == 0) {
+            return null;
+        }
+        // If multiple files were found, that is a violation of the system.
+        if(files.size() > 1) {
+            throw
+                new IllegalStateException(
+                    "Multiple files have the same filename: " + mediaId);
+        }
+
+        // Get the file.
+        GridFSDBFile file = files.get(0);
+
+        // Create and return the Media object.
+        return
+            new Media(
+                file.getInputStream(),
+                file.getLength(),
+                file.getContentType());
     }
 
     /*

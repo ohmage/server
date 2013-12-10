@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -105,6 +106,37 @@ public abstract class SurveyResponseBin {
         final String surveyId,
         final long surveyVersion,
         final String pointId)
+        throws IllegalArgumentException;
+
+    /**
+     * Returns the survey response that references the given media file.
+     *
+     * @param mediaId
+     *        The media's unique identifier.
+     *
+     * @return The survey response that references the given media file or null
+     *         if no such media file exists.
+     *
+     * @throws IllegalArgumentException
+     *         A required parameter was null.
+     */
+    public abstract SurveyResponse getSurveyResponseForMedia(
+        final String mediaId)
+        throws IllegalArgumentException;
+
+    /**
+     * Returns an input stream to the media specified by the media ID.
+     *
+     * @param mediaId
+     *        The media's unique identifier.
+     *
+     * @return The {@link Media} object representing the media.
+     *
+     * @throws IllegalArgumentException
+     *         The media ID was null.
+     */
+    public abstract Media getMedia(
+        final String mediaId)
         throws IllegalArgumentException;
 
     /**

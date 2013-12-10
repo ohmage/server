@@ -426,4 +426,31 @@ public class SurveyResponse extends OhmageDomainObject {
                 Collections.<String>emptySet() :
                 new HashSet<String>(mediaFilenames);
     }
+
+    /**
+     * Returns the owner.
+     *
+     * @return The owner.
+     */
+    public String getOwner() {
+        return owner;
+    }
+
+    /**
+     * Returns the survey ID.
+     *
+     * @return The survey ID.
+     */
+    public String getSurveyId() {
+        return surveyId;
+    }
+
+    /**
+     * Returns the survey version.
+     *
+     * @return The survey version.
+     */
+    public long getSurveyVersion() {
+        return surveyVersion;
+    }
 }

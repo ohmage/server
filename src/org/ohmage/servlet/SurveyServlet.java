@@ -62,7 +62,7 @@ public class SurveyServlet extends OhmageServlet {
      */
     public static final String KEY_SURVEY_VERSION = "version";
     /**
-     * The path and parameter key for stream point IDs.
+     * The path and parameter key for survey point IDs.
      */
     public static final String KEY_SURVEY_RESPONSE_ID = "response_id";
     /**

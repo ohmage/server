@@ -18,6 +18,8 @@
     <!-- Use annotations. -->
     <mvc:annotation-driven>
         <mvc:message-converters>
+            <bean
+                class="org.springframework.http.converter.ResourceHttpMessageConverter" />
             <bean 
                 class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
 
@@ -32,6 +34,7 @@
         Don't map these static resources to handlers, just serve them directly.
      -->
     <mvc:resources mapping="/**" location="*.html" />
+    <mvc:resources mapping="/media/**" location="/media/" />
     
     <!-- Tells Spring to do automatic handling of multipart requests. -->
     <bean
