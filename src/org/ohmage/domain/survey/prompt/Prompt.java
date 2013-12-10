@@ -32,6 +32,10 @@ public abstract class Prompt<ResponseType>
      */
     public static final String JSON_KEY_TEXT = "text";
     /**
+     * The JSON key for the display label.
+     */
+    public static final String JSON_KEY_DISPLAY_LABEL = "display_label";
+    /**
      * The JSON key for the skippable flag.
      */
     public static final String JSON_KEY_SKIPPABLE = "skippable";
@@ -45,6 +49,11 @@ public abstract class Prompt<ResponseType>
      */
     @JsonProperty(JSON_KEY_TEXT)
     private final String text;
+    /**
+     * The text to use as a short name in visualizations.
+     */
+    @JsonProperty(JSON_KEY_DISPLAY_LABEL)
+    private final String displayLabel;
     /**
      * Whether or not this prompt may be skipped.
      */
@@ -69,6 +78,9 @@ public abstract class Prompt<ResponseType>
      * @param text
      *        The text to display to the user.
      *
+     * @param displayLabel
+     *        The text to use as a short name in visualizations.
+     *
      * @param skippable
      *        Whether or not this prompt may be skipped.
      *
@@ -83,6 +95,7 @@ public abstract class Prompt<ResponseType>
         final String surveyItemId,
         final Condition condition,
         final String text,
+        final String displayLabel,
         final boolean skippable,
         final ResponseType defaultResponse)
         throws InvalidArgumentException {
@@ -94,6 +107,7 @@ public abstract class Prompt<ResponseType>
         }
 
         this.text = text;
+        this.displayLabel = displayLabel;
         this.skippable = skippable;
         this.defaultResponse = defaultResponse;
     }
