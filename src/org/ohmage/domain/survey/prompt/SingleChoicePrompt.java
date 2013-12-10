@@ -38,6 +38,9 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
      * @param text
      *        The text to display to the user.
      *
+     * @param displayLabel
+     *        The text to use as a short name in visualizations.
+     *
      * @param skippable
      *        Whether or not this prompt may be skipped.
      *
@@ -59,6 +62,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
+        @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE) final String defaultResponse,
         @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices,
@@ -69,6 +73,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
             surveyItemId,
             condition,
             text,
+            displayLabel,
             skippable,
             defaultResponse,
             choices,

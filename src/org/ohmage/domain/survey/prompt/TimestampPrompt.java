@@ -40,6 +40,9 @@ public class TimestampPrompt extends Prompt<String> {
      * @param text
      *        The text to display to the user.
      *
+     * @param displayLabel
+     *        The text to use as a short name in visualizations.
+     *
      * @param skippable
      *        Whether or not this prompt may be skipped.
      *
@@ -55,11 +58,18 @@ public class TimestampPrompt extends Prompt<String> {
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
+        @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE) final String defaultResponse)
         throws InvalidArgumentException {
 
-        super(surveyItemId, condition, text, skippable, defaultResponse);
+        super(
+            surveyItemId,
+            condition,
+            text,
+            displayLabel,
+            skippable,
+            defaultResponse);
 
         // Verify that it is a valid date/time.
         try {
