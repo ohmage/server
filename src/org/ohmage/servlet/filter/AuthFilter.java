@@ -1,20 +1,23 @@
 package org.ohmage.servlet.filter;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.Filter;
 import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.ohmage.bin.AuthenticationTokenBin;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * <p>
@@ -24,7 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * @author John Jenkins
  */
-public class AuthFilter extends OncePerRequestFilter {
+public class AuthFilter implements Filter {
 	/**
 	 * The Authorization header from HTTP requests.
 	 */
@@ -41,20 +44,36 @@ public class AuthFilter extends OncePerRequestFilter {
 	private static final Logger LOGGER =
 	    Logger.getLogger(AuthFilter.class.getName());
 
+	/*
+	 * (non-Javadoc)
+	 * @see javax.servlet.Filter#init(javax.servlet.FilterConfig)
+	 */
+    @Override
+    public void init(final FilterConfig config) throws ServletException {
+        // Do nothing.
+    }
+
 	/**
 	 * @throws AuthenticationException
 	 *         The auth token is unknown or invalid.
 	 */
 	@Override
-	public void doFilterInternal(
-		final HttpServletRequest request,
-		final HttpServletResponse response,
+	public void doFilter(
+		final ServletRequest request,
+		final ServletResponse response,
 		final FilterChain chain)
 		throws IOException, ServletException, AuthenticationException {
 
 	    // Get the authorization headers.
-	    Enumeration<String> authorizationHeaders =
-	        request.getHeaders(HEADER_AUTHORIZATION);
+	    Enumeration<String> authorizationHeaders;
+	    if(request instanceof HttpServletRequest) {
+	        authorizationHeaders =
+	            ((HttpServletRequest) request)
+	                .getHeaders(HEADER_AUTHORIZATION);
+	    }
+	    else {
+	        authorizationHeaders = Collections.emptyEnumeration();
+	    }
 
 	    // Parse the headers.
 	    String authTokenString = null;

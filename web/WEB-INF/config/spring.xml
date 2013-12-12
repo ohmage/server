@@ -47,13 +47,18 @@
     
     <!-- Register our universal exception handler. -->
     <bean class="org.ohmage.servlet.spring.OhmageHandlerExceptionResolver" />
+    
+    <!--
+        Create the intercepters to handle modifying the request or response.
+     -->
+    <mvc:interceptors>
+		<bean
+		    class="org.ohmage.domain.spring.CacheControlWebContentInterceptor" />
+    </mvc:interceptors>
         
     <!--
         Tell Spring where to scan for annotations that link HTTP paths to their
         handlers.
      -->
     <context:component-scan base-package="org.ohmage" />
-    
-    <!-- Directly setup the auth filter. -->
-    <bean id="authFilter" class="org.ohmage.servlet.filter.AuthFilter"/>
 </beans>

@@ -85,7 +85,7 @@
     <!-- The main configuration files for this Spring web application. -->  
     <context-param>  
         <param-name>contextConfigLocation</param-name>  
-        <param-value>/WEB-INF/config/spring/*.xml</param-value>  
+        <param-value>/WEB-INF/config/spring.xml</param-value>  
     </context-param>
     
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
@@ -167,7 +167,7 @@
         <description>Parses, validates, and stores the authentication information.</description>
         <display-name>Authorization Filter</display-name>
         <filter-name>authFilter</filter-name>
-        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+        <filter-class>org.ohmage.servlet.filter.AuthFilter</filter-class>
     </filter>
 
     <filter-mapping>
