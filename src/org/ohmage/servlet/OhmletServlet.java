@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping(OhmletServlet.ROOT_MAPPING)
-public class OhmletServlet {
+public class OhmletServlet extends OhmageServlet {
 	/**
 	 * The root API mapping for this Servlet.
 	 */

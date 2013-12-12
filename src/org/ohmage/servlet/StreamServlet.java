@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping(StreamServlet.ROOT_MAPPING)
-public class StreamServlet {
+public class StreamServlet extends OhmageServlet {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
@@ -411,42 +411,42 @@ public class StreamServlet {
 		        HttpStatus.OK);
 	}
 
-	/**
-	 * Deletes a point.
+    /**
+     * Retrieves a point.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param streamId
-	 *        The unique identifier of the stream whose data is being
-	 *        requested.
-	 *
-	 * @param streamVersion
-	 *        The version of the stream whose data is being requested.
-	 *
-	 * @param pointId
-	 *        The unique identifier for a specific point.
-	 *
-	 * @return The data that conforms to the request parameters.
-	 */
-	@RequestMapping(
-		value =
-			"{" + KEY_STREAM_ID + "}" +
-			"/" +
-			"{" + KEY_STREAM_VERSION + "}" +
-			"/data" +
-			"/" +
-			"{" + KEY_STREAM_POINT_ID + "}",
-		method = RequestMethod.DELETE)
-	public static @ResponseBody void deletePoint(
+     *
+     * @param streamId
+     *        The unique identifier of the stream whose data is being
+     *        requested.
+     *
+     * @param streamVersion
+     *        The version of the stream whose data is being requested.
+     *
+     * @param pointId
+     *        The unique identifier for a specific point.
+     *
+     * @return The data that conforms to the request parameters.
+     */
+    @RequestMapping(
+        value =
+            "{" + KEY_STREAM_ID + "}" +
+            "/" +
+            "{" + KEY_STREAM_VERSION + "}" +
+            "/data" +
+            "/" +
+            "{" + KEY_STREAM_POINT_ID + "}",
+        method = RequestMethod.GET)
+    public static @ResponseBody StreamData getPoint(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_STREAM_ID) final String streamId,
-		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
-		@PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
+        @PathVariable(KEY_STREAM_ID) final String streamId,
+        @PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
+        @PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
 
-		LOGGER.log(Level.INFO, "Retrieving a specific stream data point.");
+        LOGGER.log(Level.INFO, "Retrieving a specific stream data point.");
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -458,13 +458,69 @@ public class StreamServlet {
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
-		LOGGER.log(Level.INFO, "Deleting the stream data.");
-		StreamDataBin
-			.getInstance()
-			.deleteStreamData(
-				user.getUsername(),
-				streamId,
-				streamVersion,
-				pointId);
-	}
+        LOGGER.log(Level.INFO, "Returning the stream data.");
+        return
+            StreamDataBin
+                .getInstance()
+                .getStreamData(
+                    user.getUsername(),
+                    streamId,
+                    streamVersion,
+                    pointId);
+    }
+
+    /**
+     * Deletes a point.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
+     * @param streamId
+     *        The unique identifier of the stream whose data is being
+     *        requested.
+     *
+     * @param streamVersion
+     *        The version of the stream whose data is being requested.
+     *
+     * @param pointId
+     *        The unique identifier for a specific point.
+     */
+    @RequestMapping(
+        value =
+            "{" + KEY_STREAM_ID + "}" +
+            "/" +
+            "{" + KEY_STREAM_VERSION + "}" +
+            "/data" +
+            "/" +
+            "{" + KEY_STREAM_POINT_ID + "}",
+        method = RequestMethod.DELETE)
+    public static @ResponseBody void deletePoint(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+        @PathVariable(KEY_STREAM_ID) final String streamId,
+        @PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
+        @PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
+
+        LOGGER.log(Level.INFO, "Deleting a specific stream data point.");
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
+        LOGGER.log(Level.INFO, "Deleting the stream data.");
+        StreamDataBin
+            .getInstance()
+            .deleteStreamData(
+                user.getUsername(),
+                streamId,
+                streamVersion,
+                pointId);
+    }
 }

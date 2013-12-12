@@ -464,7 +464,7 @@ public class SurveyServlet extends OhmageServlet {
     }
 
     /**
-     * Deletes a point.
+     * Retrieves a point.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
@@ -490,6 +490,62 @@ public class SurveyServlet extends OhmageServlet {
             "/data" +
             "/" +
             "{" + KEY_SURVEY_RESPONSE_ID + "}",
+        method = RequestMethod.GET)
+    public static @ResponseBody SurveyResponse getPoint(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+        @PathVariable(KEY_SURVEY_ID) final String surveyId,
+        @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
+        @PathVariable(KEY_SURVEY_RESPONSE_ID) final String pointId) {
+
+        LOGGER.log(Level.INFO, "Retrieving a specific survey data point.");
+
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = authToken.getUser();
+
+        LOGGER.log(Level.INFO, "Returning the survey data.");
+        return
+            SurveyResponseBin
+                .getInstance()
+                .getSurveyResponse(
+                    user.getUsername(),
+                    surveyId,
+                    surveyVersion,
+                    pointId);
+    }
+
+    /**
+     * Deletes a point.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
+     * @param surveyId
+     *        The unique identifier of the survey whose data is being
+     *        requested.
+     *
+     * @param surveyVersion
+     *        The version of the survey whose data is being requested.
+     *
+     * @param pointId
+     *        The unique identifier for a specific point.
+     */
+    @RequestMapping(
+        value =
+            "{" + KEY_SURVEY_ID + "}" +
+            "/" +
+            "{" + KEY_SURVEY_VERSION + "}" +
+            "/data" +
+            "/" +
+            "{" + KEY_SURVEY_RESPONSE_ID + "}",
         method = RequestMethod.DELETE)
     public static @ResponseBody void deletePoint(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
@@ -498,7 +554,7 @@ public class SurveyServlet extends OhmageServlet {
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
         @PathVariable(KEY_SURVEY_RESPONSE_ID) final String pointId) {
 
-        LOGGER.log(Level.INFO, "Retrieving a specific survey data point.");
+        LOGGER.log(Level.INFO, "Deleting a specific survey data point.");
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {

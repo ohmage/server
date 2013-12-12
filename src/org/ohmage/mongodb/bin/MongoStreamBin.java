@@ -267,7 +267,7 @@ public class MongoStreamBin extends StreamBin {
 		}
 
 		// The result is based on whether or not any results were found.
-		return (MONGO_COLLECTION.findOne() != null);
+		return (MONGO_COLLECTION.findOne(query) != null);
 	}
 
 	/*

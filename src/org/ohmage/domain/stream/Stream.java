@@ -95,11 +95,6 @@ public class Stream extends Schema {
 	}
 
     /**
-     * The JSON key for the definition.
-     */
-    public static final String JSON_KEY_DEFINITION = "definition";
-
-    /**
      * The definition of this schema.
      */
     @JsonProperty(JSON_KEY_DEFINITION)

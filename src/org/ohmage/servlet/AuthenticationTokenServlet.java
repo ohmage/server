@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @RequestMapping(AuthenticationTokenServlet.ROOT_MAPPING)
-public class AuthenticationTokenServlet {
+public class AuthenticationTokenServlet extends OhmageServlet {
 	/**
 	 * The root API mapping for this Servlet.
 	 */

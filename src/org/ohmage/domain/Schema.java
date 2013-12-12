@@ -164,6 +164,11 @@ public abstract class Schema extends OhmageDomainObject {
 	 */
 	public static final String JSON_KEY_OWNER = "owner";
 
+    /**
+     * The JSON key for the definition.
+     */
+    public static final String JSON_KEY_DEFINITION = "definition";
+
 	/**
 	 * The logger for this class.
 	 */
@@ -395,6 +400,7 @@ public abstract class Schema extends OhmageDomainObject {
 	 *
 	 * @return The definition of this schema.
 	 */
+    @JsonProperty(JSON_KEY_DEFINITION)
 	public abstract Concordia getDefinition();
 
 	/**

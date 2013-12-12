@@ -43,7 +43,7 @@ public class OhmageObjectMapper extends ObjectMapper {
 	 * @author John Jenkins
 	 */
 	@Documented
-	@Target({ ElementType.FIELD })
+	@Target({ ElementType.FIELD, ElementType.METHOD })
 	@Retention(RetentionPolicy.RUNTIME)
 	public static @interface JsonFilterField {};
 
