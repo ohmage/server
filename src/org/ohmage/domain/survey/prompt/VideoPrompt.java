@@ -1,8 +1,8 @@
 package org.ohmage.domain.survey.prompt;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.condition.Condition;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -83,10 +83,10 @@ public class VideoPrompt extends MediaPrompt {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.domain.survey.prompt.MediaPrompt#validateResponse(org.springframework.web.multipart.MultipartFile)
+     * @see org.ohmage.domain.survey.prompt.MediaPrompt#validateResponse(org.ohmage.domain.survey.Media)
      */
     @Override
-    public void validateResponse(final MultipartFile response)
+    public void validateResponse(final Media response)
         throws InvalidArgumentException {
 
         // For now, we are not placing any video-specific limitations on their

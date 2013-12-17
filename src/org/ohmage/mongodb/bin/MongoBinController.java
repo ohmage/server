@@ -166,6 +166,7 @@ public class MongoBinController extends BinController {
 		new MongoSurveyBin();
 		new MongoSurveyResponseBin();
 		new MongoOhmletBin();
+		new MongoMediaBin();
 	}
 
 	/**

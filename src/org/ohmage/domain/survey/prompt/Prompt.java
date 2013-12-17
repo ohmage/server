@@ -3,11 +3,11 @@ package org.ohmage.domain.survey.prompt;
 import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.NoResponse;
 import org.ohmage.domain.survey.Respondable;
 import org.ohmage.domain.survey.SurveyItem;
 import org.ohmage.domain.survey.condition.Condition;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -139,7 +139,7 @@ public abstract class Prompt<ResponseType>
     public final void validateResponse(
         final Object response,
         final Map<String, Object> previousResponses,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException {
 
         // Check if the response should have been displayed and compare that to
@@ -191,7 +191,7 @@ public abstract class Prompt<ResponseType>
             }
 
             // Validate the response.
-            validateResponse(responseObject, media);
+            responseObject = validateResponse(responseObject, media);
 
             // Add the response to the list of previous responses.
             previousResponses.put(getSurveyItemId(), responseObject);
@@ -208,9 +208,11 @@ public abstract class Prompt<ResponseType>
      * @param media
      *        The map of unique identifiers to InputStreams for media that was
      *        uploaded with the request.
+     *
+     * @return The updated validated response.
      */
-    public abstract void validateResponse(
+    public abstract ResponseType validateResponse(
         final ResponseType response,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException;
 }

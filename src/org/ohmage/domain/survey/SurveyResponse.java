@@ -11,7 +11,6 @@ import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -161,7 +160,8 @@ public class SurveyResponse extends OhmageDomainObject {
          *        {@link SurveyResponse} result.
          *
          * @param media
-         *        A map of unique identifiers to InputStreams for media that
+         *        A map of unique identifiers to {@link Media} objects for
+         *        media that
          *        was uploaded with the survey responses.
          *
          * @return The built {@link SurveyResponse} object.
@@ -173,11 +173,11 @@ public class SurveyResponse extends OhmageDomainObject {
          */
         public SurveyResponse build(
             final Survey survey,
-            final Map<String, MultipartFile> media)
+            final Map<String, Media> media)
             throws InvalidArgumentException {
 
             // Validate the survey responses.
-            survey.validate(metaData, responses, media);
+            responses = survey.validate(metaData, responses, media);
 
             // Update this builder's survey reference.
             surveyId = survey.getId();
@@ -185,7 +185,10 @@ public class SurveyResponse extends OhmageDomainObject {
 
             // Update the list of media filenames.
             if(media != null) {
-                mediaFilenames = media.keySet();
+                mediaFilenames = new HashSet<String>();
+                for(Media currMedia : media.values()) {
+                    mediaFilenames.add(currMedia.getId());
+                }
             }
 
             // Build and return the SurveyResponse object.
@@ -428,6 +431,17 @@ public class SurveyResponse extends OhmageDomainObject {
     }
 
     /**
+     * Returns the unique identifier for this survey response from its
+     * meta-data.
+     *
+     * @return The unique identifier for this survey response from its
+     *         meta-data.
+     */
+    public String getId() {
+        return metaData.getId();
+    }
+
+    /**
      * Returns the owner.
      *
      * @return The owner.
@@ -452,5 +466,14 @@ public class SurveyResponse extends OhmageDomainObject {
      */
     public long getSurveyVersion() {
         return surveyVersion;
+    }
+
+    /**
+     * Returns the set of media IDs for this survey response.
+     *
+     * @return The set of media IDs for this survey response.
+     */
+    public Set<String> getMediaIds() {
+        return mediaFilenames;
     }
 }

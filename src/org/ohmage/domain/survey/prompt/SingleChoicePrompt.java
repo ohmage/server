@@ -7,8 +7,8 @@ import name.jenkins.paul.john.concordia.schema.Schema;
 import name.jenkins.paul.john.concordia.schema.StringSchema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.condition.Condition;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -107,9 +107,9 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
      * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public void validateResponse(
+    public String validateResponse(
         final String response,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException {
 
         if((! allowsCustom()) && (getChoice(response) == null)) {
@@ -120,5 +120,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
                         "' is unknown: " +
                         getSurveyItemId());
         }
+
+        return response;
     }
 }

@@ -46,15 +46,19 @@ public class Stream extends Schema {
 		 *
 		 * @param definition
 		 *        The definition of this schema.
+         *
+         * @param iconId
+         *        The media ID for the icon image.
 		 */
 		@JsonCreator
 		public Builder(
 			@JsonProperty(JSON_KEY_VERSION) final long version,
 			@JsonProperty(JSON_KEY_NAME) final String name,
 			@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
-			@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition) {
+			@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
+			@JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
 
-			super(version, name, description);
+			super(version, name, description, iconId);
 
 			this.definition = definition;
 		}
@@ -88,6 +92,7 @@ public class Stream extends Schema {
 					name,
 					description,
 					owner,
+					iconId,
 					definition,
 					internalReadVersion,
 					internalWriteVersion);
@@ -114,6 +119,9 @@ public class Stream extends Schema {
 	 *
 	 * @param owner
 	 *        The owner of this stream.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
 	 *
 	 * @param definition
 	 *        The definition of this stream.
@@ -126,10 +134,19 @@ public class Stream extends Schema {
 		final String name,
 		final String description,
 		final String owner,
+		final String iconId,
 		final Concordia definition)
 		throws InvalidArgumentException {
 
-		this(null, version, name, description, owner, definition, null);
+		this(
+		    null,
+		    version,
+		    name,
+		    description,
+		    owner,
+		    iconId,
+		    definition,
+		    null);
 	}
 
 	/**
@@ -150,6 +167,9 @@ public class Stream extends Schema {
 	 *
 	 * @param owner
 	 *        The owner of this schema.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
 	 *
 	 * @param definition
 	 *        The definition of this schema.
@@ -169,7 +189,8 @@ public class Stream extends Schema {
 		@JsonProperty(JSON_KEY_VERSION) final long version,
 		@JsonProperty(JSON_KEY_NAME) final String name,
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
-		@JsonProperty(JSON_KEY_OWNER) final String owner,
+        @JsonProperty(JSON_KEY_OWNER) final String owner,
+        @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
@@ -180,6 +201,7 @@ public class Stream extends Schema {
 			name,
 			description,
 			owner,
+			iconId,
 			definition,
 			internalVersion,
 			internalVersion);
@@ -202,6 +224,9 @@ public class Stream extends Schema {
 	 *
 	 * @param owner
 	 *        The owner of this schema.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
 	 *
 	 * @param definition
 	 *        The definition of this schema.
@@ -226,6 +251,7 @@ public class Stream extends Schema {
 		final String name,
 		final String description,
 		final String owner,
+		final String iconId,
 		final Concordia definition,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
@@ -237,6 +263,7 @@ public class Stream extends Schema {
 			name,
 			description,
 			owner,
+			iconId,
 			internalReadVersion,
 			internalWriteVersion);
 

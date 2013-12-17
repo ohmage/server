@@ -1,31 +1,22 @@
 package org.ohmage.mongodb.bin;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.LinkedList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Set;
 
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.MultiValueResult;
-import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.survey.response.MongoSurveyResponse;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
-import com.mongodb.gridfs.GridFS;
-import com.mongodb.gridfs.GridFSDBFile;
-import com.mongodb.gridfs.GridFSInputFile;
 
 /**
  * <p>
@@ -40,19 +31,6 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      * The name of the collection that contains all of the survey responses.
      */
     public static final String COLLECTION_NAME = "survey_response_bin";
-
-    /**
-     * The name of the collection that contains all of the media for the survey
-     * responses.
-     */
-    private static final String SURVEY_RESPONSE_MEDIA_COLLECTION_NAME =
-        "survey_response_media";
-
-    /**
-     * The logger for this class.
-     */
-    private static final Logger LOGGER =
-        Logger.getLogger(MongoSurveyResponseBin.class.getName());
 
     /**
      * Get the connection to the survey response bin with the Jackson wrapper.
@@ -82,11 +60,6 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 MongoSurveyResponse.class,
                 String.class,
                 MongoBinController.getObjectMapper());
-
-    /**
-     * A connection to the container for the media within survey responses.
-     */
-    private final GridFS surveyResponseMediaConnection;
 
     /**
      * Default constructor.
@@ -142,23 +115,16 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
             .ensureIndex(
                 new BasicDBObject(SurveyResponse.JSON_KEY_MEDIA_FILENAMES, 1),
                 options);
-
-        // Connect to the container for the media for survey responses.
-        surveyResponseMediaConnection =
-            new GridFS(
-                MongoBinController.getInstance().getDb(),
-                SURVEY_RESPONSE_MEDIA_COLLECTION_NAME);
     }
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyResponseBin#addSurveyResponses(java.util.List, java.util.Map)
+     * @see org.ohmage.bin.SurveyResponseBin#addSurveyResponses(java.util.List)
      */
     @Override
     public void addSurveyResponses(
-        final List<SurveyResponse> surveyResponses,
-        final Map<String, MultipartFile> media)
-        throws IllegalArgumentException, InvalidArgumentException {
+        final List<SurveyResponse> surveyResponses)
+        throws IllegalArgumentException, IllegalStateException {
 
         // Validate the parameters.
         if(surveyResponses == null) {
@@ -166,101 +132,88 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 new IllegalArgumentException("The survey responses are null.");
         }
 
-        // Create a handle for all of the files that were successfully
-        // saved.
-        List<String> savedKeys = new LinkedList<String>();
-
-        // Create a catch block to determine when things have failed.
-        boolean failed = false;
+        // Save it.
         try {
-            // Save it.
-            try {
-                COLLECTION.insert(surveyResponses);
-            }
-            catch(MongoException.DuplicateKey e) {
-                failed = true;
-                throw
-                    new InvalidArgumentException(
-                        "A survey response had the same unique key as " +
-                            "another survey response for the same user and " +
-                            "survey, or one of the media files had the same " +
-                            "unique key as any other media file.",
-                        e);
-            }
-
-            // Save all of the relevant files.
-            if(media != null) {
-                // Save each media file.
-                for(String key : media.keySet()) {
-                    // Get the media file.
-                    MultipartFile currMedia = media.get(key);
-
-                    // Get the InputStream handle to the file.
-                    InputStream in;
-                    try {
-                        in = currMedia.getInputStream();
-                    }
-                    // If an error occurs, throw an exception.
-                    catch(IOException e) {
-                        failed = true;
-                        throw
-                            new IllegalArgumentException(
-                                "Could not connect to a media input stream: " +
-                                    key,
-                                e);
-                    }
-
-                    // Create the file.
-                    GridFSInputFile file =
-                        surveyResponseMediaConnection.createFile(in, key);
-                    file.setContentType(currMedia.getContentType());
-
-                    // Save the file.
-                    try {
-                        file.save();
-                    }
-                    catch(MongoException e) {
-                        failed = true;
-                        throw
-                            new IllegalArgumentException(
-                                "Could not save the media file: " + key,
-                                e);
-                    }
-
-                    // Add the file to the list.
-                    savedKeys.add(key);
-                }
-            }
+            COLLECTION.insert(surveyResponses);
         }
-        finally {
-            // If we have failed, delete the saved files.
-            if(failed) {
-                for(String savedKey : savedKeys) {
-                    try {
-                        surveyResponseMediaConnection.remove(savedKey);
-                    }
-                    catch(MongoException e) {
-                        LOGGER
-                            .log(
-                                Level.SEVERE,
-                                "Error rolling back and deleting file: " +
-                                    savedKey,
-                                e);
-                    }
-                }
-            }
+        catch(MongoException.DuplicateKey e) {
+            throw
+                new IllegalArgumentException(
+                    "One of the media files had the same unique key as any " +
+                        "other media file. However, we should be creating " +
+                        "new IDs for the media files, so this should never " +
+                        "happen.",
+                    e);
         }
     }
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponses(java.lang.String, java.lang.String, long)
+     * @see org.ohmage.bin.SurveyResponseBin#getDuplicateIds(java.lang.String, java.lang.String, long, java.util.Set)
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<String> getDuplicateIds(
+        final String owner,
+        final String surveyId,
+        final long surveyVersion,
+        final Set<String> candidateIds)
+        throws IllegalArgumentException {
+
+        // Validate the parameters.
+        if(owner == null) {
+            throw new IllegalArgumentException("The username is null.");
+        }
+        if(surveyId == null) {
+            throw new IllegalArgumentException("The survey ID is null.");
+        }
+        if(candidateIds == null) {
+            throw
+                new IllegalArgumentException("The candidate IDs set is null.");
+        }
+        else if(candidateIds.size() == 0) {
+            return Collections.emptyList();
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the owner.
+        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
+
+        // Add the survey ID.
+        queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
+
+        // Add the survey version.
+        queryBuilder
+            .and(SurveyResponse.JSON_KEY_SURVEY_VERSION)
+            .is(surveyVersion);
+
+        // Add the candidate IDs.
+        queryBuilder
+            .and(
+                SurveyResponse.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID)
+            .in(candidateIds);
+
+        // Get and return the duplicates.
+        return
+            COLLECTION
+                .distinct(
+                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_ID,
+                    queryBuilder.get());
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponses(java.lang.String, java.lang.String, long, java.util.Collection)
      */
     @Override
     public MultiValueResult<? extends SurveyResponse> getSurveyResponses(
         final String username,
         final String surveyId,
-        final long surveyVersion)
+        final long surveyVersion,
+        final Collection<String> surveyResponseIds)
         throws IllegalArgumentException {
 
         // Validate the parameters.
@@ -284,6 +237,15 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         queryBuilder
             .and(SurveyResponse.JSON_KEY_SURVEY_VERSION)
             .is(surveyVersion);
+
+        // Add the survey response IDs, if given.
+        if(surveyResponseIds != null) {
+            queryBuilder
+                .and(
+                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_ID)
+                .in(surveyResponseIds);
+        }
 
         // Make the query and return the results.
         return
@@ -359,37 +321,6 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
 
         // Make the query and return the results.
         return MONGO_COLLECTION.findOne(queryBuilder.get());
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyResponseBin#getMedia(java.lang.String)
-     */
-    @Override
-    public Media getMedia(final String mediaId) {
-        // Get all of the files with the given filename.
-        List<GridFSDBFile> files = surveyResponseMediaConnection.find(mediaId);
-
-        // If no files were found, return null.
-        if(files.size() == 0) {
-            return null;
-        }
-        // If multiple files were found, that is a violation of the system.
-        if(files.size() > 1) {
-            throw
-                new IllegalStateException(
-                    "Multiple files have the same filename: " + mediaId);
-        }
-
-        // Get the file.
-        GridFSDBFile file = files.get(0);
-
-        // Create and return the Media object.
-        return
-            new Media(
-                file.getInputStream(),
-                file.getLength(),
-                file.getContentType());
     }
 
     /*

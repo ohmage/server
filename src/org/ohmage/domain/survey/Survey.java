@@ -17,7 +17,6 @@ import org.ohmage.domain.MetaData;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -57,6 +56,9 @@ public class Survey extends Schema {
          *
          * @param surveyItems
          *        The survey items that define this survey.
+         *
+         * @param iconId
+         *        The media ID for the icon image.
          */
         @JsonCreator
         public Builder(
@@ -64,9 +66,10 @@ public class Survey extends Schema {
             @JsonProperty(JSON_KEY_NAME) final String name,
             @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
             @JsonProperty(JSON_KEY_SURVEY_ITEMS)
-                final List<SurveyItem> surveyItems) {
+                final List<SurveyItem> surveyItems,
+            @JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
 
-            super(version, name, description);
+            super(version, name, description, iconId);
 
             this.surveyItems = surveyItems;
         }
@@ -100,6 +103,7 @@ public class Survey extends Schema {
                     name,
                     description,
                     owner,
+                    iconId,
                     surveyItems,
                     internalReadVersion,
                     internalWriteVersion);
@@ -132,6 +136,9 @@ public class Survey extends Schema {
      * @param owner
      *        The owner of this survey.
      *
+     * @param iconId
+     *        The media ID for the icon image.
+     *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
      *
@@ -143,6 +150,7 @@ public class Survey extends Schema {
         final String name,
         final String description,
         final String owner,
+        final String iconId,
         final List<SurveyItem> surveyItems)
         throws InvalidArgumentException {
 
@@ -152,6 +160,7 @@ public class Survey extends Schema {
             name,
             description,
             owner,
+            iconId,
             surveyItems,
             null);
 
@@ -192,6 +201,9 @@ public class Survey extends Schema {
      * @param owner
      *        The owner of this survey.
      *
+     * @param iconId
+     *        The media ID for the icon image.
+     *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
      *
@@ -211,6 +223,7 @@ public class Survey extends Schema {
         @JsonProperty(JSON_KEY_NAME) final String name,
         @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
         @JsonProperty(JSON_KEY_OWNER) final String owner,
+        @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
         @JsonProperty(JSON_KEY_SURVEY_ITEMS)
             final List<SurveyItem> surveyItems,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
@@ -222,6 +235,7 @@ public class Survey extends Schema {
             name,
             description,
             owner,
+            iconId,
             surveyItems,
             internalVersion,
             internalVersion);
@@ -244,6 +258,9 @@ public class Survey extends Schema {
      *
      * @param owner
      *        The owner of this survey.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
      *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
@@ -268,6 +285,7 @@ public class Survey extends Schema {
         final String name,
         final String description,
         final String owner,
+        final String iconId,
         final List<SurveyItem> surveyItems,
         final Long internalReadVersion,
         final Long internalWriteVersion)
@@ -279,6 +297,7 @@ public class Survey extends Schema {
             name,
             description,
             owner,
+            iconId,
             internalReadVersion,
             internalWriteVersion);
 
@@ -301,13 +320,15 @@ public class Survey extends Schema {
      * @param promptResponses
      *        The prompt responses to validate.
      *
+     * @return The validated responses.
+     *
      * @throws InvalidArgumentException
      *         The meta-data or prompt responses were invalid.
      */
-    public void validate(
+    public Map<String, Object> validate(
         final MetaData metaData,
         final Map<String, Object> promptResponses,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException {
 
         // Create an iterator for the survey items.
@@ -356,6 +377,17 @@ public class Survey extends Schema {
                 new InvalidArgumentException(
                     "More responses exist than prompts in the survey.");
         }
+
+        // Remove the NoResponse values from the checked responses.
+        Iterator<String> responseKeys = checkedResponses.keySet().iterator();
+        while(responseKeys.hasNext()) {
+            if(checkedResponses.get(responseKeys.next()) instanceof NoResponse) {
+                responseKeys.remove();
+            }
+        }
+
+        // Return the validated responses.
+        return checkedResponses;
     }
 
     /**

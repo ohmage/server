@@ -6,8 +6,8 @@ import name.jenkins.paul.john.concordia.schema.Schema;
 import name.jenkins.paul.john.concordia.schema.StringSchema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.condition.Condition;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -96,16 +96,16 @@ public abstract class MediaPrompt extends Prompt<String> {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.domain.survey.Prompt#validateResponse(java.lang.Object)
+     * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public final void validateResponse(
+    public final String validateResponse(
         final String response,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException {
 
         // Retrieve the media and ensure that it exists.
-        MultipartFile mediaResponse = media.get(response);
+        Media mediaResponse = media.get(response);
         if(mediaResponse == null) {
             throw
                 new InvalidArgumentException(
@@ -114,6 +114,9 @@ public abstract class MediaPrompt extends Prompt<String> {
 
         // Pass the validation onto the specific media-type validator.
         validateResponse(mediaResponse);
+
+        // Update the media survey response.
+        return mediaResponse.getId();
     }
 
     /**
@@ -125,6 +128,6 @@ public abstract class MediaPrompt extends Prompt<String> {
      * @throws InvalidArgumentException
      *         The media is invalid.
      */
-    public abstract void validateResponse(final MultipartFile response)
+    public abstract void validateResponse(final Media response)
         throws InvalidArgumentException;
 }

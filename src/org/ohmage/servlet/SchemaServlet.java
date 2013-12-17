@@ -249,7 +249,8 @@ public class SchemaServlet extends OhmageServlet {
                     .getSurveyResponses(
                         user.getUsername(),
                         schemaId,
-                        schemaVersion);
+                        schemaVersion,
+                        null);
         }
         else {
             throw

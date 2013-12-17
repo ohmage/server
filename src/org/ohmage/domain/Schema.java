@@ -55,6 +55,10 @@ public abstract class Schema extends OhmageDomainObject {
 		 * The owner of this schema.
 		 */
 		protected String owner;
+		/**
+		 * The media ID for the icon image.
+		 */
+		protected String iconId;
 
 		/**
 		 * Creates a new Schema builder object.
@@ -67,21 +71,26 @@ public abstract class Schema extends OhmageDomainObject {
 		 *
 		 * @param description
 		 *        The description of this schema.
-		 *
-		 * @param definition
-		 *        The definition of this schema.
+         *
+         * @param definition
+         *        The definition of this schema.
+         *
+         * @param iconId
+         *        The media ID for the icon image.
 		 */
 		@JsonCreator
 		public Builder(
 			@JsonProperty(JSON_KEY_VERSION) final long version,
 			@JsonProperty(JSON_KEY_NAME) final String name,
-			@JsonProperty(JSON_KEY_DESCRIPTION) final String description) {
+            @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
+            @JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
 
 			super(null);
 
 			this.version = version;
 			this.name = name;
 			this.description = description;
+			this.iconId = iconId;
 		}
 
 		/**
@@ -101,13 +110,14 @@ public abstract class Schema extends OhmageDomainObject {
 			owner = schema.owner;
 		}
 
-		/**
-		 * Sets the ID for this schema.
-		 *
-		 * @param schemaId The new, unique identifier for this schema.
-		 *
-		 * @return This builder to facilitate chaining.
-		 */
+        /**
+         * Sets the ID for this schema.
+         *
+         * @param schemaId
+         *        The new, unique identifier for this schema.
+         *
+         * @return This builder to facilitate chaining.
+         */
 		public Builder setSchemaId(final String schemaId) {
 		    this.schemaId = schemaId;
 
@@ -123,13 +133,41 @@ public abstract class Schema extends OhmageDomainObject {
 			return version;
 		}
 
-		/**
-		 * Sets the owner of the schema.
-		 *
-		 * @param owner The user-name of the ohmage user that owns this schema.
-		 */
-		public void setOwner(final String owner) {
+        /**
+         * Sets the owner of the schema.
+         *
+         * @param owner
+         *        The user-name of the ohmage user that owns this schema.
+         *
+         * @return This builder to facilitate chaining.
+         */
+		public Builder setOwner(final String owner) {
 			this.owner = owner;
+
+			return this;
+		}
+
+		/**
+		 * Returns the identifier of the icon.
+		 *
+		 * @return The identifier of the icon.
+		 */
+		public String getIconId() {
+		    return iconId;
+		}
+
+        /**
+         * Sets the identifier of the icon.
+         *
+         * @param iconId
+         *        The icon's identifier.
+         *
+         * @return This builder to facilitate chaining.
+         */
+		public Builder setIconId(final String iconId) {
+		    this.iconId = iconId;
+
+		    return this;
 		}
 
 		/**
@@ -163,6 +201,10 @@ public abstract class Schema extends OhmageDomainObject {
 	 * The JSON key for the owner.
 	 */
 	public static final String JSON_KEY_OWNER = "owner";
+	/**
+	 * The JSON key for the icon ID.
+	 */
+	public static final String JSON_KEY_ICON_ID = "icon_id";
 
     /**
      * The JSON key for the definition.
@@ -200,30 +242,39 @@ public abstract class Schema extends OhmageDomainObject {
 	 */
 	@JsonProperty(JSON_KEY_OWNER)
 	private final String owner;
-
 	/**
-	 * Creates a new Schema object.
-	 *
-	 * @param version
-	 *        The version of this schema.
-	 *
-	 * @param name
-	 *        The name of this schema.
-	 *
-	 * @param description
-	 *        The description of this schema.
-	 *
-	 * @param owner
-	 *        The owner of this schema.
-	 *
-	 * @throws InvalidArgumentException
-	 *         A parameter is invalid.
+	 * The media ID for the icon image.
 	 */
+	@JsonProperty(JSON_KEY_ICON_ID)
+	private final String iconId;
+
+	    /**
+     * Creates a new Schema object.
+     *
+     * @param version
+     *        The version of this schema.
+     *
+     * @param name
+     *        The name of this schema.
+     *
+     * @param description
+     *        The description of this schema.
+     *
+     * @param owner
+     *        The owner of this schema.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
+     *
+     * @throws InvalidArgumentException
+     *         A parameter is invalid.
+     */
 	public Schema(
 		final long version,
 		final String name,
 		final String description,
-		final String owner)
+		final String owner,
+		final String iconId)
 		throws InvalidArgumentException {
 
 		// Pass through to the builder constructor.
@@ -233,6 +284,7 @@ public abstract class Schema extends OhmageDomainObject {
 			name,
 			description,
 			owner,
+			iconId,
 			null);
 	}
 
@@ -253,6 +305,9 @@ public abstract class Schema extends OhmageDomainObject {
 	 *
 	 * @param owner
 	 *        The owner of this schema.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
 	 *
 	 * @param internalVersion
 	 *        The internal version of this schema.
@@ -270,6 +325,7 @@ public abstract class Schema extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_NAME) final String name,
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
+		@JsonProperty(JSON_KEY_ICON_ID) final String iconId,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
 
@@ -280,6 +336,7 @@ public abstract class Schema extends OhmageDomainObject {
 			name,
 			description,
 			owner,
+			iconId,
 			internalVersion,
 			internalVersion);
 	}
@@ -301,6 +358,9 @@ public abstract class Schema extends OhmageDomainObject {
 	 *
 	 * @param owner
 	 *        The owner of this schema.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
 	 *
 	 * @param internalReadVersion
 	 *        The internal version of this schema when it was read from the
@@ -322,6 +382,7 @@ public abstract class Schema extends OhmageDomainObject {
 		final String name,
 		final String description,
 		final String owner,
+		final String iconId,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
@@ -348,6 +409,7 @@ public abstract class Schema extends OhmageDomainObject {
 		this.name = name;
 		this.description = description;
 		this.owner = owner;
+		this.iconId = iconId;
 	}
 
 	/**
@@ -393,6 +455,15 @@ public abstract class Schema extends OhmageDomainObject {
 	 */
 	public String getOwner() {
 		return owner;
+	}
+
+	/**
+	 * Returns the given identifier for the icon.
+	 *
+	 * @return The given identifier for the icon.
+	 */
+	public String getIconId() {
+	    return iconId;
 	}
 
 	/**

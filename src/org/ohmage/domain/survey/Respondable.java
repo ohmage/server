@@ -5,7 +5,6 @@ import java.util.Map;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -48,6 +47,6 @@ public interface Respondable {
     public abstract void validateResponse(
         final Object response,
         final Map<String, Object> previousResponses,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException;
 }

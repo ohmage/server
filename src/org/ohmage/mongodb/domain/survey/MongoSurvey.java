@@ -71,6 +71,7 @@ public class MongoSurvey extends Survey implements MongoDbObject {
         @JsonProperty(JSON_KEY_NAME) final String name,
         @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
         @JsonProperty(JSON_KEY_OWNER) final String owner,
+        @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
         @JsonProperty(JSON_KEY_SURVEY_ITEMS)
             final List<SurveyItem> surveyItems,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
@@ -82,6 +83,7 @@ public class MongoSurvey extends Survey implements MongoDbObject {
             name,
             description,
             owner,
+            iconId,
             surveyItems,
             internalVersion);
 

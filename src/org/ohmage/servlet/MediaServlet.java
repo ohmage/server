@@ -3,6 +3,7 @@ package org.ohmage.servlet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.User;
@@ -71,43 +72,56 @@ public class MediaServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving some media data.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
-
-        LOGGER
-            .log(
-                Level.INFO,
-                "Retrieveing the survey response associated with the media.");
-        SurveyResponse mediaResponse =
-            SurveyResponseBin
-                .getInstance()
-                .getSurveyResponseForMedia(mediaId);
-        if(mediaResponse == null) {
+        LOGGER.log(Level.INFO, "Retrieving the requested media.");
+        final Media mediaFile = MediaBin.getInstance().getMedia(mediaId);
+        if(mediaFile == null) {
             throw new UnknownEntityException("The media file is unknown.");
         }
 
         LOGGER
             .log(
                 Level.INFO,
-                "Verifying that the given auth token allows the requester " +
-                    "to download the media.");
-        if(! mediaResponse.getOwner().equals(user.getUsername())) {
-            throw
-                new InsufficientPermissionsException(
-                    "The given auth token does not give the requester " +
-                        "permission to read this media file.");
-        }
+                "Checking if a survey response is associated with the media.");
+        SurveyResponse surveyResponse =
+            SurveyResponseBin
+                .getInstance()
+                .getSurveyResponseForMedia(mediaId);
+        if(surveyResponse != null) {
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "The media file is associated with a survey response, " +
+                        "so permissions must be checked.");
 
-        LOGGER.log(Level.INFO, "Retrieving the requested media.");
-        final Media mediaFile =
-            SurveyResponseBin.getInstance().getMedia(mediaId);
+            LOGGER
+                .log(Level.INFO, "Verifying that auth information was given.");
+            if(authToken == null) {
+                throw
+                    new AuthenticationException(
+                        "The media file is associated with a survey " +
+                            "response and no authentication information was " +
+                            "given.");
+            }
+
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "Retrieving the user associated with the token.");
+            User user = authToken.getUser();
+
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "Verifying that the requester has given a sufficient " +
+                        "token to view the response and its corresponding " +
+                        "media.");
+            if(! surveyResponse.getOwner().equals(user.getUsername())) {
+                throw
+                    new InsufficientPermissionsException(
+                        "The given auth token does not give the requester " +
+                            "permission to read this media file.");
+            }
+        }
 
         LOGGER.log(Level.FINE, "Building the headers.");
         HttpHeaders responseHeaders = new HttpHeaders();

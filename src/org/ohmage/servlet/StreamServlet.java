@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.domain.AuthorizationToken;
@@ -16,6 +17,7 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.stream.StreamData;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -27,7 +29,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -52,14 +56,22 @@ public class StreamServlet extends OhmageServlet {
 	 * The path and parameter key for stream versions.
 	 */
 	public static final String KEY_STREAM_VERSION = "version";
-	/**
-	 * The path and parameter key for stream point IDs.
-	 */
-	public static final String KEY_STREAM_POINT_ID = "point_id";
-	/**
-	 * The name of the parameter for querying for specific values.
-	 */
-	public static final String KEY_QUERY = "query";
+    /**
+     * The parameter key for a stream definition.
+     */
+    public static final String KEY_STREAM_DEFINITION = "definition";
+    /**
+     * The parameter for the icon.
+     */
+    public static final String KEY_ICON = "icon";
+    /**
+     * The name of the parameter for querying for specific values.
+     */
+    public static final String KEY_QUERY = "query";
+    /**
+     * The path and parameter key for stream point IDs.
+     */
+    public static final String KEY_STREAM_POINT_ID = "point_id";
 
 	/**
 	 * The logger for this class.
@@ -85,14 +97,46 @@ public class StreamServlet extends OhmageServlet {
 	 * @param streamBuilder
 	 *        A builder to use to create this new stream.
 	 */
-	@RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
+	@RequestMapping(
+	    value = { "", "/" },
+	    method = RequestMethod.POST,
+	    consumes = "application/json")
 	public static @ResponseBody Stream createStream(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@RequestBody
 			final Stream.Builder streamBuilder) {
 
-		LOGGER.log(Level.INFO, "Creating a stream creation request.");
+	    return createStream(authToken, streamBuilder, null);
+	}
+
+    /**
+     * Creates a new stream.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
+     * @param streamBuilder
+     *        A builder to use to create this new stream.
+     *
+     * @param iconFile
+     *        The file that represents the icon, which must be present if an
+     *        icon is defined in the 'stream builder'.
+     */
+    @RequestMapping(
+        value = { "", "/" },
+        method = RequestMethod.POST,
+        consumes = "multipart/*")
+    public static @ResponseBody Stream createStream(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+        @RequestPart(value = KEY_STREAM_DEFINITION, required = true)
+            final Stream.Builder streamBuilder,
+        @RequestPart(value = KEY_ICON, required = false)
+            final MultipartFile iconFile) {
+
+        LOGGER.log(Level.INFO, "Creating a stream creation request.");
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -104,18 +148,42 @@ public class StreamServlet extends OhmageServlet {
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
-		LOGGER.log(Level.FINE, "Setting the owner of the stream.");
-		streamBuilder.setOwner(user.getUsername());
+        LOGGER.log(Level.FINE, "Setting the owner of the stream.");
+        streamBuilder.setOwner(user.getUsername());
 
-		LOGGER.log(Level.FINE, "Building the updated stream.");
-		Stream result = streamBuilder.build();
+        LOGGER.log(Level.FINE, "Checking if an icon was given.");
+        Media icon = null;
+        // If given, verify that it was attached as well.
+        if(streamBuilder.getIconId() != null) {
+            if(iconFile
+                .getOriginalFilename()
+                .equals(streamBuilder.getIconId())) {
 
-		LOGGER.log(Level.INFO, "Saving the new stream.");
-		StreamBin.getInstance().addStream(result);
+                String newIconId = Media.generateUuid();
+                streamBuilder.setIconId(newIconId);
+                icon = new Media(newIconId, iconFile);
+            }
+            else {
+                throw
+                    new InvalidArgumentException(
+                        "An icon file was referenced but not uploaded.");
+            }
+        }
 
-		LOGGER.log(Level.INFO, "Returning the updated stream.");
-		return result;
-	}
+        LOGGER.log(Level.FINE, "Building the updated stream.");
+        Stream result = streamBuilder.build();
+
+        if(icon != null) {
+            LOGGER.log(Level.INFO, "Storing the icon.");
+            MediaBin.getInstance().addMedia(icon);
+        }
+
+        LOGGER.log(Level.INFO, "Saving the new stream.");
+        StreamBin.getInstance().addStream(result);
+
+        LOGGER.log(Level.INFO, "Returning the updated stream.");
+        return result;
+    }
 
 	/**
 	 * Returns a list of visible stream IDs.

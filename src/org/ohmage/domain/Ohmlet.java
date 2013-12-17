@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * the ohmlet should be collecting and are sharing with other members of the
  * ohmlet.
  * </p>
- * 
+ *
  * @author John Jenkins
  */
 public class Ohmlet extends OhmageDomainObject {
@@ -28,12 +28,12 @@ public class Ohmlet extends OhmageDomainObject {
 	 * The publicly-facing name of the ohmlet.
 	 */
 	public static final String COMMUNITY_SKIN = "ohmlet";
-	
+
 	/**
 	 * <p>
 	 * A builder for {@link Ohmlet}s.
 	 * </p>
-	 * 
+	 *
 	 * @author John Jenkins
 	 */
 	public static class Builder extends OhmageDomainObject.Builder<Ohmlet> {
@@ -80,42 +80,49 @@ public class Ohmlet extends OhmageDomainObject {
 		 * users' data.
 		 */
 		private Role visibilityRole;
-		
+        /**
+         * The media ID for the icon image.
+         */
+        private String iconId;
+
 		/**
 		 * Creates a new Ohmlet builder object.
-		 * 
+		 *
 		 * @param name
 		 *        The name of this ohmlet.
-		 * 
+		 *
 		 * @param description
 		 *        The description of this ohmlet.
-		 * 
+		 *
 		 * @param owner
 		 *        The creator and subsequent owner of this ohmlet.
-		 * 
+		 *
 		 * @param streams
 		 *        The list of streams that compose this ohmlet.
-		 * 
+		 *
 		 * @param surveys
 		 *        The list of surveys that compose this ohmlet.
-		 * 
+		 *
 		 * @param reminders
 		 *        The list of default reminders for users that download this
 		 *        ohmlet.
-		 * 
+		 *
 		 * @param members
 		 *        The map of member IDs to their roles of this ohmlet.
-		 * 
+		 *
 		 * @param privacyState
 		 *        The {@link PrivacyState} of this ohmlet.
-		 * 
+		 *
 		 * @param inviteRole
 		 *        The minimum required {@link Role} to invite other users to
 		 *        this ohmlet.
-		 * 
+		 *
 		 * @param visibilityRole
 		 *        The minimum required {@link Role} to view data supplied by
 		 *        the members of this ohmlet.
+         *
+         * @param iconId
+         *        The media ID for the icon image.
 		 */
 		public Builder(
 			@JsonProperty(JSON_KEY_NAME) final String name,
@@ -129,10 +136,11 @@ public class Ohmlet extends OhmageDomainObject {
 				final PrivacyState privacyState,
 			@JsonProperty(JSON_KEY_INVITE_ROLE) final Role inviteRole,
 			@JsonProperty(JSON_KEY_VISIBILITY_ROLE)
-				final Role visibilityRole) {
-			
+				final Role visibilityRole,
+            @JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
+
 			super(null);
-			
+
 			this.name = name;
 			this.description = description;
 			this.streams = streams;
@@ -141,37 +149,38 @@ public class Ohmlet extends OhmageDomainObject {
 			this.privacyState = privacyState;
 			this.inviteRole = inviteRole;
 			this.visibilityRole = visibilityRole;
+            this.iconId = iconId;
 		}
 
 		/**
 		 * Creates a new builder based on an existing Ohmlet object.
-		 * 
+		 *
 		 * @param ohmlet
 		 *        The existing Ohmlet object on which this Builder should be
 		 *        based.
 		 */
 		public Builder(final Ohmlet ohmlet) {
 			super(ohmlet);
-			
-			this.ohmletId = ohmlet.ohmletId;
-			this.name = ohmlet.name;
-			this.description = ohmlet.description;
-			this.streams = ohmlet.streams;
-			this.surveys = ohmlet.surveys;
-			this.reminders = ohmlet.reminders;
-			this.members = ohmlet.members;
-			this.privacyState = ohmlet.privacyState;
-			this.inviteRole = ohmlet.inviteRole;
-			this.visibilityRole = ohmlet.visibilityRole;
+
+			ohmletId = ohmlet.ohmletId;
+			name = ohmlet.name;
+			description = ohmlet.description;
+			streams = ohmlet.streams;
+			surveys = ohmlet.surveys;
+			reminders = ohmlet.reminders;
+			members = ohmlet.members;
+			privacyState = ohmlet.privacyState;
+			inviteRole = ohmlet.inviteRole;
+			visibilityRole = ohmlet.visibilityRole;
 		}
-		
+
 		/**
 		 * Takes the non-null contents of the parameterized builder and
 		 * overwrites the corresponding value in this builder.
-		 * 
+		 *
 		 * @param builder
 		 *        The builder whose values should be merged into this builder.
-		 * 
+		 *
 		 * @return This builder to facilitate chaining.
 		 */
 		public Builder merge(final Builder builder) {
@@ -180,97 +189,120 @@ public class Ohmlet extends OhmageDomainObject {
 			}
 
 			if(builder.name != null) {
-				this.name = builder.name;
+				name = builder.name;
 			}
-			
+
 			if(builder.description != null) {
-				this.description = builder.description;
+				description = builder.description;
 			}
-			
+
 			if(builder.streams != null) {
-				this.streams = builder.streams;
+				streams = builder.streams;
 			}
-			
+
 			if(builder.surveys != null) {
-				this.surveys = builder.surveys;
+				surveys = builder.surveys;
 			}
-			
+
 			if(builder.reminders != null) {
-				this.reminders = builder.reminders;
+				reminders = builder.reminders;
 			}
-			
+
 			if(builder.privacyState != null) {
-				this.privacyState = builder.privacyState;
+				privacyState = builder.privacyState;
 			}
-			
+
 			if(builder.inviteRole != null) {
-				this.inviteRole = builder.inviteRole;
+				inviteRole = builder.inviteRole;
 			}
-			
+
 			if(builder.visibilityRole != null) {
-				this.visibilityRole = builder.visibilityRole;
+				visibilityRole = builder.visibilityRole;
 			}
-			
+
 			return this;
 		}
-		
+
 		/**
 		 * Sets the name of this ohmlet.
-		 * 
+		 *
 		 * @param name
 		 *        The new name for this ohmlet.
-		 * 
+		 *
 		 * @return This builder to facilitate chaining.
 		 */
 		public Builder setName(final String name) {
 			this.name = name;
-			
+
 			return this;
 		}
-		
+
+        /**
+         * Returns the identifier of the icon.
+         *
+         * @return The identifier of the icon.
+         */
+        public String getIconId() {
+            return iconId;
+        }
+
+        /**
+         * Sets the identifier of the icon.
+         *
+         * @param iconId
+         *        The icon's identifier.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder setIconId(final String iconId) {
+            this.iconId = iconId;
+
+            return this;
+        }
+
 		/**
 		 * Adds a member to this ohmlet.
-		 * 
+		 *
 		 * @param username
 		 *        The user's user-name.
-		 * 
+		 *
 		 * @param role
 		 *        The member's role in the ohmlet.
-		 * 
+		 *
 		 * @return This builder to facilitate chaining.
 		 */
 		public Builder addMember(final String username, final Role role) {
-			if(this.members == null) {
-				this.members = new HashMap<String, Member>();
+			if(members == null) {
+				members = new HashMap<String, Member>();
 			}
-			
-			this.members.put(username, new Member(username, role));
-			
+
+			members.put(username, new Member(username, role));
+
 			return this;
 		}
-		
+
 		/**
 		 * Removes a user from a ohmlet.
-		 * 
+		 *
 		 * @param username The user-name of the user to remove.
-		 * 
+		 *
 		 * @return This builder to facilitate chaining.
 		 */
 		public Builder removeMember(final String username) {
-			if(this.members == null) {
+			if(members == null) {
 				return this;
 			}
-			
-			this.members.remove(username);
-			
+
+			members.remove(username);
+
 			return this;
 		}
-		
+
 		/**
 		 * Creates a new Ohmlet object from the state of this builder.
-		 * 
+		 *
 		 * @return A new Ohmlet object from the state of this builder.
-		 * 
+		 *
 		 * @throws OhmageException
 		 *         The state of the builder contained invalid fields.
 		 */
@@ -278,20 +310,21 @@ public class Ohmlet extends OhmageDomainObject {
 			return
 				new Ohmlet(
 					(ohmletId == null) ? getRandomId() : ohmletId,
-					name, 
+					name,
 					description,
 					streams,
-					surveys, 
+					surveys,
 					reminders,
 					(members == null) ? null : members.values(),
 					privacyState,
 					inviteRole,
 					visibilityRole,
+					iconId,
 					internalReadVersion,
 					internalWriteVersion);
 		}
 	}
-	
+
 	/**
 	 * <p>
 	 * A reference to a specific schema. Optionally, it may also specify a
@@ -310,7 +343,7 @@ public class Ohmlet extends OhmageDomainObject {
 		 * The JSON key for the schema version.
 		 */
 		public static final String JSON_KEY_VERSION = "version";
-		
+
 		/**
 		 * The schema ID.
 		 */
@@ -321,18 +354,18 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		@JsonProperty(JSON_KEY_VERSION)
 		private final Long version;
-		
+
 		/**
 		 * Creates or recreates a reference to a schema. The version may be
 		 * null, indicating that the latest version should always be used.
-		 * 
+		 *
 		 * @param schemaId
 		 *        The schema's unique identifier.
-		 * 
+		 *
 		 * @param version
 		 *        The specific version that is being referenced or null if no
 		 *        version is being referenced.
-		 * 
+		 *
 		 * @throws IllegalArgumentException
 		 *         The schema ID is null.
 		 */
@@ -341,28 +374,28 @@ public class Ohmlet extends OhmageDomainObject {
 			@JsonProperty(JSON_KEY_SCHEMA_ID) final String schemaId,
 			@JsonProperty(JSON_KEY_VERSION) final Long version)
 			throws IllegalArgumentException {
-			
+
 			if(schemaId == null) {
 				throw new IllegalArgumentException("The schema ID is null.");
 			}
-			
+
 			this.schemaId = schemaId;
 			this.version = version;
 		}
-		
+
 		/**
 		 * Returns the unique identifier of the schema.
-		 * 
+		 *
 		 * @return The unique identifier of the schema.
 		 */
 		public String getSchemaId() {
 			return schemaId;
 		}
-		
+
 		/**
 		 * Returns the specific version of the schema or null if no version was
 		 * specified.
-		 * 
+		 *
 		 * @return The specific version of the schema or null if no version was
 		 *         specified.
 		 */
@@ -378,11 +411,11 @@ public class Ohmlet extends OhmageDomainObject {
 			final int prime = 31;
 			int result = 1;
 			result =
-				prime *
-					result +
+				(prime *
+					result) +
 					((schemaId == null) ? 0 : schemaId.hashCode());
 			result =
-				prime * result + ((version == null) ? 0 : version.hashCode());
+				(prime * result) + ((version == null) ? 0 : version.hashCode());
 			return result;
 		}
 
@@ -420,7 +453,7 @@ public class Ohmlet extends OhmageDomainObject {
 			return true;
 		}
 	}
-	
+
 	/**
 	 * <p>
 	 * The roles a user may have within a ohmlet.
@@ -434,7 +467,7 @@ public class Ohmlet extends OhmageDomainObject {
 		 * A user only needs to request access when the {@link PrivacyState} is
 		 * set to {@link PrivacyState#INVITE_ONLY}. A user with suitable
 		 * permission may either invite the user by escalating their
-		 * permissions to either {@link Role#INVITED} or {@link Role#MEMBER}. 
+		 * permissions to either {@link Role#INVITED} or {@link Role#MEMBER}.
 		 */
 		REQUESTED,
 		/**
@@ -450,7 +483,7 @@ public class Ohmlet extends OhmageDomainObject {
 		 * {@link Ohmlet#visibilityRole} indicates the minimum role a user
 		 * must have to view other users' data.
 		 * </p>
-		 * 
+		 *
 		 * <p>
 		 * For example, if the ohmlet's visibility role is set to
 		 * {@link Role#MODERATOR}, a user with the role {@link Role#MODERATOR}
@@ -472,42 +505,42 @@ public class Ohmlet extends OhmageDomainObject {
 		 * anything with the ohmlet including delete it.
 		 */
 		OWNER;
-		
+
 		/**
 		 * Returns whether or not this role is the same as or greater than the
 		 * given role.
-		 * 
+		 *
 		 * @param role
 		 *        The role to compare with this role.
-		 * 
+		 *
 		 * @return True only if this role is just as privileged or more
 		 *         privileged than the given role.
 		 */
 		public boolean encompases(final Role role) {
-			return this.ordinal() >= role.ordinal();
+			return ordinal() >= role.ordinal();
 		}
-		
+
 		/**
 		 * Returns whether or not this role is greater than the given role.
-		 * 
+		 *
 		 * @param role
 		 *        The role to compare with this role.
-		 * 
+		 *
 		 * @return True only if this role is more privileged than the given
 		 *         role.
 		 */
 		public boolean supersedes(final Role role) {
-			return this.ordinal() > role.ordinal();
+			return ordinal() > role.ordinal();
 		}
-		
+
 		/**
 		 * Returns this role as a user-friendly string.
-		 * 
+		 *
 		 * @return This role as a user-friendly string.
 		 */
 		@Override
 		public String toString() {
-			return this.name().toLowerCase();
+			return name().toLowerCase();
 		}
 	}
 	/**
@@ -519,7 +552,7 @@ public class Ohmlet extends OhmageDomainObject {
 	 * {@link Ohmlet#visibilityRole}.
 	 */
 	public static final Role MINIMUM_VISIBILITY_ROLE = Role.MEMBER;
-	
+
 	/**
 	 * <p>
 	 * A member of a ohmlet.
@@ -536,7 +569,7 @@ public class Ohmlet extends OhmageDomainObject {
 		 * The JSON key for the member's role.
 		 */
 		public static final String JSON_KEY_ROLE = "role";
-		
+
 		/**
 		 * The member's system-wide unique identifier.
 		 */
@@ -547,16 +580,16 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		@JsonProperty(JSON_KEY_ROLE)
 		private final Role role;
-		
+
 		/**
 		 * Creates a new Member object.
-		 * 
+		 *
 		 * @param memberId
 		 *        The member's system-wide unique identifier.
-		 * 
+		 *
 		 * @param role
 		 *        The member's role in the ohmlet.
-		 * 
+		 *
 		 * @throws InvalidArgumentException
 		 *         The member's identifier or role were null.
 		 */
@@ -565,7 +598,7 @@ public class Ohmlet extends OhmageDomainObject {
 			@JsonProperty(JSON_KEY_MEMBER_ID) final String memberId,
 			@JsonProperty(JSON_KEY_ROLE) final Role role)
 			throws InvalidArgumentException {
-			
+
 			if(memberId == null) {
 				throw new InvalidArgumentException("The member ID is null.");
 			}
@@ -573,30 +606,30 @@ public class Ohmlet extends OhmageDomainObject {
 				throw
 					new InvalidArgumentException("The member's role is null.");
 			}
-			
+
 			this.memberId = memberId;
 			this.role = role;
 		}
-		
+
 		/**
 		 * Returns the member's system-wide unique identifier.
-		 * 
+		 *
 		 * @return The member's system-wide unique identifier.
 		 */
 		public String getMemberId() {
 			return memberId;
 		}
-		
+
 		/**
 		 * Returns the member's role in the ohmlet.
-		 * 
+		 *
 		 * @return The member's role in the ohmlet.
 		 */
 		public Role getRole() {
 			return role;
 		}
 	}
-	
+
 	/**
 	 * <p>
 	 * The allowed privacy states of the ohmlet.
@@ -619,22 +652,22 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		INVITE_ONLY,
 		/**
-		 * This privacy state indicates that the ohmlet is listed and 
+		 * This privacy state indicates that the ohmlet is listed and
 		 * searchable and that any user may join at any time.
 		 */
 		PUBLIC;
-		
+
 		/**
 		 * Returns this role as a user-friendly string.
-		 * 
+		 *
 		 * @return This role as a user-friendly string.
 		 */
 		@Override
 		public String toString() {
-			return this.name().toLowerCase();
+			return name().toLowerCase();
 		}
 	}
-	
+
 	/**
 	 * The JSON key for the ID.
 	 */
@@ -675,6 +708,10 @@ public class Ohmlet extends OhmageDomainObject {
 	 * The JSON key for the visibility role.
 	 */
 	public static final String JSON_KEY_VISIBILITY_ROLE = "visibility_role";
+    /**
+     * The JSON key for the icon ID.
+     */
+    public static final String JSON_KEY_ICON_ID = "icon_id";
 
 	/**
 	 * The unique identifier for this ohmlet.
@@ -730,43 +767,51 @@ public class Ohmlet extends OhmageDomainObject {
 	 */
 	@JsonProperty(JSON_KEY_VISIBILITY_ROLE)
 	private final Role visibilityRole;
-	
+    /**
+     * The media ID for the icon image.
+     */
+    @JsonProperty(JSON_KEY_ICON_ID)
+    private final String iconId;
+
 	/**
 	 * Creates a new ohmlet.
-	 * 
+	 *
 	 * @param owner
 	 *        The username of the user that is creating this ohmlet.
-	 * 
+	 *
 	 * @param name
 	 *        The name of this ohmlet.
-	 * 
+	 *
 	 * @param description
 	 *        The description of this ohmlet.
-	 * 
+	 *
 	 * @param streams
 	 *        The list of streams that compose this ohmlet.
-	 * 
+	 *
 	 * @param surveys
 	 *        The list of surveys that compose this ohmlet.
-	 * 
+	 *
 	 * @param reminders
 	 *        The list of default reminders for users that download this
 	 *        ohmlet.
-	 * 
+	 *
 	 * @param members
 	 *        The members of this ohmlet.
-	 * 
+	 *
 	 * @param privacyState
 	 *        The {@link PrivacyState} of this ohmlet.
-	 * 
+	 *
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
 	 *        ohmlet.
-	 * 
+	 *
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
 	 *        members of this ohmlet.
-	 * 
+     *
+     * @param iconId
+     *        The media ID for the icon image.
+	 *
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
@@ -779,9 +824,10 @@ public class Ohmlet extends OhmageDomainObject {
 		final List<Member> members,
 		final PrivacyState privacyState,
 		final Role inviteRole,
-		final Role visibilityRole)
+		final Role visibilityRole,
+        final String iconId)
 		throws IllegalArgumentException {
-		
+
 		// Pass through to the builder constructor.
 		this(
 			getRandomId(),
@@ -794,50 +840,54 @@ public class Ohmlet extends OhmageDomainObject {
 			privacyState,
 			inviteRole,
 			visibilityRole,
+			iconId,
 			null);
 	}
 
 	/**
 	 * Recreates an existing ohmlet.
-	 * 
+	 *
 	 * @param id
 	 *        The ID for the ohmlet or null for a randomly generated one.
-	 * 
+	 *
 	 * @param name
 	 *        The name of this ohmlet.
-	 * 
+	 *
 	 * @param description
 	 *        The description of this ohmlet.
-	 * 
+	 *
 	 * @param streams
 	 *        The list of streams that compose this ohmlet.
-	 * 
+	 *
 	 * @param surveys
 	 *        The list of surveys that compose this ohmlet.
-	 * 
+	 *
 	 * @param reminders
 	 *        The reminders for this ohmlet.
-	 * 
+	 *
 	 * @param members
 	 *        The members of this ohmlet.
-	 * 
+	 *
 	 * @param privacyState
 	 *        The {@link PrivacyState} of this ohmlet.
-	 * 
+	 *
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
 	 *        ohmlet.
-	 * 
+	 *
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
 	 *        members of this ohmlet.
-	 * 
+     *
+     * @param iconId
+     *        The media ID for the icon image.
+	 *
 	 * @param internalVersion
 	 *        The internal version of this ohmlet.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The ID is invalid.
-	 * 
+	 *
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
@@ -853,72 +903,77 @@ public class Ohmlet extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_PRIVACY_STATE) final PrivacyState privacyState,
 		@JsonProperty(JSON_KEY_INVITE_ROLE) final Role inviteRole,
 		@JsonProperty(JSON_KEY_VISIBILITY_ROLE) final Role visibilityRole,
+        @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
-		
+
 		// Pass through to the builder constructor.
 		this(
-			id, 
-			name, 
+			id,
+			name,
 			description,
-			streams, 
-			surveys, 
+			streams,
+			surveys,
 			reminders,
 			members,
 			privacyState,
 			inviteRole,
 			visibilityRole,
-			internalVersion, 
+			iconId,
+			internalVersion,
 			null);
 	}
-	
+
 	/**
 	 * Builds the Ohmlet object.
-	 * 
+	 *
 	 * @param id
 	 *        The ID for the ohmlet or null for a randomly generated one.
-	 * 
+	 *
 	 * @param name
 	 *        The name of this ohmlet.
-	 * 
+	 *
 	 * @param description
 	 *        The description of this ohmlet.
-	 * 
+	 *
 	 * @param streams
 	 *        The list of streams that compose this ohmlet.
-	 * 
+	 *
 	 * @param surveys
 	 *        The list of surveys that compose this ohmlet.
-	 * 
+	 *
 	 * @param reminders
 	 *        The list of default reminders for users that download this
 	 *        ohmlet.
-	 * 
+	 *
 	 * @param members
 	 *        The members of this ohmlet.
-	 * 
+	 *
 	 * @param privacyState
 	 *        The {@link PrivacyState} of this ohmlet.
-	 * 
+	 *
 	 * @param inviteRole
 	 *        The minimum required {@link Role} to invite other users to this
 	 *        ohmlet.
-	 * 
+	 *
 	 * @param visibilityRole
 	 *        The minimum required {@link Role} to view data supplied by the
 	 *        members of this ohmlet.
-	 * 
+     *
+     * @param iconId
+     *        The media ID for the icon image.
+	 *
 	 * @param internalReadVersion
 	 *        The internal version of this ohmlet when it was read from the
 	 *        database.
-	 * 
+	 *
 	 * @param internalWriteVersion
 	 *        The new internal version of this ohmlet when it will be
 	 *        written back to the database.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         The ID is invalid.
-	 * 
+	 *
 	 * @throws InvalidArgumentException
 	 *         A parameter is invalid.
 	 */
@@ -933,10 +988,11 @@ public class Ohmlet extends OhmageDomainObject {
 		final PrivacyState privacyState,
 		final Role inviteRole,
 		final Role visibilityRole,
+        final String iconId,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
-		
+
 		// Initialize the parent.
 		super(internalReadVersion, internalWriteVersion);
 
@@ -988,7 +1044,7 @@ public class Ohmlet extends OhmageDomainObject {
 		}
 
 		// Save the state.
-		this.ohmletId = id;
+		ohmletId = id;
 		this.name = name;
 		this.description = description;
 		this.streams =
@@ -1006,119 +1062,120 @@ public class Ohmlet extends OhmageDomainObject {
 		this.privacyState = privacyState;
 		this.inviteRole = inviteRole;
 		this.visibilityRole = visibilityRole;
-		
+        this.iconId = iconId;
+
 		this.members = new HashMap<String, Member>();
 		for(Member member : members) {
 			this.members.put(member.getMemberId(), member);
 		}
 	}
-	
+
 	/**
 	 * Returns the unique identifier for this ohmlet.
-	 * 
+	 *
 	 * @return The unique identifier for this ohmlet.
 	 */
 	public String getId() {
 		return ohmletId;
 	}
-	
+
 	/**
 	 * Returns an unmodifiable list of the streams.
-	 * 
+	 *
 	 * @return An unmodifiable list of the streams.
 	 */
 	public List<SchemaReference> getStreams() {
 		return streams;
 	}
-	
+
 	/**
 	 * Returns an unmodifiable list of the surveys.
-	 * 
+	 *
 	 * @return An unmodifiable list of the surveys.
 	 */
 	public List<SchemaReference> getSurveys() {
 		return surveys;
 	}
-	
+
 	/**
 	 * Returns the privacy state for this ohmlet.
-	 * 
+	 *
 	 * @return The privacy state for this ohmlet.
 	 */
 	public PrivacyState getPrivacyState() {
 		return privacyState;
 	}
-	
+
 	/**
 	 * Returns the minimum required role to invite users to this ohmlet.
-	 * 
+	 *
 	 * @return The minimum required role to invite users to this ohmlet.
 	 */
 	public Role getInviteRole() {
 		return inviteRole;
 	}
-	
+
 	/**
 	 * Returns whether or not a user has any role within the ohmlet.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name.
-	 * 
+	 *
 	 * @return Whether or not a user has any role within the ohmlet.
 	 */
 	public boolean hasRole(final String username) {
 		return members.containsKey(username);
 	}
-	
+
 	/**
 	 * Returns whether or not a user has a role in the ohmlet that is equal
 	 * to or greater than some specific role.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name.
-	 * 
+	 *
 	 * @param role
 	 *        The specific role.
-	 * 
+	 *
 	 * @return True if the user has a role greater than or equal to some
 	 *         specific role.
 	 */
 	public boolean hasRole(final String username, final Role role) {
 		Member member = members.get(username);
-		
+
 		if(username == null) {
 			return false;
 		}
-		
+
 		return member.getRole().encompases(role);
 	}
-	
+
 	/**
 	 * Returns the role of the user.
-	 * 
+	 *
 	 * @param username
 	 *        The user's user-name.
-	 * 
+	 *
 	 * @return The user's role in the ohmlet or null if the user has no role
 	 *         in the ohmlet.
 	 */
 	public Role getRole(final String username) {
 		Member member = members.get(username);
-		
+
 		if(username == null) {
 			return null;
 		}
-		
+
 		return member.getRole();
 	}
-	
+
 	/**
 	 * Returns whether or not a user is allowed to modify a ohmlet. This
 	 * includes everything except the the people and their roles within the
 	 * ohmlet.
-	 * 
+	 *
 	 * @param username The user's user-name.
-	 * 
+	 *
 	 * @return True if the user is allowed to modify the ohmlet.
 	 */
 	public boolean canModifyOhmlet(final String username) {

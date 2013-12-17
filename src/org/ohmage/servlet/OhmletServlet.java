@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
@@ -16,6 +17,7 @@ import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -24,7 +26,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -45,6 +49,14 @@ public class OhmletServlet extends OhmageServlet {
 	 * The path and parameter key for ohmlet IDs.
 	 */
 	public static final String KEY_COMMUNITY_ID = "id";
+    /**
+     * The parameter key for an ohmlet definition.
+     */
+    public static final String KEY_STREAM_DEFINITION = "definition";
+    /**
+     * The parameter for the icon.
+     */
+    public static final String KEY_ICON = "icon";
 	/**
 	 * The name of the parameter for querying for specific values.
 	 */
@@ -64,22 +76,51 @@ public class OhmletServlet extends OhmageServlet {
 		// Do nothing.
 	}
 
-	/**
-	 * Creates a new ohmlet.
+    /**
+     * Creates a new ohmlet.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param ohmletBuilder
-	 *        The parts of the ohmlet that are already set.
-	 */
-	@RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
-	public static @ResponseBody Ohmlet createOhmlet(
+     *
+     * @param ohmletBuilder
+     *        The parts of the ohmlet that are already set.
+     */
+    @RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
+    public static @ResponseBody Ohmlet createOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@RequestBody
-			final Ohmlet.Builder ohmletBuilder) {
+        @RequestBody
+            final Ohmlet.Builder ohmletBuilder) {
+
+        return createOhmlet(authToken, ohmletBuilder, null);
+    }
+
+    /**
+     * Creates a new ohmlet.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
+     * @param ohmletBuilder
+     *        The parts of the ohmlet that are already set.
+     *
+     * @param iconFile
+     *        The file that represents the icon, which must be present if an
+     *        icon is defined in the 'stream builder'.
+     */
+    @RequestMapping(
+        value = { "", "/" },
+        method = RequestMethod.POST,
+        consumes = "multipart/*")
+    public static @ResponseBody Ohmlet createOhmlet(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+        @RequestPart(value = KEY_STREAM_DEFINITION, required = true)
+            final Ohmlet.Builder ohmletBuilder,
+        @RequestPart(value = KEY_ICON, required = false)
+            final MultipartFile iconFile) {
 
 		LOGGER.log(Level.INFO, "Creating a ohmlet creation request.");
 
@@ -98,6 +139,25 @@ public class OhmletServlet extends OhmageServlet {
 				Level.FINE,
 				"Setting the token's owner as the creator of this ohmlet.");
 		ohmletBuilder.addMember(user.getUsername(), Ohmlet.Role.OWNER);
+
+        LOGGER.log(Level.FINE, "Checking if an icon was given.");
+        Media icon = null;
+        // If given, verify that it was attached as well.
+        if(ohmletBuilder.getIconId() != null) {
+            if(iconFile
+                .getOriginalFilename()
+                .equals(ohmletBuilder.getIconId())) {
+
+                String newIconId = Media.generateUuid();
+                ohmletBuilder.setIconId(newIconId);
+                icon = new Media(newIconId, iconFile);
+            }
+            else {
+                throw
+                    new InvalidArgumentException(
+                        "An icon file was referenced but not uploaded.");
+            }
+        }
 
 		LOGGER.log(Level.FINE, "Building the ohmlet.");
 		Ohmlet ohmlet = ohmletBuilder.build();
@@ -148,6 +208,11 @@ public class OhmletServlet extends OhmageServlet {
                                 " with version '" + version + "'") +
                             ".");
             }
+        }
+
+        if(icon != null) {
+            LOGGER.log(Level.INFO, "Storing the icon.");
+            MediaBin.getInstance().addMedia(icon);
         }
 
 		LOGGER.log(Level.INFO, "Adding the ohmlet to the database.");

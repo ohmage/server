@@ -15,8 +15,9 @@ import org.ohmage.domain.User;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.HttpStatusCodeExceptionResponder;
 import org.ohmage.domain.exception.OhmageException;
+import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -71,7 +72,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 *
 	 * @author John Jenkins
 	 */
-	public static class AccountNotRegisteredException
+	public static class AccountNotSetupException
 		extends OhmageException
 		implements HttpStatusCodeExceptionResponder {
 
@@ -86,7 +87,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		 *
 		 * @param reason The reason this exception was thrown.
 		 */
-		public AccountNotRegisteredException(final String reason) {
+		public AccountNotSetupException(final String reason) {
 			super(reason);
 		}
 
@@ -97,7 +98,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		 *
 		 * @param cause The underlying exception that caused this exception.
 		 */
-		public AccountNotRegisteredException(
+		public AccountNotSetupException(
 			final String reason,
 			final Throwable cause) {
 
@@ -105,11 +106,11 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		}
 
 		/**
-		 * @returns {@link HttpServletResponse#SC_PRECONDITION_FAILED}
+		 * @returns {@link HttpServletResponse#SC_CONFLICT}
 		 */
 		@Override
 		public int getStatusCode() {
-			return HttpServletResponse.SC_PRECONDITION_FAILED;
+			return HttpServletResponse.SC_CONFLICT;
 		}
 	}
 
@@ -247,7 +248,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 					"The user has not yet linked this provider's " +
 						"information to their ohmage account.");
 			throw
-				new AccountNotRegisteredException(
+				new AccountNotSetupException(
 					"The user has not yet created an ohmage account.");
 		}
 
@@ -358,36 +359,31 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 * Invalidates an authentication token. This would most likely be used on
 	 * logout.
      *
-     * @param authHeader
-     *        The Authorization header with the corresponding authorization
-     *        token.
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
 	 *
-	 * @throws IllegalArgumentException
-	 *         The authentication was not given or was not given as a
-	 *         parameter.
+	 * @throws AuthenticationException
+	 *         The authentication was not given.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.DELETE)
 	public static @ResponseBody void invalidateAuthToken(
-        @RequestHeader(AuthorizationToken.HEADER_AUTHORIZATION)
-            final String authHeader)
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken)
 		throws IllegalArgumentException {
 
-        LOGGER.log(Level.INFO, "Retrieving the authorization token.");
-        AuthorizationToken token =
-            AuthenticationTokenBin
-                .getInstance()
-                .getTokenFromAccessToken(
-                    AuthorizationToken.getTokenFromHeader(authHeader));
+	    LOGGER.log(Level.INFO, "Creating a request to invalidate a token.");
 
-        if(token == null) {
-            LOGGER.log(Level.INFO, "The token doesn't exist. Returning.");
-            return;
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(authToken == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
         }
 
         LOGGER.log(Level.INFO, "Invalidating the token.");
-		token.invalidate();
+        authToken.invalidate();
 
 		LOGGER.log(Level.INFO, "Updating the token.");
-		AuthenticationTokenBin.getInstance().updateToken(token);
+		AuthenticationTokenBin.getInstance().updateToken(authToken);
 	}
 }

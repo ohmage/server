@@ -8,8 +8,8 @@ import name.jenkins.paul.john.concordia.schema.NumberSchema;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.condition.Condition;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -140,9 +140,9 @@ public class NumberPrompt extends Prompt<BigDecimal> {
      * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public void validateResponse(
+    public BigDecimal validateResponse(
         final BigDecimal response,
-        final Map<String, MultipartFile> media)
+        final Map<String, Media> media)
         throws InvalidArgumentException {
 
         // If a 'min' exists, check that the response conforms.
@@ -168,6 +168,8 @@ public class NumberPrompt extends Prompt<BigDecimal> {
                     "The response must be a whole number: " +
                         getSurveyItemId());
         }
+
+        return response;
     }
 
     /**
