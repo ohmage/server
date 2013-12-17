@@ -402,7 +402,7 @@ public class UserServlet extends OhmageServlet {
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_PASSWORD,
 		method = RequestMethod.POST,
-        consumes = { "text/plain", "text/text" })
+        consumes = { "text/plain" })
 	public static @ResponseBody void updateUserPassword(
 		@PathVariable(KEY_USERNAME) final String username,
 		@RequestParam(

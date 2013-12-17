@@ -197,7 +197,7 @@ public class ExceptionFilter implements Filter {
 			// If it is a known exception set the body of the message based on
 			// the exception.
 			if(exception instanceof OhmageException) {
-			    response.setContentType("text/text");
+			    response.setContentType("text/plain");
 				response.getOutputStream().print(exception.getMessage());
 			}
 			// Otherwise, don't return anything to the user other than the
