@@ -1,8 +1,8 @@
 package org.ohmage.auth.provider;
 
-import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
+import org.ohmage.domain.user.ProviderUserInformation;
 
 /**
  * <p>

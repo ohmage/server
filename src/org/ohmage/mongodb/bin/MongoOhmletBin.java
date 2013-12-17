@@ -9,10 +9,10 @@ import org.mongojack.JacksonDBCollection;
 import org.mongojack.WriteResult;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.domain.Ohmlet;
-import org.ohmage.domain.User;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
+import org.ohmage.domain.user.User;
 import org.ohmage.mongodb.domain.MongoOhmlet;
 
 import com.mongodb.BasicDBObject;

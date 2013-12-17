@@ -12,12 +12,13 @@ import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.Ohmlet.SchemaReference;
-import org.ohmage.domain.User;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.survey.Media;
+import org.ohmage.domain.user.OhmletReference;
+import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -221,8 +222,8 @@ public class OhmletServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Updating the user.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
-		User.OhmletReference ohmletReference =
-			new User.OhmletReference(ohmlet.getId(), null, null);
+		OhmletReference ohmletReference =
+			new OhmletReference(ohmlet.getId(), null, null);
 		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
 		updatedUserBuilder.addOhmlet(ohmletReference);
 		LOGGER.log(Level.FINE, "Building the user.");

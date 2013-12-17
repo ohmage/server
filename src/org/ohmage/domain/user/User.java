@@ -1,4 +1,4 @@
-package org.ohmage.domain;
+package org.ohmage.domain.user;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.mindrot.jbcrypt.BCrypt;
+import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
@@ -42,23 +43,23 @@ public class User extends OhmageDomainObject {
         /**
          * The user's user-name.
          */
-        protected String username;
+        private final String username;
         /**
          * The user's password, plain-text or hashed.
          */
-        protected String password;
+        private String password;
         /**
          * The user's email address.
          */
-        protected String email;
+        private String email;
         /**
          * The user's full name.
          */
-        protected String fullName;
+        private String fullName;
         /**
          * The authenticated information from a provider about this user.
          */
-        protected Map<String, ProviderUserInformation> providers =
+        private Map<String, ProviderUserInformation> providers =
             new HashMap<String, ProviderUserInformation>();
         /**
          * The collection of ohmlets to which this user has subscribed.
@@ -74,6 +75,11 @@ public class User extends OhmageDomainObject {
          * the user is tracking.
          */
         private Set<SchemaReference> surveys;
+        /**
+         * The user's self-registration information or null if the user is not
+         * self-registered.
+         */
+        private Registration.Builder registration;
 
         /**
          * Creates a new builder with the outward-facing allowed parameters.
@@ -168,6 +174,15 @@ public class User extends OhmageDomainObject {
             }
 
             return this;
+        }
+
+        /**
+         * Returns the email address associated with this user.
+         *
+         * @return The email address associated with this user.
+         */
+        public String getEmail() {
+            return email;
         }
 
         /**
@@ -416,6 +431,32 @@ public class User extends OhmageDomainObject {
         }
 
         /**
+         * Returns the self-registration information for this user.
+         *
+         * @return The self-registration information for this user.
+         */
+        public Registration.Builder getRegistration() {
+            return registration;
+        }
+
+        /**
+         * Adds, replaces, or removes the self-registration information for
+         * this user.
+         *
+         * @param registration
+         *        The self-registration information for this user.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder setRegistration(
+            final Registration.Builder registration) {
+
+            this.registration = registration;
+
+            return this;
+        }
+
+        /**
          * Creates a {@link User} object based on the state of this builder.
          *
          * @return A {@link User} object based on the state of this builder.
@@ -433,308 +474,9 @@ public class User extends OhmageDomainObject {
                 (ohmlets == null) ? null : ohmlets.values(),
                 streams,
                 surveys,
+                registration,
                 internalReadVersion,
                 internalWriteVersion);
-        }
-    }
-
-    /**
-     * <p>
-     * A reference to a ohmlet and, optionally, specific streams and surveys
-     * that that ohmlet defines that should be ignored by this user.
-     * </p>
-     *
-     * @author John Jenkins
-     */
-    public static class OhmletReference {
-        /**
-         * <p>
-         * A builder for {@link OhmletReference}s.
-         * </p>
-         *
-         * @author John Jenkins
-         */
-        public static class Builder {
-            /**
-             * The ohmlet's unique identifier.
-             */
-            private String ohmletId;
-            /**
-             * Specific stream references that should be ignored.
-             */
-            private Set<SchemaReference> ignoredStreams;
-            /**
-             * Specific survey references that should be ignored.
-             */
-            private Set<SchemaReference> ignoredSurveys;
-
-            /**
-             * Creates a new builder.
-             *
-             * @param ohmletId
-             *        The ohmlet's unique identifier.
-             *
-             * @param ignoredStreams
-             *        The set of stream references that should be ignored.
-             *
-             * @param ignoredSurveys
-             *        The set of survey references that should be ignored.
-             */
-            @JsonCreator
-            public Builder(
-                @JsonProperty(JSON_KEY_OHMLET_ID)
-                    final String ohmletId,
-                @JsonProperty(JSON_KEY_IGNORED_STREAMS)
-                    final Set<SchemaReference> ignoredStreams,
-                @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
-                    final Set<SchemaReference> ignoredSurveys) {
-
-                this.ohmletId = ohmletId;
-                this.ignoredStreams = ignoredStreams;
-                this.ignoredSurveys = ignoredSurveys;
-            }
-
-            /**
-             * Creates a new builder that is initialized with an existing
-             * ohmlet reference.
-             *
-             * @param ohmletReference
-             *        An existing {@link OhmletReference} object.
-             */
-            @JsonCreator
-            public Builder(
-                final OhmletReference ohmletReference) {
-                ohmletId = ohmletReference.ohmletId;
-                ignoredStreams = ohmletReference.ignoredStreams;
-                ignoredSurveys = ohmletReference.ignoredSurveys;
-            }
-
-            /**
-             * Sets the unique identifier for this ohmlet.
-             *
-             * @param ohmletId
-             *        The ohmlet's unique identifier.
-             *
-             * @return This builder to facilitate chaining.
-             */
-            public Builder setOhmletId(final String ohmletId) {
-                this.ohmletId = ohmletId;
-
-                return this;
-            }
-
-            /**
-             * Returns the unique identifier for the ohmlet.
-             *
-             * @return The unique identifier for the ohmlet.
-             */
-            public String getOhmletId() {
-                return ohmletId;
-            }
-
-            /**
-             * Adds a stream to ignore.
-             *
-             * @param streamReference
-             *        The reference to the stream that should be ignored.
-             *
-             * @return This builder to facilitate chaining.
-             */
-            public Builder addStream(final SchemaReference streamReference) {
-                if(ignoredStreams == null) {
-                    ignoredStreams = new HashSet<SchemaReference>();
-                }
-
-                ignoredStreams.add(streamReference);
-
-                return this;
-            }
-
-            /**
-             * Removes a stream that is being ignored, meaning it should now be
-             * seen by the user.
-             *
-             * @param streamReference
-             *        The reference to the stream.
-             *
-             * @return This builder to facilitate chaining.
-             */
-            public Builder removeStream(
-                final SchemaReference streamReference) {
-
-                if(ignoredStreams == null) {
-                    return this;
-                }
-
-                ignoredStreams.remove(streamReference);
-
-                return this;
-            }
-
-            /**
-             * Adds a survey to be ignored.
-             *
-             * @param surveyReference
-             *        The reference to the survey that should be ignored.
-             *
-             * @return This builder to facilitate chaining.
-             */
-            public Builder addSurvey(final SchemaReference surveyReference) {
-                if(ignoredSurveys == null) {
-                    ignoredSurveys = new HashSet<SchemaReference>();
-                }
-
-                ignoredSurveys.add(surveyReference);
-
-                return this;
-            }
-
-            /**
-             * Removes a survey that is being ignored, meaning it should now be
-             * seen by the user.
-             *
-             * @param surveyReference
-             *        The reference to the survey.
-             *
-             * @return This builder to facilitate chaining.
-             */
-            public Builder removeSurvey(
-                final SchemaReference surveyReference) {
-
-                if(ignoredSurveys == null) {
-                    return this;
-                }
-
-                ignoredSurveys.remove(surveyReference);
-
-                return this;
-            }
-
-            /**
-             * Builds a {@link OhmletReference} based on the state of this
-             * builder.
-             *
-             * @return A {@link OhmletReference} based on the state of this
-             *         builder.
-             *
-             * @throws InvalidArgumentException
-             *         The state of this builder was not valid to build a new
-             *         {@link OhmletReference} object.
-             */
-            public OhmletReference build() throws InvalidArgumentException {
-                return new OhmletReference(
-                    ohmletId,
-                    ignoredStreams,
-                    ignoredSurveys);
-            }
-        }
-
-        /**
-         * The JSON key for the ohmlet's unique identifier.
-         */
-        public static final String JSON_KEY_OHMLET_ID = "ohmlet_id";
-        /**
-         * The JSON key for the set of stream references that should be
-         * ignored.
-         */
-        public static final String JSON_KEY_IGNORED_STREAMS =
-            "ignored_streams";
-        /**
-         * The JSON key for the set of survey references that should be
-         * ignored.
-         */
-        public static final String JSON_KEY_IGNORED_SURVEYS =
-            "ignored_surveys";
-
-        /**
-         * The unique identifier for the ohmlet that this object references.
-         */
-        @JsonProperty(JSON_KEY_OHMLET_ID)
-        private final String ohmletId;
-        /**
-         * The set of stream references that the ohmlet define(d) that should
-         * be ignored.
-         */
-        @JsonProperty(JSON_KEY_IGNORED_STREAMS)
-        private final Set<SchemaReference> ignoredStreams;
-        /**
-         * The set of survey references that the ohmlet define(d) that should
-         * be ignored.
-         */
-        @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
-        private final Set<SchemaReference> ignoredSurveys;
-
-        /**
-         * Creates a new reference to a ohmlet.
-         *
-         * @param ohmletId
-         *        The ohmlet's unique identifier.
-         *
-         * @param ignoredStreams
-         *        The set of stream references that are defined by the ohmlet
-         *        but should be ignored.
-         *
-         * @param ignoredSurveys
-         *        The set of survey references that are defined by the ohmlet
-         *        but should be ignored.
-         *
-         * @throws InvalidArgumentException
-         *         The ohmlet identifier is null.
-         */
-        @JsonCreator
-        public OhmletReference(
-            @JsonProperty(JSON_KEY_OHMLET_ID)
-                final String ohmletId,
-            @JsonProperty(JSON_KEY_IGNORED_STREAMS)
-                final Set<SchemaReference> ignoredStreams,
-            @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
-                final Set<SchemaReference> ignoredSurveys)
-            throws InvalidArgumentException {
-
-            if(ohmletId == null) {
-                throw new InvalidArgumentException("The ohmlet ID is null.");
-            }
-
-            this.ohmletId = ohmletId;
-            this.ignoredStreams =
-                (ignoredStreams == null) ?
-                    new HashSet<SchemaReference>() :
-                    new HashSet<SchemaReference>(ignoredStreams);
-            this.ignoredSurveys =
-                (ignoredSurveys == null) ?
-                    new HashSet<SchemaReference>() :
-                    new HashSet<SchemaReference>(ignoredSurveys);
-        }
-
-        /**
-         * Returns the unique identifier for the ohmlet.
-         *
-         * @return The unique identifier for the ohmlet.
-         */
-        public String getOhmletId() {
-            return ohmletId;
-        }
-
-        /**
-         * Returns the streams that the ohmlet defines but that should be
-         * ignored.
-         *
-         * @return The streams that the ohmlet defines but that should be
-         *         ignored.
-         */
-        public Set<SchemaReference> getIgnoredStreams() {
-            return Collections.unmodifiableSet(ignoredStreams);
-        }
-
-        /**
-         * Returns the surveys that the ohmlet defines but that should be
-         * ignored.
-         *
-         * @return The surveys that the ohmlet defines but that should be
-         *         ignored.
-         */
-        public Set<SchemaReference> getIgnoredSurveys() {
-            return Collections.unmodifiableSet(ignoredSurveys);
         }
     }
 
@@ -799,6 +541,10 @@ public class User extends OhmageDomainObject {
      * The JSON key for the surveys.
      */
     public static final String JSON_KEY_SURVEYS = "surveys";
+    /**
+     * The JSON key for the self-registration object.
+     */
+    public static final String JSON_KEY_REGISTRATION = "registration";
 
     /**
      * The user's user-name.
@@ -845,6 +591,12 @@ public class User extends OhmageDomainObject {
      */
     @JsonProperty(JSON_KEY_SURVEYS)
     private final Set<SchemaReference> surveys;
+    /**
+     * The user's self-registration information or null if the user is not
+     * self-registered.
+     */
+    @JsonProperty(JSON_KEY_REGISTRATION)
+    private final Registration registration;
 
     /**
      * Creates a new User object.
@@ -877,6 +629,10 @@ public class User extends OhmageDomainObject {
      *        A set of survey identifiers and, optionally, a version that this
      *        user is tracking.
      *
+     * @param registration
+     *        The user's self-registration information if the user was
+     *        self-registered; if not, null.
+     *
      * @throws InvalidArgumentException
      *         A required parameter is null or invalid.
      */
@@ -888,7 +644,8 @@ public class User extends OhmageDomainObject {
         final List<ProviderUserInformation> providers,
         final Set<OhmletReference> communities,
         final Set<SchemaReference> streams,
-        final Set<SchemaReference> surveys)
+        final Set<SchemaReference> surveys,
+        final Registration.Builder registration)
         throws InvalidArgumentException {
 
         // Pass through to the builder constructor.
@@ -901,6 +658,7 @@ public class User extends OhmageDomainObject {
             communities,
             streams,
             surveys,
+            registration,
             null);
     }
 
@@ -935,6 +693,10 @@ public class User extends OhmageDomainObject {
      *        A set of survey identifiers and, optionally, a version that this
      *        user is tracking.
      *
+     * @param registration
+     *        The user's self-registration information if the user was
+     *        self-registered; if not, null.
+     *
      * @param internalVersion
      *        The internal version of this entity.
      *
@@ -952,6 +714,8 @@ public class User extends OhmageDomainObject {
         @JsonProperty(JSON_KEY_OHMLETS) final Set<OhmletReference> communities,
         @JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
         @JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
+        @JsonProperty(JSON_KEY_REGISTRATION)
+            final Registration.Builder registration,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
         throws InvalidArgumentException {
 
@@ -965,6 +729,7 @@ public class User extends OhmageDomainObject {
             communities,
             streams,
             surveys,
+            registration,
             internalVersion,
             null);
     }
@@ -1000,6 +765,10 @@ public class User extends OhmageDomainObject {
      *        A set of survey identifiers and, optionally, a version that this
      *        user is tracking.
      *
+     * @param registration
+     *        The user's self-registration information if the user was
+     *        self-registered; if not, null.
+     *
      * @param internalReadVersion
      *        The version of this entity when it was read from the database.
      *
@@ -1019,6 +788,7 @@ public class User extends OhmageDomainObject {
         final Collection<OhmletReference> communities,
         final Set<SchemaReference> streams,
         final Set<SchemaReference> surveys,
+        final Registration.Builder registration,
         final Long internalReadVersion,
         final Long internalWriteVersion)
         throws InvalidArgumentException {
@@ -1065,6 +835,8 @@ public class User extends OhmageDomainObject {
             (surveys == null) ?
                 new HashSet<SchemaReference>() :
                 new HashSet<SchemaReference>(surveys);
+
+        this.registration = registration.build();
     }
 
     /**
@@ -1181,6 +953,17 @@ public class User extends OhmageDomainObject {
     }
 
     /**
+     * Returns the self-registration information for this user if they were
+     * self-registered. Otherwise, null is returned.
+     *
+     * @return The self-registration information for this user if they were
+     *         self-registered; otherwise, null.
+     */
+    public Registration getRegistration() {
+        return registration;
+    }
+
+    /**
      * Verifies that a given password matches this user's password. This should
      * only be used if the user's account actually has a password.
      *
@@ -1195,6 +978,22 @@ public class User extends OhmageDomainObject {
                 "The user account does not have a password.");
         }
         return BCrypt.checkpw(plaintextPassword, password);
+    }
+
+    /**
+     * Updates this user's activation status by creating a new User object with
+     * all of the same fields as this object except that the registration now
+     * indicates that the account has been activated.
+     *
+     * @return The new User object that represents the activation.
+     */
+    public User activate() {
+        return
+            (new Builder(this))
+                .setRegistration(
+                    (new Registration.Builder(registration))
+                        .setActivationTimestamp(System.currentTimeMillis()))
+                .build();
     }
 
     /**

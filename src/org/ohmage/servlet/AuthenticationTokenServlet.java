@@ -10,11 +10,11 @@ import org.ohmage.auth.provider.ProviderRegistry;
 import org.ohmage.bin.AuthenticationTokenBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.ProviderUserInformation;
-import org.ohmage.domain.User;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.HttpStatusCodeExceptionResponder;
 import org.ohmage.domain.exception.OhmageException;
+import org.ohmage.domain.user.ProviderUserInformation;
+import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -169,6 +169,15 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 				new AuthenticationException(
 					"The account uses a provider's access token for " +
 						"authentication.");
+		}
+		else if(
+		    (user.getRegistration() != null) &&
+		    (user.getRegistration().getActivationTimestamp() == null)) {
+
+		    LOGGER.log(Level.INFO, "The account was never activated.");
+		    throw
+		        new AccountNotSetupException(
+		            "The accout has not yet been activated.");
 		}
 		else if(! user.verifyPassword(password)) {
 			LOGGER.log(Level.INFO, "The given password is incorrect.");

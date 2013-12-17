@@ -1,4 +1,4 @@
-package org.ohmage.domain;
+package org.ohmage.domain.user;
 
 import org.ohmage.domain.exception.OhmageException;
 

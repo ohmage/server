@@ -30,6 +30,7 @@
         <include name="jackson-annotations-2.2.2.jar" />
         <include name="jackson-core-2.2.2.jar" />
         <include name="jackson-databind-2.2.2.jar" />
+        <include name="javax.mail-1.5.1.jar" />
         <include name="jbcrypt-0.3m.jar" />
         <include name="joda-time-2.3.jar" />
         <include name="jul-to-slf4j-1.7.5.jar" />
@@ -83,6 +84,7 @@
         <include name="jackson-annotations-2.2.2.jar" />
         <include name="jackson-core-2.2.2.jar" />
         <include name="jackson-databind-2.2.2.jar" />
+        <include name="javax.mail-1.5.1.jar" />
         <include name="jbcrypt-0.3m.jar" />
         <include name="joda-time-2.3.jar" />
         <include name="jul-to-slf4j-1.7.5.jar" />

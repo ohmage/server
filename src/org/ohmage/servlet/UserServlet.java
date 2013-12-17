@@ -15,15 +15,16 @@ import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.Ohmlet.SchemaReference;
-import org.ohmage.domain.ProviderUserInformation;
-import org.ohmage.domain.User;
-import org.ohmage.domain.User.OhmletReference;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.survey.Survey;
+import org.ohmage.domain.user.OhmletReference;
+import org.ohmage.domain.user.ProviderUserInformation;
+import org.ohmage.domain.user.Registration;
+import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -118,6 +119,7 @@ public class UserServlet extends OhmageServlet {
 			PARAMETER_CAPTCHA_RESPONSE*/
 		})
 	public static @ResponseBody User createOhmageUser(
+	    @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT) final String rootUrl,
 		/*
 		@RequestParam(
 			value = PARAMETER_CAPTCHA_CHALLENGE,
@@ -171,33 +173,32 @@ public class UserServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Hashing the user's password.");
 		userBuilder.setPassword(password, true);
 
+		LOGGER.log(Level.INFO, "Adding the self-registration information.");
+		userBuilder
+		    .setRegistration(
+		        new Registration.Builder(
+		            userBuilder.getUsername(),
+		            userBuilder.getEmail()));
+
 		LOGGER.log(Level.FINE, "Building the user.");
 		User validatedUser = userBuilder.build();
 
-        LOGGER.log(Level.INFO, "Verifying that the account does not exist.");
-        User existingUser =
-            UserBin.getInstance().getUser(userBuilder.getUsername());
-        if(existingUser == null) {
-            // TODO: This is where the email validation process will go.
-
-            LOGGER.log(Level.INFO, "Storing the user.");
+        LOGGER.log(Level.INFO, "Storing the user.");
+        try {
             UserBin.getInstance().addUser(validatedUser);
         }
-        else {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The user already exists. Determining if they are " +
-                        "supplying the same password.");
-            if(existingUser.verifyPassword(password)) {
-                validatedUser = existingUser;
-            }
-            else {
-                throw
-                    new InvalidArgumentException(
-                        "The username already exists.");
-            }
+        catch(InvalidArgumentException e) {
+            throw
+                new InvalidArgumentException(
+                    "A user with the given username already exists.",
+                    e);
         }
+
+        LOGGER.log(Level.INFO, "Sending the registration email.");
+        validatedUser
+            .getRegistration()
+            .sendUserRegistrationEmail(
+                rootUrl + UserActivationServlet.ROOT_MAPPING);
 
 		LOGGER.log(Level.INFO, "Echoing the user back.");
 		return validatedUser;
@@ -257,24 +258,6 @@ public class UserServlet extends OhmageServlet {
 
 		LOGGER
 			.log(
-				Level.INFO,
-				"Verifying that this provider account is not already linked " +
-					"an existing ohmage account.");
-		User user =
-			UserBin
-				.getInstance()
-				.getUserFromProvider(
-					userInformation.getProviderId(),
-					userInformation.getUserId());
-		if(user != null) {
-			throw
-				new InvalidArgumentException(
-					"An ohmage account is already associated with this " +
-						"provider-based user.");
-		}
-
-		LOGGER
-			.log(
 				Level.FINER,
 				"Attaching the provider information to the user.");
 		userBuilder
@@ -288,10 +271,18 @@ public class UserServlet extends OhmageServlet {
 		userBuilder.setEmail(userInformation.getEmail());
 
 		LOGGER.log(Level.FINE, "Building the user.");
-		user = userBuilder.build();
+		User user = userBuilder.build();
 
 		LOGGER.log(Level.INFO, "Storing the user.");
-		UserBin.getInstance().addUser(user);
+		try {
+		    UserBin.getInstance().addUser(user);
+		}
+		catch(InvalidArgumentException e) {
+            throw
+                new InvalidArgumentException(
+                    "An ohmage account is already associated with this " +
+                        "provider-based user.");
+		}
 
 		LOGGER.log(Level.INFO, "Echoing back the user object.");
 		return user;
@@ -458,7 +449,7 @@ public class UserServlet extends OhmageServlet {
 		value =
 			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_OHMLETS,
 		method = RequestMethod.GET)
-	public static @ResponseBody Collection<User.OhmletReference> getFollowedCommunities(
+	public static @ResponseBody Collection<OhmletReference> getFollowedCommunities(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username) {
@@ -516,7 +507,7 @@ public class UserServlet extends OhmageServlet {
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.GET)
-	public static @ResponseBody User.OhmletReference getFollowedOhmlet(
+	public static @ResponseBody OhmletReference getFollowedOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@PathVariable(KEY_USERNAME) final String username,

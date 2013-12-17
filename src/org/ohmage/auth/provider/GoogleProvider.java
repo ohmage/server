@@ -10,8 +10,8 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
-import org.ohmage.domain.ProviderUserInformation;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.user.ProviderUserInformation;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

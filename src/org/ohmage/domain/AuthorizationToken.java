@@ -2,6 +2,7 @@ package org.ohmage.domain;
 
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
+import org.ohmage.domain.user.User;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

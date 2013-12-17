@@ -4,7 +4,7 @@ import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.User;
+import org.ohmage.domain.user.User;
 import org.ohmage.mongodb.bin.MongoAuthenticationTokenBin;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
