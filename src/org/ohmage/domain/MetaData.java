@@ -25,12 +25,15 @@ public class MetaData {
      * The JSON key for the time-stamp.
      */
     public static final String JSON_KEY_TIMESTAMP = "timestamp";
+    /**
+     * The JSON key for the location.
+     */
+    public static final String JSON_KEY_LOCATION = "location";
 
     /**
      * The unique ID for this point.
      */
     @JsonProperty(JSON_KEY_ID)
-    @JsonInclude(Include.NON_NULL)
     private final String id;
     /**
      * The time-stamp for this point.
@@ -38,6 +41,12 @@ public class MetaData {
     @JsonProperty(JSON_KEY_TIMESTAMP)
     @JsonInclude(Include.NON_NULL)
     private final DateTime timestamp;
+    /**
+     * The location for this point.
+     */
+    @JsonProperty(JSON_KEY_LOCATION)
+    @JsonInclude(Include.NON_NULL)
+    private final Location location;
 
     /**
      * Creates a new MetaData object.
@@ -50,13 +59,18 @@ public class MetaData {
      *        The point in time to which this data should be associated or null
      *        if it is not associated with time in any way.
      *
+     * @param location
+     *        The location of the user or null if no location was able to be
+     *        retrieved.
+     *
      * @throws InvalidArgumentException
      *         The ID is null.
      */
     @JsonCreator
     public MetaData(
         @JsonProperty(JSON_KEY_ID) final String id,
-        @JsonProperty(JSON_KEY_TIMESTAMP) final DateTime timestamp)
+        @JsonProperty(JSON_KEY_TIMESTAMP) final DateTime timestamp,
+        @JsonProperty(JSON_KEY_LOCATION) final Location location)
         throws InvalidArgumentException {
 
         if(id == null) {
@@ -65,6 +79,7 @@ public class MetaData {
 
         this.id = id;
         this.timestamp = timestamp;
+        this.location = location;
     }
 
     /**
@@ -87,5 +102,14 @@ public class MetaData {
      */
     public DateTime getTimestamp() {
         return timestamp;
+    }
+
+    /**
+     * Returns the {@link Location} of the user.
+     *
+     * @return The {@link Location} of the user.
+     */
+    public Location getLocation() {
+        return location;
     }
 }
