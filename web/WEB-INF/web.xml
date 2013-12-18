@@ -175,6 +175,20 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- Decompression Filter -->
+    <filter>
+        <description>Adds decompression to requests that are compressed.</description>
+        <display-name>Decompression Filter</display-name>
+        <filter-name>decompressionFilter</filter-name>
+        <filter-class>
+            org.ohmage.servlet.filter.DecompressionFilter
+        </filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>decompressionFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
 <!--                               Servlets                                 -->
 <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->

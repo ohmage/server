@@ -49,11 +49,11 @@ public class OhmletServlet extends OhmageServlet {
 	/**
 	 * The path and parameter key for ohmlet IDs.
 	 */
-	public static final String KEY_COMMUNITY_ID = "id";
+	public static final String KEY_OHMLET_ID = "id";
     /**
      * The parameter key for an ohmlet definition.
      */
-    public static final String KEY_STREAM_DEFINITION = "definition";
+    public static final String KEY_OHMLET_DEFINITION = "definition";
     /**
      * The parameter for the icon.
      */
@@ -118,7 +118,7 @@ public class OhmletServlet extends OhmageServlet {
     public static @ResponseBody Ohmlet createOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-        @RequestPart(value = KEY_STREAM_DEFINITION, required = true)
+        @RequestPart(value = KEY_OHMLET_DEFINITION, required = true)
             final Ohmlet.Builder ohmletBuilder,
         @RequestPart(value = KEY_ICON, required = false)
             final MultipartFile iconFile) {
@@ -240,7 +240,7 @@ public class OhmletServlet extends OhmageServlet {
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
-     *        making this call.
+     *        making this call or null if the call is being made anonymously.
 	 *
 	 * @param query
 	 *        A value that should appear in either the name or description.
@@ -256,20 +256,23 @@ public class OhmletServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+		LOGGER.log(Level.FINE, "Determining the user making the request.");
+		String username = null;
+		if(authToken == null) {
+		    LOGGER.log(Level.INFO, "The request is being made anonymously.");
+		}
+		else {
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "Retrieving the user associated with the token.");
+            username = authToken.getUser().getUsername();
+		}
 
 		return
 			OhmletBin
 				.getInstance()
-				.getOhmletIds(user.getUsername(), query);
+				.getOhmletIds(username, query);
 	}
 
 	/**
@@ -285,56 +288,63 @@ public class OhmletServlet extends OhmageServlet {
 	 * @return A list of the visible versions.
 	 */
 	@RequestMapping(
-		value = "{" + KEY_COMMUNITY_ID + "}",
+		value = "{" + KEY_OHMLET_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody Ohmlet getOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId) {
+		@PathVariable(KEY_OHMLET_ID) final String ohmletId) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request to read a ohmlet: " + ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
+        LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+        Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
+
+        LOGGER.log(Level.INFO, "Ensuring the ohmlet exists.");
+        if(ohmlet == null) {
             throw
-                new AuthenticationException("No auth information was given.");
+                new UnknownEntityException(
+                    "The " + Ohmlet.OHMLET_SKIN + " is unknown.");
         }
 
         LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+            .log(
+                Level.INFO,
+                "Verifying that the requesting user is allowed to query the " +
+                    "ohmlet.");
+        LOGGER.log(Level.FINE, "Checking if the ohmlet is private.");
+        if(Ohmlet
+            .PrivacyState
+            .PRIVATE
+            .equals(ohmlet.getPrivacyState())) {
 
-		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
-		Ohmlet ohmlet =
-			OhmletBin.getInstance().getOhmlet(ohmletId);
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "The ohmlet is private. Checking credentials.");
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the requesting user is allowed to query the " +
-					"ohmlet.");
-		LOGGER.log(Level.FINE, "Checking if the ohmlet is not private.");
-		if(!
-			Ohmlet
-				.PrivacyState
-				.PRIVATE
-				.equals(ohmlet.getPrivacyState())) {
+            LOGGER
+                .log(Level.INFO, "Verifying that auth information was given.");
+            if(authToken == null) {
+                throw
+                    new AuthenticationException(
+                        "The " +
+                            Ohmlet.OHMLET_SKIN +
+                            " is private and no auth information was " +
+                            "given.");
+            }
 
-			LOGGER
-				.log(
-					Level.FINE,
-					"The ohmlet is private, so the user must already be " +
-						"assocaited with the ohmlet.");
-			if(! ohmlet.hasRole(user.getUsername())) {
-				throw
-					new InsufficientPermissionsException(
-						"The user does not have sufficient permissions to " +
-							"view this " + Ohmlet.COMMUNITY_SKIN + ".");
-			}
-		}
+            LOGGER.log(Level.INFO, "Verifying the user may view the ohmlet.");
+            if(! ohmlet.canViewOhmlet(authToken.getUsername())) {
+                throw
+                    new InsufficientPermissionsException(
+                        "The user does not have sufficient permissions to " +
+                            "view this " + Ohmlet.OHMLET_SKIN + ".");
+            }
+        }
 
 		return ohmlet;
 	}
@@ -353,12 +363,12 @@ public class OhmletServlet extends OhmageServlet {
 	 *        The parts of the ohmlet that are already set.
 	 */
 	@RequestMapping(
-		value = "{" + KEY_COMMUNITY_ID + "}",
+		value = "{" + KEY_OHMLET_ID + "}",
 		method = RequestMethod.POST)
 	public static @ResponseBody void updateOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId,
+		@PathVariable(KEY_OHMLET_ID) final String ohmletId,
 		@RequestBody
 			final Ohmlet.Builder ohmletBuilder) {
 
@@ -385,7 +395,7 @@ public class OhmletServlet extends OhmageServlet {
 		if(ohmlet == null) {
 			throw
 				new UnknownEntityException(
-					"The " + Ohmlet.COMMUNITY_SKIN + " is unknown.");
+					"The " + Ohmlet.OHMLET_SKIN + " is unknown.");
 		}
 
 		LOGGER
@@ -397,7 +407,7 @@ public class OhmletServlet extends OhmageServlet {
 			throw
 				new InsufficientPermissionsException(
 					"The user does not have sufficient permissions to " +
-						"update the " + Ohmlet.COMMUNITY_SKIN + ".");
+						"update the " + Ohmlet.OHMLET_SKIN + ".");
 		}
 
 		LOGGER
@@ -483,13 +493,13 @@ public class OhmletServlet extends OhmageServlet {
 	 */
 	@RequestMapping(
 		value =
-			"{" + KEY_COMMUNITY_ID + "}" +
+			"{" + KEY_OHMLET_ID + "}" +
 			"/" + Ohmlet.JSON_KEY_MEMBERS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void updateRole(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId,
+		@PathVariable(KEY_OHMLET_ID) final String ohmletId,
 		@RequestBody final Ohmlet.Member member) {
 
 		LOGGER
@@ -517,7 +527,7 @@ public class OhmletServlet extends OhmageServlet {
 		if(ohmlet == null) {
 			throw
 				new UnknownEntityException(
-					"The " + Ohmlet.COMMUNITY_SKIN + " is unknown.");
+					"The " + Ohmlet.OHMLET_SKIN + " is unknown.");
 		}
 
 		LOGGER.log(Level.FINE, "Retrieving the requesting user's role.");
@@ -546,7 +556,7 @@ public class OhmletServlet extends OhmageServlet {
 					throw
 						new InvalidArgumentException(
 							"The " +
-								Ohmlet.COMMUNITY_SKIN +
+								Ohmlet.OHMLET_SKIN +
 								" is private, therefore the user may not " +
 								"request an invite.");
 				}
@@ -569,7 +579,7 @@ public class OhmletServlet extends OhmageServlet {
 					throw
 						new InvalidArgumentException(
 							"A user may not directly join a non-public " +
-								Ohmlet.COMMUNITY_SKIN + ".");
+								Ohmlet.OHMLET_SKIN + ".");
 				}
 				// Cascade.
 
@@ -632,7 +642,7 @@ public class OhmletServlet extends OhmageServlet {
 					throw
 						new InvalidArgumentException(
 							"The user is already associated with the " +
-								Ohmlet.COMMUNITY_SKIN + ".");
+								Ohmlet.OHMLET_SKIN + ".");
 				}
 				break;
 
@@ -676,12 +686,12 @@ public class OhmletServlet extends OhmageServlet {
 	 *        The ohmlet's unique identifier.
 	 */
 	@RequestMapping(
-		value = "{" + KEY_COMMUNITY_ID + "}",
+		value = "{" + KEY_OHMLET_ID + "}",
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void deleteOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_COMMUNITY_ID) final String ohmletId) {
+		@PathVariable(KEY_OHMLET_ID) final String ohmletId) {
 
 		LOGGER
 			.log(
@@ -712,7 +722,7 @@ public class OhmletServlet extends OhmageServlet {
 				new InsufficientPermissionsException(
 					"The user does not have enough permissions to delete " +
 						"the " +
-						Ohmlet.COMMUNITY_SKIN + ".");
+						Ohmlet.OHMLET_SKIN + ".");
 		}
 
 		LOGGER.log(Level.INFO, "Deleting the ohmlet.");

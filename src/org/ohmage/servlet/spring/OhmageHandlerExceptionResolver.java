@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
+import org.springframework.core.NestedRuntimeException;
 import org.springframework.core.Ordered;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.ModelAndView;
@@ -40,7 +41,7 @@ public class OhmageHandlerExceptionResolver
 		final HttpServletResponse response,
 		final Object handler,
 		final Exception exception) {
-		
+
 		// The exception may be a Spring wrapper exception, so we unwrap it and
 		// evaluate the underlying exception.
 		Throwable cause = exception.getCause();
@@ -68,9 +69,16 @@ public class OhmageHandlerExceptionResolver
 		else if(cause instanceof RuntimeJsonMappingException) {
 			throw new InvalidArgumentException(cause.getMessage(), exception);
 		}
-		// Otherwise, we let the exception cascade.
-		else {
-			return null;
+		// If it is one of Spring's internal RuntimeExceptions, assume it is
+		// something we can return to the user.
+		else if(exception instanceof NestedRuntimeException) {
+			throw
+			    new InvalidArgumentException(
+			        exception.getLocalizedMessage(),
+			        exception);
 		}
+
+		// Otherwise, we cascade the exception.
+		return null;
 	}
 }

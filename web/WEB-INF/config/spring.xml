@@ -53,7 +53,7 @@
      -->
     <mvc:interceptors>
 		<bean
-		    class="org.ohmage.domain.spring.CacheControlWebContentInterceptor" />
+		    class="org.ohmage.servlet.spring.CacheControlWebContentInterceptor" />
     </mvc:interceptors>
         
     <!--

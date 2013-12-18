@@ -607,7 +607,7 @@ public class UserServlet extends OhmageServlet {
 				.log(
 					Level.INFO,
 					"The " +
-						Ohmlet.COMMUNITY_SKIN +
+						Ohmlet.OHMLET_SKIN +
 						" exists, so the user is being removed.");
 
 			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
@@ -707,7 +707,7 @@ public class UserServlet extends OhmageServlet {
 			throw
 				new InvalidArgumentException(
 					"The user is not part of the " +
-						Ohmlet.COMMUNITY_SKIN +
+						Ohmlet.OHMLET_SKIN +
 						".");
 		}
 
@@ -768,7 +768,7 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to stop ignoring a stream " +
 					"reference in a " +
-					Ohmlet.COMMUNITY_SKIN +
+					Ohmlet.OHMLET_SKIN +
 					".");
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
@@ -803,7 +803,7 @@ public class UserServlet extends OhmageServlet {
 			throw
 				new InvalidArgumentException(
 					"The user is not part of the " +
-						Ohmlet.COMMUNITY_SKIN +
+						Ohmlet.OHMLET_SKIN +
 						".");
 		}
 
@@ -896,7 +896,7 @@ public class UserServlet extends OhmageServlet {
 			throw
 				new InvalidArgumentException(
 					"The user is not part of the " +
-						Ohmlet.COMMUNITY_SKIN +
+						Ohmlet.OHMLET_SKIN +
 						".");
 		}
 
@@ -990,7 +990,7 @@ public class UserServlet extends OhmageServlet {
 			throw
 				new InvalidArgumentException(
 					"The user is not part of the " +
-						Ohmlet.COMMUNITY_SKIN +
+						Ohmlet.OHMLET_SKIN +
 						".");
 		}
 

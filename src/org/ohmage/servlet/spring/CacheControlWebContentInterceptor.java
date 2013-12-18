@@ -1,4 +1,4 @@
-package org.ohmage.domain.spring;
+package org.ohmage.servlet.spring;
 
 import java.util.Properties;
 

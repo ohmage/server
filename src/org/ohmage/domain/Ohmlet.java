@@ -27,7 +27,7 @@ public class Ohmlet extends OhmageDomainObject {
 	/**
 	 * The publicly-facing name of the ohmlet.
 	 */
-	public static final String COMMUNITY_SKIN = "ohmlet";
+	public static final String OHMLET_SKIN = "ohmlet";
 
 	/**
 	 * <p>
@@ -1169,10 +1169,26 @@ public class Ohmlet extends OhmageDomainObject {
 		return member.getRole();
 	}
 
+    /**
+     * Returns whether or not a user is allowed to read an ohmlet.
+     *
+     * @param username
+     *        The user-name of the user attempting to read this ohmlet.
+     *
+     * @return True if the user is allowed ot read the ohmlet.
+     */
+	public boolean canViewOhmlet(final String username) {
+	    return
+	        // If the ohmlet is not private, anyone may read it.
+	        (! PrivacyState.PRIVATE.equals(privacyState)) ||
+	        // If they are a member of an ohmlet in any capacity, they may read
+	        // it.
+	        hasRole(username);
+	}
+
 	/**
 	 * Returns whether or not a user is allowed to modify a ohmlet. This
-	 * includes everything except the the people and their roles within the
-	 * ohmlet.
+	 * includes everything except the people and their roles within the ohmlet.
 	 *
 	 * @param username The user's user-name.
 	 *

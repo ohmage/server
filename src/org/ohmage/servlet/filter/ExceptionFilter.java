@@ -85,7 +85,8 @@ public class ExceptionFilter implements Filter {
 	public void doFilter(
 		final ServletRequest request,
 		final ServletResponse response,
-		final FilterChain chain) throws IOException, ServletException {
+		final FilterChain chain)
+	    throws IOException, ServletException {
 
 		// Get a handler for the correct exception type.
 		Throwable exception = null;

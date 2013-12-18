@@ -1,5 +1,6 @@
 package org.ohmage.mongodb.bin;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -8,14 +9,15 @@ import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
 import org.mongojack.WriteResult;
 import org.ohmage.bin.OhmletBin;
+import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.Ohmlet;
+import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.stream.Stream;
-import org.ohmage.domain.user.User;
 import org.ohmage.mongodb.domain.MongoOhmlet;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 import com.mongodb.WriteConcern;
@@ -32,7 +34,7 @@ public class MongoOhmletBin extends OhmletBin {
 	 * The name of the collection that contains all of the communities.
 	 */
 	public static final String COLLECTION_NAME = "ohmlet_bin";
-	
+
 	/**
 	 * Get the connection to the ohmlet bin with the Jackson wrapper.
 	 */
@@ -46,7 +48,7 @@ public class MongoOhmletBin extends OhmletBin {
 				Ohmlet.class,
 				Object.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Get the connection to the ohmlet bin with the Jackson wrapper,
 	 * specifically for {@link MongoOhmlet} objects.
@@ -61,7 +63,7 @@ public class MongoOhmletBin extends OhmletBin {
 				MongoOhmlet.class,
 				Object.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Default constructor.
 	 */
@@ -82,12 +84,12 @@ public class MongoOhmletBin extends OhmletBin {
 	public void addOhmlet(
 		final Ohmlet ohmlet)
 		throws IllegalArgumentException, IllegalStateException {
-		
+
 		// Validate the parameter.
 		if(ohmlet == null) {
 			throw new IllegalArgumentException("The ohmlet is null.");
 		}
-		
+
 		// Save it.
 		try {
 			COLLECTION.insert(ohmlet);
@@ -107,39 +109,46 @@ public class MongoOhmletBin extends OhmletBin {
 	public List<String> getOhmletIds(
 		final String username,
 		final String query) {
-		
+
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Be sure that they are visible.
+		List<DBObject> visibilityModifiers = new LinkedList<DBObject>();
+        // Either, the ohmlet's privacy state must be INVITE_ONLY+.
+		visibilityModifiers
+		    .add(
+                QueryBuilder
+                    .start()
+                    .and(Ohmlet.JSON_KEY_PRIVACY_STATE)
+                    .greaterThanEquals(
+                        Ohmlet.PrivacyState.INVITE_ONLY.ordinal())
+                    .get());
+        // Or, the user must already be a member, if given.
+		if(username != null) {
+		    visibilityModifiers
+		        .add(
+                    QueryBuilder
+                        .start()
+                        .and(Ohmlet.JSON_KEY_MEMBERS +
+                            "." +
+                            Ohmlet.Member.JSON_KEY_MEMBER_ID)
+                        .is(username)
+                        .get());
+		}
+		// Build the query.
 		queryBuilder
 			.and(
 				QueryBuilder
 					.start()
-					.or(
-						// Either, the ohmlet's privacy state must be
-						// INVITE_ONLY+.
-						QueryBuilder
-							.start()
-							.and(Ohmlet.JSON_KEY_PRIVACY_STATE)
-							.greaterThanEquals(
-								Ohmlet.PrivacyState.INVITE_ONLY.ordinal())
-							.get(),
-						// Or, the user must already be a member.
-						QueryBuilder
-							.start()
-							.and(Ohmlet.JSON_KEY_MEMBERS +
-								"." +
-								Ohmlet.Member.JSON_KEY_MEMBER_ID)
-							.is(username)
-							.get())
-				.get());
-				
+					.or(visibilityModifiers.toArray(new DBObject[0]))
+					.get());
+
 		// If given, add the query for the name and description.
 		if(query != null) {
 			// Build the query pattern.
 			Pattern queryPattern = Pattern.compile(".*" + query + ".*");
-			
+
 			// Add the query fields.
 			queryBuilder
 				.and(
@@ -149,23 +158,23 @@ public class MongoOhmletBin extends OhmletBin {
 							// Add the query for the name.
 							QueryBuilder
 								.start()
-								.and(Stream.JSON_KEY_NAME)
+								.and(Schema.JSON_KEY_NAME)
 								.regex(queryPattern)
 								.get(),
 							// Add the query for the description.
 							QueryBuilder
 								.start()
-								.and(Stream.JSON_KEY_VERSION)
+								.and(Schema.JSON_KEY_VERSION)
 								.regex(queryPattern)
 								.get())
 						.get());
 		}
-		
+
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
 		List<String> result =
 			MONGO_COLLECTION.distinct(Ohmlet.JSON_KEY_ID, queryBuilder.get());
-		
+
 		return result;
 	}
 
@@ -177,18 +186,18 @@ public class MongoOhmletBin extends OhmletBin {
 	public Ohmlet getOhmlet(
 		final String ohmletId)
 		throws IllegalArgumentException {
-		
+
 		// Validate the input.
 		if(ohmletId == null) {
 			throw new IllegalArgumentException("The ohmlet ID is null.");
 		}
-		
+
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the ohmlet ID.
 		queryBuilder.and(Ohmlet.JSON_KEY_ID).is(ohmletId);
-		
+
 		// Execute query.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
@@ -201,7 +210,7 @@ public class MongoOhmletBin extends OhmletBin {
 	public void updateOhmlet(
 		final Ohmlet ohmlet)
 		throws IllegalArgumentException {
-		
+
 		if(ohmlet == null) {
 			throw new IllegalArgumentException("The ohmlet is null.");
 		}
@@ -212,9 +221,9 @@ public class MongoOhmletBin extends OhmletBin {
 		// Ensure that the ohmlet has not been updated elsewhere.
 		query =
 			query
-				.is(User.JSON_KEY_INTERNAL_VERSION,
+				.is(OhmageDomainObject.JSON_KEY_INTERNAL_VERSION,
 					ohmlet.getInternalReadVersion());
-		
+
 		// Commit the update and don't return until the collection has heard
 		// the result.
 		WriteResult<Ohmlet, Object> result =
@@ -225,7 +234,7 @@ public class MongoOhmletBin extends OhmletBin {
 					false,
 					false,
 					WriteConcern.REPLICA_ACKNOWLEDGED);
-		
+
 		// Be sure that at least one document was updated.
 		if(result.getN() == 0) {
 			throw
@@ -239,20 +248,20 @@ public class MongoOhmletBin extends OhmletBin {
 	 * @see org.ohmage.bin.OhmletBin#deleteOhmlet(java.lang.String)
 	 */
 	@Override
-	public void deleteOhmlet(String ohmletId)
+	public void deleteOhmlet(final String ohmletId)
 		throws IllegalArgumentException {
-		
+
 		// Validate the input.
 		if(ohmletId == null) {
 			throw new IllegalArgumentException("The ohmlet ID is null.");
 		}
-		
+
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the ohmlet ID.
 		queryBuilder.and(Ohmlet.JSON_KEY_ID).is(ohmletId);
-		
+
 		// Delete the ohmlet.
 		COLLECTION.remove(queryBuilder.get());
 	}

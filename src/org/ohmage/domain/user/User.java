@@ -836,7 +836,8 @@ public class User extends OhmageDomainObject {
                 new HashSet<SchemaReference>() :
                 new HashSet<SchemaReference>(surveys);
 
-        this.registration = registration.build();
+        this.registration =
+            (registration == null) ? null : registration.build();
     }
 
     /**
