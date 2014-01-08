@@ -2,12 +2,15 @@ package org.ohmage.mongodb.bin;
 
 import java.util.List;
 
+import org.joda.time.DateTime;
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.StreamDataBin;
+import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.StreamData;
+import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.stream.MongoStreamData;
 
@@ -28,7 +31,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 	 * The name of the collection that contains all of the stream data.
 	 */
 	public static final String COLLECTION_NAME = "stream_data_bin";
-	
+
 	/**
 	 * Get the connection to the stream data bin with the Jackson wrapper.
 	 */
@@ -42,7 +45,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 				StreamData.class,
 				String.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Get the connection to the stream bin with the Jackson wrapper,
 	 * specifically for {@link StreamData} objects.
@@ -57,7 +60,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 				MongoStreamData.class,
 				String.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Default constructor.
 	 */
@@ -66,14 +69,14 @@ public class MongoStreamDataBin extends StreamDataBin {
 		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
-					StreamData.JSON_KEY_META_DATA + 
+					StreamData.JSON_KEY_META_DATA +
 						"." + MetaData.JSON_KEY_ID,
-					1), 
+					1),
 				COLLECTION_NAME + "_" +
 					StreamData.JSON_KEY_META_DATA + "." +
 						MetaData.JSON_KEY_ID,
 				false);
-		
+
 		// Create the set of indexes.
 		DBObject indexes = new BasicDBObject();
 		// Index the stream ID.
@@ -91,7 +94,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 		// the point's ID.
 		COLLECTION
 			.ensureIndex(
-				indexes, 
+				indexes,
 				COLLECTION_NAME + "_" +
 					StreamData.JSON_KEY_STREAM_ID + "_" +
 					StreamData.JSON_KEY_STREAM_VERSION + "_" +
@@ -109,7 +112,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 	public void addStreamData(
 		final List<StreamData> streamData)
 		throws IllegalArgumentException, InvalidArgumentException {
-		
+
 		// Validate the parameters.
 		if(streamData == null) {
 			throw new IllegalArgumentException("The stream data is null.");
@@ -129,15 +132,18 @@ public class MongoStreamDataBin extends StreamDataBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, java.lang.String, long)
+	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, java.lang.String, long, org.joda.time.DateTime, org.joda.time.DateTime)
 	 */
 	@Override
 	public MultiValueResult<MongoStreamData> getStreamData(
 		final String username,
 		final String streamId,
-		final long streamVersion)
+		final long streamVersion,
+        final DateTime startDate,
+        final DateTime endDate,
+        final ColumnList columnList)
 		throws IllegalArgumentException {
-		
+
 		// Validate the parameters.
 		if(username == null) {
 			throw new IllegalArgumentException("The username is null.");
@@ -145,23 +151,49 @@ public class MongoStreamDataBin extends StreamDataBin {
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
-		
+
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the user-name.
 		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(username);
-		
+
 		// Add the stream ID.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
-		
+
 		// Add the stream version.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_VERSION).is(streamVersion);
-		
+
+        // Add the start date, if given.
+        if(startDate != null) {
+            queryBuilder
+                .and(
+                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_TIMESTAMP_MILLIS)
+                .greaterThanEquals(startDate.getMillis());
+        }
+
+        // Add the end date, if given.
+        if(endDate != null) {
+            queryBuilder
+                .and(
+                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_TIMESTAMP_MILLIS)
+                .lessThanEquals(endDate.getMillis());
+        }
+
+        // Create the projection.
+        BasicDBObject columns = new BasicDBObject();
+        if(columnList != null) {
+            for(String column : columnList.toList()) {
+                columns.put(column, 1);
+            }
+        }
+
 		// Make the query and return the results.
 		return
 			new MongoCursorMultiValueResult<MongoStreamData>(
-				MONGO_COLLECTION.find(queryBuilder.get()));
+				MONGO_COLLECTION.find(queryBuilder.get(), columns));
 	}
 
 	/*
@@ -175,7 +207,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 		final long streamVersion,
 		final String pointId)
 		throws IllegalArgumentException {
-		
+
 		// Validate the parameters.
 		if(username == null) {
 			throw new IllegalArgumentException("The username is null.");
@@ -186,19 +218,19 @@ public class MongoStreamDataBin extends StreamDataBin {
 		if(pointId == null) {
 			throw new IllegalArgumentException("The point ID is null.");
 		}
-		
+
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the user-name.
 		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(username);
-		
+
 		// Add the stream ID.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
-		
+
 		// Add the stream version.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_VERSION).is(streamVersion);
-		
+
 		// Add the point ID.
 		queryBuilder
 			.and(
@@ -206,11 +238,11 @@ public class MongoStreamDataBin extends StreamDataBin {
 					"." +
 					MetaData.JSON_KEY_ID)
 			.is(pointId);
-		
+
 		// Make the query and return the results.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
-	
+
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.bin.StreamDataBin#deleteStreamData(java.lang.String, java.lang.String, long, java.lang.String)
@@ -222,7 +254,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 		final long streamVersion,
 		final String pointId)
 		throws IllegalArgumentException {
-		
+
 		// Validate the parameters.
 		if(username == null) {
 			throw new IllegalArgumentException("The username is null.");
@@ -233,19 +265,19 @@ public class MongoStreamDataBin extends StreamDataBin {
 		if(pointId == null) {
 			throw new IllegalArgumentException("The point ID is null.");
 		}
-		
+
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
+
 		// Add the user-name.
 		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(username);
-		
+
 		// Add the stream ID.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
-		
+
 		// Add the stream version.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_VERSION).is(streamVersion);
-		
+
 		// Add the point ID.
 		queryBuilder
 			.and(
@@ -253,7 +285,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 					"." +
 					MetaData.JSON_KEY_ID)
 			.is(pointId);
-		
+
 		// Delete the data point.
 		// TODO: In the future, we may want to simply mark the point as deleted
 		// and not actually delete it.

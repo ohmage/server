@@ -2,9 +2,12 @@ package org.ohmage.domain;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.jackson.OhmageObjectMapper;
+import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 import org.ohmage.domain.stream.StreamData;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -16,7 +19,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
+@JsonFilter(MetaData.JACKSON_FILTER_GROUP_ID)
 public class MetaData {
+    /**
+     * The group ID for the Jackson filter. This must be unique to our class,
+     * whatever the value is.
+     */
+    protected static final String JACKSON_FILTER_GROUP_ID =
+        "org.ohmage.domain.MetaData";
+    // Register this class with the ohmage object mapper.
+    static {
+        OhmageObjectMapper.register(MetaData.class);
+    }
+
     /**
      * The JSON key for the ID.
      */
@@ -26,6 +41,10 @@ public class MetaData {
      */
     public static final String JSON_KEY_TIMESTAMP = "timestamp";
     /**
+     * The JSON key for the time-stamp as a millisecond value.
+     */
+    public static final String JSON_KEY_TIMESTAMP_MILLIS = "timestamp_millis";
+    /**
      * The JSON key for the location.
      */
     public static final String JSON_KEY_LOCATION = "location";
@@ -34,6 +53,7 @@ public class MetaData {
      * The unique ID for this point.
      */
     @JsonProperty(JSON_KEY_ID)
+    @JsonInclude(Include.NON_NULL)
     private final String id;
     /**
      * The time-stamp for this point.
@@ -41,6 +61,13 @@ public class MetaData {
     @JsonProperty(JSON_KEY_TIMESTAMP)
     @JsonInclude(Include.NON_NULL)
     private final DateTime timestamp;
+    /**
+     * The number of milliseconds since the Unix epoch as a time-stamp for this
+     * point.
+     */
+    @JsonProperty(JSON_KEY_TIMESTAMP_MILLIS)
+    @JsonFilterField
+    private final Long timestampMillis;
     /**
      * The location for this point.
      */
@@ -70,6 +97,7 @@ public class MetaData {
     public MetaData(
         @JsonProperty(JSON_KEY_ID) final String id,
         @JsonProperty(JSON_KEY_TIMESTAMP) final DateTime timestamp,
+        @JsonProperty(JSON_KEY_TIMESTAMP_MILLIS) final Long timestampMillis,
         @JsonProperty(JSON_KEY_LOCATION) final Location location)
         throws InvalidArgumentException {
 
@@ -79,6 +107,17 @@ public class MetaData {
 
         this.id = id;
         this.timestamp = timestamp;
+        if(timestampMillis == null) {
+            if(timestamp == null) {
+                this.timestampMillis = null;
+            }
+            else {
+                this.timestampMillis = timestamp.getMillis();
+            }
+        }
+        else {
+            this.timestampMillis = timestampMillis;
+        }
         this.location = location;
     }
 

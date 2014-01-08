@@ -2,6 +2,8 @@ package org.ohmage.bin;
 
 import java.util.List;
 
+import org.joda.time.DateTime;
+import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.StreamData;
@@ -59,6 +61,18 @@ public abstract class StreamDataBin {
 	 *
 	 * @param streamVersion
 	 *        The version of the stream.
+     *
+     * @param startDate
+     *        The earliest time for any given point. Null indicates that there
+     *        is no earliest time.
+     *
+     * @param endDate
+     *        The latest time for any given point. Null indicates that there is
+     *        no latest time.
+     *
+     * @param columnList
+     *        The projection of columns that should be returned. Null indicates
+     *        that all columns should be returned.
 	 *
 	 * @return The data that matches the parameters.
 	 *
@@ -68,7 +82,10 @@ public abstract class StreamDataBin {
 	public abstract MultiValueResult<? extends StreamData> getStreamData(
 		final String username,
 		final String streamId,
-		final long streamVersion)
+		final long streamVersion,
+        final DateTime startDate,
+        final DateTime endDate,
+        final ColumnList columnList)
 		throws IllegalArgumentException;
 
 	/**

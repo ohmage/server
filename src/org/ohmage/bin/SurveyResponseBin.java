@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.joda.time.DateTime;
+import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.survey.SurveyResponse;
 
@@ -99,6 +101,18 @@ public abstract class SurveyResponseBin {
      *        empty collection indicates that no survey responses will be
      *        returned.
      *
+     * @param startDate
+     *        The earliest time for any given point. Null indicates that there
+     *        is no earliest time.
+     *
+     * @param endDate
+     *        The latest time for any given point. Null indicates that there is
+     *        no latest time.
+     *
+     * @param columnList
+     *        The projection of columns that should be returned. Null indicates
+     *        that all columns should be returned.
+     *
      * @return The survey responses that matches the parameters.
      *
      * @throws IllegalArgumentException
@@ -108,7 +122,10 @@ public abstract class SurveyResponseBin {
         final String username,
         final String surveyId,
         final long surveyVersion,
-        final Collection<String> surveyResponseIds)
+        final Collection<String> surveyResponseIds,
+        final DateTime startDate,
+        final DateTime endDate,
+        final ColumnList columnList)
         throws IllegalArgumentException;
 
     /**

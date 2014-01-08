@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
@@ -447,7 +448,11 @@ public class StreamServlet extends OhmageServlet {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
-		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion) {
+		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
+        @RequestParam(value = PARAM_START_DATE, required = false)
+            final String startDate,
+        @RequestParam(value = PARAM_END_DATE, required = false)
+            final String endDate) {
 
 		LOGGER.log(Level.INFO, "Retrieving some stream data.");
 
@@ -461,11 +466,27 @@ public class StreamServlet extends OhmageServlet {
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
+        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        DateTime startDateObject =
+            (startDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
+        DateTime endDateObject =
+            (endDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
+
 		LOGGER.log(Level.INFO, "Finding the requested data.");
 		MultiValueResult<? extends StreamData> result =
     		StreamDataBin
                 .getInstance()
-                .getStreamData(user.getUsername(), streamId, streamVersion);
+                .getStreamData(
+                    user.getUsername(),
+                    streamId,
+                    streamVersion,
+                    startDateObject,
+                    endDateObject,
+                    null);
 
 		LOGGER.log(Level.INFO, "Setting the response headers.");
 		HttpHeaders headers = new HttpHeaders();

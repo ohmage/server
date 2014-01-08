@@ -3,8 +3,11 @@ package org.ohmage.domain.stream;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -212,30 +215,35 @@ public class StreamData extends OhmageDomainObject {
 	 * The user-name of the user that owns this data.
 	 */
 	@JsonProperty(JSON_KEY_OWNER)
+    @JsonFilterField
 	private final String owner;
 
 	/**
 	 * The unique ID for the stream to which this data conforms.
 	 */
 	@JsonProperty(JSON_KEY_STREAM_ID)
+    @JsonFilterField
 	private final String streamId;
 
 	/**
 	 * The version for the stream to which this data conforms.
 	 */
 	@JsonProperty(JSON_KEY_STREAM_VERSION)
+    @JsonFilterField
 	private final long streamVersion;
 
 	/**
 	 * The meta-data associated with this point.
 	 */
 	@JsonProperty(JSON_KEY_META_DATA)
+    @JsonInclude(Include.NON_NULL)
 	private final MetaData metaData;
 
 	/**
 	 * The data for this point.
 	 */
 	@JsonProperty(JSON_KEY_DATA)
+    @JsonInclude(Include.NON_NULL)
 	private final JsonNode data;
 
 	/**
@@ -264,6 +272,19 @@ public class StreamData extends OhmageDomainObject {
 		final JsonNode data) {
 
 		this(owner, streamId, streamVersion, metaData, data, null);
+
+        if(owner == null) {
+            throw new InvalidArgumentException("The owner is null.");
+        }
+        if(streamId == null) {
+            throw new InvalidArgumentException("The stream ID is null.");
+        }
+        if(streamVersion == null) {
+            throw new InvalidArgumentException("The stream version is null.");
+        }
+        if(data == null) {
+            throw new InvalidArgumentException("The data is null.");
+        }
 	}
 
 	/**
@@ -342,19 +363,6 @@ public class StreamData extends OhmageDomainObject {
 		final Long internalWriteVersion) {
 
 		super(internalReadVersion, internalWriteVersion);
-
-		if(owner == null) {
-			throw new InvalidArgumentException("The owner is null.");
-		}
-		if(streamId == null) {
-			throw new InvalidArgumentException("The stream ID is null.");
-		}
-		if(streamVersion == null) {
-		    throw new InvalidArgumentException("The stream version is null.");
-		}
-		if(data == null) {
-			throw new InvalidArgumentException("The data is null.");
-		}
 
 		this.owner = owner;
 		this.streamId = streamId;

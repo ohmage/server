@@ -2,7 +2,9 @@ package org.ohmage.servlet;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.joda.time.format.DateTimeFormatter;
 import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.ISOW3CDateTimeFormat;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -14,6 +16,24 @@ import org.springframework.web.bind.annotation.ModelAttribute;
  * @author John Jenkins
  */
 public abstract class OhmageServlet {
+    /**
+     * The key for the earliest allowed time-stamp for some point when querying
+     * a list of points.
+     */
+    public static final String PARAM_START_DATE = "start_date";
+    /**
+     * The key for the latest allowed time-stamp for some point when querying a
+     * list of points.
+     */
+    public static final String PARAM_END_DATE = "end_date";
+
+    /**
+     * The date-time formatter to be used when parsing any date-times in
+     * ohmage, unless a specific use-case dictates otherwise.
+     */
+    public static final DateTimeFormatter OHMAGE_DATE_TIME_FORMATTER =
+        ISOW3CDateTimeFormat.any();
+
     /**
      * The attribute value for the request URL root.
      */
@@ -41,7 +61,7 @@ public abstract class OhmageServlet {
      * for subsequent redirect requests as it is built off of the current
      * request.
      *
-     * @param request
+     * @param httpRequest
      *        The current request.
      *
      * @return The request URL root of the form

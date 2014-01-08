@@ -5,8 +5,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.joda.time.DateTime;
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.SurveyResponseBin;
+import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.survey.SurveyResponse;
@@ -206,14 +208,17 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponses(java.lang.String, java.lang.String, long, java.util.Collection)
+     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponses(java.lang.String, java.lang.String, long, java.util.Collection, org.joda.time.DateTime, org.joda.time.DateTime)
      */
     @Override
     public MultiValueResult<? extends SurveyResponse> getSurveyResponses(
         final String username,
         final String surveyId,
         final long surveyVersion,
-        final Collection<String> surveyResponseIds)
+        final Collection<String> surveyResponseIds,
+        final DateTime startDate,
+        final DateTime endDate,
+        final ColumnList columnList)
         throws IllegalArgumentException {
 
         // Validate the parameters.
@@ -247,10 +252,36 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 .in(surveyResponseIds);
         }
 
+        // Add the start date, if given.
+        if(startDate != null) {
+            queryBuilder
+                .and(
+                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_TIMESTAMP_MILLIS)
+                .greaterThanEquals(startDate.getMillis());
+        }
+
+        // Add the end date, if given.
+        if(endDate != null) {
+            queryBuilder
+                .and(
+                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_TIMESTAMP_MILLIS)
+                .lessThanEquals(endDate.getMillis());
+        }
+
+        // Create the projection.
+        BasicDBObject columns = new BasicDBObject();
+        if(columnList != null) {
+            for(String column : columnList.toList()) {
+                columns.put(column, 1);
+            }
+        }
+
         // Make the query and return the results.
         return
             new MongoCursorMultiValueResult<MongoSurveyResponse>(
-                MONGO_COLLECTION.find(queryBuilder.get()));
+                MONGO_COLLECTION.find(queryBuilder.get(), columns));
     }
 
     /*

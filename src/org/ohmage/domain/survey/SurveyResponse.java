@@ -14,6 +14,8 @@ import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -236,27 +238,37 @@ public class SurveyResponse extends OhmageDomainObject {
      * The owner of the survey response.
      */
     @JsonProperty(JSON_KEY_OWNER)
+    @JsonFilterField
     private final String owner;
+
     /**
      * The unique identifier to which these survey responses belong.
      */
     @JsonProperty(JSON_KEY_SURVEY_ID)
+    @JsonFilterField
     private final String surveyId;
+
     /**
      * The version of the survey to which this survey response belongs.
      */
     @JsonProperty(JSON_KEY_SURVEY_VERSION)
-    private final long surveyVersion;
+    @JsonFilterField
+    private final Long surveyVersion;
+
     /**
      * The meta-data associated with this survey response.
      */
     @JsonProperty(JSON_KEY_META_DATA)
+    @JsonInclude(Include.NON_NULL)
     private final MetaData metaData;
+
     /**
      * The responses that compose this survey response.
      */
     @JsonProperty(JSON_KEY_RESPONSES)
+    @JsonInclude(Include.NON_NULL)
     private final Map<String, Object> responses;
+
     /**
      * The filenames of the media associated with this response.
      */
@@ -302,6 +314,22 @@ public class SurveyResponse extends OhmageDomainObject {
             responses,
             mediaFilenames,
             null);
+
+        if(owner == null) {
+            throw new InvalidArgumentException("The owner is null.");
+        }
+        if(surveyId == null) {
+            throw new InvalidArgumentException("The survey ID is null.");
+        }
+        if(surveyVersion == null) {
+            throw new InvalidArgumentException("The survey version is null.");
+        }
+        if(metaData == null) {
+            throw new InvalidArgumentException("The meta-data is null.");
+        }
+        if(responses == null) {
+            throw new InvalidArgumentException("The responses list is null.");
+        }
     }
 
     /**
@@ -403,27 +431,14 @@ public class SurveyResponse extends OhmageDomainObject {
 
         super(internalReadVersion, internalWriteVersion);
 
-        if(owner == null) {
-            throw new InvalidArgumentException("The owner is null.");
-        }
-        if(surveyId == null) {
-            throw new InvalidArgumentException("The survey ID is null.");
-        }
-        if(surveyVersion == null) {
-            throw new InvalidArgumentException("The survey version is null.");
-        }
-        if(metaData == null) {
-            throw new InvalidArgumentException("The meta-data is null.");
-        }
-        if(responses == null) {
-            throw new InvalidArgumentException("The responses list is null.");
-        }
-
         this.owner = owner;
         this.surveyId = surveyId;
         this.surveyVersion = surveyVersion;
         this.metaData = metaData;
-        this.responses = new HashMap<String, Object>(responses);
+        this.responses =
+            (responses == null) ?
+                null :
+                new HashMap<String, Object>(responses);
         this.mediaFilenames =
             (mediaFilenames == null) ?
                 Collections.<String>emptySet() :
@@ -448,24 +463,6 @@ public class SurveyResponse extends OhmageDomainObject {
      */
     public String getOwner() {
         return owner;
-    }
-
-    /**
-     * Returns the survey ID.
-     *
-     * @return The survey ID.
-     */
-    public String getSurveyId() {
-        return surveyId;
-    }
-
-    /**
-     * Returns the survey version.
-     *
-     * @return The survey version.
-     */
-    public long getSurveyVersion() {
-        return surveyVersion;
     }
 
     /**

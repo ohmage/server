@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.joda.time.DateTime;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.bin.SurveyBin;
@@ -210,7 +211,11 @@ public class SchemaServlet extends OhmageServlet {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SCHEMA_ID) final String schemaId,
-        @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion) {
+        @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion,
+        @RequestParam(value = PARAM_START_DATE, required = false)
+            final String startDate,
+        @RequestParam(value = PARAM_END_DATE, required = false)
+            final String endDate) {
 
         LOGGER
             .log(
@@ -229,6 +234,16 @@ public class SchemaServlet extends OhmageServlet {
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
+        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        DateTime startDateObject =
+            (startDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
+        DateTime endDateObject =
+            (endDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
+
         LOGGER.log(Level.INFO, "Retrieving the definition.");
         MultiValueResult<?> result;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
@@ -239,7 +254,10 @@ public class SchemaServlet extends OhmageServlet {
                     .getStreamData(
                         user.getUsername(),
                         schemaId,
-                        schemaVersion);
+                        schemaVersion,
+                        startDateObject,
+                        endDateObject,
+                        null);
         }
         else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
@@ -250,6 +268,9 @@ public class SchemaServlet extends OhmageServlet {
                         user.getUsername(),
                         schemaId,
                         schemaVersion,
+                        null,
+                        startDateObject,
+                        endDateObject,
                         null);
         }
         else {

@@ -1,7 +1,10 @@
 package org.ohmage.servlet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,13 +17,15 @@ import org.ohmage.bin.StreamDataBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
+import org.ohmage.domain.stream.StreamData;
+import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.domain.user.User;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +41,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(Omh.ROOT_MAPPING)
-public class Omh {
+@RequestMapping(OmhServlet.ROOT_MAPPING)
+public class OmhServlet extends OhmageServlet {
     /**
      * <p>
      * The Open mHealth representation of schema IDs.
@@ -241,9 +246,22 @@ public class Omh {
     public static final String KEY_COLUMN_LIST = "column_list";
 
     /**
+     * The list of allowed root values for the "column list" parameter.
+     */
+    public static final Set<String> ALLOWED_COLUMN_LIST_ROOTS =
+        new HashSet<String>(
+            Arrays
+                .asList(
+                    StreamData.JSON_KEY_META_DATA,
+                    StreamData.JSON_KEY_DATA,
+                    SurveyResponse.JSON_KEY_META_DATA,
+                    SurveyResponse.JSON_KEY_RESPONSES));
+
+    /**
      * The logger for this class.
      */
-    private static final Logger LOGGER = Logger.getLogger(Omh.class.getName());
+    private static final Logger LOGGER =
+        Logger.getLogger(OmhServlet.class.getName());
 
     /**
      * Returns a list of visible stream IDs.
@@ -433,10 +451,8 @@ public class Omh {
         @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion,
         @RequestParam(KEY_AUTH_TOKEN) final String authToken,
         @RequestParam(value = KEY_START_DATE, required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-            final DateTime startDate,
+            final String startDate,
         @RequestParam(value = KEY_END_DATE, required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
             final String endDate,
         @RequestParam(value = KEY_COLUMN_LIST, required = false)
             final List<String> columnList) {
@@ -479,6 +495,34 @@ public class Omh {
         LOGGER.log(Level.INFO, "Parsing the schema ID.");
         OmhSchemaId omhSchemaId = new OmhSchemaId(schemaId);
 
+        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        DateTime startDateObject =
+            (startDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
+        DateTime endDateObject =
+            (endDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
+
+        LOGGER.log(Level.INFO, "Validating the column list, if given.");
+        ColumnList columnListObject = null;
+        if(columnList != null) {
+            columnListObject = new ColumnList(columnList);
+
+            LOGGER.log(Level.INFO, "Validating the column list.");
+            Set<String> columnListRoots =
+                new HashSet<String>(columnListObject.getChildren());
+            columnListRoots.removeAll(ALLOWED_COLUMN_LIST_ROOTS);
+            if(columnListRoots.size() > 0) {
+                throw
+                    new InvalidArgumentException(
+                        "The root of every element in a column list must be " +
+                            "one of: " +
+                            ALLOWED_COLUMN_LIST_ROOTS.toString());
+            }
+        }
+
         LOGGER.log(Level.INFO, "Retrieving the definition.");
         MultiValueResult<?> result;
         switch(omhSchemaId.type) {
@@ -490,7 +534,10 @@ public class Omh {
                         .getStreamData(
                             user.getUsername(),
                             omhSchemaId.ohmageSchemaId,
-                            schemaVersion);
+                            schemaVersion,
+                            startDateObject,
+                            endDateObject,
+                            columnListObject);
                 break;
 
             case SURVEY:
@@ -502,7 +549,10 @@ public class Omh {
                             user.getUsername(),
                             omhSchemaId.ohmageSchemaId,
                             schemaVersion,
-                            null);
+                            null,
+                            startDateObject,
+                            endDateObject,
+                            columnListObject);
                 break;
 
             default:

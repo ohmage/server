@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
@@ -571,7 +572,10 @@ public class SurveyServlet extends OhmageServlet {
                     user.getUsername(),
                     surveyId,
                     surveyVersion,
-                    surveyResponseIds);
+                    surveyResponseIds,
+                    null,
+                    null,
+                    null);
     }
 
     /**
@@ -597,7 +601,11 @@ public class SurveyServlet extends OhmageServlet {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
-        @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion) {
+        @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
+        @RequestParam(value = PARAM_START_DATE, required = false)
+            final String startDate,
+        @RequestParam(value = PARAM_END_DATE, required = false)
+            final String endDate) {
 
         LOGGER.log(Level.INFO, "Retrieving some survey data.");
 
@@ -611,6 +619,16 @@ public class SurveyServlet extends OhmageServlet {
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
+        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        DateTime startDateObject =
+            (startDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
+        DateTime endDateObject =
+            (endDate == null) ?
+                null :
+                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
+
         LOGGER.log(Level.INFO, "Finding and returning the requested data.");
         return
             SurveyResponseBin
@@ -619,6 +637,9 @@ public class SurveyServlet extends OhmageServlet {
                     user.getUsername(),
                     surveyId,
                     surveyVersion,
+                    null,
+                    startDateObject,
+                    endDateObject,
                     null);
     }
 
