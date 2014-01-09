@@ -125,9 +125,6 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 *        The user's password.
 	 *
 	 * @return A new authentication token for the user.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The user is unknown or the password is incorrect.
 	 */
 	@RequestMapping(
 		value = { "", "/" },
@@ -206,11 +203,6 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 *        authenticated themselves.
 	 *
 	 * @return A new authentication token for the user.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The provider is unknown, the access token is invalid, or there
-	 *         is no ohmage account associated with this provider-authenticated
-	 *         user.
 	 */
 	@RequestMapping(
 		value = { "", "/" },
@@ -303,9 +295,6 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 *        refresh token request.
 	 *
 	 * @return A new authentication token for the user.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The refresh token is unknown or has already been used.
 	 */
 	@RequestMapping(
 		value = { "", "/" },

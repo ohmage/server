@@ -1,10 +1,12 @@
 package org.ohmage.servlet;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.ohmage.bin.MediaBin;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
@@ -20,6 +22,9 @@ import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.user.OhmletReference;
 import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -91,8 +96,7 @@ public class OhmletServlet extends OhmageServlet {
     public static @ResponseBody Ohmlet createOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-        @RequestBody
-            final Ohmlet.Builder ohmletBuilder) {
+        @RequestBody final Ohmlet.Builder ohmletBuilder) {
 
         return createOhmlet(authToken, ohmletBuilder, null);
     }
@@ -244,15 +248,36 @@ public class OhmletServlet extends OhmageServlet {
 	 *
 	 * @param query
 	 *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
 	 *
 	 * @return A list of visible ohmlet IDs.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody List<String> getOhmletIds(
+	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getOhmletIds(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@RequestParam(value = KEY_QUERY, required = false)
-			final String query) {
+		@RequestParam(value = KEY_QUERY, required = false) final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
 
@@ -268,11 +293,31 @@ public class OhmletServlet extends OhmageServlet {
                     "Retrieving the user associated with the token.");
             username = authToken.getUser().getUsername();
 		}
+        LOGGER.log(Level.INFO, "Retrieving the stream IDs");
+        MultiValueResult<String> ids =
+            OhmletBin
+                .getInstance()
+                .getOhmletIds(username, query, numToSkip, numToReturn);
 
-		return
-			OhmletBin
-				.getInstance()
-				.getOhmletIds(username, query);
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    ids,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<String>> result =
+            new ResponseEntity<MultiValueResult<String>>(
+                ids,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the stream IDs.");
+        return result;
 	}
 
 	/**

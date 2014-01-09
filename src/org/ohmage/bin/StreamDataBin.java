@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.ColumnList;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.StreamData;
 
@@ -73,6 +72,12 @@ public abstract class StreamDataBin {
      * @param columnList
      *        The projection of columns that should be returned. Null indicates
      *        that all columns should be returned.
+     *
+     * @param numToSkip
+     *        The number of stream data points to skip.
+     *
+     * @param numToReturn
+     *        The number of stream data points to return.
 	 *
 	 * @return The data that matches the parameters.
 	 *
@@ -85,7 +90,9 @@ public abstract class StreamDataBin {
 		final long streamVersion,
         final DateTime startDate,
         final DateTime endDate,
-        final ColumnList columnList)
+        final ColumnList columnList,
+        final long numToSkip,
+        final long numToReturn)
 		throws IllegalArgumentException;
 
 	/**

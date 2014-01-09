@@ -4,14 +4,13 @@ import java.util.List;
 
 import org.joda.time.DateTime;
 import org.mongojack.JacksonDBCollection;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MetaData;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.StreamData;
 import org.ohmage.domain.survey.SurveyResponse;
-import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.stream.MongoStreamData;
 
 import com.mongodb.BasicDBObject;
@@ -141,7 +140,9 @@ public class MongoStreamDataBin extends StreamDataBin {
 		final long streamVersion,
         final DateTime startDate,
         final DateTime endDate,
-        final ColumnList columnList)
+        final ColumnList columnList,
+        final long numToSkip,
+        final long numToReturn)
 		throws IllegalArgumentException {
 
 		// Validate the parameters.
@@ -192,8 +193,11 @@ public class MongoStreamDataBin extends StreamDataBin {
 
 		// Make the query and return the results.
 		return
-			new MongoCursorMultiValueResult<MongoStreamData>(
-				MONGO_COLLECTION.find(queryBuilder.get(), columns));
+			new MongoMultiValueResultCursor<MongoStreamData>(
+				MONGO_COLLECTION
+				    .find(queryBuilder.get(), columns)
+				    .skip((int) numToSkip)
+				    .limit((int) numToReturn));
 	}
 
 	/*

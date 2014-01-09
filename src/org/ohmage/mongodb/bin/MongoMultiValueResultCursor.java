@@ -1,9 +1,9 @@
-package org.ohmage.mongodb.domain;
+package org.ohmage.mongodb.bin;
 
 import java.util.Iterator;
 
 import org.mongojack.DBCursor;
-import org.ohmage.domain.MultiValueResult;
+import org.ohmage.bin.MultiValueResult;
 
 /**
  * <p>
@@ -12,19 +12,19 @@ import org.ohmage.domain.MultiValueResult;
  *
  * @author John Jenkins
  */
-public class MongoCursorMultiValueResult<T> implements MultiValueResult<T> {
+public class MongoMultiValueResultCursor<T> implements MultiValueResult<T> {
 	/**
 	 * The cursor that was used to make the query and contains the results.
 	 */
 	private final DBCursor<T> cursor;
-	
+
 	/**
 	 * Creates a new MongoDB multi-value result from a cursor.
-	 * 
+	 *
 	 * @param cursor
 	 *        The cursor used to make the query and that contains the results.
 	 */
-	public MongoCursorMultiValueResult(final DBCursor<T> cursor) {
+	public MongoMultiValueResultCursor(final DBCursor<T> cursor) {
 		this.cursor = cursor;
 	}
 
@@ -33,7 +33,7 @@ public class MongoCursorMultiValueResult<T> implements MultiValueResult<T> {
 	 * @see org.ohmage.domain.MultiValueResult#count()
 	 */
 	@Override
-	public int count() {
+	public long count() {
 		return cursor.count();
 	}
 
@@ -42,7 +42,7 @@ public class MongoCursorMultiValueResult<T> implements MultiValueResult<T> {
 	 * @see org.ohmage.domain.MultiValueResult#size()
 	 */
 	@Override
-	public int size() {
+	public long size() {
 		return cursor.size();
 	}
 

@@ -6,7 +6,6 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.ColumnList;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.survey.SurveyResponse;
 
 /**
@@ -76,7 +75,7 @@ public abstract class SurveyResponseBin {
      * @throws IllegalArgumentException
      *         A required parameter was null.
      */
-    public abstract List<String> getDuplicateIds(
+    public abstract MultiValueResult<String> getDuplicateIds(
         final String owner,
         final String surveyId,
         final long surveyVersion,
@@ -113,6 +112,12 @@ public abstract class SurveyResponseBin {
      *        The projection of columns that should be returned. Null indicates
      *        that all columns should be returned.
      *
+     * @param numToSkip
+     *        The number of survey responses to skip.
+     *
+     * @param numToReturn
+     *        The number of survey responses to return.
+     *
      * @return The survey responses that matches the parameters.
      *
      * @throws IllegalArgumentException
@@ -125,7 +130,9 @@ public abstract class SurveyResponseBin {
         final Collection<String> surveyResponseIds,
         final DateTime startDate,
         final DateTime endDate,
-        final ColumnList columnList)
+        final ColumnList columnList,
+        final long numToSkip,
+        final long numToReturn)
         throws IllegalArgumentException;
 
     /**

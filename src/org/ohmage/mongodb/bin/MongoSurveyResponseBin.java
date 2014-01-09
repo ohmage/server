@@ -7,12 +7,11 @@ import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.mongojack.JacksonDBCollection;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.MetaData;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.survey.SurveyResponse;
-import org.ohmage.mongodb.domain.MongoCursorMultiValueResult;
 import org.ohmage.mongodb.domain.survey.response.MongoSurveyResponse;
 
 import com.mongodb.BasicDBObject;
@@ -155,7 +154,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public List<String> getDuplicateIds(
+    public MultiValueResult<String> getDuplicateIds(
         final String owner,
         final String surveyId,
         final long surveyVersion,
@@ -174,7 +173,10 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 new IllegalArgumentException("The candidate IDs set is null.");
         }
         else if(candidateIds.size() == 0) {
-            return Collections.emptyList();
+            return
+                new MongoMultiValueResultList<String>(
+                    Collections.<String>emptyList(),
+                    0);
         }
 
         // Build the query.
@@ -197,13 +199,16 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
                 SurveyResponse.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID)
             .in(candidateIds);
 
-        // Get and return the duplicates.
-        return
+        // Get the results.
+        List<String> results =
             COLLECTION
                 .distinct(
                     SurveyResponse.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_ID,
                     queryBuilder.get());
+
+        // Get and return the duplicates.
+        return new MongoMultiValueResultList<String>(results, results.size());
     }
 
     /*
@@ -218,7 +223,9 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         final Collection<String> surveyResponseIds,
         final DateTime startDate,
         final DateTime endDate,
-        final ColumnList columnList)
+        final ColumnList columnList,
+        final long numToSkip,
+        final long numToReturn)
         throws IllegalArgumentException {
 
         // Validate the parameters.
@@ -280,8 +287,11 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
 
         // Make the query and return the results.
         return
-            new MongoCursorMultiValueResult<MongoSurveyResponse>(
-                MONGO_COLLECTION.find(queryBuilder.get(), columns));
+            new MongoMultiValueResultCursor<MongoSurveyResponse>(
+                MONGO_COLLECTION
+                    .find(queryBuilder.get(), columns)
+                    .skip((int) numToSkip)
+                    .limit((int) numToReturn));
     }
 
     /*

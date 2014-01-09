@@ -1,23 +1,26 @@
 package org.ohmage.servlet;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
+import org.ohmage.bin.MultiValueResult;
+import org.ohmage.bin.MultiValueResultAggregation;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,32 +67,80 @@ public class SchemaServlet extends OhmageServlet {
 	private static final Logger LOGGER =
 		Logger.getLogger(SchemaServlet.class.getName());
 
-	/**
-	 * Returns a list of visible schema IDs.
-	 *
-	 * @param query
-	 *        A value that should appear in either the name or description.
-	 *
-	 * @return A list of visible schema IDs.
-	 */
+    /**
+     * Returns a list of visible schema IDs.
+     *
+     * @param query
+     *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
+     *
+     * @return A list of visible schema IDs.
+     */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody List<String> getSchemaIds(
-		@RequestParam(value = KEY_QUERY, required = false)
-			final String query) {
+	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getSchemaIds(
+		@RequestParam(value = KEY_QUERY, required = false) final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Creating a schema ID read request.");
 
-		LOGGER.log(Level.FINE, "Creating the result object.");
-		List<String> result = new ArrayList<String>();
-
         LOGGER.log(Level.INFO, "Retrieving the stream IDs.");
-        result.addAll(StreamBin.getInstance().getStreamIds(query));
+        MultiValueResult<String> streamIds =
+            StreamBin
+                .getInstance()
+                .getStreamIds(query, 0, numToSkip + numToReturn);
 
         LOGGER.log(Level.INFO, "Retrieving the survey IDs.");
-        result.addAll(SurveyBin.getInstance().getSurveyIds(query));
+        MultiValueResult<String> surveyIds =
+            SurveyBin
+                .getInstance()
+                .getSurveyIds(query, 0, numToSkip + numToReturn);
 
-		LOGGER.log(Level.INFO, "Returning the schema IDs.");
-		return result;
+        LOGGER.log(Level.FINE, "Building the result.");
+        MultiValueResultAggregation.Aggregator<String> aggregator =
+            new MultiValueResultAggregation.Aggregator<String>(streamIds);
+        aggregator.add(surveyIds);
+        MultiValueResultAggregation<String> ids =
+            aggregator.build(numToSkip, numToReturn);
+
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    ids,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<String>> result =
+            new ResponseEntity<MultiValueResult<String>>(
+                ids,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the schema IDs.");
+        return result;
 	}
 
 	/**
@@ -97,16 +148,38 @@ public class SchemaServlet extends OhmageServlet {
 	 *
 	 * @param schemaId
 	 *        The schema's unique identifier.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
 	 *
 	 * @return A list of the visible versions.
 	 */
 	@RequestMapping(
 		value = "{" + KEY_SCHEMA_ID + "}",
 		method = RequestMethod.GET)
-	public static @ResponseBody List<Long> getSchemaVersions(
+	public static @ResponseBody ResponseEntity<MultiValueResult<Long>> getSchemaVersions(
 		@PathVariable(KEY_SCHEMA_ID) final String schemaId,
 		@RequestParam(value = KEY_QUERY, required = false)
-			final String query) {
+			final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
 		LOGGER
 			.log(
@@ -114,32 +187,51 @@ public class SchemaServlet extends OhmageServlet {
 				"Creating a request to read the versions of a schema: " +
 					schemaId);
 
-		LOGGER.log(Level.FINE, "Creating the result object.");
-		List<Long> result = new ArrayList<Long>();
+		LOGGER.log(Level.INFO, "Retrieving the stream versions.");
+		MultiValueResult<Long> streamVersions =
+		    StreamBin
+                .getInstance()
+                .getStreamVersions(
+                    schemaId,
+                    query,
+                    0,
+                    numToSkip + numToReturn);
 
-		LOGGER.log(Level.INFO, "Retrieving the versions.");
-        if(StreamBin.getInstance().exists(schemaId, null)) {
-            LOGGER.log(Level.INFO, "The schema is a stream.");
-            result
-                .addAll(
-                    StreamBin
-                        .getInstance()
-                        .getStreamVersions(schemaId, query));
-        }
-        else if(SurveyBin.getInstance().exists(schemaId, null)) {
-            LOGGER.log(Level.INFO, "The schema is a survey.");
-            result
-                .addAll(
-                    StreamBin
-                        .getInstance()
-                        .getStreamVersions(schemaId, query));
-        }
-        else {
-            throw new UnknownEntityException("The schema is unknown.");
-        }
+        LOGGER.log(Level.INFO, "Retrieving the survey versions.");
+        MultiValueResult<Long> surveyVersions =
+            StreamBin
+                .getInstance()
+                .getStreamVersions(schemaId,
+                    query,
+                    0,
+                    numToSkip + numToReturn);
 
-		LOGGER.log(Level.INFO, "Returning the schema versions.");
-		return result;
+        LOGGER.log(Level.FINE, "Building the result.");
+        MultiValueResultAggregation.Aggregator<Long> aggregator =
+            new MultiValueResultAggregation.Aggregator<Long>(streamVersions);
+        aggregator.add(surveyVersions);
+        MultiValueResultAggregation<Long> versions =
+            aggregator.build(numToSkip, numToReturn);
+
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    versions,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<Long>> result =
+            new ResponseEntity<MultiValueResult<Long>>(
+                versions,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the schema IDs.");
+        return result;
 	}
 
 	/**
@@ -202,12 +294,28 @@ public class SchemaServlet extends OhmageServlet {
      * @param schemaVersion
      *        The version of the schema.
      *
+     * @param startDate
+     *        The earliest date for a given point.
+     *
+     * @param endDate
+     *        The latest date for a given point.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
+     *
      * @return The data corresponding to the schema ID and version.
      */
     @RequestMapping(
         value = "{" + KEY_SCHEMA_ID + "}/{" + KEY_SCHEMA_VERSION + "}/data",
         method = RequestMethod.GET)
-    public static @ResponseBody MultiValueResult<?> getData(
+    public static @ResponseBody ResponseEntity<MultiValueResult<?>> getData(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SCHEMA_ID) final String schemaId,
@@ -215,7 +323,19 @@ public class SchemaServlet extends OhmageServlet {
         @RequestParam(value = PARAM_START_DATE, required = false)
             final String startDate,
         @RequestParam(value = PARAM_END_DATE, required = false)
-            final String endDate) {
+            final String endDate,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
         LOGGER
             .log(
@@ -245,10 +365,10 @@ public class SchemaServlet extends OhmageServlet {
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
         LOGGER.log(Level.INFO, "Retrieving the definition.");
-        MultiValueResult<?> result;
+        MultiValueResult<?> data;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
-            result =
+            data =
                 StreamDataBin
                     .getInstance()
                     .getStreamData(
@@ -257,11 +377,13 @@ public class SchemaServlet extends OhmageServlet {
                         schemaVersion,
                         startDateObject,
                         endDateObject,
-                        null);
+                        null,
+                        numToSkip,
+                        numToReturn);
         }
         else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
-            result =
+            data =
                 SurveyResponseBin
                     .getInstance()
                     .getSurveyResponses(
@@ -271,7 +393,9 @@ public class SchemaServlet extends OhmageServlet {
                         null,
                         startDateObject,
                         endDateObject,
-                        null);
+                        null,
+                        numToSkip,
+                        numToReturn);
         }
         else {
             throw
@@ -279,7 +403,24 @@ public class SchemaServlet extends OhmageServlet {
                     "The schema ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the schema.");
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    data,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<?>> result =
+            new ResponseEntity<MultiValueResult<?>>(
+                data,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the data.");
         return result;
     }
 

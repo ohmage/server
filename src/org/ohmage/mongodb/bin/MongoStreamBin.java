@@ -1,10 +1,12 @@
 package org.ohmage.mongodb.bin;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.mongojack.DBCursor;
 import org.mongojack.JacksonDBCollection;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -121,10 +123,14 @@ public class MongoStreamBin extends StreamBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamBin#getStreamIds(java.lang.String)
+	 * @see org.ohmage.bin.StreamBin#getStreamIds(java.lang.String, long, long)
 	 */
 	@Override
-	public List<String> getStreamIds(final String query) {
+	public MultiValueResult<String> getStreamIds(
+	    final String query,
+	    final long numToSkip,
+	    final long numToReturn) {
+
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
@@ -153,20 +159,44 @@ public class MongoStreamBin extends StreamBin {
 
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
-		List<String> result =
+		List<String> results =
 			MONGO_COLLECTION.distinct(Schema.JSON_KEY_ID, queryBuilder.get());
 
-		return result;
+        // Remember the total number of results.
+        int numResults = results.size();
+
+        // Sort the results.
+        Collections.sort(results);
+
+        // Get the lower index.
+        int lowerIndex =
+            (new Long(Math.min(numToSkip, results.size()))).intValue();
+        // Get the upper index.
+        int upperIndex =
+            (new Long(Math.min(numToSkip + numToReturn, results.size())))
+                .intValue();
+
+        // Get the results based on the upper and lower bounds.
+        results = results.subList(lowerIndex, upperIndex);
+
+        // Create a MultiValueResult.
+        MultiValueResult<String> result =
+            new MongoMultiValueResultList<String>(results, numResults);
+
+        // Return the list.
+        return result;
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamBin#getStreamVersions(java.lang.String, java.lang.String)
+	 * @see org.ohmage.bin.StreamBin#getStreamVersions(java.lang.String, java.lang.String, long, long)
 	 */
 	@Override
-	public List<Long> getStreamVersions(
+	public MultiValueResult<Long> getStreamVersions(
 		final String streamId,
-		final String query)
+		final String query,
+        final long numToSkip,
+        final long numToReturn)
 		throws IllegalArgumentException {
 
 		// Validate the input.
@@ -205,9 +235,30 @@ public class MongoStreamBin extends StreamBin {
 
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
-		List<Long> result =
+		List<Long> results =
 			MONGO_COLLECTION
 				.distinct(Schema.JSON_KEY_VERSION, queryBuilder.get());
+
+        // Remember the total number of results.
+        int numResults = results.size();
+
+        // Sort the results.
+        Collections.sort(results);
+
+        // Get the lower index.
+        int lowerIndex =
+            (new Long(Math.min(numToSkip, results.size()))).intValue();
+        // Get the upper index.
+        int upperIndex =
+            (new Long(Math.min(numToSkip + numToReturn, results.size())))
+                .intValue();
+
+        // Get the results based on the upper and lower bounds.
+        results = results.subList(lowerIndex, upperIndex);
+
+        // Create a MultiValueResult.
+        MultiValueResult<Long> result =
+            new MongoMultiValueResultList<Long>(results, numResults);
 
 		return result;
 	}

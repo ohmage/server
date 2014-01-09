@@ -1,5 +1,6 @@
 package org.ohmage.mongodb.bin;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -8,6 +9,7 @@ import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
 import org.mongojack.WriteResult;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.Ohmlet;
@@ -106,9 +108,11 @@ public class MongoOhmletBin extends OhmletBin {
 	 * @see org.ohmage.bin.OhmletBin#getOhmletIds(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public List<String> getOhmletIds(
+	public MultiValueResult<String> getOhmletIds(
 		final String username,
-		final String query) {
+		final String query,
+        final long numToSkip,
+        final long numToReturn) {
 
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
@@ -172,8 +176,29 @@ public class MongoOhmletBin extends OhmletBin {
 
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
-		List<String> result =
+		List<String> results =
 			MONGO_COLLECTION.distinct(Ohmlet.JSON_KEY_ID, queryBuilder.get());
+
+        // Remember the total number of results.
+        int numResults = results.size();
+
+        // Sort the results.
+        Collections.sort(results);
+
+        // Get the lower index.
+        int lowerIndex =
+            (new Long(Math.min(numToSkip, results.size()))).intValue();
+        // Get the upper index.
+        int upperIndex =
+            (new Long(Math.min(numToSkip + numToReturn, results.size())))
+                .intValue();
+
+        // Get the results based on the upper and lower bounds.
+        results = results.subList(lowerIndex, upperIndex);
+
+        // Create a MultiValueResult.
+        MultiValueResult<String> result =
+            new MongoMultiValueResultList<String>(results, numResults);
 
 		return result;
 	}

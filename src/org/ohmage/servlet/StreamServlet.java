@@ -1,16 +1,17 @@
 package org.ohmage.servlet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -186,22 +187,67 @@ public class StreamServlet extends OhmageServlet {
         return result;
     }
 
-	/**
-	 * Returns a list of visible stream IDs.
-	 *
-	 * @param search
-	 *        A value that should appear in either the name or description.
-	 *
-	 * @return A list of visible stream IDs.
-	 */
+    /**
+     * Returns a list of visible stream IDs.
+     *
+     * @param query
+     *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
+     *
+     * @return A list of visible stream IDs.
+     */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody List<String> getStreamIds(
-		@RequestParam(value = KEY_QUERY, required = false)
-			final String query) {
+	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getStreamIds(
+		@RequestParam(value = KEY_QUERY, required = false) final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+		    final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Creating a stream ID read request.");
 
-		return StreamBin.getInstance().getStreamIds(query);
+		LOGGER.log(Level.INFO, "Retrieving the stream IDs");
+		MultiValueResult<String> ids =
+		    StreamBin
+		        .getInstance()
+		        .getStreamIds(query, numToSkip, numToReturn);
+
+		LOGGER.log(Level.INFO, "Building the paging headers.");
+		HttpHeaders headers =
+		    OhmageServlet
+		        .buildPagingHeaders(
+		            numToSkip,
+		            numToReturn,
+		            Collections.<String, String>emptyMap(),
+		            ids,
+		            rootUrl + ROOT_MAPPING);
+
+		LOGGER.log(Level.INFO, "Creating the response object.");
+		ResponseEntity<MultiValueResult<String>> result =
+		    new ResponseEntity<MultiValueResult<String>>(
+		        ids,
+		        headers,
+		        HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the stream IDs.");
+		return result;
 	}
 
 	/**
@@ -209,16 +255,41 @@ public class StreamServlet extends OhmageServlet {
 	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
+     *
+     * @param query
+     *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
 	 *
 	 * @return A list of the visible versions.
 	 */
 	@RequestMapping(
 		value = "{" + KEY_STREAM_ID + "}",
 		method = RequestMethod.GET)
-	public static @ResponseBody List<Long> getStreamVersions(
+	public static @ResponseBody ResponseEntity<MultiValueResult<Long>> getStreamVersions(
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@RequestParam(value = KEY_QUERY, required = false)
-			final String query) {
+			final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
 		LOGGER
 			.log(
@@ -226,7 +297,31 @@ public class StreamServlet extends OhmageServlet {
 				"Creating a request to read the versions of a stream: " +
 					streamId);
 
-		return StreamBin.getInstance().getStreamVersions(streamId, query);
+		LOGGER.log(Level.INFO, "Retreiving the stream versions.");
+		MultiValueResult<Long> versions =
+		    StreamBin
+		        .getInstance()
+		        .getStreamVersions(streamId, query, numToSkip, numToReturn);
+
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    versions,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<Long>> result =
+            new ResponseEntity<MultiValueResult<Long>>(
+                versions,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the stream versions.");
+		return result;
 	}
 
 	/**
@@ -292,8 +387,7 @@ public class StreamServlet extends OhmageServlet {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
-		@RequestBody
-			final Stream.Builder streamBuilder) {
+		@RequestBody final Stream.Builder streamBuilder) {
 
 		LOGGER
 			.log(
@@ -377,7 +471,7 @@ public class StreamServlet extends OhmageServlet {
 	 * @param streamVersion
 	 *        The version of the stream.
 	 *
-	 * @param data
+	 * @param dataBuilders
 	 *        The list of data points to save.
 	 */
 	@RequestMapping(
@@ -438,6 +532,22 @@ public class StreamServlet extends OhmageServlet {
 	 *
 	 * @param streamVersion
 	 *        The version of the stream whose data is being requested.
+     *
+     * @param startDate
+     *        The earliest date for a given point.
+     *
+     * @param endDate
+     *        The latest date for a given point.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
 	 *
 	 * @return The data that conforms to the request parameters.
 	 */
@@ -452,7 +562,19 @@ public class StreamServlet extends OhmageServlet {
         @RequestParam(value = PARAM_START_DATE, required = false)
             final String startDate,
         @RequestParam(value = PARAM_END_DATE, required = false)
-            final String endDate) {
+            final String endDate,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Retrieving some stream data.");
 
@@ -477,7 +599,7 @@ public class StreamServlet extends OhmageServlet {
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
 		LOGGER.log(Level.INFO, "Finding the requested data.");
-		MultiValueResult<? extends StreamData> result =
+		MultiValueResult<? extends StreamData> data =
     		StreamDataBin
                 .getInstance()
                 .getStreamData(
@@ -486,18 +608,29 @@ public class StreamServlet extends OhmageServlet {
                     streamVersion,
                     startDateObject,
                     endDateObject,
-                    null);
+                    null,
+                    numToSkip,
+                    numToReturn);
 
-		LOGGER.log(Level.INFO, "Setting the response headers.");
-		HttpHeaders headers = new HttpHeaders();
-		headers.add("Count", Integer.toString(result.count()));
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    data,
+                    rootUrl + ROOT_MAPPING);
 
-		LOGGER.log(Level.INFO, "Returning the response object.");
-		return
-		    new ResponseEntity<MultiValueResult<? extends StreamData>>(
-		        result,
-		        headers,
-		        HttpStatus.OK);
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<? extends StreamData>> result =
+            new ResponseEntity<MultiValueResult<? extends StreamData>>(
+                data,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the stream data.");
+        return result;
 	}
 
     /**

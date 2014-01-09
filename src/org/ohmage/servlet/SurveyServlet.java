@@ -14,10 +14,10 @@ import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.MultiValueResult;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -28,6 +28,9 @@ import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -137,6 +140,10 @@ public class SurveyServlet extends OhmageServlet {
      *
      * @param surveyBuilder
      *        A builder to use to create this new survey.
+     *
+     * @param iconFile
+     *        If the survey definition references an icon, this should be the
+     *        icon.
      */
     @RequestMapping(
         value = { "", "/" },
@@ -202,19 +209,64 @@ public class SurveyServlet extends OhmageServlet {
     /**
      * Returns a list of visible survey IDs.
      *
-     * @param search
+     * @param query
      *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
      *
      * @return A list of visible survey IDs.
      */
     @RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-    public static @ResponseBody List<String> getSurveyIds(
-        @RequestParam(value = KEY_QUERY, required = false)
-            final String query) {
+    public static @ResponseBody ResponseEntity<MultiValueResult<String>> getSurveyIds(
+        @RequestParam(value = KEY_QUERY, required = false) final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
         LOGGER.log(Level.INFO, "Creating a survey ID read request.");
 
-        return SurveyBin.getInstance().getSurveyIds(query);
+        LOGGER.log(Level.INFO, "Retrieving the stream IDs");
+        MultiValueResult<String> ids =
+            SurveyBin
+                .getInstance()
+                .getSurveyIds(query, numToSkip, numToReturn);
+
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    ids,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<String>> result =
+            new ResponseEntity<MultiValueResult<String>>(
+                ids,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the stream IDs.");
+        return result;
     }
 
     /**
@@ -223,15 +275,39 @@ public class SurveyServlet extends OhmageServlet {
      * @param surveyId
      *        The survey's unique identifier.
      *
+     * @param query
+     *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
+     *
      * @return A list of the visible versions.
      */
     @RequestMapping(
         value = "{" + KEY_SURVEY_ID + "}",
         method = RequestMethod.GET)
-    public static @ResponseBody List<Long> getSurveyVersions(
+    public static @ResponseBody ResponseEntity<MultiValueResult<Long>> getSurveyVersions(
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
-        @RequestParam(value = KEY_QUERY, required = false)
-            final String query) {
+        @RequestParam(value = KEY_QUERY, required = false) final String query,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
         LOGGER
             .log(
@@ -239,7 +315,31 @@ public class SurveyServlet extends OhmageServlet {
                 "Creating a request to read the versions of a survey: " +
                     surveyId);
 
-        return SurveyBin.getInstance().getSurveyVersions(surveyId, query);
+        LOGGER.log(Level.INFO, "Retreiving the survey versions.");
+        MultiValueResult<Long> versions =
+            SurveyBin
+                .getInstance()
+                .getSurveyVersions(surveyId, query, numToSkip, numToReturn);
+
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    versions,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<Long>> result =
+            new ResponseEntity<MultiValueResult<Long>>(
+                versions,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Returning the survey versions.");
+        return result;
     }
 
     /**
@@ -305,8 +405,7 @@ public class SurveyServlet extends OhmageServlet {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
-        @RequestBody
-            final Survey.Builder surveyBuilder) {
+        @RequestBody final Survey.Builder surveyBuilder) {
 
         LOGGER
             .log(
@@ -527,7 +626,7 @@ public class SurveyServlet extends OhmageServlet {
             new HashSet<String>(surveyResponseMap.keySet());
 
         LOGGER.log(Level.INFO, "Retrieving the duplicate IDs.");
-        List<String> duplicateSurveyResponseIds =
+        MultiValueResult<String> duplicateSurveyResponseIds =
             SurveyResponseBin
                 .getInstance()
                 .getDuplicateIds(
@@ -575,7 +674,9 @@ public class SurveyServlet extends OhmageServlet {
                     surveyResponseIds,
                     null,
                     null,
-                    null);
+                    null,
+                    0,
+                    Long.MAX_VALUE);
     }
 
     /**
@@ -592,12 +693,28 @@ public class SurveyServlet extends OhmageServlet {
      * @param surveyVersion
      *        The version of the survey whose data is being requested.
      *
+     * @param startDate
+     *        The earliest date for a given point.
+     *
+     * @param endDate
+     *        The latest date for a given point.
+     *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
+     * @param rootUrl
+     *        The root URL of the request. This should be of the form
+     *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
+     *
      * @return The data that conforms to the request parameters.
      */
     @RequestMapping(
         value = "{" + KEY_SURVEY_ID + "}/{" + KEY_SURVEY_VERSION + "}/data",
         method = RequestMethod.GET)
-    public static @ResponseBody MultiValueResult<? extends SurveyResponse> getData(
+    public static @ResponseBody ResponseEntity<MultiValueResult<? extends SurveyResponse>> getData(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
@@ -605,7 +722,19 @@ public class SurveyServlet extends OhmageServlet {
         @RequestParam(value = PARAM_START_DATE, required = false)
             final String startDate,
         @RequestParam(value = PARAM_END_DATE, required = false)
-            final String endDate) {
+            final String endDate,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip,
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn,
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl) {
 
         LOGGER.log(Level.INFO, "Retrieving some survey data.");
 
@@ -629,8 +758,8 @@ public class SurveyServlet extends OhmageServlet {
                 null :
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
-        LOGGER.log(Level.INFO, "Finding and returning the requested data.");
-        return
+        LOGGER.log(Level.INFO, "Finding the requested data.");
+        MultiValueResult<? extends SurveyResponse> data =
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponses(
@@ -640,7 +769,29 @@ public class SurveyServlet extends OhmageServlet {
                     null,
                     startDateObject,
                     endDateObject,
-                    null);
+                    null,
+                    numToSkip,
+                    numToReturn);
+
+        LOGGER.log(Level.INFO, "Building the paging headers.");
+        HttpHeaders headers =
+            OhmageServlet
+                .buildPagingHeaders(
+                    numToSkip,
+                    numToReturn,
+                    Collections.<String, String>emptyMap(),
+                    data,
+                    rootUrl + ROOT_MAPPING);
+
+        LOGGER.log(Level.INFO, "Creating the response object.");
+        ResponseEntity<MultiValueResult<? extends SurveyResponse>> result =
+            new ResponseEntity<MultiValueResult<? extends SurveyResponse>>(
+                data,
+                headers,
+                HttpStatus.OK);
+
+        LOGGER.log(Level.INFO, "Finding and returning the requested data.");
+        return result;
     }
 
     /**

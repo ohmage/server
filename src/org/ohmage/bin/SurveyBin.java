@@ -1,7 +1,5 @@
 package org.ohmage.bin;
 
-import java.util.List;
-
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.Survey;
 
@@ -56,9 +54,18 @@ public abstract class SurveyBin {
      * @param query
      *        A value that should appear in either the name or description.
      *
+     * @param numToSkip
+     *        The number of stream IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of stream IDs to return.
+     *
      * @return A list of the visible survey IDs.
      */
-    public abstract List<String> getSurveyIds(final String query);
+    public abstract MultiValueResult<String> getSurveyIds(
+        final String query,
+        final long numToSkip,
+        final long numToReturn);
 
     /**
      * Returns a list of the versions for a given survey.
@@ -69,14 +76,22 @@ public abstract class SurveyBin {
      * @param query
      *        A value that should appear in either the name or description.
      *
+     * @param numToSkip
+     *        The number of stream versions to skip.
+     *
+     * @param numToReturn
+     *        The number of stream versions to return.
+     *
      * @return A list of the versions of the survey.
      *
      * @throws IllegalArgumentException
      *         The survey ID is null.
      */
-    public abstract List<Long> getSurveyVersions(
+    public abstract MultiValueResult<Long> getSurveyVersions(
         final String surveyId,
-        final String query)
+        final String query,
+        final long numToSkip,
+        final long numToReturn)
         throws IllegalArgumentException;
 
     /**

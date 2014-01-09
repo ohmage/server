@@ -1,7 +1,5 @@
 package org.ohmage.bin;
 
-import java.util.List;
-
 import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.exception.InvalidArgumentException;
 
@@ -59,12 +57,20 @@ public abstract class OhmletBin {
 	 *
 	 * @param query
 	 *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of ohmlet IDs to skip.
+     *
+     * @param numToReturn
+     *        The number of ohmlet IDs to return.
 	 *
 	 * @return A list of the visible ohmlet IDs.
 	 */
-	public abstract List<String> getOhmletIds(
+	public abstract MultiValueResult<String> getOhmletIds(
 		final String username,
-		final String query);
+		final String query,
+        final long numToSkip,
+        final long numToReturn);
 
 	/**
 	 * Returns a Ohmlet object for the desired ohmlet.
