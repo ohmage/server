@@ -64,9 +64,13 @@ public abstract class OhmageServlet {
     public static final String DEFAULT_NUM_TO_RETURN_STRING = "100";
 
     /**
-     * The header for the URL to the next set of data for list requests.
+     * The header for the number of elements being returned in this response.
      */
     public static final String HEADER_COUNT = "Count";
+    /**
+     * The header for the total number of elements that in this list.
+     */
+    public static final String HEADER_TOTAL_COUNT = "Total-Count";
     /**
      * The header for the URL to the previous set of data for list requests.
      */
@@ -200,6 +204,9 @@ public abstract class OhmageServlet {
 
         // Add the count header.
         result.add(HEADER_COUNT, Long.toString(response.size()));
+
+        // Add the total count header.
+        result.add(HEADER_TOTAL_COUNT, Long.toString(response.count()));
 
         // Build the base URL.
         StringBuilder urlParamBuilder = new StringBuilder(servletUrl);
