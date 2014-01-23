@@ -32,33 +32,29 @@ import com.sun.mail.smtp.SMTPTransport;
 public class Registration {
     public static class Builder {
         /**
-         * The user-name of the user that owns this registration.
+         * The unique identifier for the user that owns this registration.
          */
-        @JsonProperty(JSON_KEY_USERNAME)
-        private final String username;
+        private final String userId;
         /**
          * The email address of the user where the registration link was sent.
          */
-        @JsonProperty(JSON_KEY_EMAIL)
         private final String emailAddress;
         /**
          * The unique identifier for the user to use to activate their account.
          */
-        @JsonProperty(JSON_KEY_ACTIVATION_ID)
         private String activationId;
         /**
          * The number of milliseconds since the Unix epoch at which time the
          * user activated their account or null if the account has not yet been
          * activated.
          */
-        @JsonProperty(JSON_KEY_ACTIVATION_TIMESTAMP)
         private Long activationTimestamp;
 
         /**
          * Creates a new Builder object for a new Registration object.
          *
-         * @param username
-         *        The user's user-name.
+         * @param userId
+         *        The user's unique identifier.
          *
          * @param emailAddress
          *        The user's email address.
@@ -68,10 +64,10 @@ public class Registration {
          *        account.
          */
         public Builder(
-            final String username,
+            final String userId,
             final String emailAddress) {
 
-            this.username = username;
+            this.userId = userId;
             this.emailAddress = emailAddress;
         }
 
@@ -81,7 +77,7 @@ public class Registration {
          * @param registration The existing Registration object.
          */
         public Builder(final Registration registration) {
-            username = registration.username;
+            userId = registration.userId;
             emailAddress = registration.emailAddress;
             activationId = registration.activationId;
         }
@@ -89,8 +85,8 @@ public class Registration {
         /**
          * Recreates a new Builder.
          *
-         * @param username
-         *        The user's user-name.
+         * @param userId
+         *        The user's unique identifier.
          *
          * @param emailAddress
          *        The user's email address.
@@ -106,13 +102,13 @@ public class Registration {
          */
         @JsonCreator
         protected Builder(
-            @JsonProperty(JSON_KEY_USERNAME) final String username,
+            @JsonProperty(JSON_KEY_USER_ID) final String userId,
             @JsonProperty(JSON_KEY_EMAIL) final String emailAddress,
             @JsonProperty(JSON_KEY_ACTIVATION_ID) final String activationId,
             @JsonProperty(JSON_KEY_ACTIVATION_TIMESTAMP)
                 final Long activationTimestamp) {
 
-            this.username = username;
+            this.userId = userId;
             this.emailAddress = emailAddress;
             this.activationId = activationId;
             this.activationTimestamp = activationTimestamp;
@@ -143,7 +139,7 @@ public class Registration {
         public Registration build() {
             return
                 new Registration(
-                    username,
+                    userId,
                     emailAddress,
                     activationId,
                     activationTimestamp);
@@ -151,9 +147,9 @@ public class Registration {
     }
 
     /**
-     * The JSON key for the user-name.
+     * The JSON key for the user's unique identifier.
      */
-    public static final String JSON_KEY_USERNAME = "username";
+    public static final String JSON_KEY_USER_ID = "user_id";
     /**
      * The JSON key for the email address.
      */
@@ -243,10 +239,10 @@ public class Registration {
         "{ACTIVATION_LINK}";
 
     /**
-     * The user-name of the user that owns this registration.
+     * The unique identifier for the user that owns this registration.
      */
-    @JsonProperty(JSON_KEY_USERNAME)
-    private final String username;
+    @JsonProperty(JSON_KEY_USER_ID)
+    private final String userId;
     /**
      * The email address of the user where the registration link was sent.
      */
@@ -268,28 +264,30 @@ public class Registration {
     /**
      * Creates a new Registration object.
      *
-     * @param username
-     *        The user's user-name.
+     * @param userId
+     *        The user's unique identifier.
      *
      * @param emailAddress
      *        The user's email address.
      *
      * @throws IllegalArgumentException
-     *         user-name or email address is null.
+     *         The user's unique identifier or email address is null.
      */
-    public Registration(final String username, final String emailAddress)
+    public Registration(final String userId, final String emailAddress)
         throws IllegalArgumentException {
 
         // Validate the parameters.
-        if(username == null) {
-            throw new IllegalArgumentException("The username is null.");
+        if(userId == null) {
+            throw
+                new IllegalArgumentException(
+                    "The user's unique identifier is null.");
         }
         if(emailAddress == null) {
             throw new IllegalArgumentException("The email address is null.");
         }
 
         // Store the parameters
-        this.username = username;
+        this.userId = userId;
         this.emailAddress = emailAddress;
         activationId = createRegistrationId();
         activationTimestamp = null;
@@ -298,8 +296,8 @@ public class Registration {
     /**
      * Recreates an existing Registration object.
      *
-     * @param username
-     *        The user's user-name.
+     * @param userId
+     *        The user's unique identifier.
      *
      * @param emailAddress
      *        The user's email address.
@@ -313,25 +311,28 @@ public class Registration {
      *        account was activated.
      *
      * @throws IllegalArgumentException
-     *         The user-name, email address, or activation ID is null.
+     *         The user's unique identifier, email address, or activation ID is
+     *         null.
      */
     @JsonCreator
     protected Registration(
-        @JsonProperty(JSON_KEY_USERNAME) final String username,
+        @JsonProperty(JSON_KEY_USER_ID) final String userId,
         @JsonProperty(JSON_KEY_EMAIL) final String emailAddress,
         @JsonProperty(JSON_KEY_ACTIVATION_ID) final String activationId,
         @JsonProperty(JSON_KEY_ACTIVATION_TIMESTAMP)
             final Long activationTimestamp)
         throws IllegalArgumentException {
 
-        if(username == null) {
-            throw new IllegalArgumentException("The username is null.");
+        if(userId == null) {
+            throw
+                new IllegalArgumentException(
+                    "The user's unique identifier is null.");
         }
         if(emailAddress == null) {
             throw new IllegalArgumentException("The email address is null.");
         }
 
-        this.username = username;
+        this.userId = userId;
         this.emailAddress = emailAddress;
         this.activationId =
             (activationId == null) ? createRegistrationId() : activationId;
@@ -509,7 +510,7 @@ public class Registration {
         }
 
         // Add the user-specific stuff with some randomness.
-        digest.update(username.getBytes());
+        digest.update(userId.getBytes());
         digest.update(emailAddress.getBytes());
         digest
             .update(

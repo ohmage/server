@@ -52,8 +52,8 @@ public abstract class StreamDataBin {
 	/**
 	 * Retrieves data specific to a user and a stream.
 	 *
-	 * @param username
-	 *        The user's username.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
@@ -85,7 +85,7 @@ public abstract class StreamDataBin {
 	 *         A required parameter was null.
 	 */
 	public abstract MultiValueResult<? extends StreamData> getStreamData(
-		final String username,
+		final String userId,
 		final String streamId,
 		final long streamVersion,
         final DateTime startDate,
@@ -98,8 +98,8 @@ public abstract class StreamDataBin {
 	/**
 	 * Retrieves a specific stream data point.
 	 *
-	 * @param username
-	 *        The user's username.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
@@ -116,7 +116,7 @@ public abstract class StreamDataBin {
 	 *         A required parameter was null.
 	 */
 	public abstract StreamData getStreamData(
-		final String username,
+		final String userId,
 		final String streamId,
 		final long streamVersion,
 		final String pointId)
@@ -125,8 +125,8 @@ public abstract class StreamDataBin {
 	/**
 	 * Deletes a specific stream data point.
 	 *
-	 * @param username
-	 *        The user's username.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
@@ -141,7 +141,7 @@ public abstract class StreamDataBin {
 	 *         A required parameter was null.
 	 */
 	public abstract void deleteStreamData(
-		final String username,
+		final String userId,
 		final String streamId,
 		final long streamVersion,
 		final String pointId)

@@ -65,10 +65,10 @@ public class AuthorizationToken extends OhmageDomainObject {
 	@JsonProperty(JSON_KEY_REFRESH_TOKEN)
 	private final String refreshToken;
 	/**
-	 * The user-name of the user to whom the token applies.
+	 * The unique ID of the user to whom the token applies.
 	 */
-	@JsonProperty(User.JSON_KEY_USERNAME)
-	private final String username;
+	@JsonProperty(User.JSON_KEY_ID)
+	private final String userId;
 	/**
 	 * The number of milliseconds since the epoch at which time the token was
 	 * granted.
@@ -110,7 +110,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			getRandomId(),
 			getRandomId(),
-			((user == null) ? null : user.getUsername()),
+			((user == null) ? null : user.getId()),
 			System.currentTimeMillis(),
 			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
 			true,
@@ -135,7 +135,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			getRandomId(),
 			getRandomId(),
-			((oldToken == null) ? null : oldToken.getUsername()),
+			((oldToken == null) ? null : oldToken.getUserId()),
 			System.currentTimeMillis(),
 			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
 			true,
@@ -145,40 +145,40 @@ public class AuthorizationToken extends OhmageDomainObject {
 		oldToken.refreshed = true;
 	}
 
-	/**
-	 * Recreates an existing authentication token.
-	 *
-	 * @param accessToken
-	 *        The authentication token.
-	 *
-	 * @param refreshToken
-	 *        The refresh token.
-	 *
-	 * @param username
-	 *        The user's user-name.
-	 *
-	 * @param granted
-	 *        The time when the token was granted.
-	 *
-	 * @param expires
-	 *        The time when the token expires.
-	 *
-	 * @param valid
-	 *        Whether or not this token is valid.
-	 *
-	 * @param internalVersion
-	 *        The internal version of this authentication token.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The token and/or user-name are null, the token is being granted
-	 *         in the future, or the token is being granted after it has
-	 *         expired.
-	 */
+    /**
+     * Recreates an existing authentication token.
+     *
+     * @param accessToken
+     *        The authentication token.
+     *
+     * @param refreshToken
+     *        The refresh token.
+     *
+     * @param userId
+     *        The user's unique identifier.
+     *
+     * @param granted
+     *        The time when the token was granted.
+     *
+     * @param expires
+     *        The time when the token expires.
+     *
+     * @param valid
+     *        Whether or not this token is valid.
+     *
+     * @param internalVersion
+     *        The internal version of this authentication token.
+     *
+     * @throws IllegalArgumentException
+     *         The token and/or unique identifier for the user are null, the
+     *         token is being granted in the future, or the token is being
+     *         granted after it has expired.
+     */
 	@JsonCreator
-	public AuthorizationToken(
+	protected AuthorizationToken(
 		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
 		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
-		@JsonProperty(User.JSON_KEY_USERNAME) final String username,
+		@JsonProperty(User.JSON_KEY_ID) final String userId,
 		@JsonProperty(JSON_KEY_GRANTED) final long granted,
 		@JsonProperty(JSON_KEY_EXPIRES) final long expires,
 		@JsonProperty(JSON_KEY_VALID) final boolean valid,
@@ -189,7 +189,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			accessToken,
 			refreshToken,
-			username,
+			userId,
 			granted,
 			expires,
 			valid,
@@ -197,44 +197,44 @@ public class AuthorizationToken extends OhmageDomainObject {
 			null);
 	}
 
-	/**
-	 * Builds the AuthorizationToken object.
-	 *
-	 * @param accessToken
-	 *        The authentication token.
-	 *
-	 * @param refreshToken
-	 *        The refresh token.
-	 *
-	 * @param username
-	 *        The user's user-name.
-	 *
-	 * @param granted
-	 *        The time when the token was granted.
-	 *
-	 * @param expires
-	 *        The time when the token expires.
-	 *
-	 * @param valid
-	 *        Whether or not this token is valid.
-	 *
-	 * @param internalReadVersion
-	 *        The internal version of this authentication token when it was
-	 *        read from the database.
-	 *
-	 * @param internalWriteVersion
-	 *        The new internal version of this authentication token when it
-	 *        will be written back to the database.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The token and/or user-name are null, the token is being granted
-	 *         in the future, or the token is being granted after it has
-	 *         expired.
-	 */
+    /**
+     * Builds the AuthorizationToken object.
+     *
+     * @param accessToken
+     *        The authentication token.
+     *
+     * @param refreshToken
+     *        The refresh token.
+     *
+     * @param userId
+     *        The user's unique identifier.
+     *
+     * @param granted
+     *        The time when the token was granted.
+     *
+     * @param expires
+     *        The time when the token expires.
+     *
+     * @param valid
+     *        Whether or not this token is valid.
+     *
+     * @param internalReadVersion
+     *        The internal version of this authentication token when it was
+     *        read from the database.
+     *
+     * @param internalWriteVersion
+     *        The new internal version of this authentication token when it
+     *        will be written back to the database.
+     *
+     * @throws IllegalArgumentException
+     *         The token and/or unique identifier for the user are null, the
+     *         token is being granted in the future, or the token is being
+     *         granted after it has expired.
+     */
 	private AuthorizationToken(
 		final String accessToken,
 		final String refreshToken,
-		final String username,
+		final String userId,
 		final long granted,
 		final long expires,
 		final boolean valid,
@@ -256,8 +256,10 @@ public class AuthorizationToken extends OhmageDomainObject {
 				new IllegalArgumentException(
 					"The refresh token is null.");
 		}
-		if(username == null) {
-			throw new IllegalArgumentException("The user-name is null.");
+		if(userId == null) {
+			throw
+			    new IllegalArgumentException(
+			        "The user's unique identifier is null.");
 		}
 		if(granted > System.currentTimeMillis()) {
 			throw
@@ -274,7 +276,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		// Save the state.
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
-		this.username = username;
+		this.userId = userId;
 		this.granted = granted;
 		this.expires = expires;
 		this.valid = valid;
@@ -298,15 +300,15 @@ public class AuthorizationToken extends OhmageDomainObject {
 		return refreshToken;
 	}
 
-	/**
-	 * Returns the user-name of the user associated with this authentication
-	 * token.
-	 *
-	 * @return The user-name of the user associated with this authentication
-	 *         token.
-	 */
-	public String getUsername() {
-		return username;
+    /**
+     * Returns the unique identifier for the user associated with this
+     * authentication token.
+     *
+     * @return The unique identifier for the user associated with this
+     *         authentication token.
+     */
+	public String getUserId() {
+		return userId;
 	}
 
 	/**
@@ -320,7 +322,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 */
 	public User getUser() throws IllegalArgumentException {
 		// Attempt to get the user.
-		User user = UserBin.getInstance().getUser(username);
+		User user = UserBin.getInstance().getUser(userId);
 
 		// If the user no longer exists, throw an exception.
 		if(user == null) {

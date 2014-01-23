@@ -163,7 +163,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
 
         // Validate the parameters.
         if(owner == null) {
-            throw new IllegalArgumentException("The username is null.");
+            throw new IllegalArgumentException("The owner is null.");
         }
         if(surveyId == null) {
             throw new IllegalArgumentException("The survey ID is null.");
@@ -217,7 +217,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      */
     @Override
     public MultiValueResult<? extends SurveyResponse> getSurveyResponses(
-        final String username,
+        final String owner,
         final String surveyId,
         final long surveyVersion,
         final Collection<String> surveyResponseIds,
@@ -229,8 +229,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         throws IllegalArgumentException {
 
         // Validate the parameters.
-        if(username == null) {
-            throw new IllegalArgumentException("The username is null.");
+        if(owner == null) {
+            throw new IllegalArgumentException("The owner is null.");
         }
         if(surveyId == null) {
             throw new IllegalArgumentException("The survey ID is null.");
@@ -239,8 +239,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         // Build the query.
         QueryBuilder queryBuilder = QueryBuilder.start();
 
-        // Add the user-name.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(username);
+        // Add the user's unique identifier.
+        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
 
         // Add the survey ID.
         queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
@@ -300,15 +300,15 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      */
     @Override
     public SurveyResponse getSurveyResponse(
-        final String username,
+        final String owner,
         final String surveyId,
         final long surveyVersion,
         final String pointId)
         throws IllegalArgumentException {
 
         // Validate the parameters.
-        if(username == null) {
-            throw new IllegalArgumentException("The username is null.");
+        if(owner == null) {
+            throw new IllegalArgumentException("The owner is null.");
         }
         if(surveyId == null) {
             throw new IllegalArgumentException("The survey ID is null.");
@@ -320,8 +320,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         // Build the query.
         QueryBuilder queryBuilder = QueryBuilder.start();
 
-        // Add the user-name.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(username);
+        // Add the user's unique identifier.
+        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
 
         // Add the survey ID.
         queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
@@ -370,15 +370,15 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      */
     @Override
     public void deleteSurveyResponse(
-        final String username,
+        final String owner,
         final String surveyId,
         final long surveyVersion,
         final String pointId)
         throws IllegalArgumentException {
 
         // Validate the parameters.
-        if(username == null) {
-            throw new IllegalArgumentException("The username is null.");
+        if(owner == null) {
+            throw new IllegalArgumentException("The owner is null.");
         }
         if(surveyId == null) {
             throw new IllegalArgumentException("The survey ID is null.");
@@ -390,8 +390,8 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         // Build the query.
         QueryBuilder queryBuilder = QueryBuilder.start();
 
-        // Add the user-name.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(username);
+        // Add the user's unique identifier.
+        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
 
         // Add the survey ID.
         queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);

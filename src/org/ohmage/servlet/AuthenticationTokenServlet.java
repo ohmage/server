@@ -39,9 +39,9 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	public static final String ROOT_MAPPING = "/auth_token";
 
 	/**
-	 * The parameter key for user-names.
+	 * The parameter key for the user's email address.
 	 */
-	public static final String PARAMETER_USERNAME = "username";
+	public static final String PARAMETER_EMAIL = "email";
 	/**
 	 * The parameter key for passwords.
 	 */
@@ -118,8 +118,8 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 * Creates a new authentication token for a user using their ohmage
 	 * credentials.
 	 *
-	 * @param username
-	 *        The user's user-name.
+	 * @param email
+	 *        The user's email address.
 	 *
 	 * @param password
 	 *        The user's password.
@@ -129,17 +129,17 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	@RequestMapping(
 		value = { "", "/" },
 		method = { RequestMethod.GET, RequestMethod.POST },
-		params = { PARAMETER_USERNAME, PARAMETER_PASSWORD })
+		params = { PARAMETER_EMAIL, PARAMETER_PASSWORD })
 	public static @ResponseBody AuthorizationToken getTokenFromOhmageAccount(
-		@RequestParam(value = PARAMETER_USERNAME, required = true)
-			final String username,
+		@RequestParam(value = PARAMETER_EMAIL, required = true)
+			final String email,
 		@RequestParam(value = PARAMETER_PASSWORD, required = true)
 			final String password) {
 
 		LOGGER
 			.log(
 				Level.INFO,
-				"Creating an authentication token from a username and " +
+				"Creating an authentication token from an email address and " +
 					"password.");
 
 		// Create a universal response to make it less obvious as to why we are
@@ -149,10 +149,10 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		LOGGER
 			.log(
 				Level.INFO,
-				"Retrieveing the user based on the username: " + username);
-		User user = UserBin.getInstance().getUser(username);
+				"Retrieveing the user based on the email address: " + email);
+		User user = UserBin.getInstance().getUserFromEmail(email);
 		if(user == null) {
-			LOGGER.log(Level.INFO, "The user is unknown: " + username);
+			LOGGER.log(Level.INFO, "The user is unknown: " + email);
 			throw new AuthenticationException(errorResponse);
 		}
 

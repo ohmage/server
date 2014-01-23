@@ -103,12 +103,19 @@ public class MongoUserBin extends UserBin {
 	 * Default constructor that creates any tables and indexes if necessary.
 	 */
 	protected MongoUserBin() {
-		// Ensure that there is an index on the username.
-		COLLECTION
-			.ensureIndex(
-				new BasicDBObject(User.JSON_KEY_USERNAME, 1),
-				COLLECTION_NAME + "_" + User.JSON_KEY_USERNAME + "_unique",
-				true);
+        // Ensure that there is an index on the user's unique identifier.
+        COLLECTION
+            .ensureIndex(
+                new BasicDBObject(User.JSON_KEY_ID, 1),
+                COLLECTION_NAME + "_" + User.JSON_KEY_ID + "_unique",
+                true);
+
+        // Ensure that there is an index on the user's email address.
+        COLLECTION
+            .ensureIndex(
+                new BasicDBObject(User.JSON_KEY_EMAIL, 1),
+                COLLECTION_NAME + "_" + User.JSON_KEY_EMAIL + "_unique",
+                true);
 
         // Ensure that there is a unique index on the media filenames.
         // Create the old-style of options due to a bug in MongoDB, see:
@@ -169,36 +176,62 @@ public class MongoUserBin extends UserBin {
 		catch(MongoException.DuplicateKey e) {
 			throw
 			    new InvalidArgumentException(
-			        "A user with the given username already exists or a " +
-			            "user has already linked this provider account to " +
+			        "A user with the given email address already exists or " +
+			            "a user has already linked this provider account to " +
 			            "their ohmage account.",
 			        e);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.bin.UserBin#getUser(java.lang.String)
-	 */
-	@Override
-	public User getUser(
-		final String username)
-		throws IllegalArgumentException {
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.UserBin#getUser(java.lang.String)
+     */
+    @Override
+    public User getUser(final String id)
+        throws IllegalArgumentException {
 
-		// Validate the parameter.
-		if(username == null) {
-			throw new IllegalArgumentException("The username is null.");
-		}
+        // Validate the parameter.
+        if(id == null) {
+            throw
+                new IllegalArgumentException(
+                    "The user's unique identifier is null.");
+        }
 
-		// Build the query.
-		QueryBuilder queryBuilder = QueryBuilder.start();
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
 
-		// Add the authentication token to the query
-		queryBuilder.and(User.JSON_KEY_USERNAME).is(username);
+        // Add the authentication token to the query
+        queryBuilder.and(User.JSON_KEY_ID).is(id);
 
-		// Execute the query.
-		return MONGO_COLLECTION.findOne(queryBuilder.get());
-	}
+        // Execute the query.
+        return MONGO_COLLECTION.findOne(queryBuilder.get());
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.UserBin#getUserFromEmail(java.lang.String)
+     */
+    @Override
+    public User getUserFromEmail(final String email)
+        throws IllegalArgumentException {
+
+        // Validate the parameter.
+        if(email == null) {
+            throw
+                new IllegalArgumentException(
+                    "The user's email address is null.");
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the authentication token to the query
+        queryBuilder.and(User.JSON_KEY_EMAIL).is(email);
+
+        // Execute the query.
+        return MONGO_COLLECTION.findOne(queryBuilder.get());
+    }
 
 	/*
 	 * (non-Javadoc)
@@ -278,7 +311,7 @@ public class MongoUserBin extends UserBin {
 
 		// Create the query.
 		// Limit the query only to this user.
-		Query query = DBQuery.is(User.JSON_KEY_USERNAME, user.getUsername());
+		Query query = DBQuery.is(User.JSON_KEY_ID, user.getId());
 		// Ensure that the user has not been updated elsewhere.
 		query =
 			query
@@ -310,17 +343,17 @@ public class MongoUserBin extends UserBin {
 	 */
 	@Override
 	public void disableUser(
-		final String username)
+		final String userId)
 		throws IllegalArgumentException {
 
 		// Validate the parameter.
-		if(username == null) {
-			throw new IllegalArgumentException("The username is null.");
+		if(userId == null) {
+			throw new IllegalArgumentException("The user ID is null.");
 		}
 
 		// FIXME: For testing purposes, this actually deletes the object. In
 		// the future, we will probably want to simply mark the account as
 		// deleted.
-		COLLECTION.remove(DBQuery.is(User.JSON_KEY_USERNAME, username));
+		COLLECTION.remove(DBQuery.is(User.JSON_KEY_ID, userId));
 	}
 }

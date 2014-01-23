@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.validator.routines.EmailValidator;
 import org.mindrot.jbcrypt.BCrypt;
@@ -41,9 +42,9 @@ public class User extends OhmageDomainObject {
      */
     public static class Builder extends OhmageDomainObject.Builder<User> {
         /**
-         * The user's user-name.
+         * The user's unique identifier.
          */
-        private final String username;
+        private final String userId;
         /**
          * The user's password, plain-text or hashed.
          */
@@ -79,13 +80,10 @@ public class User extends OhmageDomainObject {
          * The user's self-registration information or null if the user is not
          * self-registered.
          */
-        private Registration.Builder registration;
+        private Registration registration;
 
         /**
          * Creates a new builder with the outward-facing allowed parameters.
-         *
-         * @param username
-         *        The user-name of the user.
          *
          * @param password
          *        The hashed password of the user.
@@ -98,13 +96,12 @@ public class User extends OhmageDomainObject {
          */
         @JsonCreator
         public Builder(
-            @JsonProperty(JSON_KEY_USERNAME) final String username,
             @JsonProperty(JSON_KEY_EMAIL) final String email,
             @JsonProperty(JSON_KEY_FULL_NAME) final String fullName) {
 
             super(null);
 
-            this.username = username;
+            userId = generateId();
             this.email = email;
             this.fullName = fullName;
         }
@@ -120,23 +117,24 @@ public class User extends OhmageDomainObject {
             final User user) {
             super(user);
 
-            username = user.username;
+            userId = user.id;
             password = user.password;
             email = user.email;
             fullName = user.fullName;
-            providers = user.providers;
-            ohmlets = user.communities;
-            streams = user.streams;
-            surveys = user.surveys;
+            providers =
+                new HashMap<String, ProviderUserInformation>(user.providers);
+            ohmlets = new HashMap<String, OhmletReference>(user.ohmlets);
+            streams = new HashSet<SchemaReference>(user.streams);
+            surveys = new HashSet<SchemaReference>(user.surveys);
         }
 
         /**
-         * Returns the currently set user-name of the user.
+         * Returns the new user's unique identifier.
          *
-         * @return The currently set user-name of the user.
+         * @return The new user's unique identifier.
          */
-        public String getUsername() {
-            return username;
+        public String getId() {
+            return userId;
         }
 
         /**
@@ -435,7 +433,7 @@ public class User extends OhmageDomainObject {
          *
          * @return The self-registration information for this user.
          */
-        public Registration.Builder getRegistration() {
+        public Registration getRegistration() {
             return registration;
         }
 
@@ -448,9 +446,7 @@ public class User extends OhmageDomainObject {
          *
          * @return This builder to facilitate chaining.
          */
-        public Builder setRegistration(
-            final Registration.Builder registration) {
-
+        public Builder setRegistration(final Registration registration) {
             this.registration = registration;
 
             return this;
@@ -466,7 +462,7 @@ public class User extends OhmageDomainObject {
          */
         public User build() {
             return new User(
-                username,
+                userId,
                 password,
                 email,
                 fullName,
@@ -479,19 +475,6 @@ public class User extends OhmageDomainObject {
                 internalWriteVersion);
         }
     }
-
-    /**
-     * The minimum allowed length for a user-name.
-     *
-     * @see #validateUsername(String)
-     */
-    public static final int USERNAME_LENGTH_MIN = 3;
-    /**
-     * The maximum allowed length for a user-name.
-     *
-     * @see #validateUsername(String)
-     */
-    public static final int USERNAME_LENGTH_MAX = 25;
 
     /**
      * The group ID for the Jackson filter. This must be unique to our class,
@@ -510,9 +493,9 @@ public class User extends OhmageDomainObject {
     private static final int BCRYPT_SALT_ROUNDS = 12;
 
     /**
-     * The JSON key for the user-name.
+     * The JSON key for the unique identifier for this user.
      */
-    public static final String JSON_KEY_USERNAME = "username";
+    public static final String JSON_KEY_ID = "user_id";
     /**
      * The JSON key for the password.
      */
@@ -547,10 +530,11 @@ public class User extends OhmageDomainObject {
     public static final String JSON_KEY_REGISTRATION = "registration";
 
     /**
-     * The user's user-name.
+     * The internal unique ID for a user.
      */
-    @JsonProperty(JSON_KEY_USERNAME)
-    private final String username;
+    @JsonProperty(JSON_KEY_ID)
+    @JsonFilterField
+    private final String id;
     /**
      * The user's hashed password.
      */
@@ -578,7 +562,7 @@ public class User extends OhmageDomainObject {
      */
     @JsonProperty(JSON_KEY_OHMLETS)
     @JsonSerialize(using = MapValuesJsonSerializer.class)
-    private final Map<String, OhmletReference> communities;
+    private final Map<String, OhmletReference> ohmlets;
     /**
      * The set of streams and, optionally, a version associated with each
      * stream, that this user is tracking.
@@ -600,9 +584,6 @@ public class User extends OhmageDomainObject {
 
     /**
      * Creates a new User object.
-     *
-     * @param username
-     *        The user-name of the user.
      *
      * @param password
      *        The hashed password of the user.
@@ -637,25 +618,24 @@ public class User extends OhmageDomainObject {
      *         A required parameter is null or invalid.
      */
     public User(
-        final String username,
         final String password,
         final String email,
         final String fullName,
         final List<ProviderUserInformation> providers,
-        final Set<OhmletReference> communities,
+        final Set<OhmletReference> ohmlets,
         final Set<SchemaReference> streams,
         final Set<SchemaReference> surveys,
-        final Registration.Builder registration)
+        final Registration registration)
         throws InvalidArgumentException {
 
         // Pass through to the builder constructor.
         this(
-            username,
+            generateId(),
             password,
             email,
             fullName,
             providers,
-            communities,
+            ohmlets,
             streams,
             surveys,
             registration,
@@ -665,8 +645,8 @@ public class User extends OhmageDomainObject {
     /**
      * Rebuilds an existing user.
      *
-     * @param username
-     *        The user-name of the user.
+     * @param id
+     *        The internal unique identifier for this user.
      *
      * @param password
      *        The hashed password of the user.
@@ -705,28 +685,27 @@ public class User extends OhmageDomainObject {
      */
     @JsonCreator
     protected User(
-        @JsonProperty(JSON_KEY_USERNAME) final String username,
+        @JsonProperty(JSON_KEY_ID) final String id,
         @JsonProperty(JSON_KEY_PASSWORD) final String password,
         @JsonProperty(JSON_KEY_EMAIL) final String email,
         @JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
         @JsonProperty(JSON_KEY_PROVIDERS)
             final List<ProviderUserInformation> providers,
-        @JsonProperty(JSON_KEY_OHMLETS) final Set<OhmletReference> communities,
+        @JsonProperty(JSON_KEY_OHMLETS) final Set<OhmletReference> ohmlets,
         @JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
         @JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
-        @JsonProperty(JSON_KEY_REGISTRATION)
-            final Registration.Builder registration,
+        @JsonProperty(JSON_KEY_REGISTRATION) final Registration registration,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
         throws InvalidArgumentException {
 
         // Pass through to the builder constructor.
         this(
-            username,
+            id,
             password,
             email,
             fullName,
             providers,
-            communities,
+            ohmlets,
             streams,
             surveys,
             registration,
@@ -737,8 +716,8 @@ public class User extends OhmageDomainObject {
     /**
      * Builds the User object.
      *
-     * @param username
-     *        The user-name of the user.
+     * @param id
+     *        The internal unique identifier for this user.
      *
      * @param password
      *        The hashed password of the user.
@@ -780,15 +759,15 @@ public class User extends OhmageDomainObject {
      *         A required parameter is null or invalid.
      */
     private User(
-        final String username,
+        final String id,
         final String password,
         final String email,
         final String fullName,
         final Collection<ProviderUserInformation> providers,
-        final Collection<OhmletReference> communities,
+        final Collection<OhmletReference> ohmlets,
         final Set<SchemaReference> streams,
         final Set<SchemaReference> surveys,
-        final Registration.Builder registration,
+        final Registration registration,
         final Long internalReadVersion,
         final Long internalWriteVersion)
         throws InvalidArgumentException {
@@ -797,15 +776,20 @@ public class User extends OhmageDomainObject {
         super(internalReadVersion, internalWriteVersion);
 
         // Validate the parameters.
-        if(username == null) {
-            throw new InvalidArgumentException("The username is null.");
+        if(id == null) {
+            throw
+                new IllegalArgumentException(
+                    "The user's internal ID is null.");
+        }
+        if(password == null) {
+            throw new InvalidArgumentException("The password is null.");
         }
         if(email == null) {
             throw new InvalidArgumentException("The email address is null.");
         }
 
         // Save the state.
-        this.username = validateUsername(username);
+        this.id = id;
         this.password = password;
         this.email = validateEmail(email);
         this.fullName = validateName(fullName);
@@ -817,10 +801,10 @@ public class User extends OhmageDomainObject {
             }
         }
 
-        this.communities = new HashMap<String, OhmletReference>();
-        if(communities != null) {
-            for(OhmletReference ohmletReference : communities) {
-                this.communities
+        this.ohmlets = new HashMap<String, OhmletReference>();
+        if(ohmlets != null) {
+            for(OhmletReference ohmletReference : ohmlets) {
+                this.ohmlets
                     .put(
                         ohmletReference.getOhmletId(),
                         ohmletReference);
@@ -836,17 +820,17 @@ public class User extends OhmageDomainObject {
                 new HashSet<SchemaReference>() :
                 new HashSet<SchemaReference>(surveys);
 
-        this.registration =
-            (registration == null) ? null : registration.build();
+        this.registration = registration;
     }
 
     /**
-     * Returns the user-name of this user.
+     * Returns the unique identifier for this user which should be used to
+     * coordinate objects owned by this user.
      *
-     * @return The user-name of this user.
+     * @return The unique identifier for this user.
      */
-    public String getUsername() {
-        return username;
+    public String getId() {
+        return id;
     }
 
     /**
@@ -856,6 +840,49 @@ public class User extends OhmageDomainObject {
      */
     public String getPassword() {
         return password;
+    }
+
+    /**
+     * Verifies that a given password matches this user's password. This should
+     * only be used if the user's account actually has a password.
+     *
+     * @param plaintextPassword
+     *        The plain-text password to check against this user's password.
+     *
+     * @return True if the passwords match, false otherwise.
+     */
+    public boolean verifyPassword(final String plaintextPassword) {
+        if(password == null) {
+            throw new IllegalStateException(
+                "The user account does not have a password.");
+        }
+        return BCrypt.checkpw(plaintextPassword, password);
+    }
+
+    /**
+     * Updates this user's password by creating a new User object with all of
+     * the same fields as this object except the password, which is set as the
+     * given value.
+     *
+     * @param password
+     *        The user's new password.
+     *
+     * @return The new User object that represents the password change.
+     *
+     * @throws IllegalArgumentException
+     *         The password is null.
+     */
+    public User updatePassword(
+        final String password)
+        throws IllegalArgumentException {
+
+        // Validate the input.
+        if(password == null) {
+            throw new IllegalArgumentException("The password is null.");
+        }
+
+        // Build a new User object with the new password.
+        return (new Builder(this)).setPassword(password, false).build();
     }
 
     /**
@@ -907,14 +934,27 @@ public class User extends OhmageDomainObject {
     }
 
     /**
+     * Creates a new User object that is identical to this one that is now
+     * indicated as being part of the given ohmlet.
+     *
+     * @param ohmletReference
+     *        The reference to the ohmlet.
+     *
+     * @return The new, updated User object.
+     */
+    public User joinOhmlet(final OhmletReference ohmletReference) {
+        return (new Builder(this)).addOhmlet(ohmletReference).build();
+    }
+
+    /**
      * Returns the unmodifiable collection of ohmlet IDs that this user is
      * watching.
      *
      * @return The unmodifiable collection of ohmlet IDs that this user is
      *         watching.
      */
-    public Collection<OhmletReference> getCommunities() {
-        return Collections.unmodifiableCollection(communities.values());
+    public Collection<OhmletReference> getOhmlets() {
+        return Collections.unmodifiableCollection(ohmlets.values());
     }
 
     /**
@@ -928,7 +968,47 @@ public class User extends OhmageDomainObject {
      *         with the ohmlet.
      */
     public OhmletReference getOhmlet(final String ohmletId) {
-        return communities.get(ohmletId);
+        return ohmlets.get(ohmletId);
+    }
+
+    /**
+     * Creates a new User from this user with an updated reference to an
+     * ohmlet. If this user was not already associated with the given ohmlet,
+     * they will now be.
+     *
+     * @param ohmletReference
+     *        The reference to the ohmlet which should be inserted or updated.
+     *
+     * @return A new User with the new reference to the ohmlet.
+     */
+    public User upsertOhmlet(final OhmletReference ohmletReference) {
+        return (new Builder(this)).upsertOhmlet(ohmletReference).build();
+    }
+
+    /**
+     * Creates a new User object that is identical to this one that is now no
+     * longer associated (within the User object only) with an ohmlet.
+     *
+     * @param ohmletId
+     *        The ohmlet's unique identifier.
+     *
+     * @return The updated User object.
+     */
+    public User leaveOhmlet(final String ohmletId) {
+        return (new User.Builder(this)).removeOhmlet(ohmletId).build();
+    }
+
+    /**
+     * Creates a new User identical to this one that now follows the given
+     * stream.
+     *
+     * @param streamReference
+     *        The reference to the stream that the user is now following.
+     *
+     * @return The updated User.
+     */
+    public User followStream(final SchemaReference streamReference) {
+        return (new Builder(this)).addStream(streamReference).build();
     }
 
     /**
@@ -943,6 +1023,32 @@ public class User extends OhmageDomainObject {
     }
 
     /**
+     * Creates a new User identical to this one that no longer follows the
+     * given stream.
+     *
+     * @param streamReference
+     *        The reference to the stream that should no longer be followed.
+     *
+     * @return The updated User.
+     */
+    public User ignoreStream(final SchemaReference streamReference) {
+        return (new Builder(this)).removeStream(streamReference).build();
+    }
+
+    /**
+     * Creates a new User identical to this one that now follows the given
+     * survey.
+     *
+     * @param surveyReference
+     *        The reference to the survey that the user is now following.
+     *
+     * @return The updated User.
+     */
+    public User followSurvey(final SchemaReference surveyReference) {
+        return (new Builder(this)).addSurvey(surveyReference).build();
+    }
+
+    /**
      * Returns the unmodifiable set of survey references that this user is
      * watching.
      *
@@ -951,6 +1057,19 @@ public class User extends OhmageDomainObject {
      */
     public Set<SchemaReference> getSurveys() {
         return Collections.unmodifiableSet(surveys);
+    }
+
+    /**
+     * Creates a new User identical to this one that no longer follows the
+     * given survey.
+     *
+     * @param surveyReference
+     *        The reference to the survey that should no longer be followed.
+     *
+     * @return The updated User.
+     */
+    public User ignoreSurvey(final SchemaReference surveyReference) {
+        return (new Builder(this)).removeSurvey(surveyReference).build();
     }
 
     /**
@@ -965,23 +1084,6 @@ public class User extends OhmageDomainObject {
     }
 
     /**
-     * Verifies that a given password matches this user's password. This should
-     * only be used if the user's account actually has a password.
-     *
-     * @param plaintextPassword
-     *        The plain-text password to check against this user's password.
-     *
-     * @return True if the passwords match, false otherwise.
-     */
-    public boolean verifyPassword(final String plaintextPassword) {
-        if(password == null) {
-            throw new IllegalStateException(
-                "The user account does not have a password.");
-        }
-        return BCrypt.checkpw(plaintextPassword, password);
-    }
-
-    /**
      * Updates this user's activation status by creating a new User object with
      * all of the same fields as this object except that the registration now
      * indicates that the account has been activated.
@@ -993,82 +1095,9 @@ public class User extends OhmageDomainObject {
             (new Builder(this))
                 .setRegistration(
                     (new Registration.Builder(registration))
-                        .setActivationTimestamp(System.currentTimeMillis()))
+                        .setActivationTimestamp(System.currentTimeMillis())
+                        .build())
                 .build();
-    }
-
-    /**
-     * Updates this user's password by creating a new User object with all of
-     * the same fields as this object except the password, which is set as the
-     * given value.
-     *
-     * @param password
-     *        The user's new password.
-     *
-     * @return The new User object that represents the password change.
-     *
-     * @throws IllegalArgumentException
-     *         The password is null.
-     */
-    public User updatePassword(
-        final String password)
-        throws IllegalArgumentException {
-
-        // Validate the input.
-        if(password == null) {
-            throw new IllegalArgumentException("The password is null.");
-        }
-
-        // Build a new User object with the new password.
-        return (new Builder(this)).setPassword(password, false).build();
-    }
-
-    /**
-     * Validates that a user-name is a valid user-name.
-     *
-     * @param username
-     *        The user-name to validate.
-     *
-     * @return The trimmed and validated user-name.
-     *
-     * @throws IllegalArgumentException
-     *         The user-name is not valid.
-     */
-    public static String validateUsername(
-        final String username)
-        throws IllegalArgumentException {
-
-        // Verify that it is not null.
-        if(username == null) {
-            throw new IllegalArgumentException("The username is null.");
-        }
-
-        // Trim it and continue validation.
-        String trimmedUsername = username.trim();
-
-        // Verify that the user-name is not empty.
-        if(trimmedUsername.length() == 0) {
-            throw new IllegalArgumentException("The username is empty.");
-        }
-
-        // Verify that the user-name has at least as long as the minimum.
-        if(trimmedUsername.length() < USERNAME_LENGTH_MIN) {
-            throw new IllegalArgumentException(
-                "The username is too short. It must be at least " +
-                    USERNAME_LENGTH_MIN +
-                    " characters.");
-        }
-
-        // Verify that the user-name has at least as long as the minimum.
-        if(trimmedUsername.length() > USERNAME_LENGTH_MAX) {
-            throw new IllegalArgumentException(
-                "The username is too long. It must be less than " +
-                    USERNAME_LENGTH_MAX +
-                    " characters.");
-        }
-
-        // Return the trimmed, validated user-name.
-        return trimmedUsername;
     }
 
     /**
@@ -1168,5 +1197,14 @@ public class User extends OhmageDomainObject {
 
         // Return the trimmed, validated name.
         return trimmedName;
+    }
+
+    /**
+     * Generates a random unique identifier to use as a user's ID.
+     *
+     * @return A random unique identifier to use as a user's ID.
+     */
+    private static String generateId() {
+        return UUID.randomUUID().toString();
     }
 }

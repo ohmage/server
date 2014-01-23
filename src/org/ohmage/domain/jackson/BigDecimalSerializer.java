@@ -17,7 +17,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  *
  * @author John Jenkins
  */
-public class BigDecimalSerializer extends JsonSerializer<BigDecimal>{
+public class BigDecimalSerializer extends JsonSerializer<BigDecimal> {
     /*
      * (non-Javadoc)
      * @see com.fasterxml.jackson.databind.JsonSerializer#serialize(java.lang.Object, com.fasterxml.jackson.core.JsonGenerator, com.fasterxml.jackson.databind.SerializerProvider)

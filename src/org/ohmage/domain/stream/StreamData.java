@@ -30,7 +30,7 @@ public class StreamData extends OhmageDomainObject {
 		extends OhmageDomainObject.Builder<StreamData> {
 
 		/**
-		 * The user-name of the user that owns this data point.
+		 * The unique identifier for the user that owns this data point.
 		 */
 		protected String owner;
 
@@ -89,10 +89,10 @@ public class StreamData extends OhmageDomainObject {
 		}
 
 		/**
-		 * Sets the user-name of the user that owns this data point.
+		 * Sets the unique identifier of the user that owns this data point.
 		 *
 		 * @param owner
-		 *        The user-name of the user that owns this data point.
+		 *        The unique identifier for the user that owns this data point.
 		 *
 		 * @return Returns this build to facilitate chaining.
 		 */
@@ -187,7 +187,7 @@ public class StreamData extends OhmageDomainObject {
 	}
 
 	/**
-	 * The JSON key for the data point's owner's user-name.
+	 * The JSON key for the data point's owner's unique identifier.
 	 */
 	public static final String JSON_KEY_OWNER = "owner";
 
@@ -212,7 +212,7 @@ public class StreamData extends OhmageDomainObject {
 	public static final String JSON_KEY_DATA = "data";
 
 	/**
-	 * The user-name of the user that owns this data.
+	 * The unique identifier for the user that owns this data.
 	 */
 	@JsonProperty(JSON_KEY_OWNER)
     @JsonFilterField
@@ -250,7 +250,7 @@ public class StreamData extends OhmageDomainObject {
 	 * Creates a new stream data point.
 	 *
 	 * @param owner
-	 *        The user-name of the user that owns this data.
+	 *        The unique identifier for the user that owns this data.
 	 *
 	 * @param streamId
 	 *        The unique identifier for the stream to which this data conforms.
@@ -291,7 +291,7 @@ public class StreamData extends OhmageDomainObject {
 	 * Rebuilds an existing data point.
 	 *
 	 * @param owner
-	 *        The user-name of the user that owns this data.
+	 *        The unique identifier for the user that owns this data.
 	 *
 	 * @param streamId
 	 *        The unique identifier for the stream to which this data conforms.
@@ -331,7 +331,7 @@ public class StreamData extends OhmageDomainObject {
 	 * Builder constructor that validates the state of the object.
 	 *
 	 * @param owner
-	 *        The user-name of the user that owns this data.
+	 *        The unique identifier for the user that owns this data.
 	 *
 	 * @param streamId
 	 *        The unique identifier for the stream to which this data conforms.

@@ -18,18 +18,22 @@
     <!-- Create the list of necessary libraries for compiling. -->
     <fileset id="dependencies.compile" dir="${lib}">
         <include name="bson4jackson-2.2.0.jar" />
+        <include name="cglib-nodep-3.1.jar" />
         <include name="commons-codec-1.8.jar" />
         <include name="commons-fileupload-1.3.jar" />
         <include name="commons-io-2.4.jar" />
         <include name="commons-logging-api-1.1.3.jar" />
         <include name="commons-validator-1.4.0.jar" />
         <include name="Concordia-1.1.1.jar" />
+        <include name="easymock-3.2.jar" />
+        <include name="hamcrest-core-1.3.jar" />
         <include name="httpclient-4.3.jar" />
         <include name="httpcore-4.3.jar" />
         <include name="httpmime-4.3.jar" />
         <include name="jackson-annotations-2.2.2.jar" />
         <include name="jackson-core-2.2.2.jar" />
         <include name="jackson-databind-2.2.2.jar" />
+        <include name="javassist-3.18.1-GA.jar" />
         <include name="javax.mail-1.5.1.jar" />
         <include name="jbcrypt-0.3m.jar" />
         <include name="joda-time-2.3.jar" />
@@ -39,8 +43,10 @@
         <include name="log4j-core-2.0-beta9.jar" />
         <include name="log4j-jcl-2.0-beta9.jar" />
         <include name="log4j-slf4j-impl-2.0-beta9.jar" />
-        <include name="mongojack-2.0.0-RC5.jar" />
         <include name="mongo-java-driver-2.11.2.jar" />
+        <include name="mongojack-2.0.0-RC5.jar" />
+        <include name="objenesis-2.1.jar" />
+        <include name="powermock-easymock-1.5.3-full.jar" />
         <include name="persistence-api-1.0.2.jar" />
         <include name="recaptcha4j-0.0.7.jar" />
         <include name="servlet-api-3.1.0.jar" />
@@ -80,7 +86,6 @@
         <include name="httpclient-4.3.jar" />
         <include name="httpcore-4.3.jar" />
         <include name="httpmime-4.3.jar" />
-        <include name="hamcrest-core-1.3.jar" />
         <include name="jackson-annotations-2.2.2.jar" />
         <include name="jackson-core-2.2.2.jar" />
         <include name="jackson-databind-2.2.2.jar" />
@@ -92,8 +97,8 @@
         <include name="log4j-core-2.0-beta9.jar" />
         <include name="log4j-jcl-2.0-beta9.jar" />
         <include name="log4j-slf4j-impl-2.0-beta9.jar" />
-        <include name="mongojack-2.0.0-RC5.jar" />
         <include name="mongo-java-driver-2.11.2.jar" />
+        <include name="mongojack-2.0.0-RC5.jar" />
         <include name="persistence-api-1.0.2.jar" />
         <include name="recaptcha4j-0.0.7.jar" />
         <include name="slf4j-api-1.7.5.jar" />
@@ -165,7 +170,7 @@
     </target>
 
 	<!-- Builds the WAR file. -->
-    <target name="dist" depends="javac" description="Builds the WAR file.">
+    <target name="dist" depends="javac, test" description="Builds the WAR file.">
         <!-- Create the META-INF directory if it doesn't exist. -->
         <mkdir dir="${web}/META-INF" />
     	
@@ -294,6 +299,6 @@
     <!-- A "catch-all" target for all other targets." -->
     <target
         name="all"
-        depends="clean,test,dist,library"
-        description="Creates all target elements." />
+        depends="clean,javadoc,dist,library"
+        description="Runs all target elements." />
 </project>

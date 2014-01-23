@@ -32,36 +32,50 @@ public abstract class UserBin {
 		return instance;
 	}
 
-	/**
-	 * Adds a new user to the repository.
-	 *
-	 * @param user
-	 *        The user to add.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The user is null.
-	 *
-	 * @throws InvalidArgumentException
-	 *         A user with the given user-name already exists.
-	 */
+    /**
+     * Adds a new user to the repository.
+     *
+     * @param user
+     *        The user to add.
+     *
+     * @throws IllegalArgumentException
+     *         The user is null.
+     *
+     * @throws InvalidArgumentException
+     *         A user with the given email address or provider account already
+     *         exists.
+     */
 	public abstract void addUser(
 		final User user)
 		throws IllegalArgumentException, InvalidArgumentException;
 
-	/**
-	 * Retrieves the user with the given user-name.
-	 *
-	 * @param username
-	 *        The user-name of the desired user.
-	 *
-	 * @return The desired user or null if no such user exists.
-	 *
-	 * @throws IllegalArgumentException
-	 *         The user is null.
-	 */
-	public abstract User getUser(
-		final String username)
-		throws IllegalArgumentException;
+    /**
+     * Retrieves the user with the given identifier.
+     *
+     * @param userId
+     *        The internal unique identifier for the user.
+     *
+     * @return The desired user or null if no such user exists.
+     *
+     * @throws IllegalArgumentException
+     *         The user is null.
+     */
+    public abstract User getUser(final String userId)
+        throws IllegalArgumentException;
+
+    /**
+     * Retrieves the user with the given email address.
+     *
+     * @param email
+     *        The email address for the user.
+     *
+     * @return The desired user or null if no such user exists.
+     *
+     * @throws IllegalArgumentException
+     *         The user is null.
+     */
+    public abstract User getUserFromEmail(final String email)
+        throws IllegalArgumentException;
 
 	/**
 	 * Retrieves the user that has been authenticated with a provider and had
@@ -116,13 +130,13 @@ public abstract class UserBin {
 	/**
 	 * Disables a user's account.
 	 *
-	 * @param username
-	 *        The user-name of the user's account.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @throws IllegalArgumentException
 	 *         The user is null.
 	 */
 	public abstract void disableUser(
-		final String username)
+		final String userId)
 		throws IllegalArgumentException;
 }

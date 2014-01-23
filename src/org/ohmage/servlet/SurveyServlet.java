@@ -170,7 +170,7 @@ public class SurveyServlet extends OhmageServlet {
         User user = authToken.getUser();
 
         LOGGER.log(Level.FINE, "Setting the owner of the survey.");
-        surveyBuilder.setOwner(user.getUsername());
+        surveyBuilder.setOwner(user.getId());
 
         LOGGER.log(Level.FINE, "Checking if an icon was given.");
         Media icon = null;
@@ -447,7 +447,7 @@ public class SurveyServlet extends OhmageServlet {
                 Level.INFO,
                 "Verifying that the user updating the survey is the owner " +
                     "of the original survey.");
-        if(! latestSchema.getOwner().equals(user.getUsername())) {
+        if(! latestSchema.getOwner().equals(user.getId())) {
             throw
                 new InsufficientPermissionsException(
                     "Only the owner of this survey may update it.");
@@ -464,7 +464,7 @@ public class SurveyServlet extends OhmageServlet {
             .log(
                 Level.FINE,
                 "Setting the request user as the owner of this new survey.");
-        surveyBuilder.setOwner(user.getUsername());
+        surveyBuilder.setOwner(user.getId());
 
         LOGGER.log(Level.FINE, "Building the updated survey.");
         Survey result = surveyBuilder.build();
@@ -616,7 +616,7 @@ public class SurveyServlet extends OhmageServlet {
             // Build the survey response.
             SurveyResponse surveyResponse =
                 surveyResponseBuilder
-                    .setOwner(user.getUsername())
+                    .setOwner(user.getId())
                     .build(survey, mediaMap);
 
             // Add the survey response to its map.
@@ -630,7 +630,7 @@ public class SurveyServlet extends OhmageServlet {
             SurveyResponseBin
                 .getInstance()
                 .getDuplicateIds(
-                    user.getUsername(),
+                    user.getId(),
                     surveyId,
                     surveyVersion,
                     surveyResponseIds);
@@ -668,7 +668,7 @@ public class SurveyServlet extends OhmageServlet {
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponses(
-                    user.getUsername(),
+                    user.getId(),
                     surveyId,
                     surveyVersion,
                     surveyResponseIds,
@@ -763,7 +763,7 @@ public class SurveyServlet extends OhmageServlet {
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponses(
-                    user.getUsername(),
+                    user.getId(),
                     surveyId,
                     surveyVersion,
                     null,
@@ -846,7 +846,7 @@ public class SurveyServlet extends OhmageServlet {
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponse(
-                    user.getUsername(),
+                    user.getId(),
                     surveyId,
                     surveyVersion,
                     pointId);
@@ -901,7 +901,7 @@ public class SurveyServlet extends OhmageServlet {
         SurveyResponseBin
             .getInstance()
             .deleteSurveyResponse(
-                user.getUsername(),
+                user.getId(),
                 surveyId,
                 surveyVersion,
                 pointId);

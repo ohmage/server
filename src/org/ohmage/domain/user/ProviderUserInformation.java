@@ -7,35 +7,35 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * The information about a user including the user's ohmage user-name as given
- * by the provider.
+ * The information about a user, including the user's ohmage unique identifier,
+ * as given by the provider.
  * </p>
- * 
+ *
  * @author John Jenkins
  */
 public class ProviderUserInformation {
 	/**
 	 * <p>
 	 * A builder for {@link ProviderUserInformation} objects.
-	 * </p> 
+	 * </p>
 	 *
 	 * @author John Jenkins
 	 */
 	public static class Builder {
-		private String providerId;
-		private String id;
-		private String email;
-		
+		private final String providerId;
+		private final String id;
+		private final String email;
+
 		/**
 		 * Creates an initial Builder with the required parameters.
-		 * 
+		 *
 		 * @param providerId
 		 *        The provider's unique identifier.
-		 * 
+		 *
 		 * @param userId
 		 *        The provider-generated, consistent, unique identifier for
 		 *        this user.
-		 * 
+		 *
 		 * @param email
 		 *        The provider-supplied, validated email address for this user.
 		 */
@@ -43,7 +43,7 @@ public class ProviderUserInformation {
 			final String providerId,
 			final String id,
 			final String email) {
-			
+
 			this.providerId = providerId;
 			this.id = id;
 			this.email = email;
@@ -51,7 +51,7 @@ public class ProviderUserInformation {
 
 		/**
 		 * Returns the provider's internal identifier.
-		 * 
+		 *
 		 * @return The provider's internal identifier.
 		 */
 		public String getProviderId() {
@@ -61,7 +61,7 @@ public class ProviderUserInformation {
 		/**
 		 * Returns the provider-generated, consistent, unique identifier for this
 		 * user.
-		 * 
+		 *
 		 * @return The provider-generated, consistent, unique identifier for this
 		 *         user.
 		 */
@@ -71,19 +71,19 @@ public class ProviderUserInformation {
 
 		/**
 		 * Returns the provider-supplied, validated email address for this user.
-		 * 
+		 *
 		 * @return The provider-supplied, validated email address for this user.
 		 */
 		public String getEmail() {
 			return email;
 		}
-		
+
 		/**
 		 * Builds the ProviderUserInformation object.
-		 * 
+		 *
 		 * @return The ProviderUserInformation object, based on the state of
 		 *         the builder.
-		 * 
+		 *
 		 * @throws OhmageException
 		 *         The state of the builder contained invalid fields.
 		 */
@@ -91,7 +91,7 @@ public class ProviderUserInformation {
 			return new ProviderUserInformation(providerId, id, email);
 		}
 	}
-	
+
 	/**
 	 * The JSON key for the provider's internal identifier.
 	 */
@@ -106,7 +106,7 @@ public class ProviderUserInformation {
 	 * user.
 	 */
 	public static final String JSON_KEY_EMAIL = "email";
-	
+
 	/**
 	 * The provider's internal identifier.
 	 */
@@ -126,17 +126,17 @@ public class ProviderUserInformation {
 
 	/**
 	 * Creates a set of information as given by some provider.
-	 * 
+	 *
 	 * @param providerId
 	 *        The provider's internal identifier.
-	 * 
+	 *
 	 * @param userId
 	 *        The provider-generated, consistent, unique identifier for this
 	 *        user.
-	 * 
+	 *
 	 * @param email
 	 *        The provider-supplied, validated email address for this user.
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *         Any of the required parameters are null or invalid.
 	 */
@@ -164,7 +164,7 @@ public class ProviderUserInformation {
 
 	/**
 	 * Returns the provider's internal identifier.
-	 * 
+	 *
 	 * @return The provider's internal identifier.
 	 */
 	public String getProviderId() {
@@ -174,7 +174,7 @@ public class ProviderUserInformation {
 	/**
 	 * Returns the provider-generated, consistent, unique identifier for this
 	 * user.
-	 * 
+	 *
 	 * @return The provider-generated, consistent, unique identifier for this
 	 *         user.
 	 */
@@ -184,10 +184,68 @@ public class ProviderUserInformation {
 
 	/**
 	 * Returns the provider-supplied, validated email address for this user.
-	 * 
+	 *
 	 * @return The provider-supplied, validated email address for this user.
 	 */
 	public String getEmail() {
 		return email;
 	}
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = (prime * result) + ((email == null) ? 0 : email.hashCode());
+        result =
+            (prime *
+                result) +
+                ((providerId == null) ? 0 : providerId.hashCode());
+        result = (prime * result) + ((userId == null) ? 0 : userId.hashCode());
+        return result;
+    }
+
+    /* (non-Javadoc)
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(final Object obj) {
+        if(this == obj) {
+            return true;
+        }
+        if(obj == null) {
+            return false;
+        }
+        if(!(obj instanceof ProviderUserInformation)) {
+            return false;
+        }
+        ProviderUserInformation other = (ProviderUserInformation) obj;
+        if(email == null) {
+            if(other.email != null) {
+                return false;
+            }
+        }
+        else if(!email.equals(other.email)) {
+            return false;
+        }
+        if(providerId == null) {
+            if(other.providerId != null) {
+                return false;
+            }
+        }
+        else if(!providerId.equals(other.providerId)) {
+            return false;
+        }
+        if(userId == null) {
+            if(other.userId != null) {
+                return false;
+            }
+        }
+        else if(!userId.equals(other.userId)) {
+            return false;
+        }
+        return true;
+    }
 }

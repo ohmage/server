@@ -48,26 +48,26 @@ public abstract class OhmletBin {
 		final Ohmlet ohmlet)
 		throws IllegalArgumentException, InvalidArgumentException;
 
-	/**
-	 * Returns a list of the visible ohmlet IDs.
-	 *
-	 * @param username
-	 *        The user-name of the user making the request or null if the
-	 *        request is being made anonymously.
-	 *
-	 * @param query
-	 *        A value that should appear in either the name or description.
+    /**
+     * Returns a list of the visible ohmlet IDs.
+     *
+     * @param userId
+     *        The unique identifier for the user making the request or null if
+     *        the request is being made anonymously.
+     *
+     * @param query
+     *        A value that should appear in either the name or description.
      *
      * @param numToSkip
      *        The number of ohmlet IDs to skip.
      *
      * @param numToReturn
      *        The number of ohmlet IDs to return.
-	 *
-	 * @return A list of the visible ohmlet IDs.
-	 */
+     *
+     * @return A list of the visible ohmlet IDs.
+     */
 	public abstract MultiValueResult<String> getOhmletIds(
-		final String username,
+		final String userId,
 		final String query,
         final long numToSkip,
         final long numToReturn);

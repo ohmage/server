@@ -115,7 +115,7 @@ public class MediaServlet extends OhmageServlet {
                     "Verifying that the requester has given a sufficient " +
                         "token to view the response and its corresponding " +
                         "media.");
-            if(! surveyResponse.getOwner().equals(user.getUsername())) {
+            if(! surveyResponse.getOwner().equals(user.getId())) {
                 throw
                     new InsufficientPermissionsException(
                         "The given auth token does not give the requester " +

@@ -131,11 +131,11 @@ public class MongoStreamDataBin extends StreamDataBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, java.lang.String, long, org.joda.time.DateTime, org.joda.time.DateTime)
+	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, java.lang.String, long, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, long, long)
 	 */
 	@Override
 	public MultiValueResult<MongoStreamData> getStreamData(
-		final String username,
+		final String userId,
 		final String streamId,
 		final long streamVersion,
         final DateTime startDate,
@@ -146,8 +146,10 @@ public class MongoStreamDataBin extends StreamDataBin {
 		throws IllegalArgumentException {
 
 		// Validate the parameters.
-		if(username == null) {
-			throw new IllegalArgumentException("The username is null.");
+		if(userId == null) {
+			throw
+			    new IllegalArgumentException(
+			        "The user's unique identifier is null.");
 		}
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
@@ -156,8 +158,8 @@ public class MongoStreamDataBin extends StreamDataBin {
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
-		// Add the user-name.
-		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(username);
+		// Add the user's unique identifier.
+		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(userId);
 
 		// Add the stream ID.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
@@ -206,15 +208,17 @@ public class MongoStreamDataBin extends StreamDataBin {
 	 */
 	@Override
 	public StreamData getStreamData(
-		final String username,
+		final String userId,
 		final String streamId,
 		final long streamVersion,
 		final String pointId)
 		throws IllegalArgumentException {
 
 		// Validate the parameters.
-		if(username == null) {
-			throw new IllegalArgumentException("The username is null.");
+		if(userId == null) {
+			throw
+			    new IllegalArgumentException(
+			        "The user's unique identifier is null.");
 		}
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
@@ -226,8 +230,8 @@ public class MongoStreamDataBin extends StreamDataBin {
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
-		// Add the user-name.
-		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(username);
+		// Add the user's unique identifier.
+		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(userId);
 
 		// Add the stream ID.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
@@ -253,15 +257,17 @@ public class MongoStreamDataBin extends StreamDataBin {
 	 */
 	@Override
 	public void deleteStreamData(
-		final String username,
+		final String userId,
 		final String streamId,
 		final long streamVersion,
 		final String pointId)
 		throws IllegalArgumentException {
 
 		// Validate the parameters.
-		if(username == null) {
-			throw new IllegalArgumentException("The username is null.");
+		if(userId == null) {
+			throw
+			    new IllegalArgumentException(
+			        "The user's unique identifier is null.");
 		}
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
@@ -273,8 +279,8 @@ public class MongoStreamDataBin extends StreamDataBin {
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
-		// Add the user-name.
-		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(username);
+		// Add the user's unique identifier.
+		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(userId);
 
 		// Add the stream ID.
 		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);

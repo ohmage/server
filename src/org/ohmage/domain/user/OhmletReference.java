@@ -288,6 +288,21 @@ public class OhmletReference {
     }
 
     /**
+     * Creates a new OhmletReference that is updated to ignore the given
+     * stream.
+     *
+     * @param streamReference
+     *        The reference to the stream that should be ignored.
+     *
+     * @return The updated OhmletReference.
+     */
+    public OhmletReference ignoreStream(
+        final SchemaReference streamReference) {
+
+        return (new Builder(this)).addStream(streamReference).build();
+    }
+
+    /**
      * Returns the streams that the ohmlet defines but that should be
      * ignored.
      *
@@ -299,6 +314,37 @@ public class OhmletReference {
     }
 
     /**
+     * Creates a new OhmletReference that is updated to stop ignoring the given
+     * stream. If the user was not originally ignoring the stream, a new object
+     * is returned that is identical to this one.
+     *
+     * @param streamReference
+     *        The reference to the stream that should no longer be ignored.
+     *
+     * @return The updated OhmletReference.
+     */
+    public OhmletReference stopIgnoringStream(
+        final SchemaReference streamReference) {
+
+        return (new Builder(this)).removeStream(streamReference).build();
+    }
+
+    /**
+     * Creates a new OhmletReference that is updated to ignore the given
+     * survey.
+     *
+     * @param surveyReference
+     *        The reference to the survey that should be ignored.
+     *
+     * @return The updated OhmletReference.
+     */
+    public OhmletReference ignoreSurvey(
+        final SchemaReference surveyReference) {
+
+        return (new Builder(this)).addSurvey(surveyReference).build();
+    }
+
+    /**
      * Returns the surveys that the ohmlet defines but that should be
      * ignored.
      *
@@ -307,5 +353,21 @@ public class OhmletReference {
      */
     public Set<SchemaReference> getIgnoredSurveys() {
         return Collections.unmodifiableSet(ignoredSurveys);
+    }
+
+    /**
+     * Creates a new OhmletReference that is updated to stop ignoring the given
+     * survey. If the user was not originally ignoring the survey, a new object
+     * is returned that is identical to this one.
+     *
+     * @param surveyReference
+     *        The reference to the survey that should no longer be ignored.
+     *
+     * @return The updated OhmletReference.
+     */
+    public OhmletReference stopIgnoringSurvey(
+        final SchemaReference surveyReference) {
+
+        return (new Builder(this)).removeSurvey(surveyReference).build();
     }
 }

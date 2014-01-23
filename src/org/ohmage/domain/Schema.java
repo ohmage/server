@@ -137,7 +137,8 @@ public abstract class Schema extends OhmageDomainObject {
          * Sets the owner of the schema.
          *
          * @param owner
-         *        The user-name of the ohmage user that owns this schema.
+         *        The unique identifier for the ohmage user that owns this
+         *        schema.
          *
          * @return This builder to facilitate chaining.
          */
@@ -449,9 +450,9 @@ public abstract class Schema extends OhmageDomainObject {
 	}
 
 	/**
-	 * Returns the user-name of the user that owns this schema.
+	 * Returns the unique identifier for the user that owns this schema.
 	 *
-	 * @return The user-name of the user that owns this schema.
+	 * @return The unique identifier for the user that owns this schema.
 	 */
 	public String getOwner() {
 		return owner;

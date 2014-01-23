@@ -151,7 +151,7 @@ public class StreamServlet extends OhmageServlet {
         User user = authToken.getUser();
 
         LOGGER.log(Level.FINE, "Setting the owner of the stream.");
-        streamBuilder.setOwner(user.getUsername());
+        streamBuilder.setOwner(user.getId());
 
         LOGGER.log(Level.FINE, "Checking if an icon was given.");
         Media icon = null;
@@ -429,7 +429,7 @@ public class StreamServlet extends OhmageServlet {
 				Level.INFO,
 				"Verifying that the user updating the stream is the owner " +
 					"of the original stream.");
-		if(! latestSchema.getOwner().equals(user.getUsername())) {
+		if(! latestSchema.getOwner().equals(user.getId())) {
 			throw
 				new InsufficientPermissionsException(
 					"Only the owner of this schema may update it.");
@@ -446,7 +446,7 @@ public class StreamServlet extends OhmageServlet {
 			.log(
 				Level.FINE,
 				"Setting the request user as the owner of this new stream.");
-		streamBuilder.setOwner(user.getUsername());
+		streamBuilder.setOwner(user.getId());
 
 		LOGGER.log(Level.FINE, "Building the updated stream.");
 		Stream result = streamBuilder.build();
@@ -512,7 +512,7 @@ public class StreamServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Validating the data.");
 		List<StreamData> data = new ArrayList<StreamData>(dataBuilders.size());
 		for(StreamData.Builder dataBuilder : dataBuilders) {
-			data.add(dataBuilder.setOwner(user.getUsername()).build(stream));
+			data.add(dataBuilder.setOwner(user.getId()).build(stream));
 		}
 
 		LOGGER.log(Level.INFO, "Storing the validated data.");
@@ -603,7 +603,7 @@ public class StreamServlet extends OhmageServlet {
     		StreamDataBin
                 .getInstance()
                 .getStreamData(
-                    user.getUsername(),
+                    user.getId(),
                     streamId,
                     streamVersion,
                     startDateObject,
@@ -685,7 +685,7 @@ public class StreamServlet extends OhmageServlet {
             StreamDataBin
                 .getInstance()
                 .getStreamData(
-                    user.getUsername(),
+                    user.getId(),
                     streamId,
                     streamVersion,
                     pointId);
@@ -740,7 +740,7 @@ public class StreamServlet extends OhmageServlet {
         StreamDataBin
             .getInstance()
             .deleteStreamData(
-                user.getUsername(),
+                user.getId(),
                 streamId,
                 streamVersion,
                 pointId);

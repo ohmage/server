@@ -59,7 +59,7 @@ public abstract class SurveyResponseBin {
      * and survey.
      *
      * @param owner
-     *        The owner's username.
+     *        The owner's unique identifier.
      *
      * @param surveyId
      *        the survey response's unique identifier.
@@ -85,8 +85,8 @@ public abstract class SurveyResponseBin {
     /**
      * Retrieves survey responses specific to a user and a survey.
      *
-     * @param username
-     *        The user's username.
+     * @param owner
+     *        The user's unique identifier.
      *
      * @param surveyId
      *        The survey's unique identifier.
@@ -124,7 +124,7 @@ public abstract class SurveyResponseBin {
      *         A required parameter was null.
      */
     public abstract MultiValueResult<? extends SurveyResponse> getSurveyResponses(
-        final String username,
+        final String owner,
         final String surveyId,
         final long surveyVersion,
         final Collection<String> surveyResponseIds,
@@ -138,8 +138,8 @@ public abstract class SurveyResponseBin {
     /**
      * Retrieves a specific survey response.
      *
-     * @param username
-     *        The user's username.
+     * @param owner
+     *        The user's unique identifier.
      *
      * @param surveyId
      *        The survey's unique identifier.
@@ -156,7 +156,7 @@ public abstract class SurveyResponseBin {
      *         A required parameter was null.
      */
     public abstract SurveyResponse getSurveyResponse(
-        final String username,
+        final String owner,
         final String surveyId,
         final long surveyVersion,
         final String pointId)
@@ -181,8 +181,8 @@ public abstract class SurveyResponseBin {
     /**
      * Deletes a specific survey response.
      *
-     * @param username
-     *        The user's username.
+     * @param owner
+     *        The user's unique identifier.
      *
      * @param surveyId
      *        The survey's unique identifier.
@@ -197,7 +197,7 @@ public abstract class SurveyResponseBin {
      *         A required parameter was null.
      */
     public abstract void deleteSurveyResponse(
-        final String username,
+        final String owner,
         final String surveyId,
         final long surveyVersion,
         final String pointId)

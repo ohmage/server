@@ -66,7 +66,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 	/**
 	 * The custom properties.
 	 */
-	private static Properties customProperties;
+	private static Properties customProperties = null;
 
 	/**
 	 * Default constructor.
@@ -81,7 +81,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(final ServletContextEvent event) {
-		LOGGER.info("Initializing the ohmage configuration.");
+		LOGGER.log(Level.INFO, "Initializing the ohmage configuration.");
 
 		// An empty Properties object that will first be populated with the
 		// default configuration.
@@ -165,7 +165,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 		}
 
 		// Store the properties as a sub-object to the system properties.
-		LOGGER.log(Level.FINE, "Saving the configuration settings.");
+		LOGGER.log(Level.INFO, "Saving the configuration settings.");
 		customProperties = properties;
 	}
 
@@ -175,7 +175,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 */
 	@Override
 	public void contextDestroyed(final ServletContextEvent event) {
-		// Do nothing.
+	    customProperties = null;
 	}
 
 	/**

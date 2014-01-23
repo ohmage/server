@@ -109,7 +109,7 @@ public class MongoOhmletBin extends OhmletBin {
 	 */
 	@Override
 	public MultiValueResult<String> getOhmletIds(
-		final String username,
+		final String userId,
 		final String query,
         final long numToSkip,
         final long numToReturn) {
@@ -129,7 +129,7 @@ public class MongoOhmletBin extends OhmletBin {
                         Ohmlet.PrivacyState.INVITE_ONLY.ordinal())
                     .get());
         // Or, the user must already be a member, if given.
-		if(username != null) {
+		if(userId != null) {
 		    visibilityModifiers
 		        .add(
                     QueryBuilder
@@ -137,7 +137,7 @@ public class MongoOhmletBin extends OhmletBin {
                         .and(Ohmlet.JSON_KEY_MEMBERS +
                             "." +
                             Ohmlet.Member.JSON_KEY_MEMBER_ID)
-                        .is(username)
+                        .is(userId)
                         .get());
 		}
 		// Build the query.

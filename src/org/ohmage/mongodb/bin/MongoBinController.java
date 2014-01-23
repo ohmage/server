@@ -120,7 +120,7 @@ public class MongoBinController extends BinController {
 			ServerAddress serverAddress =
 				new ServerAddress(getDatabaseAddress(), getDatabasePort());
 
-			// If a username and password were given, use them.
+			// If a user-name and password were given, use them.
 			String username = getDatabaseUsername();
 			String password = getDatabasePassword();
 			if((username != null) && (password != null)) {

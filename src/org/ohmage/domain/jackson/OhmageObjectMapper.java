@@ -122,11 +122,10 @@ public class OhmageObjectMapper extends ObjectMapper {
     	    // parsed as null.
     	    DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS,
     		DeserializationFeature.READ_ENUMS_USING_TO_STRING,
-    		DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL,
-    		// Use BigInteger and BigDecimal for integer and decimal values
-    		// when a specific type is not given.
-    		DeserializationFeature.USE_BIG_INTEGER_FOR_INTS,
-    		DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+    		DeserializationFeature.READ_UNKNOWN_ENUM_VALUES_AS_NULL);//,
+    		// Use BigInteger and BigDecimal for integer and decimal values.
+//    		DeserializationFeature.USE_BIG_INTEGER_FOR_INTS,
+//    		DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
 
     	// Write the enums using their lower-case representation.
     	enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
@@ -198,8 +197,14 @@ public class OhmageObjectMapper extends ObjectMapper {
 	    			}
 
 	    			// Get the existing filter, if one exists.
-	    			BeanPropertyFilter propertyFilter =
-	    				FILTER_PROVIDER.findFilter(filterGroup);
+	    			BeanPropertyFilter propertyFilter;
+	    			try {
+	    				propertyFilter =
+	    				    FILTER_PROVIDER.findFilter(filterGroup);
+	    			}
+	    			catch(IllegalArgumentException e) {
+	    			    propertyFilter = null;
+	    			}
 
 					// If no such filter exists, update the filter provider
 					// with a new one.

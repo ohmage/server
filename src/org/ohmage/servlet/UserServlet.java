@@ -51,9 +51,9 @@ public class UserServlet extends OhmageServlet {
 	public static final String ROOT_MAPPING = "/people";
 
 	/**
-	 * The path key for the user-name.
+	 * The path key for the user's unique identifier.
 	 */
-	public static final String KEY_USERNAME = "username";
+	public static final String KEY_USER_ID = "user_id";
 
 	/**
 	 * The parameter key for provider identifiers.
@@ -88,9 +88,6 @@ public class UserServlet extends OhmageServlet {
 
 	/**
 	 * Creates a user user.
-	 *
-	 * @param username
-	 *        The new user's user-name.
 	 *
 	 * @param plaintextPassword
 	 *        The new user's plain-text password.
@@ -165,9 +162,24 @@ public class UserServlet extends OhmageServlet {
 		}
 		*/
 
+		LOGGER.log(Level.INFO, "Verifying that the root URL was given.");
+		if(rootUrl == null) {
+		    throw new IllegalStateException("The root URL was not given.");
+		}
+
 		LOGGER.log(Level.INFO, "Verifying that a user supplied a password.");
 		if(password == null) {
 			throw new InvalidArgumentException("A password was not given.");
+		}
+
+		LOGGER
+		    .log(
+		        Level.INFO,
+		        "Verifying that the user supplied the necessary information.");
+		if(userBuilder == null) {
+		    throw
+		        new InvalidArgumentException(
+		            "The user information is missing.");
 		}
 
 		LOGGER.log(Level.INFO, "Hashing the user's password.");
@@ -177,8 +189,9 @@ public class UserServlet extends OhmageServlet {
 		userBuilder
 		    .setRegistration(
 		        new Registration.Builder(
-		            userBuilder.getUsername(),
-		            userBuilder.getEmail()));
+		            userBuilder.getId(),
+		            userBuilder.getEmail())
+		        .build());
 
 		LOGGER.log(Level.FINE, "Building the user.");
 		User validatedUser = userBuilder.build();
@@ -190,7 +203,7 @@ public class UserServlet extends OhmageServlet {
         catch(InvalidArgumentException e) {
             throw
                 new InvalidArgumentException(
-                    "A user with the given username already exists.",
+                    "A user with the given email address already exists.",
                     e);
         }
 
@@ -204,25 +217,22 @@ public class UserServlet extends OhmageServlet {
 		return validatedUser;
 	}
 
-	/**
-	 * Creates a user user.
-	 *
-	 * @param username
-	 *        The new user's user-name.
-	 *
-	 * @param fullName
-	 *        The new user's full name, which may be null.
-	 *
-	 * @param provider
-	 *        The provider's internal identifier.
-	 *
-	 * @param accessToken
-	 *        The access token provided by the provider to be used to
-	 *        authenticate the user.
-	 *
-	 * @param request
-	 *        The HTTP request.
-	 */
+    /**
+     * Creates a user user.
+     *
+     * @param provider
+     *        The provider's internal identifier.
+     *
+     * @param accessToken
+     *        The access token provided by the provider to be used to
+     *        authenticate the user.
+     *
+     * @param userBuilder
+     *        The user's information.
+     *
+     * @param request
+     *        The HTTP request.
+     */
 	@RequestMapping(
 		value = { "", "/" },
 		method = RequestMethod.POST,
@@ -241,10 +251,23 @@ public class UserServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Creating a new user.");
 
-		LOGGER.log(Level.INFO, "Verifying that a username was given.");
-		if(userBuilder.getUsername() == null) {
-			throw new InvalidArgumentException("A username was not provided.");
-		}
+        LOGGER.log(Level.INFO, "Verifying that a provider was given.");
+        if(provider == null) {
+            throw new InvalidArgumentException("The provider is missing.");
+        }
+
+        LOGGER.log(Level.INFO, "Verifying that an access token was given.");
+        if(accessToken == null) {
+            throw new InvalidArgumentException("The access token is missing.");
+        }
+
+        LOGGER
+            .log(Level.INFO, "Verifying that the user information was given.");
+        if(userBuilder == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user information is missing.");
+        }
 
 		LOGGER.log(Level.FINE, "Retrieving the provider implementation.");
 		Provider providerObject = ProviderRegistry.get(provider);
@@ -321,7 +344,7 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"If the calling user authenticated themselves, adding them " +
 					"to the result list.");
-		result.add(user.getUsername());
+		result.add(user.getId());
 
 		return result;
 	}
@@ -333,18 +356,18 @@ public class UserServlet extends OhmageServlet {
      *        The authorization information corresponding to the user that is
      *        making this call.
 	 *
-	 * @param username
-	 *        The user whose information is desired.
+	 * @param userId
+	 *        The unique identifier for the user whose information is desired.
 	 *
 	 * @return The desired user's information.
 	 */
 	@RequestMapping(
-		value = "{" + KEY_USERNAME + ":.+" + "}",
+		value = "{" + KEY_USER_ID + ":.+" + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody User getUserInformation(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username) {
+		@PathVariable(KEY_USER_ID) final String userId) {
 
 		LOGGER.log(Level.INFO, "Requesting information about a user.");
 
@@ -352,6 +375,16 @@ public class UserServlet extends OhmageServlet {
         if(authToken == null) {
             throw
                 new AuthenticationException("No auth information was given.");
+        }
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user's unique identifier was given.");
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
         }
 
         LOGGER
@@ -364,7 +397,7 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Verifying that the user is requesting information about " +
 					"themselves.");
-		if(! user.getUsername().equals(username)) {
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"A user may only view their own information.");
@@ -378,8 +411,8 @@ public class UserServlet extends OhmageServlet {
 	/**
 	 * Updates a user's password.
 	 *
-	 * @param username
-	 *        The user whose information is desired.
+	 * @param userId
+	 *        The unique identifier for user whose information is desired.
 	 *
 	 * @param oldPassword
 	 *        The user's current password.
@@ -391,11 +424,11 @@ public class UserServlet extends OhmageServlet {
 	 */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_PASSWORD,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_PASSWORD,
 		method = RequestMethod.POST,
         consumes = { "text/plain" })
 	public static @ResponseBody void updateUserPassword(
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestParam(
 			value = User.JSON_KEY_PASSWORD,
 			required = true)
@@ -404,6 +437,16 @@ public class UserServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Updating a user's password.");
 
+		LOGGER.log(Level.INFO, "Verifing that a user ID was given.");
+		if(userId == null) {
+		    throw new InvalidArgumentException("The user ID is missing.");
+		}
+
+		LOGGER.log(Level.INFO, "Verifying that the old password was given.");
+		if(oldPassword == null) {
+		    throw new InvalidArgumentException("The old password is missing.");
+		}
+
 		LOGGER
 			.log(Level.FINE, "Verifying that the new password is not empty.");
 		if((newPassword == null) || (newPassword.length() == 0)) {
@@ -411,7 +454,7 @@ public class UserServlet extends OhmageServlet {
 		}
 
 		LOGGER.log(Level.FINE, "Retrieving the user.");
-		User user = UserBin.getInstance().getUser(username);
+		User user = UserBin.getInstance().getUser(userId);
 
 		LOGGER.log(Level.INFO, "Verifying that the user exists.");
 		if(user == null) {
@@ -432,27 +475,27 @@ public class UserServlet extends OhmageServlet {
 		// Should we also invalidate all authentication tokens?
 	}
 
-	/**
-	 * Retrieves the set of communities that this user is part of.
+    /**
+     * Retrieves the set of communities that this user is part of.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name, which, for now, must match the
-	 *        authentication token.
-	 *
-	 * @return The set of communities that this user is part of.
-	 */
+     *
+     * @param userId
+     *        The user's unique identifier, which must match the authentication
+     *        token.
+     *
+     * @return The set of communities that this user is part of.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_OHMLETS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_OHMLETS,
 		method = RequestMethod.GET)
-	public static @ResponseBody Collection<OhmletReference> getFollowedCommunities(
+	public static @ResponseBody Collection<OhmletReference> getFollowedOhmlets(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username) {
+		@PathVariable(KEY_USER_ID) final String userId) {
 
 		LOGGER
 			.log(
@@ -466,6 +509,16 @@ public class UserServlet extends OhmageServlet {
         }
 
         LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user's unique identifier was given.");
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+
+        LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
@@ -473,44 +526,44 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is querying their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only query their own accounts.");
 		}
 
 		LOGGER.log(Level.INFO, "Returning the set of stream references.");
-		return user.getCommunities();
+		return user.getOhmlets();
 	}
 
-	/**
-	 * Retrieves the specific information for a ohmlet that the user is
-	 * following.
+    /**
+     * Retrieves the specific information for an ohmlet that the user is
+     * following.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name, which, for now, must match the
-	 *        authentication token.
-	 *
-	 * @param ohmletId
-	 *        The ohmlet's unique identifier.
-	 *
-	 * @return The user-specific information about a ohmlet that they are
-	 *         following.
-	 */
+     *
+     * @param userId
+     *        The user's unique identifier, which must match the authentication
+     *        token.
+     *
+     * @param ohmletId
+     *        The ohmlet's unique identifier.
+     *
+     * @return The user-specific information about a ohmlet that they are
+     *         following.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" +
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.GET)
 	public static @ResponseBody OhmletReference getFollowedOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
 
 		LOGGER
@@ -525,6 +578,21 @@ public class UserServlet extends OhmageServlet {
         }
 
         LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user's unique identifier was given.");
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+
+        LOGGER.log(Level.INFO, "Verifying that an ohmlet ID was given.");
+        if(ohmletId == null) {
+            throw new InvalidArgumentException("The ohmlet ID is missing.");
+        }
+
+        LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
@@ -532,44 +600,54 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is reading their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
 
+		LOGGER.log(Level.INFO, "Retreiving the ohmlet reference.");
+		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
+		if(ohmletReference == null) {
+		    throw
+		        new UnknownEntityException(
+		            "The user is not following this " +
+		                Ohmlet.OHMLET_SKIN +
+		                ".");
+		}
+
 		LOGGER.log(Level.INFO, "Returning the set of stream references.");
-		return user.getOhmlet(ohmletId);
+		return ohmletReference;
 	}
 
-	/**
-	 * Retrieves the specific information for a ohmlet that the user is
-	 * following.
+    /**
+     * Retrieves the specific information for a ohmlet that the user is
+     * following.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name, which, for now, must match the
-	 *        authentication token.
-	 *
-	 * @param ohmletId
-	 *        The ohmlet's unique identifier.
-	 *
-	 * @return The user-specific information about a ohmlet that they are
-	 *         following.
-	 */
+     *
+     * @param userId
+     *        The user's unique identifier, which must match the authentication
+     *        token.
+     *
+     * @param ohmletId
+     *        The ohmlet's unique identifier.
+     *
+     * @return The user-specific information about a ohmlet that they are
+     *         following.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" +
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}",
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void leaveOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
 
 		LOGGER
@@ -584,6 +662,21 @@ public class UserServlet extends OhmageServlet {
         }
 
         LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user's unique identifier was given.");
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+
+        LOGGER.log(Level.INFO, "Verifying that an ohmlet ID was given.");
+        if(ohmletId == null) {
+            throw new InvalidArgumentException("The ohmlet ID is missing.");
+        }
+
+        LOGGER
             .log(Level.INFO, "Retrieving the user associated with the token.");
         User user = authToken.getUser();
 
@@ -591,7 +684,7 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -611,9 +704,7 @@ public class UserServlet extends OhmageServlet {
 						" exists, so the user is being removed.");
 
 			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
-			Ohmlet.Builder ohmletBuilder = new Ohmlet.Builder(ohmlet);
-			ohmletBuilder.removeMember(user.getUsername());
-			Ohmlet updatedOhmlet = ohmletBuilder.build();
+			Ohmlet updatedOhmlet = ohmlet.removeMember(user.getId());
 
 			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
 			OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
@@ -626,37 +717,36 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Removing the ohmlet from the user's profile.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-		updatedUserBuilder.removeOhmlet(ohmletId);
-		User updatedUser = updatedUserBuilder.build();
+		User updatedUser = user.leaveOhmlet(ohmletId);
 
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
-	/**
-	 * For a specific user, marks a ohmlet's stream as being ignored meaning
-	 * that, unless followed in another ohmlet, it should not be displayed
-	 * to the user.
+    /**
+     * For a specific user, marks a ohmlet's stream as being ignored meaning
+     * that, unless followed in another ohmlet, it should not be displayed to
+     * the user.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name that should be ignoring the stream.
-	 *
-	 * @param ohmletId
-	 *        The unique identifier for the ohmlet in which the stream is
-	 *        referenced.
-	 *
-	 * @param streamReference
-	 *        The reference for the stream that the ohmlet is referencing
-	 *        and that the user wants to ignore.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that should be ignoring the
+     *        stream.
+     *
+     * @param ohmletId
+     *        The unique identifier for the ohmlet in which the stream is
+     *        referenced.
+     *
+     * @param streamReference
+     *        The reference for the stream that the ohmlet is referencing and
+     *        that the user wants to ignore.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" +
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
@@ -665,7 +755,7 @@ public class UserServlet extends OhmageServlet {
 	public static @ResponseBody void ignoreOhmletStream(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
 
@@ -674,6 +764,13 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to ignore a stream reference " +
 					"in a ohmlet.");
+
+		LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
+		if(streamReference == null) {
+		    throw
+		        new InvalidArgumentException(
+		            "The stream reference is missing.");
+		}
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -689,7 +786,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is reading their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
@@ -699,6 +801,9 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.FINE,
 				"Retrieving the ohmlet reference for the user.");
+		if(ohmletId == null) {
+		    throw new InvalidArgumentException("The ohmlet ID is missing.");
+		}
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
 		LOGGER
@@ -711,46 +816,42 @@ public class UserServlet extends OhmageServlet {
 						".");
 		}
 
-		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
-		OhmletReference.Builder ohmletReferenceBuilder =
-			new OhmletReference.Builder(ohmletReference);
-		ohmletReferenceBuilder.addStream(streamReference);
+		LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
 		OhmletReference newOhmletReference =
-			ohmletReferenceBuilder.build();
+		    ohmletReference.ignoreStream(streamReference);
 
-		LOGGER.log(Level.FINE, "Creating a new user object.");
-		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertOhmlet(newOhmletReference);
-		User newUser = userBuilder.build();
+		LOGGER.log(Level.FINE, "Updating the user.");
+		User newUser = user.upsertOhmlet(newOhmletReference);
 
-		LOGGER.log(Level.INFO, "Updating the user object.");
+		LOGGER.log(Level.INFO, "Saving the updated user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
-	/**
-	 * For a specific user, removes the mark on a ohmlet's stream that was
-	 * causing it to be ignored. The user should again see this stream. If the
-	 * user was not ignoring the stream before this call, it will essentially
-	 * have no impact.
+    /**
+     * For a specific user, removes the mark on a ohmlet's stream that was
+     * causing it to be ignored. The user should again see this stream. If the
+     * user was not ignoring the stream before this call, it will essentially
+     * have no impact.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name that should stop ignoring the stream.
-	 *
-	 * @param ohmletId
-	 *        The unique identifier for the ohmlet in which the stream is
-	 *        referenced.
-	 *
-	 * @param streamReference
-	 *        The reference for the stream that the ohmlet is referencing
-	 *        and that the user wants to stop ignoring.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that should stop ignoring the
+     *        stream.
+     *
+     * @param ohmletId
+     *        The unique identifier for the ohmlet in which the stream is
+     *        referenced.
+     *
+     * @param streamReference
+     *        The reference for the stream that the ohmlet is referencing and
+     *        that the user wants to stop ignoring.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" +
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
@@ -759,7 +860,7 @@ public class UserServlet extends OhmageServlet {
 	public static @ResponseBody void stopIgnoringOhmletStream(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
 
@@ -771,6 +872,13 @@ public class UserServlet extends OhmageServlet {
 					Ohmlet.OHMLET_SKIN +
 					".");
 
+        LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
+        if(streamReference == null) {
+            throw
+                new InvalidArgumentException(
+                    "The stream reference is missing.");
+        }
+
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
             throw
@@ -785,7 +893,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is reading their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
@@ -795,6 +908,9 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.FINE,
 				"Retrieving the ohmlet reference for the user.");
+        if(ohmletId == null) {
+            throw new InvalidArgumentException("The ohmlet ID is missing.");
+        }
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
 		LOGGER
@@ -807,45 +923,41 @@ public class UserServlet extends OhmageServlet {
 						".");
 		}
 
-		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
-		OhmletReference.Builder ohmletReferenceBuilder =
-			new OhmletReference.Builder(ohmletReference);
-		ohmletReferenceBuilder.removeStream(streamReference);
-		OhmletReference newOhmletReference =
-			ohmletReferenceBuilder.build();
+        LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+        OhmletReference newOhmletReference =
+            ohmletReference.stopIgnoringStream(streamReference);
 
-		LOGGER.log(Level.FINE, "Creating a new user object.");
-		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertOhmlet(newOhmletReference);
-		User newUser = userBuilder.build();
+        LOGGER.log(Level.FINE, "Updating the user.");
+        User newUser = user.upsertOhmlet(newOhmletReference);
 
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
-	/**
-	 * For a specific user, marks a ohmlet's survey as being ignored meaning
-	 * that, unless followed in another ohmlet, it should not be displayed
-	 * to the user.
+    /**
+     * For a specific user, marks a ohmlet's survey as being ignored meaning
+     * that, unless followed in another ohmlet, it should not be displayed to
+     * the user.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name that should be ignoring the survey.
-	 *
-	 * @param ohmletId
-	 *        The unique identifier for the ohmlet in which the survey is
-	 *        referenced.
-	 *
-	 * @param surveyReference
-	 *        The reference for the survey that the ohmlet is referencing
-	 *        and that the user wants to ignore.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for user that should be ignoring the
+     *        survey.
+     *
+     * @param ohmletId
+     *        The unique identifier for the ohmlet in which the survey is
+     *        referenced.
+     *
+     * @param surveyReference
+     *        The reference for the survey that the ohmlet is referencing and
+     *        that the user wants to ignore.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" +
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
@@ -854,7 +966,7 @@ public class UserServlet extends OhmageServlet {
 	public static @ResponseBody void ignoreOhmletSurvey(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
 
@@ -864,6 +976,13 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to ignore a survey reference " +
 					"in a ohmlet.");
 
+        LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
+        if(surveyReference == null) {
+            throw
+                new InvalidArgumentException(
+                    "The survey reference is missing.");
+        }
+
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
             throw
@@ -878,7 +997,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is reading their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
@@ -888,6 +1012,9 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.FINE,
 				"Retrieving the ohmlet reference for the user.");
+        if(ohmletId == null) {
+            throw new InvalidArgumentException("The ohmlet ID is null.");
+        }
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
 		LOGGER
@@ -900,46 +1027,42 @@ public class UserServlet extends OhmageServlet {
 						".");
 		}
 
-		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
-		OhmletReference.Builder ohmletReferenceBuilder =
-			new OhmletReference.Builder(ohmletReference);
-		ohmletReferenceBuilder.addSurvey(surveyReference);
-		OhmletReference newOhmletReference =
-			ohmletReferenceBuilder.build();
+        LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+        OhmletReference newOhmletReference =
+            ohmletReference.ignoreSurvey(surveyReference);
 
-		LOGGER.log(Level.FINE, "Creating a new user object.");
-		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertOhmlet(newOhmletReference);
-		User newUser = userBuilder.build();
+        LOGGER.log(Level.FINE, "Updating the user.");
+        User newUser = user.upsertOhmlet(newOhmletReference);
 
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
-	/**
-	 * For a specific user, removes the mark on a ohmlet's survey that was
-	 * causing it to be ignored. The user should again see this survey. If the
-	 * user was not ignoring the survey before this call, it will essentially
-	 * have no impact.
+    /**
+     * For a specific user, removes the mark on a ohmlet's survey that was
+     * causing it to be ignored. The user should again see this survey. If the
+     * user was not ignoring the survey before this call, it will essentially
+     * have no impact.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name that should stop ignoring the survey.
-	 *
-	 * @param ohmletId
-	 *        The unique identifier for the ohmlet in which the survey is
-	 *        referenced.
-	 *
-	 * @param surveyReference
-	 *        The reference for the survey that the ohmlet is referencing
-	 *        and that the user wants to stop ignoring.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that should stop ignoring the
+     *        survey.
+     *
+     * @param ohmletId
+     *        The unique identifier for the ohmlet in which the survey is
+     *        referenced.
+     *
+     * @param surveyReference
+     *        The reference for the survey that the ohmlet is referencing and
+     *        that the user wants to stop ignoring.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" +
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" +
 			User.JSON_KEY_OHMLETS + "/" +
 			"{" + Ohmlet.JSON_KEY_ID + "}" +
 			"/" +
@@ -948,7 +1071,7 @@ public class UserServlet extends OhmageServlet {
 	public static @ResponseBody void stopIgnoringOhmletSurvey(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
 
@@ -958,6 +1081,13 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to stop ignoring a survey " +
 					"reference in a ohmlet.");
 
+        LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
+        if(surveyReference == null) {
+            throw
+                new InvalidArgumentException(
+                    "The survey reference is missing.");
+        }
+
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
             throw
@@ -972,7 +1102,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is reading their own profile.");
-		if(! user.getUsername().equals(username)) {
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
@@ -982,6 +1117,9 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.FINE,
 				"Retrieving the ohmlet reference for the user.");
+		if(ohmletId == null) {
+		    throw new InvalidArgumentException("The ohmlet ID is null.");
+		}
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
 		LOGGER
@@ -994,55 +1132,58 @@ public class UserServlet extends OhmageServlet {
 						".");
 		}
 
-		LOGGER.log(Level.FINE, "Creating a new ohmlet reference.");
-		OhmletReference.Builder ohmletReferenceBuilder =
-			new OhmletReference.Builder(ohmletReference);
-		ohmletReferenceBuilder.removeSurvey(surveyReference);
-		OhmletReference newOhmletReference =
-			ohmletReferenceBuilder.build();
+        LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+        OhmletReference newOhmletReference =
+            ohmletReference.stopIgnoringSurvey(surveyReference);
 
-		LOGGER.log(Level.FINE, "Creating a new user object.");
-		User.Builder userBuilder = new User.Builder(user);
-		userBuilder.upsertOhmlet(newOhmletReference);
-		User newUser = userBuilder.build();
+        LOGGER.log(Level.FINE, "Updating the user.");
+        User newUser = user.upsertOhmlet(newOhmletReference);
 
 		LOGGER.log(Level.INFO, "Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
-	/**
-	 * Allows a user to follow a stream. The user can optionally supply a
-	 * version. If the version is given, that indicates that the user wishes to
-	 * follow a specific version of the stream. If a version is not given, that
-	 * indicates that a user wishes to follow the latest version of the stream.
+    /**
+     * Allows a user to follow a stream. The user can optionally supply a
+     * version. If the version is given, that indicates that the user wishes to
+     * follow a specific version of the stream. If a version is not given, that
+     * indicates that a user wishes to follow the latest version of the stream.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user-name of the user that is following this stream. For now,
-	 *        a user may only update their own profile, so this must match the
-	 *        authentication token's user.
-	 *
-	 * @param streamReference
-	 *        A reference to the stream that must include the stream's unique
-	 *        identifier and may include a specific version of the stream.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that is following this stream.
+     *        For now, a user may only update their own profile, so this must
+     *        match the authentication token's user.
+     *
+     * @param streamReference
+     *        A reference to the stream that must include the stream's unique
+     *        identifier and may include a specific version of the stream.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void followStream(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference streamReference) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
+
+		LOGGER
+		    .log(Level.INFO, "Verifying that the stream reference was given.");
+		if(streamReference == null) {
+		    throw
+		        new InvalidArgumentException(
+		            "The stream reference is missing.");
+		}
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -1058,7 +1199,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -1091,35 +1237,33 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Adding the stream to the list of streams being followed.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-		updatedUserBuilder.addStream(streamReference);
-		User updatedUser = updatedUserBuilder.build();
+		User updatedUser = user.followStream(streamReference);
 
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
-	/**
-	 * Retrieves the set of streams that this user is watching.
+    /**
+     * Retrieves the set of streams that this user is watching.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name, which, for now, must match the
-	 *        authentication token.
-	 *
-	 * @return The set of stream references that this user is watching.
-	 */
+     *
+     * @param userId
+     *        The user's unique identifier, which must match the authentication
+     *        token.
+     *
+     * @return The set of stream references that this user is watching.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
 		method = RequestMethod.GET)
 	public static @ResponseBody Set<SchemaReference> getFollowedStreams(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username) {
+		@PathVariable(KEY_USER_ID) final String userId) {
 
 		LOGGER
 			.log(
@@ -1141,7 +1285,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -1151,36 +1300,44 @@ public class UserServlet extends OhmageServlet {
 		return user.getStreams();
 	}
 
-	/**
-	 * Stops a user from following a stream.
+    /**
+     * Stops a user from following a stream.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user-name of the user that is following this stream. For now,
-	 *        a user may only update their own profile, so this must match the
-	 *        authentication token's user.
-	 *
-	 * @param streamReference
-	 *        A reference to the stream that must include the stream's unique
-	 *        identifier and may include a specific version of the stream.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that is following this stream.
+     *        For now, a user may only update their own profile, so this must
+     *        match the authentication token's user.
+     *
+     * @param streamReference
+     *        A reference to the stream that must include the stream's unique
+     *        identifier and may include a specific version of the stream.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_STREAMS,
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void forgetStream(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference streamReference) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to stop tracking a stream.");
+
+        LOGGER
+            .log(Level.INFO, "Verifying that the stream reference was given.");
+        if(streamReference == null) {
+            throw
+                new InvalidArgumentException(
+                    "The stream reference is missing.");
+        }
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -1196,7 +1353,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -1206,47 +1368,53 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Adding the stream to the list of streams being followed.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-		updatedUserBuilder.removeStream(streamReference);
-		User updatedUser = updatedUserBuilder.build();
+		User updatedUser = user.ignoreStream(streamReference);
 
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
-	/**
-	 * Allows a user to follow a survey. The user can optionally supply a
-	 * version. If the version is given, that indicates that the user wishes to
-	 * follow a specific version of the stream. If a version is not given, that
-	 * indicates that a user wishes to follow the latest version of the stream.
+    /**
+     * Allows a user to follow a survey. The user can optionally supply a
+     * version. If the version is given, that indicates that the user wishes to
+     * follow a specific version of the stream. If a version is not given, that
+     * indicates that a user wishes to follow the latest version of the stream.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user-name of the user that is following this survey. For now,
-	 *        a user may only update their own profile, so this must match the
-	 *        authentication token's user.
-	 *
-	 * @param surveyReference
-	 *        A reference to the survey that must include the survey's unique
-	 *        identifier and may include a specific version of the survey.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that is following this survey.
+     *        For now, a user may only update their own profile, so this must
+     *        match the authentication token's user.
+     *
+     * @param surveyReference
+     *        A reference to the survey that must include the survey's unique
+     *        identifier and may include a specific version of the survey.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
 		method = RequestMethod.POST)
 	public static @ResponseBody void followSurvey(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference surveyReference) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to track a survey.");
+
+        LOGGER
+            .log(Level.INFO, "Verifying that the survey reference was given.");
+        if(surveyReference == null) {
+            throw
+                new InvalidArgumentException(
+                    "The survey reference is missing.");
+        }
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -1262,7 +1430,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -1295,35 +1468,33 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Adding the stream to the list of surveys being followed.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-		updatedUserBuilder.addSurvey(surveyReference);
-		User updatedUser = updatedUserBuilder.build();
+		User updatedUser = user.followSurvey(surveyReference);
 
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
-	/**
-	 * Retrieves the set of surveys that this user is watching.
+    /**
+     * Retrieves the set of surveys that this user is watching.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user's user-name, which, for now, must match the
-	 *        authentication token.
-	 *
-	 * @return The set of survey references that this user is watching.
-	 */
+     *
+     * @param userId
+     *        The user's unique identifier, which must match the authentication
+     *        token.
+     *
+     * @return The set of survey references that this user is watching.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
 		method = RequestMethod.GET)
 	public static @ResponseBody Set<SchemaReference> getFollowedSurveys(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username) {
+		@PathVariable(KEY_USER_ID) final String userId) {
 
 		LOGGER
 			.log(
@@ -1345,7 +1516,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -1355,36 +1531,44 @@ public class UserServlet extends OhmageServlet {
 		return user.getSurveys();
 	}
 
-	/**
-	 * Stops a user from following a survey.
+    /**
+     * Stops a user from following a survey.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param username
-	 *        The user-name of the user that is following this survey. For now,
-	 *        a user may only update their own profile, so this must match the
-	 *        authentication token's user.
-	 *
-	 * @param surveyReference
-	 *        A reference to the survey that must include the survey's unique
-	 *        identifier and may include a specific version of the survey.
-	 */
+     *
+     * @param userId
+     *        The unique identifier for the user that is following this survey.
+     *        For now, a user may only update their own profile, so this must
+     *        match the authentication token's user.
+     *
+     * @param surveyReference
+     *        A reference to the survey that must include the survey's unique
+     *        identifier and may include a specific version of the survey.
+     */
 	@RequestMapping(
 		value =
-			"{" + KEY_USERNAME + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
+			"{" + KEY_USER_ID + ":.+" + "}" + "/" + User.JSON_KEY_SURVEYS,
 		method = RequestMethod.DELETE)
 	public static @ResponseBody void forgetSurvey(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference surveyReference) {
 
 		LOGGER
 			.log(
 				Level.INFO,
 				"Creating a request for a user to stop tracking a survey.");
+
+        LOGGER
+            .log(Level.INFO, "Verifying that the survey reference was given.");
+        if(surveyReference == null) {
+            throw
+                new InvalidArgumentException(
+                    "The survey reference is missing.");
+        }
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -1400,7 +1584,12 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Verifying that the user is updating their own profile.");
-		if(! user.getUsername().equals(username)) {
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
@@ -1410,66 +1599,88 @@ public class UserServlet extends OhmageServlet {
 			.log(
 				Level.INFO,
 				"Adding the stream to the list of surveys being followed.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-		updatedUserBuilder.removeSurvey(surveyReference);
-		User updatedUser = updatedUserBuilder.build();
+		User updatedUser = user.ignoreSurvey(surveyReference);
 
 		LOGGER.log(Level.INFO, "Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
-	/**
-	 * Disables the user's account.
-	 *
-	 * @param username
-	 *        The user whose account is being disabled.
-	 *
-	 * @param password
-	 *        The user's password to confirm the deletion.
-	 */
+    /**
+     * Disables the user's account.
+     *
+     * @param userId
+     *        The unique identifier for the user whose account is being
+     *        disabled.
+     *
+     * @param password
+     *        The user's password to confirm the deletion.
+     */
 	@RequestMapping(
-		value = "{" + KEY_USERNAME + ":.+" + "}",
+		value = "{" + KEY_USER_ID + ":.+" + "}",
 		method = RequestMethod.DELETE,
 		params = { User.JSON_KEY_PASSWORD })
 	public static @ResponseBody void deleteUserWithPassword(
-		@PathVariable(KEY_USERNAME)
-			final String username,
+		@PathVariable(KEY_USER_ID)
+			final String userId,
 		@RequestParam(
 			value = User.JSON_KEY_PASSWORD,
 			required = true)
 			final String password) {
 
-		LOGGER.log(Level.INFO, "Deleting a user.");
+		LOGGER.log(Level.INFO, "Creating a request to delete a user.");
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user's unique identifier was given.");
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+
+        LOGGER.log(Level.INFO, "Verifying that a password was given.");
+        if(password == null) {
+            throw new InvalidArgumentException("The password is missing.");
+        }
 
 		LOGGER.log(Level.FINE, "Retreiving the user.");
-		User user = UserBin.getInstance().getUser(username);
+		User user = UserBin.getInstance().getUser(userId);
+
+		LOGGER.log(Level.INFO, "Verifying that the user exists.");
+		if(user == null) {
+		    throw new InvalidArgumentException("The user is unknown.");
+		}
 
 		LOGGER.log(Level.INFO, "Verifying the user's password.");
-		user.verifyPassword(password);
+		if(! user.verifyPassword(password)) {
+		    throw new AuthenticationException("The password was incorrect.");
+		}
 
 		LOGGER.log(Level.INFO, "Disabling the user's account.");
-		UserBin.getInstance().disableUser(username);
+		UserBin.getInstance().disableUser(userId);
 	}
 
-	/**
-	 * Disables the user's account.
-	 *
-	 * @param username
-	 *        The user whose account is being disabled.
-	 *
-	 * @param providerId
-	 *        The internal unique identifier of the provider.
-	 *
-	 * @param accessToken
-	 *        A provider-generated access token to authenticate the user and
-	 *        validate the request.
-	 */
+    /**
+     * Disables the user's account.
+     *
+     * @param userId
+     *        The unique identifier for the user whose account is being
+     *        disabled.
+     *
+     * @param providerId
+     *        The internal unique identifier of the provider.
+     *
+     * @param accessToken
+     *        A provider-generated access token to authenticate the user and
+     *        validate the request.
+     */
 	@RequestMapping(
-		value = "{" + KEY_USERNAME + ":.+" + "}",
+		value = "{" + KEY_USER_ID + ":.+" + "}",
 		method = RequestMethod.DELETE,
 		params = { PARAMETER_PROVIDER, PARAMETER_ACCESS_TOKEN })
 	public static @ResponseBody void deleteUserWithProvider(
-		@PathVariable(KEY_USERNAME) final String username,
+		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestParam(
 			value = PARAMETER_PROVIDER,
 			required = true)
@@ -1480,6 +1691,16 @@ public class UserServlet extends OhmageServlet {
 			final String accessToken) {
 
 		LOGGER.log(Level.INFO, "Deleting a user.");
+
+		LOGGER.log(Level.FINE, "Verifying that a provider ID was given.");
+		if(providerId == null) {
+		    throw new InvalidArgumentException("The provider ID is missing.");
+		}
+
+        LOGGER.log(Level.FINE, "Verifying that an access token was given.");
+        if(accessToken == null) {
+            throw new InvalidArgumentException("The access token is missing.");
+        }
 
 		LOGGER
 			.log(
@@ -1521,13 +1742,18 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Verifying that the requesting user is the same as the user " +
 					"that is attempting to be deleted.");
-		if(! user.getUsername().equals(username)) {
+		if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+		}
+		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"No user can delete another user's account.");
 		}
 
 		LOGGER.log(Level.INFO, "Disabling the user's account.");
-		UserBin.getInstance().disableUser(user.getUsername());
+		UserBin.getInstance().disableUser(user.getId());
 	}
 }

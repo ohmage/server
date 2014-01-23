@@ -3,10 +3,10 @@ package org.ohmage.domain.survey.condition.terminal;
 import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.jackson.OhmageNumber;
 import org.ohmage.domain.survey.NoResponse;
 import org.ohmage.domain.survey.SurveyItem;
 import org.ohmage.domain.survey.condition.Fragment;
-import org.ohmage.domain.survey.condition.terminal.Numeric.CustomBigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -170,10 +170,10 @@ public class PromptId extends Terminal {
         final Map<String, Object> responses,
         final Object value) {
 
-        Number thisNumber;
+        OhmageNumber thisNumber;
         Object thisResponse = getValue(responses);
         if(thisResponse instanceof Number) {
-            thisNumber = (Number) thisResponse;
+            thisNumber = new OhmageNumber((Number) thisResponse);
         }
         else {
             return false;
@@ -187,9 +187,7 @@ public class PromptId extends Terminal {
             return false;
         }
 
-        return
-            (new CustomBigDecimal(thisNumber))
-                .compareTo(new CustomBigDecimal(otherNumber)) < 0;
+        return thisNumber.compareTo(otherNumber) < 0;
     }
 
     /*
@@ -203,8 +201,11 @@ public class PromptId extends Terminal {
 
         Object response = getValue(responses);
 
+        if(response instanceof OhmageNumber) {
+            response.equals(value);
+        }
         if(response instanceof Number) {
-            return (new CustomBigDecimal((Number) response)).equals(value);
+            return (new OhmageNumber((Number) response)).equals(value);
         }
         else {
             return response.equals(value);
@@ -220,10 +221,10 @@ public class PromptId extends Terminal {
         final Map<String, Object> responses,
         final Object value) {
 
-        Number thisNumber;
+        OhmageNumber thisNumber;
         Object thisResponse = getValue(responses);
         if(thisResponse instanceof Number) {
-            thisNumber = (Number) thisResponse;
+            thisNumber = new OhmageNumber((Number) thisResponse);
         }
         else {
             return false;
@@ -237,8 +238,6 @@ public class PromptId extends Terminal {
             return false;
         }
 
-        return
-            (new CustomBigDecimal(thisNumber))
-                .compareTo(new CustomBigDecimal(otherNumber)) > 0;
+        return thisNumber.compareTo(otherNumber) > 0;
     }
 }

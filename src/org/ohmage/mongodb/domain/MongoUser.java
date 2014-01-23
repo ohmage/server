@@ -37,8 +37,8 @@ public class MongoUser extends User implements MongoDbObject {
 	 * @param dbId
 	 *        The database ID for this user.
 	 *
-	 * @param username
-	 *        The user-name of the user.
+	 * @param userId
+	 *        The internal unique identifier for this user.
 	 *
 	 * @param password
 	 *        The hashed password of the user.
@@ -79,7 +79,7 @@ public class MongoUser extends User implements MongoDbObject {
 	@JsonCreator
 	public MongoUser(
 		@Id @ObjectId final String dbId,
-		@JsonProperty(JSON_KEY_USERNAME) final String username,
+		@JsonProperty(JSON_KEY_ID) final String userId,
 		@JsonProperty(JSON_KEY_PASSWORD) final String password,
 		@JsonProperty(JSON_KEY_EMAIL) final String email,
 		@JsonProperty(JSON_KEY_FULL_NAME) final String fullName,
@@ -89,13 +89,12 @@ public class MongoUser extends User implements MongoDbObject {
 		    final Set<OhmletReference> communities,
 		@JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
-        @JsonProperty(JSON_KEY_REGISTRATION)
-		    final Registration.Builder registration,
+        @JsonProperty(JSON_KEY_REGISTRATION) final Registration registration,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 
 		super(
-			username,
+		    userId,
 			password,
 			email,
 			fullName,

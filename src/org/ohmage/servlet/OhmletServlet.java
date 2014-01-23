@@ -143,7 +143,7 @@ public class OhmletServlet extends OhmageServlet {
 			.log(
 				Level.FINE,
 				"Setting the token's owner as the creator of this ohmlet.");
-		ohmletBuilder.addMember(user.getUsername(), Ohmlet.Role.OWNER);
+		ohmletBuilder.addMember(user.getId(), Ohmlet.Role.OWNER);
 
         LOGGER.log(Level.FINE, "Checking if an icon was given.");
         Media icon = null;
@@ -282,7 +282,7 @@ public class OhmletServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
 
 		LOGGER.log(Level.FINE, "Determining the user making the request.");
-		String username = null;
+		String userId = null;
 		if(authToken == null) {
 		    LOGGER.log(Level.INFO, "The request is being made anonymously.");
 		}
@@ -291,13 +291,13 @@ public class OhmletServlet extends OhmageServlet {
                 .log(
                     Level.INFO,
                     "Retrieving the user associated with the token.");
-            username = authToken.getUser().getUsername();
+            userId = authToken.getUser().getId();
 		}
         LOGGER.log(Level.INFO, "Retrieving the stream IDs");
         MultiValueResult<String> ids =
             OhmletBin
                 .getInstance()
-                .getOhmletIds(username, query, numToSkip, numToReturn);
+                .getOhmletIds(userId, query, numToSkip, numToReturn);
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -383,7 +383,7 @@ public class OhmletServlet extends OhmageServlet {
             }
 
             LOGGER.log(Level.INFO, "Verifying the user may view the ohmlet.");
-            if(! ohmlet.canViewOhmlet(authToken.getUsername())) {
+            if(! ohmlet.canViewOhmlet(authToken.getUserId())) {
                 throw
                     new InsufficientPermissionsException(
                         "The user does not have sufficient permissions to " +
@@ -448,7 +448,7 @@ public class OhmletServlet extends OhmageServlet {
 				Level.INFO,
 				"Verifying that the requesting user is allowed to modify " +
 					"the ohmlet.");
-		if(! ohmlet.canModifyOhmlet(user.getUsername())) {
+		if(! ohmlet.canModifyOhmlet(user.getId())) {
 			throw
 				new InsufficientPermissionsException(
 					"The user does not have sufficient permissions to " +
@@ -565,8 +565,7 @@ public class OhmletServlet extends OhmageServlet {
         User user = authToken.getUser();
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
-		Ohmlet ohmlet =
-			OhmletBin.getInstance().getOhmlet(ohmletId);
+		Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
 
 		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
 		if(ohmlet == null) {
@@ -576,10 +575,10 @@ public class OhmletServlet extends OhmageServlet {
 		}
 
 		LOGGER.log(Level.FINE, "Retrieving the requesting user's role.");
-		Ohmlet.Role requesterRole = ohmlet.getRole(user.getUsername());
+		Ohmlet.Role requesterRole = ohmlet.getRole(user.getId());
 
 		LOGGER.log(Level.INFO, "Validating the request.");
-		if(user.getUsername().equals(member.getMemberId())) {
+		if(user.getId().equals(member.getMemberId())) {
 			LOGGER
 				.log(
 					Level.FINE,
@@ -613,8 +612,19 @@ public class OhmletServlet extends OhmageServlet {
 						"A user cannot invite themselves.");
 
 			case MEMBER:
+			    // If the user doesn't have a role,
+			        // The ohmlet must be public.
+			    // If the user is REQUESTED,
+			        // The ohmlet must be public.
+			    // If the user is INVITED, then we are good.
+			    // If the user is already a MEMBER, then we are good.
+			    // If the user is anything else, then they are down-grading
+			    // their role, and we are good.
 				if(
-					(requesterRole == null) &&
+					(
+					    (requesterRole == null) ||
+					    (Ohmlet.Role.REQUESTED.equals(requesterRole))
+				    ) &&
 					(!
 						Ohmlet
 							.PrivacyState
@@ -626,16 +636,11 @@ public class OhmletServlet extends OhmageServlet {
 							"A user may not directly join a non-public " +
 								Ohmlet.OHMLET_SKIN + ".");
 				}
-				// Cascade.
+				break;
 
 			default:
-				if(Ohmlet.Role.MEMBER.supersedes(requesterRole)) {
-					throw
-						new InsufficientPermissionsException(
-							"The user cannot modify their role until they " +
-								"have been invited.");
-				}
-				else if(member.getRole().supersedes(requesterRole)) {
+			    // The user may only decrease their role, at this point.
+				if(member.getRole().supersedes(requesterRole)) {
 					throw
 						new InsufficientPermissionsException(
 							"A user may not elevate their own role beyond " +
@@ -718,6 +723,20 @@ public class OhmletServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
+
+		LOGGER
+		    .log(
+		        Level.FINE,
+		        "Checking if the user's account already tracks this ohmlet.");
+		if(requesterRole == null) {
+		    LOGGER
+		        .log(
+		            Level.INFO,
+		            "Updating the user to be part of the new ohmlet.");
+		    User updatedUser =
+		        user.joinOhmlet(new OhmletReference(ohmletId, null, null));
+		    UserBin.getInstance().updateUser(updatedUser);
+		}
 	}
 
 	/**
@@ -762,7 +781,7 @@ public class OhmletServlet extends OhmageServlet {
 				Level.INFO,
 				"Verifying that the requesting user can delete the " +
 					"ohmlet.");
-		if(! ohmlet.hasRole(user.getUsername(), Ohmlet.Role.OWNER)) {
+		if(! ohmlet.hasRole(user.getId(), Ohmlet.Role.OWNER)) {
 			throw
 				new InsufficientPermissionsException(
 					"The user does not have enough permissions to delete " +

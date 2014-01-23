@@ -653,7 +653,7 @@ public class OmhServlet extends OhmageServlet {
                     StreamDataBin
                         .getInstance()
                         .getStreamData(
-                            user.getUsername(),
+                            user.getId(),
                             omhSchemaId.ohmageSchemaId,
                             schemaVersion,
                             startDateObject,
@@ -669,7 +669,7 @@ public class OmhServlet extends OhmageServlet {
                     SurveyResponseBin
                         .getInstance()
                         .getSurveyResponses(
-                            user.getUsername(),
+                            user.getId(),
                             omhSchemaId.ohmageSchemaId,
                             schemaVersion,
                             null,

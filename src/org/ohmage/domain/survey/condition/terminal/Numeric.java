@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.jackson.OhmageNumber;
 import org.ohmage.domain.survey.SurveyItem;
 import org.ohmage.domain.survey.condition.Fragment;
 
@@ -92,7 +93,7 @@ public class Numeric extends Terminal {
         /**
          * The number value.
          */
-        private final CustomBigDecimal value;
+        private final OhmageNumber value;
 
         /**
          * Creates a new builder with some number.
@@ -100,8 +101,8 @@ public class Numeric extends Terminal {
          * @param value
          *        The number value.
          */
-        public Builder(final BigDecimal value) {
-            this.value = new CustomBigDecimal(value);
+        public Builder(final Number value) {
+            this.value = new OhmageNumber(value);
         }
 
         /*
@@ -136,10 +137,10 @@ public class Numeric extends Terminal {
     public static final String JSON_KEY_VALUE = "value";
 
     /**
-     * The text value.
+     * The numeric value.
      */
     @JsonProperty(JSON_KEY_VALUE)
-    private final CustomBigDecimal value;
+    private final OhmageNumber value;
 
     /**
      * Creates a new number node.
@@ -152,7 +153,7 @@ public class Numeric extends Terminal {
      *         mark.
      */
     @JsonCreator
-    public Numeric(@JsonProperty(JSON_KEY_VALUE) final CustomBigDecimal value)
+    public Numeric(@JsonProperty(JSON_KEY_VALUE) final OhmageNumber value)
         throws InvalidArgumentException {
 
         // Be sure it is not null.
@@ -169,7 +170,7 @@ public class Numeric extends Terminal {
      * @see org.ohmage.domain.survey.condition.Terminal#getValue(java.util.Map)
      */
     @Override
-    public BigDecimal getValue(final Map<String, Object> responses) {
+    public OhmageNumber getValue(final Map<String, Object> responses) {
         return value;
     }
 
@@ -190,7 +191,7 @@ public class Numeric extends Terminal {
      */
     @Override
     public boolean evaluate(final Map<String, Object> responses) {
-        return CustomBigDecimal.compareNumbers(getValue(responses), 0) == 0;
+        return getValue(responses).compareTo(0) == 0;
     }
 
     /*
@@ -203,8 +204,7 @@ public class Numeric extends Terminal {
         final Object value) {
 
         if(value instanceof Number) {
-            return
-                this.value.compareTo(new CustomBigDecimal((Number) value)) < 0;
+            return this.value.compareTo((Number) value) < 0;
         }
 
         return false;
@@ -220,9 +220,7 @@ public class Numeric extends Terminal {
         final Object value) {
 
         if(value instanceof Number) {
-            return
-                this.value.compareTo(new CustomBigDecimal((Number) value)) ==
-                    0;
+            return this.value.compareTo((Number) value) == 0;
         }
 
         return false;
@@ -238,8 +236,7 @@ public class Numeric extends Terminal {
         final Object value) {
 
         if(value instanceof Number) {
-            return
-                this.value.compareTo(new CustomBigDecimal((Number) value)) > 0;
+            return this.value.compareTo((Number) value) > 0;
         }
 
         return false;

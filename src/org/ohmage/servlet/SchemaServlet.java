@@ -372,7 +372,7 @@ public class SchemaServlet extends OhmageServlet {
                 StreamDataBin
                     .getInstance()
                     .getStreamData(
-                        user.getUsername(),
+                        user.getId(),
                         schemaId,
                         schemaVersion,
                         startDateObject,
@@ -387,7 +387,7 @@ public class SchemaServlet extends OhmageServlet {
                 SurveyResponseBin
                     .getInstance()
                     .getSurveyResponses(
-                        user.getUsername(),
+                        user.getId(),
                         schemaId,
                         schemaVersion,
                         null,
@@ -486,7 +486,7 @@ public class SchemaServlet extends OhmageServlet {
                 StreamDataBin
                     .getInstance()
                     .getStreamData(
-                        user.getUsername(),
+                        user.getId(),
                         schemaId,
                         schemaVersion,
                         pointId);
@@ -497,7 +497,7 @@ public class SchemaServlet extends OhmageServlet {
                 SurveyResponseBin
                     .getInstance()
                     .getSurveyResponse(
-                        user.getUsername(),
+                        user.getId(),
                         schemaId,
                         schemaVersion,
                         pointId);

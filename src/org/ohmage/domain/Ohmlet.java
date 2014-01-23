@@ -263,37 +263,38 @@ public class Ohmlet extends OhmageDomainObject {
 		/**
 		 * Adds a member to this ohmlet.
 		 *
-		 * @param username
-		 *        The user's user-name.
+		 * @param userId
+		 *        The user's unique identifier.
 		 *
 		 * @param role
 		 *        The member's role in the ohmlet.
 		 *
 		 * @return This builder to facilitate chaining.
 		 */
-		public Builder addMember(final String username, final Role role) {
+		public Builder addMember(final String userId, final Role role) {
 			if(members == null) {
 				members = new HashMap<String, Member>();
 			}
 
-			members.put(username, new Member(username, role));
+			members.put(userId, new Member(userId, role));
 
 			return this;
 		}
 
-		/**
-		 * Removes a user from a ohmlet.
-		 *
-		 * @param username The user-name of the user to remove.
-		 *
-		 * @return This builder to facilitate chaining.
-		 */
-		public Builder removeMember(final String username) {
+        /**
+         * Removes a user from a ohmlet.
+         *
+         * @param userId
+         *        The unique identifier for the user to remove.
+         *
+         * @return This builder to facilitate chaining.
+         */
+		public Builder removeMember(final String userId) {
 			if(members == null) {
 				return this;
 			}
 
-			members.remove(username);
+			members.remove(userId);
 
 			return this;
 		}
@@ -530,6 +531,10 @@ public class Ohmlet extends OhmageDomainObject {
 		 *         role.
 		 */
 		public boolean supersedes(final Role role) {
+		    if(role == null) {
+		        return true;
+		    }
+
 			return ordinal() > role.ordinal();
 		}
 
@@ -777,7 +782,7 @@ public class Ohmlet extends OhmageDomainObject {
 	 * Creates a new ohmlet.
 	 *
 	 * @param owner
-	 *        The username of the user that is creating this ohmlet.
+	 *        The unique identifier for the user that is creating this ohmlet.
 	 *
 	 * @param name
 	 *        The name of this ohmlet.
@@ -1118,21 +1123,21 @@ public class Ohmlet extends OhmageDomainObject {
 	/**
 	 * Returns whether or not a user has any role within the ohmlet.
 	 *
-	 * @param username
-	 *        The user's user-name.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @return Whether or not a user has any role within the ohmlet.
 	 */
-	public boolean hasRole(final String username) {
-		return members.containsKey(username);
+	public boolean hasRole(final String userId) {
+		return members.containsKey(userId);
 	}
 
 	/**
 	 * Returns whether or not a user has a role in the ohmlet that is equal
 	 * to or greater than some specific role.
 	 *
-	 * @param username
-	 *        The user's user-name.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @param role
 	 *        The specific role.
@@ -1140,10 +1145,10 @@ public class Ohmlet extends OhmageDomainObject {
 	 * @return True if the user has a role greater than or equal to some
 	 *         specific role.
 	 */
-	public boolean hasRole(final String username, final Role role) {
-		Member member = members.get(username);
+	public boolean hasRole(final String userId, final Role role) {
+		Member member = members.get(userId);
 
-		if(username == null) {
+		if(userId == null) {
 			return false;
 		}
 
@@ -1153,16 +1158,16 @@ public class Ohmlet extends OhmageDomainObject {
 	/**
 	 * Returns the role of the user.
 	 *
-	 * @param username
-	 *        The user's user-name.
+	 * @param userId
+	 *        The user's unique identifier.
 	 *
 	 * @return The user's role in the ohmlet or null if the user has no role
 	 *         in the ohmlet.
 	 */
-	public Role getRole(final String username) {
-		Member member = members.get(username);
+	public Role getRole(final String userId) {
+		Member member = members.get(userId);
 
-		if(username == null) {
+		if(member == null) {
 			return null;
 		}
 
@@ -1172,29 +1177,45 @@ public class Ohmlet extends OhmageDomainObject {
     /**
      * Returns whether or not a user is allowed to read an ohmlet.
      *
-     * @param username
-     *        The user-name of the user attempting to read this ohmlet.
+     * @param userId
+     *        The unique identifier for the user attempting to read this
+     *        ohmlet.
      *
      * @return True if the user is allowed ot read the ohmlet.
      */
-	public boolean canViewOhmlet(final String username) {
+	public boolean canViewOhmlet(final String userId) {
 	    return
 	        // If the ohmlet is not private, anyone may read it.
 	        (! PrivacyState.PRIVATE.equals(privacyState)) ||
 	        // If they are a member of an ohmlet in any capacity, they may read
 	        // it.
-	        hasRole(username);
+	        hasRole(userId);
 	}
 
-	/**
-	 * Returns whether or not a user is allowed to modify a ohmlet. This
-	 * includes everything except the people and their roles within the ohmlet.
-	 *
-	 * @param username The user's user-name.
-	 *
-	 * @return True if the user is allowed to modify the ohmlet.
-	 */
-	public boolean canModifyOhmlet(final String username) {
-		return hasRole(username, Role.MODERATOR);
+    /**
+     * Returns whether or not a user is allowed to modify a ohmlet. This
+     * includes everything except the people and their roles within the ohmlet.
+     *
+     * @param userId
+     *        The user's unique identifier.
+     *
+     * @return True if the user is allowed to modify the ohmlet.
+     */
+	public boolean canModifyOhmlet(final String userId) {
+		return hasRole(userId, Role.MODERATOR);
 	}
+
+    /**
+     * Creates a new ohmlet based on this ohmlet where the member identified by
+     * the given ID is removed. There are no checks here as it is believed that
+     * members should be able to remove themselves from an ohmlet at any time.
+     *
+     * @param memberId
+     *        The member's identifier within the ohmlet.
+     *
+     * @return The updated Ohmlet
+     */
+    public Ohmlet removeMember(final String memberId) {
+        return (new Ohmlet.Builder(this)).removeMember(memberId).build();
+    }
 }
