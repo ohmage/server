@@ -1,11 +1,12 @@
-package org.ohmage.domain.user;
+package org.ohmage.domain.ohmlet;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
-import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -39,6 +40,10 @@ public class OhmletReference {
          * Specific survey references that should be ignored.
          */
         private Set<SchemaReference> ignoredSurveys;
+        /**
+         * The pseudonym for this ohmlet.
+         */
+        private String pseudonym;
 
         /**
          * Creates a new builder.
@@ -79,6 +84,7 @@ public class OhmletReference {
             ohmletId = ohmletReference.ohmletId;
             ignoredStreams = ohmletReference.ignoredStreams;
             ignoredSurveys = ohmletReference.ignoredSurveys;
+            pseudonym = ohmletReference.pseudonym;
         }
 
         /**
@@ -197,7 +203,8 @@ public class OhmletReference {
             return new OhmletReference(
                 ohmletId,
                 ignoredStreams,
-                ignoredSurveys);
+                ignoredSurveys,
+                pseudonym);
         }
     }
 
@@ -217,6 +224,10 @@ public class OhmletReference {
      */
     public static final String JSON_KEY_IGNORED_SURVEYS =
         "ignored_surveys";
+    /**
+     * The JSON key for the user's pseudonym in the ohmlet.
+     */
+    public static final String JSON_KEY_PSEUDONYM = "pseudonym";
 
     /**
      * The unique identifier for the ohmlet that this object references.
@@ -235,6 +246,19 @@ public class OhmletReference {
      */
     @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
     private final Set<SchemaReference> ignoredSurveys;
+    /**
+     * The pseudonym for the user within the ohmlet.
+     */
+    @JsonProperty(JSON_KEY_PSEUDONYM)
+    private final String pseudonym;
+
+    /**
+     * Creates a new
+     * @param ohmletId
+     */
+    public OhmletReference(final String ohmletId) {
+        this(ohmletId, null, null, generatePseudonym());
+    }
 
     /**
      * Creates a new reference to a ohmlet.
@@ -260,11 +284,16 @@ public class OhmletReference {
         @JsonProperty(JSON_KEY_IGNORED_STREAMS)
             final Set<SchemaReference> ignoredStreams,
         @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
-            final Set<SchemaReference> ignoredSurveys)
+            final Set<SchemaReference> ignoredSurveys,
+        @JsonProperty(JSON_KEY_PSEUDONYM)
+            final String pseudonym)
         throws InvalidArgumentException {
 
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is null.");
+        }
+        if(pseudonym == null) {
+            throw new InvalidArgumentException("The pseudonym is null.");
         }
 
         this.ohmletId = ohmletId;
@@ -276,6 +305,7 @@ public class OhmletReference {
             (ignoredSurveys == null) ?
                 new HashSet<SchemaReference>() :
                 new HashSet<SchemaReference>(ignoredSurveys);
+        this.pseudonym = pseudonym;
     }
 
     /**
@@ -369,5 +399,14 @@ public class OhmletReference {
         final SchemaReference surveyReference) {
 
         return (new Builder(this)).removeSurvey(surveyReference).build();
+    }
+
+    /**
+     * Generates and returns a new pseudonym.
+     *
+     * @return A new pseudonym.
+     */
+    private static String generatePseudonym() {
+        return UUID.randomUUID().toString();
     }
 }

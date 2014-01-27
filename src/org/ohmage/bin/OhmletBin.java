@@ -1,7 +1,7 @@
 package org.ohmage.bin;
 
-import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.ohmlet.Ohmlet;
 
 /**
  * <p>

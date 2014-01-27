@@ -96,7 +96,7 @@ public abstract class SurveyItem {
 
     /**
      * Does nothing and should never be used. This is here only to circumvent a
-     * but in Jackson.
+     * bug in Jackson.
      */
     @JsonCreator
     private SurveyItem() {

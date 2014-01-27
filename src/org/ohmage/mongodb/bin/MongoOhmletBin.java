@@ -12,10 +12,10 @@ import org.mongojack.WriteResult;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.domain.OhmageDomainObject;
-import org.ohmage.domain.Ohmlet;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.ohmlet.Ohmlet;
 import org.ohmage.mongodb.domain.MongoOhmlet;
 
 import com.mongodb.BasicDBObject;

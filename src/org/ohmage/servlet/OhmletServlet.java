@@ -12,14 +12,14 @@ import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.Ohmlet;
-import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
+import org.ohmage.domain.ohmlet.Ohmlet;
+import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.survey.Media;
-import org.ohmage.domain.user.OhmletReference;
 import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
@@ -226,8 +226,7 @@ public class OhmletServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Updating the user.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
-		OhmletReference ohmletReference =
-			new OhmletReference(ohmlet.getId(), null, null);
+		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId());
 		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
 		updatedUserBuilder.addOhmlet(ohmletReference);
 		LOGGER.log(Level.FINE, "Building the user.");
@@ -733,8 +732,7 @@ public class OhmletServlet extends OhmageServlet {
 		        .log(
 		            Level.INFO,
 		            "Updating the user to be part of the new ohmlet.");
-		    User updatedUser =
-		        user.joinOhmlet(new OhmletReference(ohmletId, null, null));
+		    User updatedUser = user.joinOhmlet(new OhmletReference(ohmletId));
 		    UserBin.getInstance().updateUser(updatedUser);
 		}
 	}

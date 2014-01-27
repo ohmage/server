@@ -1,4 +1,4 @@
-package org.ohmage.domain;
+package org.ohmage.domain.ohmlet;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.MapValuesJsonSerializer;

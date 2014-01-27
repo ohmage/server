@@ -12,12 +12,13 @@ import java.util.UUID;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.mindrot.jbcrypt.BCrypt;
 import org.ohmage.domain.OhmageDomainObject;
-import org.ohmage.domain.Ohmlet.SchemaReference;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
+import org.ohmage.domain.ohmlet.OhmletReference;
+import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;

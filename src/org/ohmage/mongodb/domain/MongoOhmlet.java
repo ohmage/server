@@ -5,7 +5,7 @@ import java.util.List;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.Ohmlet;
+import org.ohmage.domain.ohmlet.Ohmlet;
 import org.ohmage.mongodb.bin.MongoOhmletBin;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
