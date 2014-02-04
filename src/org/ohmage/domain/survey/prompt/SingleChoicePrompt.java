@@ -69,8 +69,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE) final String defaultResponse,
-        @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices,
-        @JsonProperty(JSON_KEY_ALLOW_CUSTOM) final Boolean allowCustom)
+        @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices)
         throws InvalidArgumentException {
 
         super(
@@ -81,8 +80,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
             displayLabel,
             skippable,
             defaultResponse,
-            choices,
-            allowCustom);
+            choices);
 
         if((defaultResponse != null) && (getChoice(defaultResponse) == null)) {
             throw
@@ -117,7 +115,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
         final Map<String, Media> media)
         throws InvalidArgumentException {
 
-        if((! allowsCustom()) && (getChoice(response) == null)) {
+        if(getChoice(response) == null) {
             throw
                 new InvalidArgumentException(
                     "The response value '" +

@@ -126,10 +126,6 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
      * The JSON key for the choices.
      */
     public static final String JSON_KEY_CHOICES = "choices";
-    /**
-     * The JSON key for whether or not custom choices are allowed.
-     */
-    public static final String JSON_KEY_ALLOW_CUSTOM = "allow_custom";
 
     /**
      * The map of choices from their label to their actual {@link Choice}
@@ -138,11 +134,6 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
     @JsonProperty(JSON_KEY_CHOICES)
     @JsonSerialize(using = MapValuesJsonSerializer.class)
     private final Map<String, Choice> choices;
-    /**
-     * Whether or not custom choices are allowed to be added by the user.
-     */
-    @JsonProperty(JSON_KEY_ALLOW_CUSTOM)
-    private final boolean allowCustom;
 
     /**
      * Creates a parent choice prompt.
@@ -188,8 +179,7 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
             final ResponseType defaultResponse,
-        @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices,
-        @JsonProperty(JSON_KEY_ALLOW_CUSTOM) final Boolean allowCustom)
+        @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices)
         throws InvalidArgumentException {
 
         super(
@@ -235,18 +225,11 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
             }
         }
 
-        // Validate the "allow custom" flag.
-        this.allowCustom =
-            (allowCustom == null) ? DEFAULT_ALLOW_CUSTOM : allowCustom;
-
-        // Validate that, if no choices were given, the "allow custom" flag is
-        // set to true.
-        if((choices.size() == 0) && (! this.allowCustom)) {
+        // Validate that at least one choice was given.
+        if(choices.size() == 0) {
             throw
                 new InvalidArgumentException(
-                    "No choices were given and custom choices are " +
-                        "disallowed: " +
-                        getSurveyItemId());
+                    "No choices were given: " + getSurveyItemId());
         }
     }
 
@@ -281,14 +264,5 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
      */
     public Choice getChoice(final String label) {
         return choices.get(label);
-    }
-
-    /**
-     * Returns whether or not this prompt allows custom values.
-     *
-     * @return Whether or not this prompt allows custom values.
-     */
-    public boolean allowsCustom() {
-        return allowCustom;
     }
 }

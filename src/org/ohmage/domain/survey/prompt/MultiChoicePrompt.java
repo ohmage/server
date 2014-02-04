@@ -101,7 +101,6 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
             final Set<String> defaultResponse,
         @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices,
-        @JsonProperty(JSON_KEY_ALLOW_CUSTOM) final Boolean allowCustom,
         @JsonProperty(JSON_KEY_MIN_CHOICES) final Integer minChoices,
         @JsonProperty(JSON_KEY_MAX_CHOICES) final Integer maxChoices)
         throws InvalidArgumentException {
@@ -114,8 +113,7 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
             displayLabel,
             skippable,
             defaultResponse,
-            choices,
-            allowCustom);
+            choices);
 
         for(String defaultResponseLabel : defaultResponse) {
             if(
@@ -168,16 +166,14 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
         final Map<String, Media> media)
         throws InvalidArgumentException {
 
-        if(! allowsCustom()) {
-            for(String responseLabel : response) {
-                if(getChoice(responseLabel) == null) {
-                    throw
-                        new InvalidArgumentException(
-                            "The response value '" +
-                                response +
-                                "' is unknown: " +
-                                getSurveyItemId());
-                }
+        for(String responseLabel : response) {
+            if(getChoice(responseLabel) == null) {
+                throw
+                    new InvalidArgumentException(
+                        "The response value '" +
+                            response +
+                            "' is unknown: " +
+                            getSurveyItemId());
             }
         }
 
