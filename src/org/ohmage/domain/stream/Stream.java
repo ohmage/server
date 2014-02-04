@@ -1,5 +1,10 @@
 package org.ohmage.domain.stream;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 
@@ -10,6 +15,10 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.JdkDeserializers.URIDeserializer;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 /**
  * <p>
@@ -31,6 +40,12 @@ public class Stream extends Schema {
          * The definition of this schema.
          */
         protected Concordia definition;
+
+        /**
+         * The list of information about the apps that correspond to this
+         * stream.
+         */
+        protected List<AppInformation> apps;
 
 		/**
 		 * Creates a new Stream builder object.
@@ -55,12 +70,14 @@ public class Stream extends Schema {
 			@JsonProperty(JSON_KEY_VERSION) final long version,
 			@JsonProperty(JSON_KEY_NAME) final String name,
 			@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
+            @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
 			@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-			@JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
+	        @JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps) {
 
 			super(version, name, description, iconId);
 
 			this.definition = definition;
+			this.apps = apps;
 		}
 
 		/**
@@ -74,6 +91,7 @@ public class Stream extends Schema {
 			super(stream);
 
 			definition = stream.definition;
+			apps = stream.apps;
 		}
 
 		/**
@@ -94,10 +112,103 @@ public class Stream extends Schema {
 					owner,
 					iconId,
 					definition,
+					apps,
 					internalReadVersion,
 					internalWriteVersion);
 		}
 	}
+
+    /**
+     * <p>
+     * Information about an application that corresponds to a particular
+     * stream. This should be used to indicate to users of a particular
+     * platform, e.g. Android, iOS, Windows, etc., how to install an
+     * application and how to begin the flow of authorizing ohmage to install
+     * the data.
+     * </p>
+     *
+     * @author John Jenkins
+     */
+	public static class AppInformation {
+	    /**
+	     * The JSON key for the platform.
+	     */
+	    public static final String JSON_KEY_PLATFORM = "platform";
+
+	    /**
+	     * The JSON key for the application's URI.
+	     */
+	    public static final String JSON_KEY_APP_URI = "app_uri";
+
+	    /**
+	     * The JSON key for the authorization URI.
+	     */
+	    public static final String JSON_KEY_AUTHORIZATION_URI =
+	        "authorization_uri";
+
+	    /**
+	     * The platform to which this application applies, e.g. Android, iOS,
+	     * Windows, etc..
+	     */
+	    @JsonProperty(JSON_KEY_PLATFORM)
+	    private final String platform;
+
+	    /**
+	     * The URI to use to direct the user to installing the application.
+	     */
+	    @JsonProperty(JSON_KEY_APP_URI)
+	    @JsonDeserialize(using = URIDeserializer.class)
+	    @JsonSerialize(using = ToStringSerializer.class)
+	    private final URI appUri;
+
+	    /**
+	     * The URI to use to direct the user to authorize the application.
+	     */
+	    @JsonProperty(JSON_KEY_AUTHORIZATION_URI)
+        @JsonDeserialize(using = URIDeserializer.class)
+        @JsonSerialize(using = ToStringSerializer.class)
+	    private final URI authorizationUri;
+
+        /**
+         * Creates a new or reconstructs an existing AppInformation object.
+         *
+         * @param platform
+         *        The application platform, e.g. Android, iOS, Windows, etc..
+         *
+         * @param appUri
+         *        A URI to direct the user to install the application, e.g. the
+         *        platform's app store.
+         *
+         * @param authorizationUri
+         *        A URI to direct the user to grant ohmage permission to read
+         *        the user's data.
+         *
+         * @throws InvalidArgumentException
+         *         The platform or application URI are null.
+         */
+	    public AppInformation(
+	        @JsonProperty(JSON_KEY_PLATFORM) final String platform,
+	        @JsonProperty(JSON_KEY_APP_URI) final URI appUri,
+	        @JsonProperty(JSON_KEY_AUTHORIZATION_URI)
+	            final URI authorizationUri)
+	        throws InvalidArgumentException {
+
+	        if(platform == null) {
+	            throw new InvalidArgumentException("The platform is missing.");
+	        }
+	        if(appUri == null) {
+	            throw
+	                new InvalidArgumentException(
+	                    "The application URI is missing.");
+	        }
+
+	        this.platform = platform;
+	        this.appUri = appUri;
+	        this.authorizationUri = authorizationUri;
+	    }
+	}
+
+	public static final String JSON_KEY_APPS = "apps";
 
     /**
      * The definition of this schema.
@@ -105,37 +216,48 @@ public class Stream extends Schema {
     @JsonProperty(JSON_KEY_DEFINITION)
     private final Concordia definition;
 
-	/**
-	 * Creates a new Stream object.
-	 *
-	 * @param version
-	 *        The version of this stream.
-	 *
-	 * @param name
-	 *        The name of this stream.
-	 *
-	 * @param description
-	 *        The description of this stream.
-	 *
-	 * @param owner
-	 *        The owner of this stream.
+    /**
+     * The list of applications that supply data for this stream.
+     */
+    @JsonProperty(JSON_KEY_APPS)
+    private final List<AppInformation> apps;
+
+	    /**
+     * Creates a new Stream object.
+     *
+     * @param version
+     *        The version of this stream.
+     *
+     * @param name
+     *        The name of this stream.
+     *
+     * @param description
+     *        The description of this stream.
+     *
+     * @param owner
+     *        The owner of this stream.
      *
      * @param iconId
      *        The media ID for the icon image.
-	 *
-	 * @param definition
-	 *        The definition of this stream.
-	 *
-	 * @throws InvalidArgumentException
-	 *         A parameter is invalid.
-	 */
+     *
+     * @param definition
+     *        The definition of this stream.
+     *
+     * @param apps
+     *        The list of information about applications that correspond to
+     *        this data stream.
+     *
+     * @throws InvalidArgumentException
+     *         A parameter is invalid.
+     */
 	public Stream(
 		final long version,
 		final String name,
 		final String description,
 		final String owner,
 		final String iconId,
-		final Concordia definition)
+		final Concordia definition,
+		final List<AppInformation> apps)
 		throws InvalidArgumentException {
 
 		this(
@@ -146,6 +268,7 @@ public class Stream extends Schema {
 		    owner,
 		    iconId,
 		    definition,
+		    apps,
 		    null);
 	}
 
@@ -173,6 +296,10 @@ public class Stream extends Schema {
 	 *
 	 * @param definition
 	 *        The definition of this schema.
+     *
+     * @param apps
+     *        The list of information about applications that correspond to
+     *        this data stream.
 	 *
 	 * @param internalVersion
 	 *        The internal version of this schema.
@@ -192,6 +319,7 @@ public class Stream extends Schema {
         @JsonProperty(JSON_KEY_OWNER) final String owner,
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
+		@JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
 
@@ -203,6 +331,7 @@ public class Stream extends Schema {
 			owner,
 			iconId,
 			definition,
+			apps,
 			internalVersion,
 			internalVersion);
 	}
@@ -230,6 +359,10 @@ public class Stream extends Schema {
 	 *
 	 * @param definition
 	 *        The definition of this schema.
+     *
+     * @param apps
+     *        The list of information about applications that correspond to
+     *        this data stream.
 	 *
 	 * @param internalReadVersion
 	 *        The internal version of this schema when it was read from the
@@ -253,6 +386,7 @@ public class Stream extends Schema {
 		final String owner,
 		final String iconId,
 		final Concordia definition,
+		final List<AppInformation> apps,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
@@ -272,6 +406,10 @@ public class Stream extends Schema {
         }
 
         this.definition = definition;
+        this.apps =
+            (apps == null) ?
+                Collections.<AppInformation>emptyList() :
+                new ArrayList<AppInformation>(apps);
 	}
 
 	/**
