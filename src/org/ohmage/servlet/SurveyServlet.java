@@ -22,7 +22,6 @@ import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
-import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.survey.SurveyResponse;
@@ -41,8 +40,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * <p>
@@ -93,11 +90,6 @@ public class SurveyServlet extends OhmageServlet {
      */
     private static final Logger LOGGER =
         Logger.getLogger(SurveyServlet.class.getName());
-
-    /**
-     * The {@link ObjectMapper} to use to decode the survey responses.
-     */
-    private static final ObjectMapper OBJECT_MAPPER = new OhmageObjectMapper();
 
     /**
      * The usage in this class is entirely static, so there is no need to
@@ -496,7 +488,7 @@ public class SurveyServlet extends OhmageServlet {
             final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
-        @RequestBody final List<SurveyResponse.Builder> surveyResponses) {
+        @RequestBody final SurveyResponse.Builder[] surveyResponses) {
 
         return
             storeData(
@@ -537,7 +529,7 @@ public class SurveyServlet extends OhmageServlet {
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
         @RequestPart(SurveyResponse.JSON_KEY_DATA)
-            final List<SurveyResponse.Builder> surveyResponses,
+            final SurveyResponse.Builder[] surveyResponses,
         @RequestPart(value = KEY_MEDIA, required = false)
             final List<MultipartFile> media) {
 
@@ -566,35 +558,6 @@ public class SurveyServlet extends OhmageServlet {
                     "The survey ID-verion pair is unknown.");
         }
 
-//        LOGGER.log(Level.INFO, "Converting the JSON into our object.");
-//        List<SurveyResponse.Builder> surveyResponseBuilders;
-//        try {
-//            surveyResponseBuilders =
-//                OBJECT_MAPPER
-//                    .readValue(
-//                        surveyResponses.toString(),
-//                        new TypeReference<List<SurveyResponse.Builder>>() {});
-//        }
-//        catch(JsonParseException e) {
-//            throw
-//                new InvalidArgumentException(
-//                    "The survey responses were not valid JSON: " +
-//                        e.getLocalizedMessage(),
-//                    e);
-//        }
-//        catch(JsonMappingException e) {
-//            throw
-//                new InvalidArgumentException(
-//                    "The responses are invalid: " + e.getOriginalMessage(),
-//                    e);
-//        }
-//        catch(IOException e) {
-//            throw
-//                new IllegalStateException(
-//                    "The responses could not be read.",
-//                    e);
-//        }
-
         LOGGER.log(Level.FINE, "Building the media map.");
         Map<String, Media> mediaMap = new HashMap<String, Media>();
         for(MultipartFile part : media) {
@@ -606,7 +569,7 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the survey responses.");
         Map<String, SurveyResponse> surveyResponseMap =
-            new HashMap<String, SurveyResponse>(surveyResponses.size());
+            new HashMap<String, SurveyResponse>(surveyResponses.length);
         for(SurveyResponse.Builder surveyResponseBuilder : surveyResponses) {
             // Set the user.
             surveyResponseBuilder.setOwner(user.getId());
