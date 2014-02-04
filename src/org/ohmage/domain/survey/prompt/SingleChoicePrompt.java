@@ -29,7 +29,10 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
     /**
      * Creates a new single-choice prompt.
      *
-     * @param id
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
+     * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
@@ -59,6 +62,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
      */
     @JsonCreator
     public SingleChoicePrompt(
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
@@ -70,6 +74,7 @@ public class SingleChoicePrompt extends ChoicePrompt<String> {
         throws InvalidArgumentException {
 
         super(
+            displayType,
             surveyItemId,
             condition,
             text,

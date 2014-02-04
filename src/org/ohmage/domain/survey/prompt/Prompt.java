@@ -23,11 +23,6 @@ public abstract class Prompt<ResponseType>
     implements Respondable {
 
     /**
-     * The JSON key used to define the prompt type.
-     */
-    public static final String JSON_KEY_PROMPT_TYPE = "prompt_type";
-
-    /**
      * The JSON key for the text.
      */
     public static final String JSON_KEY_TEXT = "text";
@@ -69,7 +64,10 @@ public abstract class Prompt<ResponseType>
     /**
      * Creates a new prompt.
      *
-     * @param id
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
+     * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
@@ -92,6 +90,7 @@ public abstract class Prompt<ResponseType>
      *         A parameter was invalid.
      */
     public Prompt(
+        final String displayType,
         final String surveyItemId,
         final Condition condition,
         final String text,
@@ -100,10 +99,13 @@ public abstract class Prompt<ResponseType>
         final ResponseType defaultResponse)
         throws InvalidArgumentException {
 
-        super(surveyItemId, condition);
+        super(displayType, surveyItemId, condition);
 
         if(text == null) {
             throw new InvalidArgumentException("The prompt text is null.");
+        }
+        if(displayLabel == null) {
+            throw new InvalidArgumentException("The display label is null.");
         }
 
         this.text = text;

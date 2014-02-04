@@ -23,7 +23,10 @@ public abstract class MediaPrompt extends Prompt<String> {
     /**
      * Creates a new media prompt.
      *
-     * @param id
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
+     * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
@@ -58,6 +61,7 @@ public abstract class MediaPrompt extends Prompt<String> {
      */
     @JsonCreator
     public MediaPrompt(
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
@@ -67,6 +71,7 @@ public abstract class MediaPrompt extends Prompt<String> {
         throws InvalidArgumentException {
 
         super(
+            displayType,
             surveyItemId,
             condition,
             text,

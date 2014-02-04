@@ -74,6 +74,10 @@ public abstract class SurveyItem {
     public static final String JSON_KEY_SURVEY_ITEM_TYPE = "survey_item_type";
 
     /**
+     * The JSON key for the display type.
+     */
+    public static final String JSON_KEY_DISPLAY_TYPE = "display_type";
+    /**
      * The JSON key for the ID.
      */
     public static final String JSON_KEY_SURVEY_ITEM_ID = "survey_item_id";
@@ -82,6 +86,11 @@ public abstract class SurveyItem {
      */
     public static final String JSON_KEY_CONDITION = "condition";
 
+    /**
+     * The display type used to describe how it will be displayed to the user.
+     */
+    @JsonProperty(JSON_KEY_DISPLAY_TYPE)
+    private final String displayType;
     /**
      * The survey-unique identifier for this survey item.
      */
@@ -100,6 +109,7 @@ public abstract class SurveyItem {
      */
     @JsonCreator
     private SurveyItem() {
+        displayType = null;
         surveyItemId = null;
         condition = null;
     }
@@ -117,6 +127,7 @@ public abstract class SurveyItem {
      *         The iID is null.
      */
     public SurveyItem(
+        final String displayType,
         final String surveyItemId,
         final Condition condition)
         throws InvalidArgumentException {
@@ -125,6 +136,7 @@ public abstract class SurveyItem {
             throw new InvalidArgumentException("The survey item ID is null.");
         }
 
+        this.displayType = displayType;
         this.surveyItemId = surveyItemId;
         this.condition = condition;
     }

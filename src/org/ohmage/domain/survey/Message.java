@@ -33,7 +33,10 @@ public class Message extends SurveyItem {
     /**
      * Creates a new message object.
      *
-     * @param id
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
+     * @param surveyItemId
      *        The survey-unique identifier for this message.
      *
      * @param condition
@@ -47,12 +50,13 @@ public class Message extends SurveyItem {
      */
     @JsonCreator
     public Message(
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text)
         throws InvalidArgumentException {
 
-        super(surveyItemId, condition);
+        super(displayType, surveyItemId, condition);
 
         if(text == null) {
             throw new InvalidArgumentException("The text is null.");

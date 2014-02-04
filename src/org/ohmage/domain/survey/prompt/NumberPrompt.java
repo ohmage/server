@@ -58,10 +58,10 @@ public class NumberPrompt extends Prompt<Number> {
     /**
      * Creates a new number prompt.
      *
-     * @param id
-     *        The survey-unique identifier for this prompt.
+     * @param displayType
+     *        The display type to use to visualize the prompt.
      *
-     * @param condition
+     * @param surveyItemId
      *        The condition on whether or not to show this prompt.
      *
      * @param text
@@ -94,6 +94,7 @@ public class NumberPrompt extends Prompt<Number> {
      */
     @JsonCreator
     public NumberPrompt(
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
@@ -107,6 +108,7 @@ public class NumberPrompt extends Prompt<Number> {
         throws InvalidArgumentException {
 
         super(
+            displayType,
             surveyItemId,
             condition,
             text,

@@ -48,7 +48,10 @@ public class TextPrompt extends Prompt<String> {
     /**
      * Creates a new text prompt.
      *
-     * @param id
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
+     * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
@@ -80,6 +83,7 @@ public class TextPrompt extends Prompt<String> {
      */
     @JsonCreator
     public TextPrompt(
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
@@ -91,6 +95,7 @@ public class TextPrompt extends Prompt<String> {
         throws InvalidArgumentException {
 
         super(
+            displayType,
             surveyItemId,
             condition,
             text,

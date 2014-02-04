@@ -53,7 +53,10 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
     /**
      * Creates a new multi-choice prompt.
      *
-     * @param id
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
+     * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
@@ -89,6 +92,7 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
      */
     @JsonCreator
     public MultiChoicePrompt(
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
         @JsonProperty(JSON_KEY_TEXT) final String text,
@@ -103,6 +107,7 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
         throws InvalidArgumentException {
 
         super(
+            displayType,
             surveyItemId,
             condition,
             text,
