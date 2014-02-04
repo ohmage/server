@@ -20,8 +20,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.servlet.listener.ConfigurationFileImport;
 
 /**

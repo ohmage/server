@@ -1,6 +1,5 @@
 package org.ohmage.servlet;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.MultiValueResult;
+import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.AuthorizationToken;
@@ -42,10 +42,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -500,8 +496,7 @@ public class SurveyServlet extends OhmageServlet {
             final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
-        @RequestParam(SurveyResponse.JSON_KEY_RESPONSES)
-            final JsonNode surveyResponses) {
+        @RequestBody final List<SurveyResponse.Builder> surveyResponses) {
 
         return
             storeData(
@@ -541,8 +536,8 @@ public class SurveyServlet extends OhmageServlet {
             final AuthorizationToken authToken,
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
-        @RequestPart(SurveyResponse.JSON_KEY_RESPONSES)
-            final JsonNode surveyResponses,
+        @RequestPart(SurveyResponse.JSON_KEY_DATA)
+            final List<SurveyResponse.Builder> surveyResponses,
         @RequestPart(value = KEY_MEDIA, required = false)
             final List<MultipartFile> media) {
 
@@ -571,34 +566,34 @@ public class SurveyServlet extends OhmageServlet {
                     "The survey ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Converting the JSON into our object.");
-        List<SurveyResponse.Builder> surveyResponseBuilders;
-        try {
-            surveyResponseBuilders =
-                OBJECT_MAPPER
-                    .readValue(
-                        surveyResponses.toString(),
-                        new TypeReference<List<SurveyResponse.Builder>>() {});
-        }
-        catch(JsonParseException e) {
-            throw
-                new InvalidArgumentException(
-                    "The survey responses were not valid JSON: " +
-                        e.getLocalizedMessage(),
-                    e);
-        }
-        catch(JsonMappingException e) {
-            throw
-                new InvalidArgumentException(
-                    "The responses are invalid: " + e.getOriginalMessage(),
-                    e);
-        }
-        catch(IOException e) {
-            throw
-                new IllegalStateException(
-                    "The responses could not be read.",
-                    e);
-        }
+//        LOGGER.log(Level.INFO, "Converting the JSON into our object.");
+//        List<SurveyResponse.Builder> surveyResponseBuilders;
+//        try {
+//            surveyResponseBuilders =
+//                OBJECT_MAPPER
+//                    .readValue(
+//                        surveyResponses.toString(),
+//                        new TypeReference<List<SurveyResponse.Builder>>() {});
+//        }
+//        catch(JsonParseException e) {
+//            throw
+//                new InvalidArgumentException(
+//                    "The survey responses were not valid JSON: " +
+//                        e.getLocalizedMessage(),
+//                    e);
+//        }
+//        catch(JsonMappingException e) {
+//            throw
+//                new InvalidArgumentException(
+//                    "The responses are invalid: " + e.getOriginalMessage(),
+//                    e);
+//        }
+//        catch(IOException e) {
+//            throw
+//                new IllegalStateException(
+//                    "The responses could not be read.",
+//                    e);
+//        }
 
         LOGGER.log(Level.FINE, "Building the media map.");
         Map<String, Media> mediaMap = new HashMap<String, Media>();
@@ -611,12 +606,14 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the survey responses.");
         Map<String, SurveyResponse> surveyResponseMap =
-            new HashMap<String, SurveyResponse>(surveyResponseBuilders.size());
-        for(SurveyResponse.Builder surveyResponseBuilder : surveyResponseBuilders) {
+            new HashMap<String, SurveyResponse>(surveyResponses.size());
+        for(SurveyResponse.Builder surveyResponseBuilder : surveyResponses) {
+            // Set the user.
+            surveyResponseBuilder.setOwner(user.getId());
+
             // Build the survey response.
             SurveyResponse surveyResponse =
                 surveyResponseBuilder
-                    .setOwner(user.getId())
                     .build(survey, mediaMap);
 
             // Add the survey response to its map.
@@ -657,6 +654,14 @@ public class SurveyServlet extends OhmageServlet {
             }
         }
 
+        LOGGER
+            .log(
+                Level.FINE,
+                "Adding the user's unqiue identifier to the list of " +
+                    "identifiers to query.");
+        Set<String> userIds = new HashSet<String>();
+        userIds.add(user.getId());
+
         LOGGER.log(Level.INFO, "Storing the validated survey responses.");
         SurveyResponseBin.getInstance().addSurveyResponses(surveyResponseList);
 
@@ -668,9 +673,9 @@ public class SurveyServlet extends OhmageServlet {
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponses(
-                    user.getId(),
                     surveyId,
                     surveyVersion,
+                    userIds,
                     surveyResponseIds,
                     null,
                     null,
@@ -736,7 +741,7 @@ public class SurveyServlet extends OhmageServlet {
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER.log(Level.INFO, "Retrieving some survey data.");
+        LOGGER.log(Level.INFO, "Retrieving some survey responses.");
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(authToken == null) {
@@ -758,14 +763,48 @@ public class SurveyServlet extends OhmageServlet {
                 null :
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
+        LOGGER.log(Level.INFO, "Retrieving the latest versino of the survey.");
+        Survey latestSurvey =
+            SurveyBin.getInstance().getLatestSurvey(surveyId);
+        if(latestSurvey == null) {
+            throw new UnknownEntityException("The survey is unknown.");
+        }
+
+        LOGGER
+            .log(
+                Level.FINE,
+                "Determining if the user is asking about the latest version " +
+                    "of the stream.");
+        boolean allowNull = latestSurvey.getVersion() == surveyVersion;
+
+        LOGGER.log(Level.INFO, "Gathering the applicable ohmlets.");
+        Set<String> ohmletIds =
+            OhmletBin
+                .getInstance()
+                .getOhmletIdsWhereUserCanReadSurveyResponses(
+                    user.getId(),
+                    surveyId,
+                    surveyVersion,
+                    allowNull);
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Retrieving the list of user IDs that are visible to the " +
+                    "requesting user.");
+        Set<String> userIds = OhmletBin.getInstance().getMemberIds(ohmletIds);
+
+        LOGGER.log(Level.FINE, "Adding the request user's ID.");
+        userIds.add(user.getId());
+
         LOGGER.log(Level.INFO, "Finding the requested data.");
         MultiValueResult<? extends SurveyResponse> data =
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponses(
-                    user.getId(),
                     surveyId,
                     surveyVersion,
+                    userIds,
                     null,
                     startDateObject,
                     endDateObject,

@@ -17,8 +17,8 @@ import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
-import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletReference;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFilter;
@@ -782,9 +782,6 @@ public class User extends OhmageDomainObject {
                 new IllegalArgumentException(
                     "The user's internal ID is null.");
         }
-        if(password == null) {
-            throw new InvalidArgumentException("The password is null.");
-        }
         if(email == null) {
             throw new InvalidArgumentException("The email address is null.");
         }
@@ -800,6 +797,15 @@ public class User extends OhmageDomainObject {
             for(ProviderUserInformation information : providers) {
                 this.providers.put(information.getProviderId(), information);
             }
+        }
+
+        // Ensure that either a password or at least one provider exists.
+        if((this.password == null) && (this.providers.size() == 0)) {
+            throw
+                new InvalidArgumentException(
+                    "The user must either have a password set or have at " +
+                        "least one provider account to use to authenticate " +
+                        "themselves.");
         }
 
         this.ohmlets = new HashMap<String, OhmletReference>();

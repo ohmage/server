@@ -1,6 +1,5 @@
 package org.ohmage.domain.survey.condition.terminal;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 import org.ohmage.domain.survey.NoResponse;
@@ -49,7 +48,7 @@ public abstract class Terminal extends Fragment {
             return new Text.Builder(token);
         }
         try {
-            return new Numeric.Builder(new BigDecimal(token));
+            return new Numeric.Builder(Double.parseDouble(token));
         }
         catch(NumberFormatException e) {
             // It is not a number.

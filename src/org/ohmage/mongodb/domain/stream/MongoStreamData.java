@@ -63,8 +63,8 @@ public class MongoStreamData extends StreamData implements MongoDbObject {
 	protected MongoStreamData(
 		@Id @ObjectId final String dbId,
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
-		@JsonProperty(JSON_KEY_STREAM_ID) final String streamId,
-		@JsonProperty(JSON_KEY_STREAM_VERSION) final long streamVersion,
+		@JsonProperty(JSON_KEY_SCHEMA_ID) final String streamId,
+		@JsonProperty(JSON_KEY_SCHEMA_VERSION) final long streamVersion,
 		@JsonProperty(JSON_KEY_META_DATA) final MetaData metaData,
 		@JsonProperty(JSON_KEY_DATA) final JsonNode data,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)

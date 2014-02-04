@@ -22,6 +22,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class OhmletReference {
     /**
      * <p>
+     * Allows a user to choose how data points are shared with the referenced
+     * ohmlet.
+     * </p>
+     *
+     * @author John Jenkins
+     */
+    public static enum PrivacyState {
+        /**
+         * Each data point shared with this ohmlet will use a randomly selected
+         * unique identifier representing the user.
+         */
+        PRIVATE,
+        /**
+         * All data points shared with this ohmlet will use the user's
+         * pseudodnym.
+         */
+        OHMLET,
+        /**
+         * All data points shared with this ohmlet will use the user's unique
+         * identifier.
+         */
+        PUBLIC;
+    }
+
+    /**
+     * <p>
      * A builder for {@link OhmletReference}s.
      * </p>
      *
@@ -44,6 +70,10 @@ public class OhmletReference {
          * The pseudonym for this ohmlet.
          */
         private String pseudonym;
+        /**
+         * The user's privacy state.
+         */
+        private PrivacyState privacyState;
 
         /**
          * Creates a new builder.
@@ -79,12 +109,12 @@ public class OhmletReference {
          *        An existing {@link OhmletReference} object.
          */
         @JsonCreator
-        public Builder(
-            final OhmletReference ohmletReference) {
+        public Builder(final OhmletReference ohmletReference) {
             ohmletId = ohmletReference.ohmletId;
             ignoredStreams = ohmletReference.ignoredStreams;
             ignoredSurveys = ohmletReference.ignoredSurveys;
             pseudonym = ohmletReference.pseudonym;
+            privacyState = ohmletReference.privacyState;
         }
 
         /**
@@ -204,9 +234,16 @@ public class OhmletReference {
                 ohmletId,
                 ignoredStreams,
                 ignoredSurveys,
-                pseudonym);
+                pseudonym,
+                privacyState);
         }
     }
+
+    /**
+     * The default privacy state.
+     */
+    public static final PrivacyState DEFAULT_PRIVACY_STATE =
+        PrivacyState.OHMLET;
 
     /**
      * The JSON key for the ohmlet's unique identifier.
@@ -228,6 +265,10 @@ public class OhmletReference {
      * The JSON key for the user's pseudonym in the ohmlet.
      */
     public static final String JSON_KEY_PSEUDONYM = "pseudonym";
+    /**
+     * The JSON key for the user's privacy state in the ohmlet.
+     */
+    public static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 
     /**
      * The unique identifier for the ohmlet that this object references.
@@ -251,13 +292,21 @@ public class OhmletReference {
      */
     @JsonProperty(JSON_KEY_PSEUDONYM)
     private final String pseudonym;
+    /**
+     * The user's privacy state within this ohmlet.
+     */
+    @JsonProperty(JSON_KEY_PRIVACY_STATE)
+    private final PrivacyState privacyState;
 
     /**
-     * Creates a new
+     * Creates a new ohmlet reference for an ohmlet with the given unique
+     * identifier and default values for the other fields.
+     *
      * @param ohmletId
+     *        The ohmlet's unique identifier.
      */
     public OhmletReference(final String ohmletId) {
-        this(ohmletId, null, null, generatePseudonym());
+        this(ohmletId, null, null, generatePseudonym(), null);
     }
 
     /**
@@ -279,14 +328,13 @@ public class OhmletReference {
      */
     @JsonCreator
     public OhmletReference(
-        @JsonProperty(JSON_KEY_OHMLET_ID)
-            final String ohmletId,
+        @JsonProperty(JSON_KEY_OHMLET_ID) final String ohmletId,
         @JsonProperty(JSON_KEY_IGNORED_STREAMS)
             final Set<SchemaReference> ignoredStreams,
         @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
             final Set<SchemaReference> ignoredSurveys,
-        @JsonProperty(JSON_KEY_PSEUDONYM)
-            final String pseudonym)
+        @JsonProperty(JSON_KEY_PSEUDONYM) final String pseudonym,
+        @JsonProperty(JSON_KEY_PRIVACY_STATE) final PrivacyState privacyState)
         throws InvalidArgumentException {
 
         if(ohmletId == null) {
@@ -306,6 +354,8 @@ public class OhmletReference {
                 new HashSet<SchemaReference>() :
                 new HashSet<SchemaReference>(ignoredSurveys);
         this.pseudonym = pseudonym;
+        this.privacyState =
+            (privacyState == null) ? DEFAULT_PRIVACY_STATE : privacyState;
     }
 
     /**

@@ -179,9 +179,16 @@ public abstract class Prompt<ResponseType>
         else {
             // Get the response object and, if it is of the wrong type, report
             // an error.
-            ResponseType responseObject;
             try {
-                responseObject = (ResponseType) response;
+                // Attempt the cast. This will not throw a ClassCastException
+                // even if the classes are not compatible.
+                ResponseType responseObject = (ResponseType) response;
+
+                // Validate the response.
+                responseObject = validateResponse(responseObject, media);
+
+                // Add the response to the list of previous responses.
+                previousResponses.put(getSurveyItemId(), responseObject);
             }
             catch(ClassCastException e) {
                 throw
@@ -189,12 +196,6 @@ public abstract class Prompt<ResponseType>
                         "The response is of the wrong type: " +
                             getSurveyItemId());
             }
-
-            // Validate the response.
-            responseObject = validateResponse(responseObject, media);
-
-            // Add the response to the list of previous responses.
-            previousResponses.put(getSurveyItemId(), responseObject);
         }
     }
 

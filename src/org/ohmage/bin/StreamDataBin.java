@@ -1,6 +1,7 @@
 package org.ohmage.bin;
 
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.ohmage.domain.ColumnList;
@@ -52,14 +53,14 @@ public abstract class StreamDataBin {
 	/**
 	 * Retrieves data specific to a user and a stream.
 	 *
-	 * @param userId
-	 *        The user's unique identifier.
-	 *
 	 * @param streamId
 	 *        The stream's unique identifier.
 	 *
 	 * @param streamVersion
 	 *        The version of the stream.
+     *
+     * @param userIds
+     *        The users' unique identifier whose data should be returned.
      *
      * @param startDate
      *        The earliest time for any given point. Null indicates that there
@@ -85,9 +86,9 @@ public abstract class StreamDataBin {
 	 *         A required parameter was null.
 	 */
 	public abstract MultiValueResult<? extends StreamData> getStreamData(
-		final String userId,
 		final String streamId,
 		final long streamVersion,
+        final Set<String> userIds,
         final DateTime startDate,
         final DateTime endDate,
         final ColumnList columnList,

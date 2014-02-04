@@ -12,6 +12,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.ISOW3CDateTimeFormat;
+import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -110,8 +111,14 @@ public abstract class OhmageServlet {
      * @param request
      *        The HTTP request.
      *
-     * @return The decoded {@link AuthorizationToken} from the request or null
-     *         if no token was found.
+     * @return The decoded {@link AuthorizationToken} from the request.
+     *
+     * @throws AuthenticationException
+     *         No authorization information was given.
+     *
+     * @throws IllegalStateException
+     *         The request's authorization token was not an AuthorizationToken
+     *         object.
      */
     @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
     private AuthorizationToken getAuthToken(final HttpServletRequest request) {

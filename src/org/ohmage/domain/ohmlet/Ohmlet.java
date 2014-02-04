@@ -3,12 +3,14 @@ package org.ohmage.domain.ohmlet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
+import org.ohmage.domain.jackson.MapCollectionJsonSerializer;
 import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -166,13 +168,24 @@ public class Ohmlet extends OhmageDomainObject {
 			ohmletId = ohmlet.ohmletId;
 			name = ohmlet.name;
 			description = ohmlet.description;
-			streams = ohmlet.streams;
-			surveys = ohmlet.surveys;
 			reminders = ohmlet.reminders;
 			members = ohmlet.members;
 			privacyState = ohmlet.privacyState;
 			inviteRole = ohmlet.inviteRole;
 			visibilityRole = ohmlet.visibilityRole;
+
+            streams = new LinkedList<SchemaReference>();
+			for(List<SchemaReference> schemaReferences :
+			    ohmlet.streams.values()) {
+
+			    streams.addAll(schemaReferences);
+			}
+            surveys = new LinkedList<SchemaReference>();
+            for(List<SchemaReference> schemaReferences :
+                ohmlet.surveys.values()) {
+
+                surveys.addAll(schemaReferences);
+            }
 		}
 
 		/**
@@ -738,12 +751,14 @@ public class Ohmlet extends OhmageDomainObject {
 	 * The streams for this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_STREAMS)
-	private final List<SchemaReference> streams;
+	@JsonSerialize(using = MapCollectionJsonSerializer.class)
+	private final Map<String, List<SchemaReference>> streams;
 	/**
 	 * The surveys for this ohmlet.
 	 */
 	@JsonProperty(JSON_KEY_SURVEYS)
-	private final List<SchemaReference> surveys;
+    @JsonSerialize(using = MapCollectionJsonSerializer.class)
+	private final Map<String, List<SchemaReference>> surveys;
 	/**
 	 * The reminders for this ohmlet that define when certain surveys should
 	 * be prompted for the user.
@@ -1053,14 +1068,6 @@ public class Ohmlet extends OhmageDomainObject {
 		ohmletId = id;
 		this.name = name;
 		this.description = description;
-		this.streams =
-			((streams == null) ?
-				Collections.<SchemaReference>emptyList() :
-				Collections.unmodifiableList(streams));
-		this.surveys =
-			((surveys == null) ?
-				Collections.<SchemaReference>emptyList() :
-				Collections.unmodifiableList(surveys));
 		this.reminders =
 			((reminders == null) ?
 				Collections.<String>emptyList() :
@@ -1069,6 +1076,31 @@ public class Ohmlet extends OhmageDomainObject {
 		this.inviteRole = inviteRole;
 		this.visibilityRole = visibilityRole;
         this.iconId = iconId;
+
+        this.streams = new HashMap<String, List<SchemaReference>>();
+        for(SchemaReference stream : streams) {
+            List<SchemaReference> streamReferences =
+                this.streams.get(stream.getSchemaId());
+
+            if(streamReferences == null) {
+                streamReferences = new LinkedList<SchemaReference>();
+                this.streams.put(stream.getSchemaId(), streamReferences);
+            }
+
+            streamReferences.add(stream);
+        }
+        this.surveys = new HashMap<String, List<SchemaReference>>();
+        for(SchemaReference survey : surveys) {
+            List<SchemaReference> surveyReferences =
+                this.surveys.get(survey.getSchemaId());
+
+            if(surveyReferences == null) {
+                surveyReferences = new LinkedList<SchemaReference>();
+                this.surveys.put(survey.getSchemaId(), surveyReferences);
+            }
+
+            surveyReferences.add(survey);
+        }
 
 		this.members = new HashMap<String, Member>();
 		for(Member member : members) {
@@ -1091,7 +1123,26 @@ public class Ohmlet extends OhmageDomainObject {
 	 * @return An unmodifiable list of the streams.
 	 */
 	public List<SchemaReference> getStreams() {
-		return streams;
+	    List<SchemaReference> result = new LinkedList<SchemaReference>();
+
+	    for(List<SchemaReference> streamList : streams.values()) {
+	        result.addAll(streamList);
+	    }
+
+		return Collections.unmodifiableList(result);
+	}
+
+    /**
+     * Returns an unmodifiable list of stream references that have the given
+     * unique identifier.
+     *
+     * @param streamId
+     *        The stream's unique identifier.
+     *
+     * @return The unmodifiable list of stream references.
+     */
+	public List<SchemaReference> getStreams(final String streamId) {
+	    return streams.get(streamId);
 	}
 
 	/**
@@ -1100,8 +1151,27 @@ public class Ohmlet extends OhmageDomainObject {
 	 * @return An unmodifiable list of the surveys.
 	 */
 	public List<SchemaReference> getSurveys() {
-		return surveys;
+        List<SchemaReference> result = new LinkedList<SchemaReference>();
+
+        for(List<SchemaReference> surveyList : surveys.values()) {
+            result.addAll(surveyList);
+        }
+
+        return result;
 	}
+
+    /**
+     * Returns an unmodifiable list of survey references that have the given
+     * unique identifier.
+     *
+     * @param surveyId
+     *        The survey's unique identifier.
+     *
+     * @return The unmodifiable list of survey references.
+     */
+    public List<SchemaReference> getSurveys(final String surveyId) {
+        return surveys.get(surveyId);
+    }
 
 	/**
 	 * Returns the privacy state for this ohmlet.

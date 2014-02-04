@@ -1,16 +1,17 @@
 package org.ohmage.mongodb.bin;
 
 import java.util.List;
+import java.util.Set;
 
 import org.joda.time.DateTime;
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.domain.ColumnList;
+import org.ohmage.domain.DataPoint;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.StreamData;
-import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.stream.MongoStreamData;
 
 import com.mongodb.BasicDBObject;
@@ -68,24 +69,24 @@ public class MongoStreamDataBin extends StreamDataBin {
 		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
-					StreamData.JSON_KEY_META_DATA +
+					DataPoint.JSON_KEY_META_DATA +
 						"." + MetaData.JSON_KEY_ID,
 					1),
 				COLLECTION_NAME + "_" +
-					StreamData.JSON_KEY_META_DATA + "." +
+					DataPoint.JSON_KEY_META_DATA + "." +
 						MetaData.JSON_KEY_ID,
 				false);
 
 		// Create the set of indexes.
 		DBObject indexes = new BasicDBObject();
 		// Index the stream ID.
-		indexes.put(StreamData.JSON_KEY_STREAM_ID, 1);
+		indexes.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
 		// Index the stream version.
-		indexes.put(StreamData.JSON_KEY_STREAM_VERSION, 1);
+		indexes.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
 		// Index the data point's unique ID.
 		indexes
 			.put(
-				StreamData.JSON_KEY_META_DATA + "." +
+				DataPoint.JSON_KEY_META_DATA + "." +
 					MetaData.JSON_KEY_ID,
 				1);
 
@@ -95,9 +96,9 @@ public class MongoStreamDataBin extends StreamDataBin {
 			.ensureIndex(
 				indexes,
 				COLLECTION_NAME + "_" +
-					StreamData.JSON_KEY_STREAM_ID + "_" +
-					StreamData.JSON_KEY_STREAM_VERSION + "_" +
-					StreamData.JSON_KEY_META_DATA + "." +
+					DataPoint.JSON_KEY_SCHEMA_ID + "_" +
+					DataPoint.JSON_KEY_SCHEMA_VERSION + "_" +
+					DataPoint.JSON_KEY_META_DATA + "." +
 						MetaData.JSON_KEY_ID +
 					"_unique",
 				true);
@@ -131,13 +132,13 @@ public class MongoStreamDataBin extends StreamDataBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, java.lang.String, long, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, long, long)
+	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, long, java.util.Set, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, long, long)
 	 */
 	@Override
 	public MultiValueResult<MongoStreamData> getStreamData(
-		final String userId,
 		final String streamId,
 		final long streamVersion,
+        final Set<String> userIds,
         final DateTime startDate,
         final DateTime endDate,
         final ColumnList columnList,
@@ -146,32 +147,32 @@ public class MongoStreamDataBin extends StreamDataBin {
 		throws IllegalArgumentException {
 
 		// Validate the parameters.
-		if(userId == null) {
-			throw
-			    new IllegalArgumentException(
-			        "The user's unique identifier is null.");
-		}
 		if(streamId == null) {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
+        if(userIds == null) {
+            throw
+                new IllegalArgumentException(
+                    "The set of users' unique identifier is null.");
+        }
 
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
-		// Add the user's unique identifier.
-		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(userId);
-
 		// Add the stream ID.
-		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
+		queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(streamId);
 
 		// Add the stream version.
-		queryBuilder.and(StreamData.JSON_KEY_STREAM_VERSION).is(streamVersion);
+		queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_VERSION).is(streamVersion);
+
+        // Add the user's unique identifier.
+        queryBuilder.and(DataPoint.JSON_KEY_OWNER).in(userIds);
 
         // Add the start date, if given.
         if(startDate != null) {
             queryBuilder
                 .and(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_TIMESTAMP_MILLIS)
                 .greaterThanEquals(startDate.getMillis());
         }
@@ -180,7 +181,7 @@ public class MongoStreamDataBin extends StreamDataBin {
         if(endDate != null) {
             queryBuilder
                 .and(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_TIMESTAMP_MILLIS)
                 .lessThanEquals(endDate.getMillis());
         }
@@ -231,18 +232,18 @@ public class MongoStreamDataBin extends StreamDataBin {
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
 		// Add the user's unique identifier.
-		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(userId);
+		queryBuilder.and(DataPoint.JSON_KEY_OWNER).is(userId);
 
 		// Add the stream ID.
-		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
+		queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(streamId);
 
 		// Add the stream version.
-		queryBuilder.and(StreamData.JSON_KEY_STREAM_VERSION).is(streamVersion);
+		queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_VERSION).is(streamVersion);
 
 		// Add the point ID.
 		queryBuilder
 			.and(
-				StreamData.JSON_KEY_META_DATA +
+				DataPoint.JSON_KEY_META_DATA +
 					"." +
 					MetaData.JSON_KEY_ID)
 			.is(pointId);
@@ -280,18 +281,18 @@ public class MongoStreamDataBin extends StreamDataBin {
 		QueryBuilder queryBuilder = QueryBuilder.start();
 
 		// Add the user's unique identifier.
-		queryBuilder.and(StreamData.JSON_KEY_OWNER).is(userId);
+		queryBuilder.and(DataPoint.JSON_KEY_OWNER).is(userId);
 
 		// Add the stream ID.
-		queryBuilder.and(StreamData.JSON_KEY_STREAM_ID).is(streamId);
+		queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(streamId);
 
 		// Add the stream version.
-		queryBuilder.and(StreamData.JSON_KEY_STREAM_VERSION).is(streamVersion);
+		queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_VERSION).is(streamVersion);
 
 		// Add the point ID.
 		queryBuilder
 			.and(
-				StreamData.JSON_KEY_META_DATA +
+				DataPoint.JSON_KEY_META_DATA +
 					"." +
 					MetaData.JSON_KEY_ID)
 			.is(pointId);

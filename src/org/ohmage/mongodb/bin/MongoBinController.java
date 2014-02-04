@@ -13,6 +13,7 @@ import org.ohmage.domain.ISOW3CDateTimeFormat;
 import org.ohmage.domain.jackson.BigDecimalSerializer;
 
 import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -83,6 +84,12 @@ public class MongoBinController extends BinController {
 
 		// Ensure that it stores and reads enums using their ordinal value.
 		mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
+
+		// Ignore unknown fields.
+		mapper
+		    .configure(
+		        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+		        false);
 
 		// Finally, we must configure the mapper to work with the MongoJack
 		// configuration.

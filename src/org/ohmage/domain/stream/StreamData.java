@@ -1,13 +1,10 @@
 package org.ohmage.domain.stream;
 
+import org.ohmage.domain.DataPoint;
 import org.ohmage.domain.MetaData;
-import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -18,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @author John Jenkins
  */
-public class StreamData extends OhmageDomainObject {
+public class StreamData extends DataPoint<JsonNode> {
 	/**
 	 * <p>
 	 * A builder for {@link StreamData}.
@@ -26,34 +23,7 @@ public class StreamData extends OhmageDomainObject {
 	 *
 	 * @author John Jenkins
 	 */
-	public static class Builder
-		extends OhmageDomainObject.Builder<StreamData> {
-
-		/**
-		 * The unique identifier for the user that owns this data point.
-		 */
-		protected String owner;
-
-		/**
-		 * The unique ID for the stream to which this data conforms.
-		 */
-		protected String streamId;
-
-		/**
-		 * The version for the stream to which this data conforms.
-		 */
-		protected Long streamVersion;
-
-		/**
-		 * The meta-data associated with this point.
-		 */
-		protected MetaData metaData;
-
-		/**
-		 * The data for this point.
-		 */
-		protected JsonNode data;
-
+	public static class Builder extends DataPoint.Builder<JsonNode> {
 		/**
 		 * Creates a new {@link StreamData} Builder object.
 		 *
@@ -67,10 +37,7 @@ public class StreamData extends OhmageDomainObject {
 			@JsonProperty(JSON_KEY_META_DATA) final MetaData metaData,
 			@JsonProperty(JSON_KEY_DATA) final JsonNode data) {
 
-			super(null);
-
-			this.metaData = metaData;
-			this.data = data;
+			super(metaData, data);
 		}
 
 		/**
@@ -83,52 +50,6 @@ public class StreamData extends OhmageDomainObject {
 		 */
 		public Builder(final StreamData streamData) {
 			super(streamData);
-
-			metaData = streamData.metaData;
-			data = streamData.data;
-		}
-
-		/**
-		 * Sets the unique identifier of the user that owns this data point.
-		 *
-		 * @param owner
-		 *        The unique identifier for the user that owns this data point.
-		 *
-		 * @return Returns this build to facilitate chaining.
-		 */
-		public Builder setOwner(final String owner) {
-			this.owner = owner;
-
-			return this;
-		}
-
-		/**
-		 * Sets the identifier for the stream to which this data conforms.
-		 *
-		 * @param streamId
-		 *        The unique identifier for the stream to which this data
-		 *        conforms.
-		 *
-		 * @return This builder to facilitate chaining.
-		 */
-		public Builder setStreamId(final String streamId) {
-			this.streamId = streamId;
-
-			return this;
-		}
-
-		/**
-		 * Sets the version of the stream to which this data conforms.
-		 *
-		 * @param streamVersion
-		 *        The version of the stream to which this data conforms.
-		 *
-		 * @return This builder to facilitate chaining.
-		 */
-		public Builder setStreamVersion(final Long streamVersion) {
-			this.streamVersion = streamVersion;
-
-			return this;
 		}
 
 		/**
@@ -141,14 +62,15 @@ public class StreamData extends OhmageDomainObject {
 		 *         The state of this builder is insufficient to build a new
 		 *         {@link StreamData} object.
 		 */
-		public StreamData build() throws InvalidArgumentException {
+		@Override
+        public StreamData build() throws InvalidArgumentException {
 			return
 				new StreamData(
-					owner,
-					streamId,
-					streamVersion,
-					metaData,
-					data,
+					getOwner(),
+					getSchemaId(),
+					getSchemaVersion(),
+					getMetaData(),
+					getData(),
 					internalReadVersion,
 					internalWriteVersion);
 		}
@@ -170,81 +92,20 @@ public class StreamData extends OhmageDomainObject {
 		 *         The state of this builder is insufficient to build a new
 		 *         {@link StreamData} object or the data is invalid.
 		 */
-		public StreamData build(
-			final Stream stream)
+		public StreamData build(final Stream stream)
 			throws InvalidArgumentException {
 
 			// Validate that the data is valid.
-			stream.validate(metaData, data);
+			stream.validate(getMetaData(), getData());
 
 			// Update this builder's stream reference.
-			streamId = stream.getId();
-			streamVersion = stream.getVersion();
+			setSchemaId(stream.getId());
+			setSchemaVersion(stream.getVersion());
 
 			// Build and return the StreamData object.
 			return build();
 		}
 	}
-
-	/**
-	 * The JSON key for the data point's owner's unique identifier.
-	 */
-	public static final String JSON_KEY_OWNER = "owner";
-
-	/**
-	 * The JSON key for the stream's ID.
-	 */
-	public static final String JSON_KEY_STREAM_ID = "stream_id";
-
-	/**
-	 * The JSON key for the stream's version.
-	 */
-	public static final String JSON_KEY_STREAM_VERSION = "stream_version";
-
-	/**
-	 * The JSON key for the meta-data.
-	 */
-	public static final String JSON_KEY_META_DATA = "meta_data";
-
-	/**
-	 * The JSON key for the data.
-	 */
-	public static final String JSON_KEY_DATA = "data";
-
-	/**
-	 * The unique identifier for the user that owns this data.
-	 */
-	@JsonProperty(JSON_KEY_OWNER)
-    @JsonFilterField
-	private final String owner;
-
-	/**
-	 * The unique ID for the stream to which this data conforms.
-	 */
-	@JsonProperty(JSON_KEY_STREAM_ID)
-    @JsonFilterField
-	private final String streamId;
-
-	/**
-	 * The version for the stream to which this data conforms.
-	 */
-	@JsonProperty(JSON_KEY_STREAM_VERSION)
-    @JsonFilterField
-	private final long streamVersion;
-
-	/**
-	 * The meta-data associated with this point.
-	 */
-	@JsonProperty(JSON_KEY_META_DATA)
-    @JsonInclude(Include.NON_NULL)
-	private final MetaData metaData;
-
-	/**
-	 * The data for this point.
-	 */
-	@JsonProperty(JSON_KEY_DATA)
-    @JsonInclude(Include.NON_NULL)
-	private final JsonNode data;
 
 	/**
 	 * Creates a new stream data point.
@@ -272,19 +133,6 @@ public class StreamData extends OhmageDomainObject {
 		final JsonNode data) {
 
 		this(owner, streamId, streamVersion, metaData, data, null);
-
-        if(owner == null) {
-            throw new InvalidArgumentException("The owner is null.");
-        }
-        if(streamId == null) {
-            throw new InvalidArgumentException("The stream ID is null.");
-        }
-        if(streamVersion == null) {
-            throw new InvalidArgumentException("The stream version is null.");
-        }
-        if(data == null) {
-            throw new InvalidArgumentException("The data is null.");
-        }
 	}
 
 	/**
@@ -311,8 +159,8 @@ public class StreamData extends OhmageDomainObject {
 	@JsonCreator
 	protected StreamData(
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
-		@JsonProperty(JSON_KEY_STREAM_ID) final String streamId,
-		@JsonProperty(JSON_KEY_STREAM_VERSION) final Long streamVersion,
+		@JsonProperty(JSON_KEY_SCHEMA_ID) final String streamId,
+        @JsonProperty(JSON_KEY_SCHEMA_VERSION) final Long streamVersion,
 		@JsonProperty(JSON_KEY_META_DATA) final MetaData metaData,
 		@JsonProperty(JSON_KEY_DATA) final JsonNode data,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion) {
@@ -362,12 +210,13 @@ public class StreamData extends OhmageDomainObject {
 		final Long internalReadVersion,
 		final Long internalWriteVersion) {
 
-		super(internalReadVersion, internalWriteVersion);
-
-		this.owner = owner;
-		this.streamId = streamId;
-		this.streamVersion = streamVersion;
-		this.metaData = metaData;
-		this.data = data;
+		super(
+		    owner,
+		    streamId,
+		    streamVersion,
+		    metaData,
+		    data,
+		    internalReadVersion,
+		    internalWriteVersion);
 	}
 }

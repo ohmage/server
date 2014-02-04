@@ -1,6 +1,5 @@
 package org.ohmage.domain.survey.prompt;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -59,7 +58,7 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
          * An optional value for this prompt for data processors.
          */
         @JsonProperty(JSON_KEY_VALUE)
-        private final BigDecimal value;
+        private final Number value;
 
         /**
          * Creates a new choice.
@@ -77,7 +76,7 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
         public Choice(
             @JsonProperty(JSON_KEY_KEY) final int key,
             @JsonProperty(JSON_KEY_LABEL) final String label,
-            @JsonProperty(JSON_KEY_VALUE) final BigDecimal value)
+            @JsonProperty(JSON_KEY_VALUE) final Number value)
             throws InvalidArgumentException {
 
             if(label == null) {
@@ -113,7 +112,7 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
          *
          * @return The value of this choice or null.
          */
-        public BigDecimal getValue() {
+        public Number getValue() {
             return value;
         }
     }

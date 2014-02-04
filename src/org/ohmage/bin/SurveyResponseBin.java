@@ -85,14 +85,15 @@ public abstract class SurveyResponseBin {
     /**
      * Retrieves survey responses specific to a user and a survey.
      *
-     * @param owner
-     *        The user's unique identifier.
-     *
      * @param surveyId
      *        The survey's unique identifier.
      *
      * @param surveyVersion
      *        The version of the survey.
+     *
+     * @param userIds
+     *        The unique identifiers of the users whose survey responses are
+     *        desired.
      *
      * @param surveyResponseIds
      *        A specific set of survey response IDs that should be returned.
@@ -124,9 +125,9 @@ public abstract class SurveyResponseBin {
      *         A required parameter was null.
      */
     public abstract MultiValueResult<? extends SurveyResponse> getSurveyResponses(
-        final String owner,
         final String surveyId,
         final long surveyVersion,
+        final Set<String> userIds,
         final Collection<String> surveyResponseIds,
         final DateTime startDate,
         final DateTime endDate,

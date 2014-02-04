@@ -66,10 +66,10 @@ public class MongoSurveyResponse
     protected MongoSurveyResponse(
         @Id @ObjectId final String dbId,
         @JsonProperty(JSON_KEY_OWNER) final String owner,
-        @JsonProperty(JSON_KEY_SURVEY_ID) final String surveyId,
-        @JsonProperty(JSON_KEY_SURVEY_VERSION) final Long surveyVersion,
+        @JsonProperty(JSON_KEY_SCHEMA_ID) final String surveyId,
+        @JsonProperty(JSON_KEY_SCHEMA_VERSION) final Long surveyVersion,
         @JsonProperty(JSON_KEY_META_DATA) final MetaData metaData,
-        @JsonProperty(JSON_KEY_RESPONSES) final Map<String, Object> responses,
+        @JsonProperty(JSON_KEY_DATA) final Map<String, Object> responses,
         @JsonProperty(JSON_KEY_MEDIA_FILENAMES)
             final Set<String> mediaFilenames,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)

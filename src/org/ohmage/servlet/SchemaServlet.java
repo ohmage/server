@@ -4,19 +4,14 @@ import java.util.Collections;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.joda.time.DateTime;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.MultiValueResultAggregation;
 import org.ohmage.bin.StreamBin;
-import org.ohmage.bin.StreamDataBin;
 import org.ohmage.bin.SurveyBin;
-import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.OhmageDomainObject;
+import org.ohmage.domain.DataPoint;
 import org.ohmage.domain.Schema;
-import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.UnknownEntityException;
-import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -187,50 +182,37 @@ public class SchemaServlet extends OhmageServlet {
 				"Creating a request to read the versions of a schema: " +
 					schemaId);
 
-		LOGGER.log(Level.INFO, "Retrieving the stream versions.");
-		MultiValueResult<Long> streamVersions =
-		    StreamBin
-                .getInstance()
-                .getStreamVersions(
-                    schemaId,
-                    query,
-                    0,
-                    numToSkip + numToReturn);
+        LOGGER.log(Level.INFO, "Retrieving the versions.");
+        ResponseEntity<MultiValueResult<Long>> result;
+        if(StreamBin.getInstance().exists(schemaId, null)) {
+            LOGGER.log(Level.INFO, "The schema is a stream.");
+            result =
+                StreamServlet
+                    .getStreamVersions(
+                        schemaId,
+                        query,
+                        numToSkip,
+                        numToReturn,
+                        rootUrl);
+        }
+        else if(SurveyBin.getInstance().exists(schemaId, null)) {
+            LOGGER.log(Level.INFO, "The schema is a survey.");
+            result =
+                SurveyServlet
+                    .getSurveyVersions(
+                        schemaId,
+                        query,
+                        numToSkip,
+                        numToReturn,
+                        rootUrl);
+        }
+        else {
+            throw
+                new UnknownEntityException(
+                    "The schema ID is unknown.");
+        }
 
-        LOGGER.log(Level.INFO, "Retrieving the survey versions.");
-        MultiValueResult<Long> surveyVersions =
-            StreamBin
-                .getInstance()
-                .getStreamVersions(schemaId,
-                    query,
-                    0,
-                    numToSkip + numToReturn);
-
-        LOGGER.log(Level.FINE, "Building the result.");
-        MultiValueResultAggregation.Aggregator<Long> aggregator =
-            new MultiValueResultAggregation.Aggregator<Long>(streamVersions);
-        aggregator.add(surveyVersions);
-        MultiValueResultAggregation<Long> versions =
-            aggregator.build(numToSkip, numToReturn);
-
-        LOGGER.log(Level.INFO, "Building the paging headers.");
-        HttpHeaders headers =
-            OhmageServlet
-                .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    versions,
-                    rootUrl + ROOT_MAPPING);
-
-        LOGGER.log(Level.INFO, "Creating the response object.");
-        ResponseEntity<MultiValueResult<Long>> result =
-            new ResponseEntity<MultiValueResult<Long>>(
-                versions,
-                headers,
-                HttpStatus.OK);
-
-        LOGGER.log(Level.INFO, "Returning the schema IDs.");
+        LOGGER.log(Level.INFO, "Returning the versions.");
         return result;
 	}
 
@@ -264,12 +246,12 @@ public class SchemaServlet extends OhmageServlet {
         if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
-                StreamBin.getInstance().getStream(schemaId, schemaVersion);
+                StreamServlet.getStreamDefinition(schemaId, schemaVersion);
         }
         else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
-                SurveyBin.getInstance().getSurvey(schemaId, schemaVersion);
+                SurveyServlet.getSurveyDefinition(schemaId, schemaVersion);
         }
         else {
             throw
@@ -315,7 +297,7 @@ public class SchemaServlet extends OhmageServlet {
     @RequestMapping(
         value = "{" + KEY_SCHEMA_ID + "}/{" + KEY_SCHEMA_VERSION + "}/data",
         method = RequestMethod.GET)
-    public static @ResponseBody ResponseEntity<MultiValueResult<?>> getData(
+    public static @ResponseBody ResponseEntity<? extends MultiValueResult<? extends DataPoint<?>>> getData(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SCHEMA_ID) final String schemaId,
@@ -344,81 +326,42 @@ public class SchemaServlet extends OhmageServlet {
                     schemaId + ", " +
                     schemaVersion);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
-
-        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
-        DateTime startDateObject =
-            (startDate == null) ?
-                null :
-                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
-        DateTime endDateObject =
-            (endDate == null) ?
-                null :
-                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
-
-        LOGGER.log(Level.INFO, "Retrieving the definition.");
-        MultiValueResult<?> data;
+        LOGGER.log(Level.INFO, "Delegating the request.");
+        ResponseEntity<? extends MultiValueResult<? extends DataPoint<?>>>
+            result;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
-            data =
-                StreamDataBin
-                    .getInstance()
-                    .getStreamData(
-                        user.getId(),
+            result =
+                StreamServlet
+                    .getData(
+                        authToken,
                         schemaId,
                         schemaVersion,
-                        startDateObject,
-                        endDateObject,
-                        null,
+                        startDate,
+                        endDate,
                         numToSkip,
-                        numToReturn);
+                        numToReturn,
+                        rootUrl);
         }
         else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
-            data =
-                SurveyResponseBin
-                    .getInstance()
-                    .getSurveyResponses(
-                        user.getId(),
+            result =
+                SurveyServlet
+                    .getData(
+                        authToken,
                         schemaId,
                         schemaVersion,
-                        null,
-                        startDateObject,
-                        endDateObject,
-                        null,
+                        startDate,
+                        endDate,
                         numToSkip,
-                        numToReturn);
+                        numToReturn,
+                        rootUrl);
         }
         else {
             throw
                 new UnknownEntityException(
                     "The schema ID-verion pair is unknown.");
         }
-
-        LOGGER.log(Level.INFO, "Building the paging headers.");
-        HttpHeaders headers =
-            OhmageServlet
-                .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    data,
-                    rootUrl + ROOT_MAPPING);
-
-        LOGGER.log(Level.INFO, "Creating the response object.");
-        ResponseEntity<MultiValueResult<?>> result =
-            new ResponseEntity<MultiValueResult<?>>(
-                data,
-                headers,
-                HttpStatus.OK);
 
         LOGGER.log(Level.INFO, "Returning the data.");
         return result;
@@ -454,7 +397,7 @@ public class SchemaServlet extends OhmageServlet {
             "/" +
             "{" + KEY_POINT_ID + "}",
         method = RequestMethod.GET)
-    public static @ResponseBody OhmageDomainObject getPoint(
+    public static @ResponseBody DataPoint<?> getPoint(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
         @PathVariable(KEY_SCHEMA_ID) final String schemaId,
@@ -468,39 +411,19 @@ public class SchemaServlet extends OhmageServlet {
                     schemaId + ", " +
                     schemaVersion);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
-
         LOGGER.log(Level.INFO, "Retrieving the data.");
-        OhmageDomainObject result;
+        DataPoint<?> result;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
-                StreamDataBin
-                    .getInstance()
-                    .getStreamData(
-                        user.getId(),
-                        schemaId,
-                        schemaVersion,
-                        pointId);
+                StreamServlet
+                    .getPoint(authToken, schemaId, schemaVersion, pointId);
         }
         else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
-                SurveyResponseBin
-                    .getInstance()
-                    .getSurveyResponse(
-                        user.getId(),
-                        schemaId,
-                        schemaVersion,
-                        pointId);
+                SurveyServlet
+                    .getPoint(authToken, schemaId, schemaVersion, pointId);
         }
         else {
             throw

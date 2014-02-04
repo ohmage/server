@@ -10,6 +10,7 @@ import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.SurveyResponseBin;
 import org.ohmage.domain.ColumnList;
+import org.ohmage.domain.DataPoint;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.mongodb.domain.survey.response.MongoSurveyResponse;
@@ -69,15 +70,15 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         // Create the set of indexes.
         DBObject indexes = new BasicDBObject();
         // Index the survey ID.
-        indexes.put(SurveyResponse.JSON_KEY_OWNER, 1);
+        indexes.put(DataPoint.JSON_KEY_OWNER, 1);
         // Index the survey ID.
-        indexes.put(SurveyResponse.JSON_KEY_SURVEY_ID, 1);
+        indexes.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
         // Index the survey version.
-        indexes.put(SurveyResponse.JSON_KEY_SURVEY_VERSION, 1);
+        indexes.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
         // Index the survey response's unique ID.
         indexes
             .put(
-                SurveyResponse.JSON_KEY_META_DATA + "." +
+                DataPoint.JSON_KEY_META_DATA + "." +
                     MetaData.JSON_KEY_ID,
                 1);
 
@@ -87,10 +88,10 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
             .ensureIndex(
                 indexes,
                 COLLECTION_NAME + "_" +
-                    SurveyResponse.JSON_KEY_OWNER + "_" +
-                    SurveyResponse.JSON_KEY_SURVEY_ID + "_" +
-                    SurveyResponse.JSON_KEY_SURVEY_VERSION + "_" +
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_OWNER + "_" +
+                    DataPoint.JSON_KEY_SCHEMA_ID + "_" +
+                    DataPoint.JSON_KEY_SCHEMA_VERSION + "_" +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_ID +
                     "_unique",
                 true);
@@ -183,27 +184,27 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         QueryBuilder queryBuilder = QueryBuilder.start();
 
         // Add the owner.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
+        queryBuilder.and(DataPoint.JSON_KEY_OWNER).is(owner);
 
         // Add the survey ID.
-        queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
+        queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(surveyId);
 
         // Add the survey version.
         queryBuilder
-            .and(SurveyResponse.JSON_KEY_SURVEY_VERSION)
+            .and(DataPoint.JSON_KEY_SCHEMA_VERSION)
             .is(surveyVersion);
 
         // Add the candidate IDs.
         queryBuilder
             .and(
-                SurveyResponse.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID)
+                DataPoint.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID)
             .in(candidateIds);
 
         // Get the results.
         List<String> results =
             COLLECTION
                 .distinct(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_ID,
                     queryBuilder.get());
 
@@ -217,9 +218,9 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      */
     @Override
     public MultiValueResult<? extends SurveyResponse> getSurveyResponses(
-        final String owner,
         final String surveyId,
         final long surveyVersion,
+        final Set<String> userIds,
         final Collection<String> surveyResponseIds,
         final DateTime startDate,
         final DateTime endDate,
@@ -229,32 +230,34 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         throws IllegalArgumentException {
 
         // Validate the parameters.
-        if(owner == null) {
-            throw new IllegalArgumentException("The owner is null.");
-        }
         if(surveyId == null) {
             throw new IllegalArgumentException("The survey ID is null.");
+        }
+        if(userIds == null) {
+            throw
+                new IllegalArgumentException(
+                    "The set of users' unique identifier is null.");
         }
 
         // Build the query.
         QueryBuilder queryBuilder = QueryBuilder.start();
 
-        // Add the user's unique identifier.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
-
         // Add the survey ID.
-        queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
+        queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(surveyId);
 
         // Add the survey version.
         queryBuilder
-            .and(SurveyResponse.JSON_KEY_SURVEY_VERSION)
+            .and(DataPoint.JSON_KEY_SCHEMA_VERSION)
             .is(surveyVersion);
+
+        // Add the user's unique identifier.
+        queryBuilder.and(DataPoint.JSON_KEY_OWNER).in(userIds);
 
         // Add the survey response IDs, if given.
         if(surveyResponseIds != null) {
             queryBuilder
                 .and(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_ID)
                 .in(surveyResponseIds);
         }
@@ -263,7 +266,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         if(startDate != null) {
             queryBuilder
                 .and(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_TIMESTAMP_MILLIS)
                 .greaterThanEquals(startDate.getMillis());
         }
@@ -272,7 +275,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         if(endDate != null) {
             queryBuilder
                 .and(
-                    SurveyResponse.JSON_KEY_META_DATA + "." +
+                    DataPoint.JSON_KEY_META_DATA + "." +
                         MetaData.JSON_KEY_TIMESTAMP_MILLIS)
                 .lessThanEquals(endDate.getMillis());
         }
@@ -321,20 +324,20 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         QueryBuilder queryBuilder = QueryBuilder.start();
 
         // Add the user's unique identifier.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
+        queryBuilder.and(DataPoint.JSON_KEY_OWNER).is(owner);
 
         // Add the survey ID.
-        queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
+        queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(surveyId);
 
         // Add the survey version.
         queryBuilder
-            .and(SurveyResponse.JSON_KEY_SURVEY_VERSION)
+            .and(DataPoint.JSON_KEY_SCHEMA_VERSION)
             .is(surveyVersion);
 
         // Add the point ID.
         queryBuilder
             .and(
-                SurveyResponse.JSON_KEY_META_DATA +
+                DataPoint.JSON_KEY_META_DATA +
                     "." +
                     MetaData.JSON_KEY_ID)
             .is(pointId);
@@ -391,20 +394,20 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         QueryBuilder queryBuilder = QueryBuilder.start();
 
         // Add the user's unique identifier.
-        queryBuilder.and(SurveyResponse.JSON_KEY_OWNER).is(owner);
+        queryBuilder.and(DataPoint.JSON_KEY_OWNER).is(owner);
 
         // Add the survey ID.
-        queryBuilder.and(SurveyResponse.JSON_KEY_SURVEY_ID).is(surveyId);
+        queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(surveyId);
 
         // Add the survey version.
         queryBuilder
-            .and(SurveyResponse.JSON_KEY_SURVEY_VERSION)
+            .and(DataPoint.JSON_KEY_SCHEMA_VERSION)
             .is(surveyVersion);
 
         // Add the point ID.
         queryBuilder
             .and(
-                SurveyResponse.JSON_KEY_META_DATA +
+                DataPoint.JSON_KEY_META_DATA +
                     "." +
                     MetaData.JSON_KEY_ID)
             .is(pointId);

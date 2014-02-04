@@ -3,12 +3,14 @@ package org.ohmage.servlet;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.MultiValueResult;
+import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.domain.AuthorizationToken;
@@ -512,7 +514,8 @@ public class StreamServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Validating the data.");
 		List<StreamData> data = new ArrayList<StreamData>(dataBuilders.size());
 		for(StreamData.Builder dataBuilder : dataBuilders) {
-			data.add(dataBuilder.setOwner(user.getId()).build(stream));
+		    dataBuilder.setOwner(user.getId());
+			data.add(dataBuilder.build(stream));
 		}
 
 		LOGGER.log(Level.INFO, "Storing the validated data.");
@@ -554,7 +557,7 @@ public class StreamServlet extends OhmageServlet {
 	@RequestMapping(
 		value = "{" + KEY_STREAM_ID + "}/{" + KEY_STREAM_VERSION + "}/data",
 		method = RequestMethod.GET)
-	public static ResponseEntity<MultiValueResult<? extends StreamData>> getData(
+	public static ResponseEntity<? extends MultiValueResult<? extends StreamData>> getData(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@PathVariable(KEY_STREAM_ID) final String streamId,
@@ -598,14 +601,48 @@ public class StreamServlet extends OhmageServlet {
                 null :
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
+        LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
+        Stream latestStream =
+            StreamBin.getInstance().getLatestStream(streamId);
+        if(latestStream == null) {
+            throw new UnknownEntityException("The stream is unknown.");
+        }
+
+        LOGGER
+            .log(
+                Level.FINE,
+                "Determining if the user is asking about the latest version " +
+                    "of the stream.");
+        boolean allowNull = latestStream.getVersion() == streamVersion;
+
+        LOGGER.log(Level.INFO, "Gathering the applicable ohmlets.");
+        Set<String> ohmletIds =
+            OhmletBin
+                .getInstance()
+                .getOhmletIdsWhereUserCanReadStreamData(
+                    user.getId(),
+                    streamId,
+                    streamVersion,
+                    allowNull);
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Retrieving the list of user IDs that are visible to the " +
+                    "requesting user.");
+        Set<String> userIds = OhmletBin.getInstance().getMemberIds(ohmletIds);
+
+        LOGGER.log(Level.FINE, "Adding the request user's ID.");
+        userIds.add(user.getId());
+
 		LOGGER.log(Level.INFO, "Finding the requested data.");
 		MultiValueResult<? extends StreamData> data =
     		StreamDataBin
                 .getInstance()
                 .getStreamData(
-                    user.getId(),
                     streamId,
                     streamVersion,
+                    userIds,
                     startDateObject,
                     endDateObject,
                     null,

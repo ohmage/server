@@ -261,7 +261,7 @@ public class OmhServlet extends OhmageServlet {
                     StreamData.JSON_KEY_META_DATA,
                     StreamData.JSON_KEY_DATA,
                     SurveyResponse.JSON_KEY_META_DATA,
-                    SurveyResponse.JSON_KEY_RESPONSES));
+                    SurveyResponse.JSON_KEY_DATA));
 
     /**
      * The logger for this class.
@@ -644,6 +644,14 @@ public class OmhServlet extends OhmageServlet {
             }
         }
 
+        LOGGER
+            .log(
+                Level.FINE,
+                "Generating the list of user IDs, which is only the " +
+                    "requester.");
+        Set<String> userIds = new HashSet<String>();
+        userIds.add(user.getId());
+
         LOGGER.log(Level.INFO, "Retrieving the definition.");
         MultiValueResult<?> data;
         switch(omhSchemaId.type) {
@@ -653,9 +661,9 @@ public class OmhServlet extends OhmageServlet {
                     StreamDataBin
                         .getInstance()
                         .getStreamData(
-                            user.getId(),
                             omhSchemaId.ohmageSchemaId,
                             schemaVersion,
+                            userIds,
                             startDateObject,
                             endDateObject,
                             columnListObject,
@@ -669,9 +677,9 @@ public class OmhServlet extends OhmageServlet {
                     SurveyResponseBin
                         .getInstance()
                         .getSurveyResponses(
-                            user.getId(),
                             omhSchemaId.ohmageSchemaId,
                             schemaVersion,
+                            userIds,
                             null,
                             startDateObject,
                             endDateObject,

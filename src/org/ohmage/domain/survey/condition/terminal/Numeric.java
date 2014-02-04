@@ -1,6 +1,5 @@
 package org.ohmage.domain.survey.condition.terminal;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -19,69 +18,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author John
  */
 public class Numeric extends Terminal {
-    /**
-     * <p>
-     * A custom version of the {@link BigDecimal} class that has a much looser
-     * comparison semantics. Basically, all values are converted into their
-     * 'double' value before comparison.
-     * </p>
-     *
-     * @author John Jenkins
-     */
-    public static class CustomBigDecimal extends BigDecimal {
-        /**
-         * A version-specific ID for serialization purposes.
-         */
-        private static final long serialVersionUID = 1L;
-
-        /**
-         * Builds a CustomBigDecimal from a {@link Numeric} object.
-         *
-         * @param value
-         *        The {@link Numeric} that backs this object.
-         */
-        public CustomBigDecimal(final Number value) {
-            super(value.toString());
-        }
-
-        /*
-         * (non-Javadoc)
-         * @see java.math.BigDecimal#equals(java.lang.Object)
-         */
-        @Override
-        public boolean equals(final Object other) {
-            if(other instanceof BigDecimal) {
-                return compareTo((BigDecimal) other) == 0;
-            }
-            if(other instanceof Number) {
-                return
-                    CustomBigDecimal
-                        .compareNumbers(this, ((Number) other)) == 0;
-            }
-            return false;
-        }
-
-        /**
-         * Compares two {@link Numeric} objects by using their double values.
-         *
-         * @param first
-         *        The first number to compare.
-         *
-         * @param second
-         *        The second number to compare.
-         *
-         * @return Less than 0 if the first number is less than the second,
-         *         greater than 0 if the first number is greater than the
-         *         second, or 0 if they represent the same value.
-         */
-        public static int compareNumbers(
-            final Number first,
-            final Number second) {
-
-            return Double.compare(first.doubleValue(), second.doubleValue());
-        }
-    }
-
     /**
      * <p>
      * A builder for {@link Numeric} objects.

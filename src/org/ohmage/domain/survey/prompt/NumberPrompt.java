@@ -1,7 +1,5 @@
 package org.ohmage.domain.survey.prompt;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
 import name.jenkins.paul.john.concordia.schema.NumberSchema;
@@ -21,7 +19,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
-public class NumberPrompt extends Prompt<BigDecimal> {
+public class NumberPrompt extends Prompt<Number> {
     /**
      * The string type of this survey item.
      */
@@ -45,12 +43,12 @@ public class NumberPrompt extends Prompt<BigDecimal> {
      * The minimum allowed value for a response.
      */
     @JsonProperty(JSON_KEY_MIN)
-    private final BigDecimal min;
+    private final Number min;
     /**
      * The maximum allowed value for a response.
      */
     @JsonProperty(JSON_KEY_MAX)
-    private final BigDecimal max;
+    private final Number max;
     /**
      * Whether or not only whole numbers are allowed.
      */
@@ -101,10 +99,9 @@ public class NumberPrompt extends Prompt<BigDecimal> {
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
-        @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
-            final BigDecimal defaultResponse,
-        @JsonProperty(JSON_KEY_MIN) final BigDecimal min,
-        @JsonProperty(JSON_KEY_MAX) final BigDecimal max,
+        @JsonProperty(JSON_KEY_DEFAULT_RESPONSE) final Number defaultResponse,
+        @JsonProperty(JSON_KEY_MIN) final Number min,
+        @JsonProperty(JSON_KEY_MAX) final Number max,
         @JsonProperty(JSON_KEY_WHOLE_NUMBERS_ONLY)
             final boolean wholeNumbersOnly)
         throws InvalidArgumentException {
@@ -140,13 +137,13 @@ public class NumberPrompt extends Prompt<BigDecimal> {
      * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public BigDecimal validateResponse(
-        final BigDecimal response,
+    public Number validateResponse(
+        final Number response,
         final Map<String, Media> media)
         throws InvalidArgumentException {
 
         // If a 'min' exists, check that the response conforms.
-        if((min != null) && (response.compareTo(min) < 0)) {
+        if((min != null) && (response.doubleValue() < min.doubleValue())) {
             throw
                 new InvalidArgumentException(
                     "The response was less than the allowed minimum: " +
@@ -154,7 +151,7 @@ public class NumberPrompt extends Prompt<BigDecimal> {
         }
 
         // If a 'max' exists, check that the response conforms.
-        if((max != null) && (response.compareTo(max) > 0)) {
+        if((max != null) && (response.doubleValue() > max.doubleValue())) {
             throw
                 new InvalidArgumentException(
                     "The response was greater than the allowed maximum: " +
@@ -178,14 +175,9 @@ public class NumberPrompt extends Prompt<BigDecimal> {
      * @param value
      *        The value to check.
      *
-     * @return True if the BigDecimal is a whole number; false, otherwise.
+     * @return True if the value is a whole number; false, otherwise.
      */
-    protected static boolean isWholeNumber(final BigDecimal value) {
-        try {
-            return value.setScale(0, RoundingMode.DOWN).compareTo(value) == 0;
-        }
-        catch(ArithmeticException e) {
-                return false;
-        }
+    protected static boolean isWholeNumber(final Number value) {
+        return value.longValue() == value.doubleValue();
     }
 }

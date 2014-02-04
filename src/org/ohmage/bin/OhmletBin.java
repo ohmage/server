@@ -1,5 +1,8 @@
 package org.ohmage.bin;
 
+import java.util.Collection;
+import java.util.Set;
+
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.ohmlet.Ohmlet;
 
@@ -72,6 +75,64 @@ public abstract class OhmletBin {
         final long numToSkip,
         final long numToReturn);
 
+    /**
+     * Returns all of the ohlmet IDs where the user can read stream data about
+     * other users.
+     *
+     * @param userId
+     *        The user's unique identifier.
+     *
+     * @param streamId
+     *        The stream's unique identifier.
+     *
+     * @param streamVersion
+     *        The stream's version.
+     *
+     * @param allowNull
+     *        Allow the stream's reference to have a null version.
+     *
+     * @return The list of ohmlet unique identifiers where the user has
+     *         sufficient permissions to read data about other users.
+     *
+     * @throws IllegalArgumentException
+     *         The user ID or stream ID are null.
+     */
+    public abstract Set<String> getOhmletIdsWhereUserCanReadStreamData(
+        final String userId,
+        final String streamId,
+        final long streamVersion,
+        final boolean allowNull)
+        throws IllegalArgumentException;
+
+    /**
+     * Returns all of the ohlmet IDs where the user can read survey responses
+     * from other users.
+     *
+     * @param userId
+     *        The user's unique identifier.
+     *
+     * @param surveyId
+     *        The survey's unique identifier.
+     *
+     * @param surveyVersion
+     *        The survey's version.
+     *
+     * @param allowNull
+     *        Allow the survey's reference to have a null version.
+     *
+     * @return The list of ohmlet unique identifiers where the user has
+     *         sufficient permissions to read data about other users.
+     *
+     * @throws IllegalArgumentException
+     *         The user ID or stream ID are null.
+     */
+    public abstract Set<String> getOhmletIdsWhereUserCanReadSurveyResponses(
+        final String userId,
+        final String streamId,
+        final long streamVersion,
+        final boolean allowNull)
+        throws IllegalArgumentException;
+
 	/**
 	 * Returns a Ohmlet object for the desired ohmlet.
 	 *
@@ -86,6 +147,21 @@ public abstract class OhmletBin {
 	public abstract Ohmlet getOhmlet(
 		final String ohmletId)
 		throws IllegalArgumentException;
+
+    /**
+     * Returns the set of member IDs for the members of all of the ohmlets.
+     *
+     * @param ohmletIds
+     *        The ohmlets' unique identifier.
+     *
+     * @return The set of member IDs.
+     *
+     * @throws IllegalArgumentException
+     *         The collection of ohmlet IDs is null.
+     */
+	public abstract Set<String> getMemberIds(
+	    final Collection<String> ohmletIds)
+	    throws IllegalArgumentException;
 
 	/**
 	 * Updates the ohmlet in the database.
