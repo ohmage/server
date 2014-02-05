@@ -1,12 +1,11 @@
 package org.ohmage.domain.survey.prompt;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
+import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
-import name.jenkins.paul.john.concordia.schema.ObjectSchema;
+import name.jenkins.paul.john.concordia.schema.ReferenceSchema;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -15,7 +14,7 @@ import org.ohmage.domain.survey.condition.Condition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * <p>
@@ -24,35 +23,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * @author John Jenkins
  */
-public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
+public class RemoteActivityPrompt extends Prompt<JsonNode> {
     /**
      * The string type of this survey item.
      */
     public static final String SURVEY_ITEM_TYPE = "remote_activity_prompt";
 
     /**
-     * The default number of minimum runs.
-     */
-    public static final int DEFAULT_MIN_RUNS = 1;
-    /**
-     * The default number of retries.
-     */
-    public static final int DEFAULT_MAX_RUNS = Integer.MAX_VALUE;
-
-    /**
      * The JSON key for the URI.
      */
     public static final String JSON_KEY_URI = "uri";
+
     /**
-     * The JSON key for the minimum number of times the user must launch the
-     * remote activity.
+     * The JSON key for the response's definition.
      */
-    public static final String JSON_KEY_MIN_RUNS = "min_runs";
-    /**
-     * The JSON key for the maximum number of times the user may launch the
-     * remote activity.
-     */
-    public static final String JSON_KEY_MAX_RUNS = "max_runs";
+    public static final String JSON_KEY_DEFINITION = "definition";
 
     /**
      * The URI to use to launch the remote activity. This may include query
@@ -60,16 +45,11 @@ public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
      */
     @JsonProperty(JSON_KEY_URI)
     private final URI uri;
+
     /**
-     * The minimum number of times the user must launch the remote activity.
+     * The definition that a valid response must follow.
      */
-    @JsonProperty(JSON_KEY_MIN_RUNS)
-    private final int minRuns;
-    /**
-     * The maximum number of times the user may launch the remote activity.
-     */
-    @JsonProperty(JSON_KEY_MAX_RUNS)
-    private final int maxRuns;
+    private final Concordia definition;
 
     /**
      * Creates a new remote activity prompt.
@@ -118,10 +98,9 @@ public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
-            final List<ObjectNode> defaultResponse,
+            final JsonNode defaultResponse,
         @JsonProperty(JSON_KEY_URI) final URI uri,
-        @JsonProperty(JSON_KEY_MIN_RUNS) final Integer minRuns,
-        @JsonProperty(JSON_KEY_MAX_RUNS) final Integer maxRuns)
+        @JsonProperty(JSON_KEY_DEFINITION) final Concordia definition)
         throws InvalidArgumentException {
 
         super(
@@ -148,38 +127,12 @@ public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
             this.uri = uri;
         }
 
-        // Validate the minimum number of runs.
-        if(minRuns == null) {
-            this.minRuns = DEFAULT_MIN_RUNS;
-        }
-        else if(minRuns < 1) {
-            throw
-                new InvalidArgumentException(
-                    "The minimum number of times the user must launch the " +
-                        "remote activity must be a positive integer. If the " +
-                        "user is not required to launch the remote " +
-                        "activity, then set this value to any positive " +
-                        "integer and mark it as 'skippable': " +
-                        surveyItemId);
+        // Validate the definition.
+        if(definition == null) {
+            throw new InvalidArgumentException("The definition is missing.");
         }
         else {
-            this.minRuns = minRuns;
-        }
-
-        // Validate the maximum number of runs.
-        if(maxRuns == null) {
-            this.maxRuns = DEFAULT_MAX_RUNS;
-        }
-        else if(maxRuns < this.minRuns) {
-            throw
-                new InvalidArgumentException(
-                    "The maximum number of times the user may launch the " +
-                        "remote activity must be equal to or gerater than " +
-                        "the minimum number of runs: " +
-                        surveyItemId);
-        }
-        else {
-            this.maxRuns = maxRuns;
+            this.definition = definition;
         }
     }
 
@@ -191,11 +144,11 @@ public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
     public Schema getResponseSchema() {
         try {
             return
-                new ObjectSchema(
+                new ReferenceSchema(
                     getText(),
                     (skippable() || (getCondition() != null)),
                     getSurveyItemId(),
-                    Collections.<Schema>emptyList());
+                    definition.getSchema());
         }
         catch(ConcordiaException e) {
             throw
@@ -210,34 +163,20 @@ public class RemoteActivityPrompt extends Prompt<List<ObjectNode>> {
      * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public List<ObjectNode> validateResponse(
-        final List<ObjectNode> response,
+    public JsonNode validateResponse(
+        final JsonNode response,
         final Map<String, Media> media)
         throws InvalidArgumentException {
 
-        // Ensure that the user ran the remote activity at least the minimum
-        // number of times.
-        if(response.size() < minRuns) {
-            throw
-                new InvalidArgumentException(
-                    "The user only ran the remote activity " +
-                        response.size() +
-                        " times when they needed to run it at least " +
-                        minRuns +
-                        " times: " +
-                        getSurveyItemId());
+        try {
+            definition.validateData(response);
         }
-
-        // Ensure that the user did not run the remote activity more than the
-        // allotted number of times.
-        if(response.size() > maxRuns) {
+        catch(ConcordiaException e) {
             throw
                 new InvalidArgumentException(
-                    "The user ran the remote activity " +
-                        response.size() +
-                        " times when they were only allowed to run it " +
-                        maxRuns +
-                        " times: " +
+                    "The data was invalid, \"" +
+                        e.getLocalizedMessage() +
+                        "\": " +
                         getSurveyItemId());
         }
 
