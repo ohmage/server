@@ -108,13 +108,13 @@ public class OhmageObjectMapper extends ObjectMapper {
         registerModule(dateTimeModule);
 
         // Register our BigDecimal serializer.
-        SimpleModule bigDecimalSerializer =
+        SimpleModule bigDecimalModule =
             new SimpleModule(
                 "BigDecimal serialization module",
                 new Version(1, 0, 0, null, null, null));
-        bigDecimalSerializer
+        bigDecimalModule
             .addSerializer(BigDecimal.class, new BigDecimalSerializer());
-        registerModule(bigDecimalSerializer);
+        registerModule(bigDecimalModule);
 
     	enable(
     	    // The clients may not send numbers for enums. They must use the

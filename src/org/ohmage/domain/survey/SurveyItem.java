@@ -4,17 +4,18 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.condition.Condition;
 import org.ohmage.domain.survey.prompt.AudioPrompt;
 import org.ohmage.domain.survey.prompt.ImagePrompt;
-import org.ohmage.domain.survey.prompt.MultiChoicePrompt;
+import org.ohmage.domain.survey.prompt.NumberMultiChoicePrompt;
 import org.ohmage.domain.survey.prompt.NumberPrompt;
+import org.ohmage.domain.survey.prompt.NumberSingleChoicePrompt;
 import org.ohmage.domain.survey.prompt.RemoteActivityPrompt;
-import org.ohmage.domain.survey.prompt.SingleChoicePrompt;
+import org.ohmage.domain.survey.prompt.StringMultiChoicePrompt;
+import org.ohmage.domain.survey.prompt.StringSingleChoicePrompt;
 import org.ohmage.domain.survey.prompt.TextPrompt;
 import org.ohmage.domain.survey.prompt.TimestampPrompt;
 import org.ohmage.domain.survey.prompt.VideoPrompt;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -47,8 +48,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         value = ImagePrompt.class,
         name = ImagePrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
-        value = MultiChoicePrompt.class,
-        name = MultiChoicePrompt.SURVEY_ITEM_TYPE),
+        value = VideoPrompt.class,
+        name = VideoPrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
         value = NumberPrompt.class,
         name = NumberPrompt.SURVEY_ITEM_TYPE),
@@ -56,27 +57,29 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
         value = RemoteActivityPrompt.class,
         name = RemoteActivityPrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
-        value = SingleChoicePrompt.class,
-        name = SingleChoicePrompt.SURVEY_ITEM_TYPE),
+        value = NumberSingleChoicePrompt.class,
+        name = NumberSingleChoicePrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = StringSingleChoicePrompt.class,
+        name = StringSingleChoicePrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = NumberMultiChoicePrompt.class,
+        name = NumberMultiChoicePrompt.SURVEY_ITEM_TYPE),
+    @JsonSubTypes.Type(
+        value = StringMultiChoicePrompt.class,
+        name = StringMultiChoicePrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
         value = TextPrompt.class,
         name = TextPrompt.SURVEY_ITEM_TYPE),
     @JsonSubTypes.Type(
         value = TimestampPrompt.class,
-        name = TimestampPrompt.SURVEY_ITEM_TYPE),
-    @JsonSubTypes.Type(
-        value = VideoPrompt.class,
-        name = VideoPrompt.SURVEY_ITEM_TYPE)})
+        name = TimestampPrompt.SURVEY_ITEM_TYPE)})
 public abstract class SurveyItem {
     /**
      * The JSON key used to define which kind of survey item this is.
      */
     public static final String JSON_KEY_SURVEY_ITEM_TYPE = "survey_item_type";
 
-    /**
-     * The JSON key for the display type.
-     */
-    public static final String JSON_KEY_DISPLAY_TYPE = "display_type";
     /**
      * The JSON key for the ID.
      */
@@ -86,11 +89,6 @@ public abstract class SurveyItem {
      */
     public static final String JSON_KEY_CONDITION = "condition";
 
-    /**
-     * The display type used to describe how it will be displayed to the user.
-     */
-    @JsonProperty(JSON_KEY_DISPLAY_TYPE)
-    private final String displayType;
     /**
      * The survey-unique identifier for this survey item.
      */
@@ -102,17 +100,6 @@ public abstract class SurveyItem {
      */
     @JsonProperty(JSON_KEY_CONDITION)
     private final Condition condition;
-
-    /**
-     * Does nothing and should never be used. This is here only to circumvent a
-     * bug in Jackson.
-     */
-    @JsonCreator
-    private SurveyItem() {
-        displayType = null;
-        surveyItemId = null;
-        condition = null;
-    }
 
     /**
      * Creates a new survey item.
@@ -127,7 +114,6 @@ public abstract class SurveyItem {
      *         The iID is null.
      */
     public SurveyItem(
-        final String displayType,
         final String surveyItemId,
         final Condition condition)
         throws InvalidArgumentException {
@@ -136,7 +122,6 @@ public abstract class SurveyItem {
             throw new InvalidArgumentException("The survey item ID is null.");
         }
 
-        this.displayType = displayType;
         this.surveyItemId = surveyItemId;
         this.condition = condition;
     }

@@ -23,6 +23,62 @@ public abstract class Prompt<ResponseType>
     implements Respondable {
 
     /**
+     * <p>
+     * The allowed display type values.
+     * </p>
+     *
+     * @author John Jenkins
+     */
+    public static enum DisplayType {
+        /**
+         * A calendar to allow users to select specific dates.
+         */
+        CALENDAR,
+        /**
+         * Launches the camera.
+         */
+        CAMERA,
+        /**
+         * Opens a new window / application.
+         */
+        LAUNCHER,
+        /**
+         * Allows a user to select one or more elements from a list of
+         * elements.
+         */
+        LIST,
+        /**
+         * Like a text box except with additional UI elements to help the user
+         * adjust their response, e.g. up and down arrows.
+         */
+        PICKER,
+        /**
+         * Launches the audio recorder.
+         */
+        RECORDER,
+        /**
+         * Allows a user to move a pointer across a discrete set of values.
+         */
+        SLIDER,
+        /**
+         * A simple text box where a user may enter their response directly.
+         */
+        TEXTBOX;
+
+        /**
+         * Creates the user-friendly variant of the display type.
+         */
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
+    }
+
+    /**
+     * The JSON key for the display type.
+     */
+    public static final String JSON_KEY_DISPLAY_TYPE = "display_type";
+    /**
      * The JSON key for the text.
      */
     public static final String JSON_KEY_TEXT = "text";
@@ -39,6 +95,11 @@ public abstract class Prompt<ResponseType>
      */
     public static final String JSON_KEY_DEFAULT_RESPONSE = "default_response";
 
+    /**
+     * The display type used to describe how it will be displayed to the user.
+     */
+    @JsonProperty(JSON_KEY_DISPLAY_TYPE)
+    private final DisplayType displayType;
     /**
      * The text to show to the user.
      */
@@ -64,14 +125,14 @@ public abstract class Prompt<ResponseType>
     /**
      * Creates a new prompt.
      *
-     * @param displayType
-     *        The display type to use to visualize the prompt.
-     *
      * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
      *        The condition on whether or not to show this prompt.
+     *
+     * @param displayType
+     *        The display type to use to visualize the prompt.
      *
      * @param text
      *        The text to display to the user.
@@ -90,16 +151,16 @@ public abstract class Prompt<ResponseType>
      *         A parameter was invalid.
      */
     public Prompt(
-        final String displayType,
         final String surveyItemId,
         final Condition condition,
+        final DisplayType displayType,
         final String text,
         final String displayLabel,
         final boolean skippable,
         final ResponseType defaultResponse)
         throws InvalidArgumentException {
 
-        super(displayType, surveyItemId, condition);
+        super(surveyItemId, condition);
 
         if(text == null) {
             throw new InvalidArgumentException("The prompt text is null.");
@@ -108,6 +169,7 @@ public abstract class Prompt<ResponseType>
             throw new InvalidArgumentException("The display label is null.");
         }
 
+        this.displayType = displayType;
         this.text = text;
         this.displayLabel = displayLabel;
         this.skippable = skippable;

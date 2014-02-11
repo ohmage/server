@@ -58,11 +58,14 @@ public class NumberPrompt extends Prompt<Number> {
     /**
      * Creates a new number prompt.
      *
-     * @param displayType
-     *        The display type to use to visualize the prompt.
-     *
      * @param surveyItemId
      *        The condition on whether or not to show this prompt.
+     *
+     * @param condition
+     *        The condition on whether or not to show this prompt.
+     *
+     * @param displayType
+     *        The display type to use to visualize the prompt.
      *
      * @param text
      *        The text to display to the user.
@@ -94,9 +97,9 @@ public class NumberPrompt extends Prompt<Number> {
      */
     @JsonCreator
     public NumberPrompt(
-        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final DisplayType displayType,
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
@@ -108,13 +111,36 @@ public class NumberPrompt extends Prompt<Number> {
         throws InvalidArgumentException {
 
         super(
-            displayType,
             surveyItemId,
             condition,
+            displayType,
             text,
             displayLabel,
             skippable,
             defaultResponse);
+
+        if(!
+            (
+                DisplayType.LIST.equals(displayType) ||
+                DisplayType.PICKER.equals(displayType) ||
+                DisplayType.SLIDER.equals(displayType) ||
+                DisplayType.TEXTBOX.equals(displayType))) {
+
+            throw
+                new InvalidArgumentException(
+                    "The display type '" +
+                        displayType.toString() +
+                        "' is not valid for the prompt, which must be '" +
+                        DisplayType.LIST.toString() +
+                        "', '" +
+                        DisplayType.PICKER.toString() +
+                        "', '" +
+                        DisplayType.SLIDER.toString() +
+                        "' or '" +
+                        DisplayType.TEXTBOX.toString() +
+                        "': " +
+                        getSurveyItemId());
+        }
 
         this.min = min;
         this.max = max;

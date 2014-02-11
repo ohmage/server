@@ -23,20 +23,17 @@ public abstract class MediaPrompt extends Prompt<String> {
     /**
      * Creates a new media prompt.
      *
-     * @param displayType
-     *        The display type to use to visualize the prompt.
-     *
      * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
      *        The condition on whether or not to show this prompt.
      *
+     * @param displayType
+     *        The display type to use to visualize the prompt.
+     *
      * @param text
      *        The text to display to the user.
-     *
-     * @param displayLabel
-     *        The text to use as a short name in visualizations.
      *
      * @param displayLabel
      *        The text to use as a short name in visualizations.
@@ -61,9 +58,9 @@ public abstract class MediaPrompt extends Prompt<String> {
      */
     @JsonCreator
     public MediaPrompt(
-        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final DisplayType displayType,
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
@@ -71,9 +68,9 @@ public abstract class MediaPrompt extends Prompt<String> {
         throws InvalidArgumentException {
 
         super(
-            displayType,
             surveyItemId,
             condition,
+            displayType,
             text,
             displayLabel,
             skippable,

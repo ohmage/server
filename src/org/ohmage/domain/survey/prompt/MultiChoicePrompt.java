@@ -24,11 +24,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
-public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
-    /**
-     * The string type of this survey item.
-     */
-    public static final String SURVEY_ITEM_TYPE = "multi_choice_prompt";
+public abstract class MultiChoicePrompt<ChoiceType>
+    extends ChoicePrompt<ChoiceType, Collection<? extends ChoiceType>> {
 
     /**
      * The JSON key for the minimum number of choices.
@@ -53,14 +50,14 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
     /**
      * Creates a new multi-choice prompt.
      *
-     * @param displayType
-     *        The display type to use to visualize the prompt.
-     *
      * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
      *        The condition on whether or not to show this prompt.
+     *
+     * @param displayType
+     *        The display type to use to visualize the prompt.
      *
      * @param text
      *        The text to display to the user.
@@ -92,40 +89,43 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
      */
     @JsonCreator
     public MultiChoicePrompt(
-        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final DisplayType displayType,
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
-            final Set<String> defaultResponse,
-        @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices,
+            final Set<? extends ChoiceType> defaultResponse,
+        @JsonProperty(JSON_KEY_CHOICES)
+            final List<? extends Choice<? extends ChoiceType>> choices,
         @JsonProperty(JSON_KEY_MIN_CHOICES) final Integer minChoices,
         @JsonProperty(JSON_KEY_MAX_CHOICES) final Integer maxChoices)
         throws InvalidArgumentException {
 
         super(
-            displayType,
             surveyItemId,
             condition,
+            displayType,
             text,
             displayLabel,
             skippable,
             defaultResponse,
             choices);
 
-        for(String defaultResponseLabel : defaultResponse) {
-            if(
-                (defaultResponse != null) &&
-                (getChoice(defaultResponseLabel) == null)) {
+        if(defaultResponse != null) {
+            for(ChoiceType defaultResponseValue : defaultResponse) {
+                if(
+                    (defaultResponse != null) &&
+                    (getChoice(defaultResponseValue) == null)) {
 
-                throw
-                    new InvalidArgumentException(
-                        "The default response '" +
-                            defaultResponseLabel +
-                            "' is unknown: " +
-                            getSurveyItemId());
+                    throw
+                        new InvalidArgumentException(
+                            "The default response '" +
+                                defaultResponseValue +
+                                "' is unknown: " +
+                                getSurveyItemId());
+                }
             }
         }
 
@@ -161,13 +161,13 @@ public class MultiChoicePrompt extends ChoicePrompt<Collection<String>> {
      * @see org.ohmage.domain.survey.prompt.Prompt#validateResponse(java.lang.Object, java.util.Map)
      */
     @Override
-    public Collection<String> validateResponse(
-        final Collection<String> response,
+    public Collection<? extends ChoiceType> validateResponse(
+        final Collection<? extends ChoiceType> response,
         final Map<String, Media> media)
         throws InvalidArgumentException {
 
-        for(String responseLabel : response) {
-            if(getChoice(responseLabel) == null) {
+        for(ChoiceType responseValue : response) {
+            if(getChoice(responseValue) == null) {
                 throw
                     new InvalidArgumentException(
                         "The response value '" +

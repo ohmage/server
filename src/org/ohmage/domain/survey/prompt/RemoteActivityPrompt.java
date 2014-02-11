@@ -15,6 +15,7 @@ import org.ohmage.domain.survey.condition.Condition;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 /**
  * <p>
@@ -54,14 +55,14 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
     /**
      * Creates a new remote activity prompt.
      *
-     * @param displayType
-     *        The display type to use to visualize the prompt.
-     *
      * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
      *        The condition on whether or not to show this prompt.
+     *
+     * @param displayType
+     *        The display type to use to visualize the prompt.
      *
      * @param text
      *        The text to display to the user.
@@ -91,9 +92,9 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
      */
     @JsonCreator
     public RemoteActivityPrompt(
-        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final DisplayType displayType,
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
@@ -104,24 +105,42 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
         throws InvalidArgumentException {
 
         super(
-            displayType,
             surveyItemId,
             condition,
+            displayType,
             text,
             displayLabel,
             skippable,
             defaultResponse);
 
-        // Default values are not allowed.
-        if(defaultResponse != null) {
+        // Validate the display type.
+        if(! DisplayType.LAUNCHER.equals(displayType)) {
             throw
                 new InvalidArgumentException(
-                    "Default values are not allowed for remote activities.");
+                    "The display type '" +
+                        displayType.toString() +
+                        "' is not valid for the prompt, which must be '" +
+                        DisplayType.LAUNCHER.toString() +
+                        "': " +
+                        getSurveyItemId());
+        }
+
+        // Default values are not allowed.
+        if(
+            (defaultResponse != null) &&
+            (! (defaultResponse instanceof NullNode))) {
+
+            throw
+                new InvalidArgumentException(
+                    "Default values are not allowed for remote activities: " +
+                        getSurveyItemId());
         }
 
         // Validate the URI.
         if(uri == null) {
-            throw new InvalidArgumentException("The URI is missing.");
+            throw
+                new InvalidArgumentException(
+                    "The URI is missing: " + getSurveyItemId());
         }
         else {
             this.uri = uri;
@@ -129,7 +148,9 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
 
         // Validate the definition.
         if(definition == null) {
-            throw new InvalidArgumentException("The definition is missing.");
+            throw
+                new InvalidArgumentException(
+                    "The definition is missing: " + getSurveyItemId());
         }
         else {
             this.definition = definition;

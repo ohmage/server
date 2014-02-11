@@ -1,10 +1,8 @@
 package org.ohmage.domain.survey.prompt;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.jackson.MapValuesJsonSerializer;
@@ -21,7 +19,9 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  *
  * @author John Jenkins
  */
-public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
+public abstract class ChoicePrompt<ChoiceType, ResponseType>
+    extends Prompt<ResponseType> {
+
     /**
      * <p>
      * A choice for the choice prompts.
@@ -29,90 +29,66 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
      *
      * @author John Jenkins
      */
-    public static class Choice {
+    public static class Choice<ChoiceType> {
         /**
-         * The JSON key for the key.
+         * The JSON key for the text, which may be
          */
-        public static final String JSON_KEY_KEY = "key";
-        /**
-         * The JSON key for the label.
-         */
-        public static final String JSON_KEY_LABEL = "label";
+        public static final String JSON_KEY_TEXT = "text";
         /**
          * The JSON key for the value.
          */
         public static final String JSON_KEY_VALUE = "value";
 
         /**
-         * The key for this choice, which will be used for ordering when
-         * displaying it to the user.
+         * The text to display to the user.
          */
-        @JsonProperty(JSON_KEY_KEY)
-        private final int key;
-        /**
-         * The label to display to the user.
-         */
-        @JsonProperty(JSON_KEY_LABEL)
-        private final String label;
+        @JsonProperty(JSON_KEY_TEXT)
+        private final String text;
         /**
          * An optional value for this prompt for data processors.
          */
         @JsonProperty(JSON_KEY_VALUE)
-        private final Number value;
+        private final ChoiceType value;
 
         /**
          * Creates a new choice.
          *
-         * @param key
-         *        The key for this choice which will be used for ordering.
-         *
-         * @param label
-         *        The label to show to the user.
+         * @param text
+         *        The text to show to the user, which may be null.
          *
          * @param value
          *        The value that represents this choice, which may be null.
          */
         @JsonCreator
         public Choice(
-            @JsonProperty(JSON_KEY_KEY) final int key,
-            @JsonProperty(JSON_KEY_LABEL) final String label,
-            @JsonProperty(JSON_KEY_VALUE) final Number value)
+            @JsonProperty(JSON_KEY_TEXT) final String text,
+            @JsonProperty(JSON_KEY_VALUE) final ChoiceType value)
             throws InvalidArgumentException {
 
-            if(label == null) {
-                throw new InvalidArgumentException("The label is null.");
+            if(value == null) {
+                throw new InvalidArgumentException("The value is null.");
             }
 
-            this.key = key;
-            this.label = label;
+            this.text = text;
             this.value = value;
         }
 
         /**
-         * Returns the key for this choice, which will be used for ordering.
+         * Returns the text for this choice, which will be shown to the user
+         * if given.
          *
-         * @return The key for this choice.
+         * @return The text for this choice, which may be null.
          */
-        public int getKey() {
-            return key;
+        public String getText() {
+            return text;
         }
 
         /**
-         * Returns the label for this choice, which will be shown to the user.
+         * Returns the value of this choice.
          *
-         * @return The label for this choice.
+         * @return The value of this choice.
          */
-        public String getLabel() {
-            return label;
-        }
-
-        /**
-         * Returns the value of this choice or null. The value can be a hint to
-         * data processors.
-         *
-         * @return The value of this choice or null.
-         */
-        public Number getValue() {
+        public ChoiceType getValue() {
             return value;
         }
     }
@@ -128,24 +104,24 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
     public static final String JSON_KEY_CHOICES = "choices";
 
     /**
-     * The map of choices from their label to their actual {@link Choice}
+     * The map of choices from their value to their actual {@link Choice}
      * object.
      */
     @JsonProperty(JSON_KEY_CHOICES)
     @JsonSerialize(using = MapValuesJsonSerializer.class)
-    private final Map<String, Choice> choices;
+    private final Map<ChoiceType, Choice<? extends ChoiceType>> choices;
 
     /**
      * Creates a parent choice prompt.
-     *
-     * @param displayType
-     *        The display type to use to visualize the prompt.
      *
      * @param surveyItemId
      *        The survey-unique identifier for this prompt.
      *
      * @param condition
      *        The condition on whether or not to show this prompt.
+     *
+     * @param displayType
+     *        The display type to use to visualize the prompt.
      *
      * @param text
      *        The text to display to the user.
@@ -163,29 +139,27 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
      * @param choices
      *        The list of choices.
      *
-     * @param allowCustom
-     *        Whether or not custom choices are allowed.
-     *
      * @throws InvalidArgumentException
      *         A parameter was invalid.
      */
     @JsonCreator
     public ChoicePrompt(
-        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final String displayType,
         @JsonProperty(JSON_KEY_SURVEY_ITEM_ID) final String surveyItemId,
         @JsonProperty(JSON_KEY_CONDITION) final Condition condition,
+        @JsonProperty(JSON_KEY_DISPLAY_TYPE) final DisplayType displayType,
         @JsonProperty(JSON_KEY_TEXT) final String text,
         @JsonProperty(JSON_KEY_DISPLAY_LABEL) final String displayLabel,
         @JsonProperty(JSON_KEY_SKIPPABLE) final boolean skippable,
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
             final ResponseType defaultResponse,
-        @JsonProperty(JSON_KEY_CHOICES) final List<Choice> choices)
+        @JsonProperty(JSON_KEY_CHOICES)
+            final List<? extends Choice<? extends ChoiceType>> choices)
         throws InvalidArgumentException {
 
         super(
-            displayType,
             surveyItemId,
             condition,
+            displayType,
             text,
             displayLabel,
             skippable,
@@ -197,72 +171,40 @@ public abstract class ChoicePrompt<ResponseType> extends Prompt<ResponseType> {
                 new InvalidArgumentException(
                     "The list of chioces is missing: " + getSurveyItemId());
         }
-
-        // Create a lookup table for the choices.
-        this.choices = new HashMap<String, Choice>(choices.size());
-        // Keep track of the keys to ensure there are no duplicates.
-        Set<Integer> uniqueKeys = new HashSet<Integer>(choices.size());
-        // Examine each choice.
-        for(Choice choice : choices) {
-            // Be sure the key does not already exist.
-            if(! uniqueKeys.add(choice.getKey())) {
-                throw
-                    new InvalidArgumentException(
-                        "Two choices have the same key '" +
-                            choice.getKey() +
-                            "': " +
-                            getSurveyItemId());
-            }
-
-            // Be sure the label does not already exist.
-            if(this.choices.put(choice.getLabel(), choice) != null) {
-                throw
-                    new InvalidArgumentException(
-                        "Two choices have the same label '" +
-                            choice.getLabel() +
-                            "': " +
-                            getSurveyItemId());
-            }
-        }
-
         // Validate that at least one choice was given.
         if(choices.size() == 0) {
             throw
                 new InvalidArgumentException(
                     "No choices were given: " + getSurveyItemId());
         }
+
+        // Create a lookup table for the choices.
+        this.choices =
+            new HashMap<ChoiceType, Choice<? extends ChoiceType>>(
+                choices.size());
+        // Examine each choice.
+        for(Choice<? extends ChoiceType> choice : choices) {
+            // Be sure the value does not already exist.
+            if(this.choices.put(choice.getValue(), choice) != null) {
+                throw
+                    new InvalidArgumentException(
+                        "Two choices have the same value '" +
+                            choice.getText() +
+                            "': " +
+                            getSurveyItemId());
+            }
+        }
     }
 
     /**
-     * Returns a choice based on its key value.
+     * Returns a choice based on the
      *
      * @param key
      *        The key to use to find the desired choice.
      *
      * @return The {@link Choice} object or null if the key is unknown.
      */
-    public Choice getChoice(final int key) {
-        // Check all choices.
-        for(Choice choice : choices.values()) {
-            // If a choice with a matching key is found, return it.
-            if(choice.key == key) {
-                return choice;
-            }
-        }
-
-        // If no choice was found, return null.
-        return null;
-    }
-
-    /**
-     * Returns a choice based on its label value.
-     *
-     * @param label
-     *        The label to use to find the desired choice.
-     *
-     * @return The {@link Choice} object or null if the label is unknown.
-     */
-    public Choice getChoice(final String label) {
-        return choices.get(label);
+    public Choice<? extends ChoiceType> getChoice(final ChoiceType key) {
+        return choices.get(key);
     }
 }
