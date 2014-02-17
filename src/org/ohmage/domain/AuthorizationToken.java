@@ -2,9 +2,13 @@ package org.ohmage.domain;
 
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
+import org.ohmage.domain.jackson.OhmageObjectMapper;
+import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 import org.ohmage.domain.user.User;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -18,7 +22,130 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
+@JsonFilter(AuthorizationToken.JACKSON_FILTER_GROUP_ID)
 public class AuthorizationToken extends OhmageDomainObject {
+    /**
+     * <p>
+     * A builder class for {@link AuthorizationToken} objects.
+     * </p>
+     *
+     * @author John Jenkins
+     */
+    public static class Builder
+        extends OhmageDomainObject.Builder<AuthorizationToken> {
+
+        /**
+         * The authentication token.
+         */
+        private final String accessToken;
+        /**
+         * The refresh token.
+         */
+        private final String refreshToken;
+        /**
+         * The token that was being refreshed.
+         */
+        private String nextToken;
+        /**
+         * The unique ID of the user to whom the token applies.
+         */
+        private final String userId;
+        /**
+         * The number of milliseconds since the epoch at which time the token was
+         * granted.
+         */
+        private final long granted;
+        /**
+         * The number of milliseconds since the epoch at which time the token will
+         * expire.
+         */
+        private final long expires;
+        /**
+         * Whether or not a token is valid.
+         */
+        private boolean valid;
+
+        /**
+         * Constructs a new builder based on a given authorization token.
+         *
+         * @param original
+         *        The original authorization token to base this builder off of.
+         */
+        public Builder(final AuthorizationToken original) {
+            super(original);
+
+            accessToken = original.accessToken;
+            refreshToken = original.refreshToken;
+            nextToken = original.nextToken;
+            userId = original.userId;
+            granted = original.granted;
+            expires = original.expires;
+            valid = original.valid;
+        }
+
+        /**
+         * Sets the value of the token that was used to refresh this token.
+         *
+         * @param nextToken The value of the token that was used to refresh
+         * this token.
+         *
+         * @return This Builder to facilitate chaining.
+         */
+        public Builder setNextToken(final String nextToken) {
+            this.nextToken = nextToken;
+
+            return this;
+        }
+
+        /**
+         * Sets whether or not this token should be considered valid.
+         *
+         * @param valid
+         *        Whether or not this token is valid.
+         *
+         * @return This Builder to facilitate chaining.
+         */
+        public Builder setValid(final boolean valid) {
+            this.valid = valid;
+
+            return this;
+        }
+
+        /**
+         * Constructs a new {@link AuthorizationToken} object based on the
+         * state of this builder.
+         *
+         * @return The new {@link AuthorizationToken}.
+         *
+         * @throws IllegalArgumentException The state of this builder is invalid
+         * for building a new authorization token.
+         */
+        public AuthorizationToken build() throws IllegalArgumentException {
+            return
+                new AuthorizationToken(
+                    accessToken,
+                    refreshToken,
+                    nextToken,
+                    userId,
+                    granted,
+                    expires,
+                    valid,
+                    internalReadVersion,
+                    internalWriteVersion);
+        }
+    }
+
+    /**
+     * The group ID for the Jackson filter. This must be unique to our class,
+     * whatever the value is.
+     */
+    protected static final String JACKSON_FILTER_GROUP_ID =
+        "org.ohmage.domain.AuthorizationToken";
+    // Register this class with the ohmage object mapper.
+    static {
+        OhmageObjectMapper.register(AuthorizationToken.class);
+    }
+
     /**
      * The name of the header that contains the authorization information.
      */
@@ -33,6 +160,10 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 */
 	public static final String JSON_KEY_REFRESH_TOKEN = "refresh_token";
 	/**
+	 * The JSON key for the token that was used to replace this token.
+	 */
+	public static final String JSON_KEY_NEW_TOKEN = "next_token";
+	/**
 	 * The JSON key for the time the token was granted.
 	 */
 	public static final String JSON_KEY_GRANTED = "granted";
@@ -44,10 +175,6 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 * The JSON key for the time the token expires.
 	 */
 	public static final String JSON_KEY_VALID = "valid";
-	/**
-	 * The JSON key for the time the token expires.
-	 */
-	public static final String JSON_KEY_REFRESHED = "refreshed";
 
 	/**
 	 * The default duration of the authentication token.
@@ -64,6 +191,12 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 */
 	@JsonProperty(JSON_KEY_REFRESH_TOKEN)
 	private final String refreshToken;
+	/**
+	 * The token that was being refreshed.
+	 */
+    @JsonProperty(JSON_KEY_NEW_TOKEN)
+    @JsonFilterField
+	private final String nextToken;
 	/**
 	 * The unique ID of the user to whom the token applies.
 	 */
@@ -85,13 +218,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 * Whether or not a token is valid.
 	 */
 	@JsonProperty(JSON_KEY_VALID)
-	private boolean valid;
-	/**
-	 * Whether or not a token is has been used to create a new token, in which
-	 * case it should no longer be considered valid.
-	 */
-	@JsonProperty(JSON_KEY_REFRESHED)
-	private boolean refreshed;
+	private final boolean valid;
 
 	/**
 	 * Creates a new authentication token for a user.
@@ -110,6 +237,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			getRandomId(),
 			getRandomId(),
+			null,
 			((user == null) ? null : user.getId()),
 			System.currentTimeMillis(),
 			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
@@ -135,14 +263,12 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			getRandomId(),
 			getRandomId(),
+			null,
 			((oldToken == null) ? null : oldToken.getUserId()),
 			System.currentTimeMillis(),
 			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
 			true,
 			null);
-
-		// Mark the old token as having been used to create a new token.
-		oldToken.refreshed = true;
 	}
 
     /**
@@ -153,6 +279,9 @@ public class AuthorizationToken extends OhmageDomainObject {
      *
      * @param refreshToken
      *        The refresh token.
+     *
+     * @param nextToken
+     *        The token that was issued when this token was refreshed.
      *
      * @param userId
      *        The user's unique identifier.
@@ -178,6 +307,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 	protected AuthorizationToken(
 		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
 		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
+		@JsonProperty(JSON_KEY_NEW_TOKEN) final String newToken,
 		@JsonProperty(User.JSON_KEY_ID) final String userId,
 		@JsonProperty(JSON_KEY_GRANTED) final long granted,
 		@JsonProperty(JSON_KEY_EXPIRES) final long expires,
@@ -189,6 +319,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			accessToken,
 			refreshToken,
+			newToken,
 			userId,
 			granted,
 			expires,
@@ -205,6 +336,9 @@ public class AuthorizationToken extends OhmageDomainObject {
      *
      * @param refreshToken
      *        The refresh token.
+     *
+     * @param nextToken
+     *        The token that was issued when this token was refreshed.
      *
      * @param userId
      *        The user's unique identifier.
@@ -234,6 +368,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 	private AuthorizationToken(
 		final String accessToken,
 		final String refreshToken,
+		final String nextToken,
 		final String userId,
 		final long granted,
 		final long expires,
@@ -276,6 +411,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		// Save the state.
 		this.accessToken = accessToken;
 		this.refreshToken = refreshToken;
+		this.nextToken = nextToken;
 		this.userId = userId;
 		this.granted = granted;
 		this.expires = expires;
@@ -383,7 +519,19 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 * @return Whether or not this token has been refreshed.
 	 */
 	public boolean wasRefreshed() {
-		return refreshed;
+		return nextToken != null;
+	}
+
+    /**
+     * If refreshed, returns the access token value for the token that was
+     * returned when refreshing; otherwise, null is returned.
+     *
+     * @return The access token value for the token that was returned to
+     *         refresh this token, or null if this token has not been
+     *         refreshed.
+     */
+	public String getNextToken() {
+	    return nextToken;
 	}
 
 	/**
@@ -391,15 +539,9 @@ public class AuthorizationToken extends OhmageDomainObject {
 	 *
 	 * @return Whether or not this token is still valid.
 	 */
+	@JsonIgnore
 	public boolean isValid() {
 		return ! (isExpired() || wasInvalidated() || wasRefreshed());
-	}
-
-	/**
-	 * Sets the validity of this token to false.
-	 */
-	public void invalidate() {
-		valid = false;
 	}
 
 	/**
@@ -412,7 +554,7 @@ public class AuthorizationToken extends OhmageDomainObject {
      * @return The user-supplied token.
      *
      * @throws InsufficientPermissionsException
-     *         The header is missing, unintelligable, or not for our domain.
+     *         The header is missing, unintelligible, or not for our domain.
      */
 	public static String getTokenFromHeader(
 	    final String header)

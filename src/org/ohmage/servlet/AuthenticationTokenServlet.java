@@ -326,28 +326,66 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 					"The given refresh token is unknown.");
 		}
 
-		LOGGER.log(Level.FINE, "Checking whether or not the token is valid.");
 		LOGGER.log(Level.FINER, "Checking if the token was invalidated.");
 		if(oldToken.wasInvalidated()) {
 			throw
 				new AuthenticationException(
 					"This token has been invalidated.");
 		}
-		LOGGER.log(Level.FINER, "Checking if the token was invalidated.");
+
+		LOGGER.log(Level.FINER, "Checking if the token was refreshed.");
+		AuthorizationToken token;
 		if(oldToken.wasRefreshed()) {
-			throw
-				new AuthenticationException(
-					"This token has already been refreshed.");
+		    LOGGER.log(Level.INFO, "The token has already been refreshed.");
+
+		    LOGGER.log(Level.INFO, "Retrieving the next token in the chain.");
+		    token =
+		        AuthenticationTokenBin
+		            .getInstance()
+		            .getTokenFromAccessToken(oldToken.getNextToken());
+
+		    LOGGER.log(Level.FINE, "Verifying the next token was retrieved.");
+		    if(token == null) {
+		        throw
+		            new IllegalStateException(
+		                "A token '" +
+		                    oldToken.getAccessToken() +
+		                    "' has a next token value of '" +
+		                    oldToken.getNextToken() +
+		                    "' which is unknown.");
+		    }
+
+		    LOGGER
+		        .log(
+		            Level.INFO,
+		            "Checking if the next token had already been refreshed.");
+		    if(token.wasRefreshed()) {
+    			throw
+    				new AuthenticationException(
+    					"This token has already been refreshed.");
+		    }
 		}
+		else {
+    		LOGGER.log(Level.INFO, "Creating a new authentication token.");
+    		token = new AuthorizationToken(oldToken);
 
-		LOGGER.log(Level.INFO, "Creating a new authentication token.");
-		AuthorizationToken token = new AuthorizationToken(oldToken);
+    		LOGGER
+    		    .log(
+    		        Level.INFO,
+    		        "Adding the authentication token to the bin.");
+    		AuthenticationTokenBin.getInstance().addToken(token);
 
-		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
-		AuthenticationTokenBin.getInstance().addToken(token);
+            LOGGER.log(Level.INFO, "Invalidating the old token.");
+            AuthorizationToken invalidatedOldToken =
+                (new AuthorizationToken.Builder(oldToken))
+                    .setNextToken(token.getAccessToken())
+                    .build();
 
-		LOGGER.log(Level.INFO, "Invalidating the old token.");
-		AuthenticationTokenBin.getInstance().updateToken(oldToken);
+            LOGGER.log(Level.INFO, "Updating the invalidated old token.");
+            AuthenticationTokenBin
+                .getInstance()
+                .updateToken(invalidatedOldToken);
+		}
 
 		LOGGER.log(Level.INFO, "Returning the token to the user.");
 		return token;
@@ -379,9 +417,12 @@ public class AuthenticationTokenServlet extends OhmageServlet {
         }
 
         LOGGER.log(Level.INFO, "Invalidating the token.");
-        authToken.invalidate();
+        AuthorizationToken updatedToken =
+            (new AuthorizationToken.Builder(authToken))
+                .setValid(false)
+                .build();
 
 		LOGGER.log(Level.INFO, "Updating the token.");
-		AuthenticationTokenBin.getInstance().updateToken(authToken);
+		AuthenticationTokenBin.getInstance().updateToken(updatedToken);
 	}
 }

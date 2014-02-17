@@ -41,6 +41,9 @@ public class MongoAuthenticationToken
      * @param refreshToken
      *        The refresh token.
      *
+     * @param nextToken
+     *        The token that was issued when this token was refreshed.
+     *
      * @param userId
      *        The user's internal unique identifier.
      *
@@ -62,18 +65,20 @@ public class MongoAuthenticationToken
 	@JsonCreator
 	protected MongoAuthenticationToken(
 		@Id @ObjectId final String dbId,
-		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
-		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
-		@JsonProperty(User.JSON_KEY_ID) final String userId,
-		@JsonProperty(JSON_KEY_GRANTED) final long granted,
-		@JsonProperty(JSON_KEY_EXPIRES) final long expires,
-		@JsonProperty(JSON_KEY_VALID) final boolean valid,
-		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
+        @JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
+        @JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
+        @JsonProperty(JSON_KEY_NEW_TOKEN) final String nextToken,
+        @JsonProperty(User.JSON_KEY_ID) final String userId,
+        @JsonProperty(JSON_KEY_GRANTED) final long granted,
+        @JsonProperty(JSON_KEY_EXPIRES) final long expires,
+        @JsonProperty(JSON_KEY_VALID) final boolean valid,
+        @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 
 		super(
 			accessToken,
 			refreshToken,
+			nextToken,
 			userId,
 			granted,
 			expires,
