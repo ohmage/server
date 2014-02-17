@@ -2,6 +2,10 @@ package org.ohmage.servlet.spring;
 
 import java.util.Properties;
 
+import org.ohmage.servlet.OhmletServlet;
+import org.ohmage.servlet.SchemaServlet;
+import org.ohmage.servlet.StreamServlet;
+import org.ohmage.servlet.SurveyServlet;
 import org.springframework.web.servlet.mvc.WebContentInterceptor;
 
 /**
@@ -33,15 +37,51 @@ public class CacheControlWebContentInterceptor extends WebContentInterceptor {
         setAlwaysUseFullPath(true);
 
         Properties cacheMappings = new Properties();
-        cacheMappings.put("/streams", VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/streams/*", VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/streams/*/*", NON_VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/surveys", VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/surveys/*", VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/surveys/*/*", NON_VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/schemas", VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/schemas/*", VOLATILE_CACHE_DURATION);
-        cacheMappings.put("/schemas/*/*", NON_VOLATILE_CACHE_DURATION);
+
+        // Stream caching.
+        cacheMappings
+            .put("/" + StreamServlet.ROOT_MAPPING, VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + StreamServlet.ROOT_MAPPING + "/*",
+                VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + StreamServlet.ROOT_MAPPING + "/*/*",
+                NON_VOLATILE_CACHE_DURATION);
+
+        // Survey caching.
+        cacheMappings
+            .put("/" + SurveyServlet.ROOT_MAPPING, VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + SurveyServlet.ROOT_MAPPING + "/*",
+                VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + SurveyServlet.ROOT_MAPPING + "/*/*",
+                NON_VOLATILE_CACHE_DURATION);
+
+        // Schema caching.
+        cacheMappings
+            .put("/" + SchemaServlet.ROOT_MAPPING, VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + SchemaServlet.ROOT_MAPPING + "/*",
+                VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + SchemaServlet.ROOT_MAPPING + "/*/*",
+                NON_VOLATILE_CACHE_DURATION);
+
+        // Ohmlet caching.
+        cacheMappings
+            .put("/" + OhmletServlet.ROOT_MAPPING, VOLATILE_CACHE_DURATION);
+        cacheMappings
+            .put(
+                "/" + OhmletServlet.ROOT_MAPPING + "/*",
+                VOLATILE_CACHE_DURATION);
+
         setCacheMappings(cacheMappings);
     }
 }

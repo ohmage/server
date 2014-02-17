@@ -12,19 +12,21 @@ import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
+import org.ohmage.bin.UserInvitationBin;
 import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.ohmlet.Ohmlet;
-import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.Registration;
 import org.ohmage.domain.user.User;
+import org.ohmage.domain.user.UserInvitation;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -86,35 +88,35 @@ public class UserServlet extends OhmageServlet {
 	private static final Logger LOGGER =
 		Logger.getLogger(UserServlet.class.getName());
 
-	/**
-	 * Creates a user user.
-	 *
-	 * @param plaintextPassword
-	 *        The new user's plain-text password.
-	 *
-	 * @param email
-	 *        The new user's email address.
-	 *
-	 * @param fullName
-	 *        The new user's full name, which may be null.
-	 *
-	 * @param captchaChallenge
-	 *        The reCaptcha challenge key.
-	 *
-	 * @param captchaResponse
-	 *        The user's reCaptcha response.
-	 *
-	 * @param request
-	 *        The HTTP request.
-	 */
+    /**
+     * Creates a new user.
+     *
+     * @param rootUrl
+     *        The root URL of the request that can be used to formulate an
+     *        activation link in the validation email.
+     *
+     * @param captchaChallenge
+     *        The reCaptcha challenge key.
+     *
+     * @param captchaResponse
+     *        The user's reCaptcha response.
+     *
+     * @param password
+     *        The new user's plain-text password.
+     *
+     * @param userInvitationId
+     *        An optional user invitation ID that can be used bypass the email
+     *        validation.
+     *
+     * @param userBuilder
+     *        The user's information.
+     *
+     * @return The validated User object as it was saved in the database.
+     */
 	@RequestMapping(
 		value = { "", "/" },
 		method = RequestMethod.POST,
-		params = {
-			User.JSON_KEY_PASSWORD/*,
-			PARAMETER_CAPTCHA_CHALLENGE,
-			PARAMETER_CAPTCHA_RESPONSE*/
-		})
+		params = { User.JSON_KEY_PASSWORD })
 	public static @ResponseBody User createOhmageUser(
 	    @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT) final String rootUrl,
 		/*
@@ -130,6 +132,10 @@ public class UserServlet extends OhmageServlet {
 		*/
 		@RequestParam(value = User.JSON_KEY_PASSWORD, required = true)
 			final String password,
+		@RequestParam(
+		    value = UserInvitation.JSON_KEY_INVITATION_ID,
+		    required = false)
+	        final String userInvitationId,
 		@RequestBody
 			final User.Builder userBuilder) {
 
@@ -185,13 +191,59 @@ public class UserServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Hashing the user's password.");
 		userBuilder.setPassword(password, true);
 
-		LOGGER.log(Level.INFO, "Adding the self-registration information.");
-		userBuilder
-		    .setRegistration(
-		        new Registration.Builder(
-		            userBuilder.getId(),
-		            userBuilder.getEmail())
-		        .build());
+		LOGGER
+		    .log(
+		        Level.FINE,
+		        "Determining how to validate the user's email address.");
+		UserInvitation invitation = null;
+		if(userInvitationId == null) {
+	        LOGGER
+	            .log(Level.INFO, "Adding the self-registration information.");
+    		userBuilder
+    		    .setRegistration(
+    		        new Registration.Builder(
+    		            userBuilder.getId(),
+    		            userBuilder.getEmail())
+    		        .build());
+		}
+		else {
+	        LOGGER.log(Level.INFO, "Checking the invitation ID.");
+	        invitation =
+	            UserInvitationBin
+	                .getInstance()
+	                .getInvitation(userInvitationId);
+
+	        LOGGER.log(Level.INFO, "Verifying that the invitation exists.");
+	        if(invitation == null) {
+	            throw
+	                new InvalidArgumentException("The invitation is unknown.");
+	        }
+
+	        LOGGER
+	            .log(
+	                Level.INFO,
+	                "Verifying that the invitation belongs to the same " +
+	                    "email address.");
+	        if(! invitation.getEmail().equals(userBuilder.getEmail())) {
+	            throw
+	                new InvalidArgumentException(
+	                    "The invitation belongs to a different email " +
+	                        "address.");
+	        }
+
+	        LOGGER
+	            .log(
+	                Level.INFO,
+	                "Verifying that the invitation is still valid.");
+	        if(! invitation.isValid()) {
+	            throw
+	                new InvalidArgumentException(
+	                    "The invitation is no longer valid.");
+	        }
+
+            LOGGER.log(Level.FINE, "Setting the invitation ID.");
+            userBuilder.setInvitationId(userInvitationId);
+		}
 
 		LOGGER.log(Level.FINE, "Building the user.");
 		User validatedUser = userBuilder.build();
@@ -207,11 +259,25 @@ public class UserServlet extends OhmageServlet {
                     e);
         }
 
-        LOGGER.log(Level.INFO, "Sending the registration email.");
-        validatedUser
-            .getRegistration()
-            .sendUserRegistrationEmail(
-                rootUrl + UserActivationServlet.ROOT_MAPPING);
+        if(invitation == null) {
+            LOGGER.log(Level.INFO, "Sending the registration email.");
+            validatedUser
+                .getRegistration()
+                .sendUserRegistrationEmail(
+                    rootUrl + UserActivationServlet.ROOT_MAPPING);
+        }
+        else {
+            LOGGER.log(Level.INFO, "Invalidating the invitation.");
+            UserInvitation expiredInvitation =
+                (new UserInvitation.Builder(invitation))
+                    .setUsedTimestamp(System.currentTimeMillis())
+                    .build();
+
+            LOGGER.log(Level.INFO, "Saving the invalidated invitation.");
+            UserInvitationBin
+                .getInstance()
+                .updateInvitation(expiredInvitation);
+        }
 
 		LOGGER.log(Level.INFO, "Echoing the user back.");
 		return validatedUser;
@@ -236,7 +302,7 @@ public class UserServlet extends OhmageServlet {
 	@RequestMapping(
 		value = { "", "/" },
 		method = RequestMethod.POST,
-		params = { PARAMETER_PROVIDER, PARAMETER_ACCESS_TOKEN })
+		params = { PARAMETER_PROVIDER })
 	public static @ResponseBody User createUser(
 		@RequestParam(
 			value = PARAMETER_PROVIDER,

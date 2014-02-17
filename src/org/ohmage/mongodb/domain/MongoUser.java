@@ -6,8 +6,8 @@ import java.util.Set;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.Registration;
 import org.ohmage.domain.user.User;
@@ -90,6 +90,7 @@ public class MongoUser extends User implements MongoDbObject {
 		@JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
         @JsonProperty(JSON_KEY_REGISTRATION) final Registration registration,
+        @JsonProperty(JSON_KEY_INVITATION_ID) final String invitationId,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 
@@ -103,6 +104,7 @@ public class MongoUser extends User implements MongoDbObject {
 			streams,
 			surveys,
 			registration,
+			invitationId,
 			internalVersion);
 
 		// Store the MongoDB ID.

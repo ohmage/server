@@ -82,6 +82,11 @@ public class User extends OhmageDomainObject {
          * self-registered.
          */
         private Registration registration;
+        /**
+         * The unique identifier for the invitation that the user used to
+         * create their account.
+         */
+        private String invitationId;
 
         /**
          * Creates a new builder with the outward-facing allowed parameters.
@@ -127,6 +132,7 @@ public class User extends OhmageDomainObject {
             ohmlets = new HashMap<String, OhmletReference>(user.ohmlets);
             streams = new HashSet<SchemaReference>(user.streams);
             surveys = new HashSet<SchemaReference>(user.surveys);
+            registration = user.registration;
         }
 
         /**
@@ -454,6 +460,33 @@ public class User extends OhmageDomainObject {
         }
 
         /**
+         * Returns the unique identifier for the user invitation that this user
+         * used to create their account.
+         *
+         * @return The unique identifier for the user invitation that this user
+         *         used to create their account.
+         */
+        public Registration getInvitationId() {
+            return registration;
+        }
+
+        /**
+         * Adds, replaces, or removes the unique identifier for the user
+         * invitation that this user used to create their account.
+         *
+         * @param invitationId
+         *        The unique identifier for the user invitation that this user
+         *        used to create their account.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder setInvitationId(final String invitationId) {
+            this.invitationId = invitationId;
+
+            return this;
+        }
+
+        /**
          * Creates a {@link User} object based on the state of this builder.
          *
          * @return A {@link User} object based on the state of this builder.
@@ -472,6 +505,7 @@ public class User extends OhmageDomainObject {
                 streams,
                 surveys,
                 registration,
+                invitationId,
                 internalReadVersion,
                 internalWriteVersion);
         }
@@ -529,6 +563,10 @@ public class User extends OhmageDomainObject {
      * The JSON key for the self-registration object.
      */
     public static final String JSON_KEY_REGISTRATION = "registration";
+    /**
+     * The JSON key for the invitation ID.
+     */
+    public static final String JSON_KEY_INVITATION_ID = "invitation_id";
 
     /**
      * The internal unique ID for a user.
@@ -581,7 +619,15 @@ public class User extends OhmageDomainObject {
      * self-registered.
      */
     @JsonProperty(JSON_KEY_REGISTRATION)
+    @JsonFilterField
     private final Registration registration;
+    /**
+     * The unique identifier for the user invitation that the user used when
+     * creating their account.
+     */
+    @JsonProperty(JSON_KEY_INVITATION_ID)
+    @JsonFilterField
+    private final String invitationId;
 
     /**
      * Creates a new User object.
@@ -626,7 +672,8 @@ public class User extends OhmageDomainObject {
         final Set<OhmletReference> ohmlets,
         final Set<SchemaReference> streams,
         final Set<SchemaReference> surveys,
-        final Registration registration)
+        final Registration registration,
+        final String invitationId)
         throws InvalidArgumentException {
 
         // Pass through to the builder constructor.
@@ -640,6 +687,7 @@ public class User extends OhmageDomainObject {
             streams,
             surveys,
             registration,
+            invitationId,
             null);
     }
 
@@ -696,6 +744,7 @@ public class User extends OhmageDomainObject {
         @JsonProperty(JSON_KEY_STREAMS) final Set<SchemaReference> streams,
         @JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
         @JsonProperty(JSON_KEY_REGISTRATION) final Registration registration,
+        @JsonProperty(JSON_KEY_INVITATION_ID) final String invitationId,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
         throws InvalidArgumentException {
 
@@ -710,6 +759,7 @@ public class User extends OhmageDomainObject {
             streams,
             surveys,
             registration,
+            invitationId,
             internalVersion,
             null);
     }
@@ -769,6 +819,7 @@ public class User extends OhmageDomainObject {
         final Set<SchemaReference> streams,
         final Set<SchemaReference> surveys,
         final Registration registration,
+        final String invitationId,
         final Long internalReadVersion,
         final Long internalWriteVersion)
         throws InvalidArgumentException {
@@ -828,6 +879,7 @@ public class User extends OhmageDomainObject {
                 new HashSet<SchemaReference>(surveys);
 
         this.registration = registration;
+        this.invitationId = invitationId;
     }
 
     /**

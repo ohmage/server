@@ -44,6 +44,14 @@ public class OhmletReference {
          * identifier.
          */
         PUBLIC;
+
+        /**
+         * Returns the name of the enum as a lower-case string.
+         */
+        @Override
+        public String toString() {
+            return name().toLowerCase();
+        }
     }
 
     /**
@@ -449,6 +457,15 @@ public class OhmletReference {
         final SchemaReference surveyReference) {
 
         return (new Builder(this)).removeSurvey(surveyReference).build();
+    }
+
+    /**
+     * Returns the user's pseudonym within this ohmlet.
+     *
+     * @return The user's pseudonym within this ohmlet.
+     */
+    public String getPseudonym() {
+        return pseudonym;
     }
 
     /**

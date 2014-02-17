@@ -54,6 +54,11 @@ public class UserTest {
     public static final String FULL_NAME = "Valid Full Name";
 
     /**
+     * A valid invitation ID.
+     */
+    public static final String INVITATION_ID = "Invitation.ID";
+
+    /**
      * A valid internal version to use for testing.
      */
     public static final Long INTERNAL_VERSION = 1L;
@@ -141,7 +146,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -157,7 +163,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -173,7 +180,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -189,7 +197,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -211,7 +220,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -227,7 +237,8 @@ public class UserTest {
             null,
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -247,7 +258,8 @@ public class UserTest {
             ohmlets,
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -263,7 +275,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             null,
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -283,7 +296,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             streams,
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -299,7 +313,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             null,
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -319,7 +334,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             surveys,
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -335,7 +351,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            null);
+            null,
+            INVITATION_ID);
     }
 
     /**
@@ -351,7 +368,8 @@ public class UserTest {
             Collections.<OhmletReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
-            registration);
+            registration,
+            INVITATION_ID);
     }
 
     /**
@@ -369,6 +387,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -387,6 +406,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -405,6 +425,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -423,6 +444,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -441,6 +463,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -465,6 +488,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -483,6 +507,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -505,6 +530,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -523,6 +549,7 @@ public class UserTest {
             null,
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -545,6 +572,7 @@ public class UserTest {
             streams,
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -563,6 +591,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             null,
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -585,6 +614,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             surveys,
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -603,6 +633,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             null,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -621,6 +652,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             null);
     }
 
@@ -639,6 +671,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
+            INVITATION_ID,
             INTERNAL_VERSION);
     }
 
@@ -656,7 +689,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
         Assert
             .assertEquals(
                 "The returned password did not match the built password.",
@@ -678,7 +712,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
         Assert
             .assertEquals(
                 "The returned email did not match the built email.",
@@ -712,7 +747,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
         Assert
             .assertNull(
                 "A non-existant provider was associated with a user.",
@@ -745,7 +781,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
         Assert.assertEquals(provider, user.getProvider(providerId));
     }
 
@@ -785,7 +822,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         // Update the provider.
         ProviderUserInformation newProvider =
@@ -862,7 +900,8 @@ public class UserTest {
                 ohmlets,
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
         Collection<OhmletReference> ohmletReferences = user.getOhmlets();
 
         Assert
@@ -900,7 +939,8 @@ public class UserTest {
                 ohmlets,
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
         OhmletReference retrievedOhmlet = user.getOhmlet(ohmletId);
 
         Assert
@@ -930,7 +970,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 streams,
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         Set<SchemaReference> retrievedStreams = user.getStreams();
 
@@ -966,7 +1007,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 surveys,
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         Set<SchemaReference> retrievedSurveys = user.getStreams();
 
@@ -998,7 +1040,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         Assert
             .assertEquals(
@@ -1022,7 +1065,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         User newUser = originalUser.activate();
 
@@ -1076,7 +1120,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         Assert
             .assertTrue(
@@ -1102,7 +1147,8 @@ public class UserTest {
                 Collections.<OhmletReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
-                registration);
+                registration,
+                INVITATION_ID);
 
         // Update the user with the new provider.
         User newUser = originalUser.updatePassword(newPassword);

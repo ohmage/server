@@ -30,8 +30,8 @@ import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.ohmlet.Ohmlet;
-import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.user.ProviderUserInformation;
@@ -169,7 +169,8 @@ public class UserServletTest {
     public void testCreateOhmageUserUrlNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createOhmageUser(null, PASSWORD, userBuilder);
+        UserServlet
+            .createOhmageUser(null, PASSWORD, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -181,7 +182,8 @@ public class UserServletTest {
     public void testCreateOhmageUserPasswordNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createOhmageUser(ROOT_URL, null, userBuilder);
+        UserServlet
+            .createOhmageUser(ROOT_URL, null, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -193,7 +195,7 @@ public class UserServletTest {
     public void testCreateOhmageUserUserBuilderNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createOhmageUser(ROOT_URL, PASSWORD, null);
+        UserServlet.createOhmageUser(ROOT_URL, PASSWORD, null, null);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -222,7 +224,8 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createOhmageUser(ROOT_URL, PASSWORD, userBuilder);
+        UserServlet
+            .createOhmageUser(ROOT_URL, PASSWORD, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -257,7 +260,12 @@ public class UserServletTest {
         EasyMock.replay(user, userBuilder, userBin, registration);
 
         User result =
-            UserServlet.createOhmageUser(ROOT_URL, PASSWORD, userBuilder);
+            UserServlet
+                .createOhmageUser(
+                    ROOT_URL,
+                    PASSWORD,
+                    null,
+                    userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin, registration);
 
@@ -296,7 +304,8 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBuilder, userBin, registration);
 
-        UserServlet.createOhmageUser(ROOT_URL, PASSWORD, userBuilder);
+        UserServlet
+            .createOhmageUser(ROOT_URL, PASSWORD, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin, registration);
     }
@@ -329,7 +338,12 @@ public class UserServletTest {
         EasyMock.replay(user, userBuilder, userBin, registration);
 
         User result =
-            UserServlet.createOhmageUser(ROOT_URL, PASSWORD, userBuilder);
+            UserServlet
+                .createOhmageUser(
+                    ROOT_URL,
+                    PASSWORD,
+                    null,
+                    userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin, registration);
 

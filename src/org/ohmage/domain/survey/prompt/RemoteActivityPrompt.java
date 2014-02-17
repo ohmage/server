@@ -5,7 +5,6 @@ import java.util.Map;
 
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
-import name.jenkins.paul.john.concordia.schema.ReferenceSchema;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -50,6 +49,7 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
     /**
      * The definition that a valid response must follow.
      */
+    @JsonProperty(JSON_KEY_DEFINITION)
     private final Concordia definition;
 
     /**
@@ -165,11 +165,13 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
     public Schema getResponseSchema() {
         try {
             return
-                new ReferenceSchema(
-                    getText(),
-                    (skippable() || (getCondition() != null)),
-                    getSurveyItemId(),
-                    definition.getSchema());
+                definition
+                    .getSchema()
+                    .getBuilder()
+                    .setDoc(getText())
+                    .setOptional(skippable() || (getCondition() != null))
+                    .setName(getSurveyItemId())
+                    .build();
         }
         catch(ConcordiaException e) {
             throw

@@ -33,6 +33,12 @@ public abstract class OhmageDomainObject {
 	 *
 	 * @author John Jenkins
 	 */
+    @JsonAutoDetect(
+        fieldVisibility = Visibility.DEFAULT,
+        getterVisibility = Visibility.NONE,
+        isGetterVisibility = Visibility.NONE,
+        setterVisibility = Visibility.NONE,
+        creatorVisibility = Visibility.DEFAULT)
 	public static class Builder<T extends OhmageDomainObject> {
 		/**
 		 * The internal read version of this object.
