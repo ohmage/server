@@ -11,8 +11,11 @@ import name.jenkins.paul.john.concordia.validator.ValidationController;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
+import org.ohmage.domain.jackson.OhmageObjectMapper;
+import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -23,6 +26,7 @@ import com.fasterxml.jackson.core.JsonParseException;
  *
  * @author John Jenkins
  */
+@JsonFilter(Schema.JACKSON_FILTER_GROUP_ID)
 public abstract class Schema extends OhmageDomainObject {
 	/**
 	 * <p>
@@ -59,31 +63,40 @@ public abstract class Schema extends OhmageDomainObject {
 		 * The media ID for the icon image.
 		 */
 		protected String iconId;
+	    /**
+	     * Whether or not a schema is visible to the Open mHealth APIs.
+	     */
+	    protected boolean omhVisible;
 
-		/**
-		 * Creates a new Schema builder object.
-		 *
-		 * @param version
-		 *        The version of this schema.
-		 *
-		 * @param name
-		 *        The name of this schema.
-		 *
-		 * @param description
-		 *        The description of this schema.
+        /**
+         * Creates a new Schema builder object.
+         *
+         * @param version
+         *        The version of this schema.
+         *
+         * @param name
+         *        The name of this schema.
+         *
+         * @param description
+         *        The description of this schema.
          *
          * @param definition
          *        The definition of this schema.
          *
          * @param iconId
          *        The media ID for the icon image.
-		 */
+         *
+         * @param omhVisible
+         *        Whether or not this schema is visible to the Open mHealth
+         *        APIs.
+         */
 		@JsonCreator
 		public Builder(
 			@JsonProperty(JSON_KEY_VERSION) final long version,
 			@JsonProperty(JSON_KEY_NAME) final String name,
             @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
-            @JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
+            @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+            @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible) {
 
 			super(null);
 
@@ -91,6 +104,7 @@ public abstract class Schema extends OhmageDomainObject {
 			this.name = name;
 			this.description = description;
 			this.iconId = iconId;
+			this.omhVisible = omhVisible;
 		}
 
 		/**
@@ -108,6 +122,7 @@ public abstract class Schema extends OhmageDomainObject {
 			name = schema.name;
 			description = schema.description;
 			owner = schema.owner;
+			omhVisible = schema.omhVisible;
 		}
 
         /**
@@ -148,14 +163,14 @@ public abstract class Schema extends OhmageDomainObject {
 			return this;
 		}
 
-		/**
-		 * Returns the identifier of the icon.
-		 *
-		 * @return The identifier of the icon.
-		 */
-		public String getIconId() {
-		    return iconId;
-		}
+        /**
+         * Returns the identifier of the icon.
+         *
+         * @return The identifier of the icon.
+         */
+        public String getIconId() {
+            return iconId;
+        }
 
         /**
          * Sets the identifier of the icon.
@@ -165,11 +180,37 @@ public abstract class Schema extends OhmageDomainObject {
          *
          * @return This builder to facilitate chaining.
          */
-		public Builder setIconId(final String iconId) {
-		    this.iconId = iconId;
+        public Builder setIconId(final String iconId) {
+            this.iconId = iconId;
 
-		    return this;
-		}
+            return this;
+        }
+
+        /**
+         * Returns whether or not this schema is visible to the Open mHealth
+         * APIs.
+         *
+         * @return Whether or not this schema is visible to the Open mHealth
+         *         APIs.
+         */
+        public Boolean getOmhVisible() {
+            return omhVisible;
+        }
+
+        /**
+         * Sets whether or not this schema is visible to the Open mHealth APIs.
+         *
+         * @param iconId
+         *        Whether or not this schema is visible to the Open mHealth
+         *        APIs.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder setOmhVisible(final Boolean omhVisible) {
+            this.omhVisible = omhVisible;
+
+            return this;
+        }
 
 		/**
 		 * Creates a new object from this builder.
@@ -206,17 +247,39 @@ public abstract class Schema extends OhmageDomainObject {
 	 * The JSON key for the icon ID.
 	 */
 	public static final String JSON_KEY_ICON_ID = "icon_id";
+	/**
+	 * The JSON key for whether or not a schema is visible to the Open mHealth
+	 * APIs.
+	 */
+	public static final String JSON_KEY_OMH_VISIBLE = "omh_visible";
 
     /**
      * The JSON key for the definition.
      */
     public static final String JSON_KEY_DEFINITION = "definition";
 
+    /**
+     * The group ID for the Jackson filter. This must be unique to our class,
+     * whatever the value is.
+     */
+    protected static final String JACKSON_FILTER_GROUP_ID =
+        "org.ohmage.domain.Schema";
+    // Register this class with the ohmage object mapper.
+    static {
+        OhmageObjectMapper.register(Schema.class);
+    }
+
 	/**
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
 		Logger.getLogger(Schema.class.getName());
+
+	/**
+	 * The default value of whether or not a schema should be visible to Open
+	 * mHealth APIs.
+	 */
+	private static final boolean DEFAULT_OMH_VISIBLE = true;
 
 	/**
 	 * The unique identifier for this schema.
@@ -243,13 +306,19 @@ public abstract class Schema extends OhmageDomainObject {
 	 */
 	@JsonProperty(JSON_KEY_OWNER)
 	private final String owner;
-	/**
-	 * The media ID for the icon image.
-	 */
-	@JsonProperty(JSON_KEY_ICON_ID)
-	private final String iconId;
+    /**
+     * The media ID for the icon image.
+     */
+    @JsonProperty(JSON_KEY_ICON_ID)
+    private final String iconId;
+    /**
+     * Whether or not a schema is visible to the Open mHealth APIs.
+     */
+    @JsonProperty(JSON_KEY_OMH_VISIBLE)
+    @JsonFilterField
+    private final boolean omhVisible;
 
-	    /**
+    /**
      * Creates a new Schema object.
      *
      * @param version
@@ -267,6 +336,9 @@ public abstract class Schema extends OhmageDomainObject {
      * @param iconId
      *        The media ID for the icon image.
      *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
+     *
      * @throws InvalidArgumentException
      *         A parameter is invalid.
      */
@@ -275,7 +347,8 @@ public abstract class Schema extends OhmageDomainObject {
 		final String name,
 		final String description,
 		final String owner,
-		final String iconId)
+		final String iconId,
+		final boolean omhVisible)
 		throws InvalidArgumentException {
 
 		// Pass through to the builder constructor.
@@ -286,6 +359,7 @@ public abstract class Schema extends OhmageDomainObject {
 			description,
 			owner,
 			iconId,
+			omhVisible,
 			null);
 	}
 
@@ -309,6 +383,9 @@ public abstract class Schema extends OhmageDomainObject {
      *
      * @param iconId
      *        The media ID for the icon image.
+     *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
 	 *
 	 * @param internalVersion
 	 *        The internal version of this schema.
@@ -327,6 +404,7 @@ public abstract class Schema extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
 		@JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+		@JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
 
@@ -338,6 +416,7 @@ public abstract class Schema extends OhmageDomainObject {
 			description,
 			owner,
 			iconId,
+			omhVisible,
 			internalVersion,
 			internalVersion);
 	}
@@ -362,6 +441,9 @@ public abstract class Schema extends OhmageDomainObject {
      *
      * @param iconId
      *        The media ID for the icon image.
+     *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
 	 *
 	 * @param internalReadVersion
 	 *        The internal version of this schema when it was read from the
@@ -384,6 +466,7 @@ public abstract class Schema extends OhmageDomainObject {
 		final String description,
 		final String owner,
 		final String iconId,
+		final Boolean omhVisible,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
@@ -411,6 +494,8 @@ public abstract class Schema extends OhmageDomainObject {
 		this.description = description;
 		this.owner = owner;
 		this.iconId = iconId;
+		this.omhVisible =
+		    (omhVisible == null) ? DEFAULT_OMH_VISIBLE : omhVisible;
 	}
 
 	/**

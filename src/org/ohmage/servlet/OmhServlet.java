@@ -313,7 +313,7 @@ public class OmhServlet extends OhmageServlet {
         MultiValueResult<String> streamIds =
             StreamBin
                 .getInstance()
-                .getStreamIds(query, 0, numToSkip + numToReturn);
+                .getStreamIds(query, true, 0, numToSkip + numToReturn);
         List<String> omhStreamIds = new ArrayList<String>();
         for(String streamId : streamIds) {
             omhStreamIds.add(
@@ -326,7 +326,7 @@ public class OmhServlet extends OhmageServlet {
         MultiValueResult<String> surveyIds =
             SurveyBin
                 .getInstance()
-                .getSurveyIds(query, 0, numToSkip + numToReturn);
+                .getSurveyIds(query, true, 0, numToSkip + numToReturn);
         List<String> omhSurveyIds = new ArrayList<String>();
         for(String surveyId : surveyIds) {
             omhSurveyIds.add(
@@ -419,6 +419,7 @@ public class OmhServlet extends OhmageServlet {
                         .getStreamVersions(
                             omhSchemaId.ohmageSchemaId,
                             query,
+                            true,
                             numToSkip,
                             numToReturn);
                 break;
@@ -431,6 +432,7 @@ public class OmhServlet extends OhmageServlet {
                         .getStreamVersions(
                             omhSchemaId.ohmageSchemaId,
                             query,
+                            true,
                             numToSkip,
                             numToReturn);
                 break;
@@ -496,7 +498,10 @@ public class OmhServlet extends OhmageServlet {
                 result =
                     StreamBin
                         .getInstance()
-                        .getStream(omhSchemaId.ohmageSchemaId, schemaVersion);
+                        .getStream(
+                            omhSchemaId.ohmageSchemaId,
+                            schemaVersion,
+                            true);
                 break;
 
             case SURVEY:
@@ -504,7 +509,10 @@ public class OmhServlet extends OhmageServlet {
                 result =
                     SurveyBin
                         .getInstance()
-                        .getSurvey(omhSchemaId.ohmageSchemaId, schemaVersion);
+                        .getSurvey(
+                            omhSchemaId.ohmageSchemaId,
+                            schemaVersion,
+                            true);
 
             default:
                 throw

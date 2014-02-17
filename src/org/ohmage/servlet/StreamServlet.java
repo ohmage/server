@@ -229,7 +229,7 @@ public class StreamServlet extends OhmageServlet {
 		MultiValueResult<String> ids =
 		    StreamBin
 		        .getInstance()
-		        .getStreamIds(query, numToSkip, numToReturn);
+		        .getStreamIds(query, false, numToSkip, numToReturn);
 
 		LOGGER.log(Level.INFO, "Building the paging headers.");
 		HttpHeaders headers =
@@ -302,8 +302,13 @@ public class StreamServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Retreiving the stream versions.");
 		MultiValueResult<Long> versions =
 		    StreamBin
-		        .getInstance()
-		        .getStreamVersions(streamId, query, numToSkip, numToReturn);
+                .getInstance()
+                .getStreamVersions(
+                    streamId,
+                    query,
+                    false,
+                    numToSkip,
+                    numToReturn);
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -355,7 +360,7 @@ public class StreamServlet extends OhmageServlet {
 		Stream result =
 			StreamBin
 				.getInstance()
-				.getStream(streamId, streamVersion);
+				.getStream(streamId, streamVersion, false);
 
 		LOGGER.log(Level.FINE, "Ensuring that a stream was found.");
 		if(result == null) {
@@ -409,7 +414,7 @@ public class StreamServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
 		Stream latestSchema =
-			StreamBin.getInstance().getLatestStream(streamId);
+			StreamBin.getInstance().getLatestStream(streamId, false);
 
 		LOGGER
 			.log(
@@ -502,7 +507,7 @@ public class StreamServlet extends OhmageServlet {
 		Stream stream =
 			StreamBin
 				.getInstance()
-				.getStream(streamId, streamVersion);
+				.getStream(streamId, streamVersion, false);
 
 		LOGGER.log(Level.FINE, "Ensuring that a stream was found.");
 		if(stream == null) {
@@ -603,7 +608,7 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
         Stream latestStream =
-            StreamBin.getInstance().getLatestStream(streamId);
+            StreamBin.getInstance().getLatestStream(streamId, false);
         if(latestStream == null) {
             throw new UnknownEntityException("The stream is unknown.");
         }

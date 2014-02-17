@@ -128,6 +128,7 @@ public class MongoStreamBin extends StreamBin {
 	@Override
 	public MultiValueResult<String> getStreamIds(
 	    final String query,
+        final boolean omhVisibleOnly,
 	    final long numToSkip,
 	    final long numToReturn) {
 
@@ -155,6 +156,11 @@ public class MongoStreamBin extends StreamBin {
 
 			// Add the name and version queries to the root query.
 			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
+		}
+
+		// Check if the stream must be visible to the Open mHealth APIs.
+		if(omhVisibleOnly) {
+		    queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
 		}
 
 		// Get the list of results.
@@ -195,6 +201,7 @@ public class MongoStreamBin extends StreamBin {
 	public MultiValueResult<Long> getStreamVersions(
 		final String streamId,
 		final String query,
+        final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn)
 		throws IllegalArgumentException {
@@ -233,6 +240,11 @@ public class MongoStreamBin extends StreamBin {
 			queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
 		}
 
+        // Check if the stream must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
+
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
 		List<Long> results =
@@ -270,7 +282,8 @@ public class MongoStreamBin extends StreamBin {
 	@Override
 	public Stream getStream(
 		final String streamId,
-		final Long streamVersion)
+		final Long streamVersion,
+        final boolean omhVisibleOnly)
 		throws IllegalArgumentException {
 
 		// Validate the input.
@@ -290,6 +303,11 @@ public class MongoStreamBin extends StreamBin {
 		// Add the schema version.
 		queryBuilder.and(Schema.JSON_KEY_VERSION).is(streamVersion);
 
+        // Check if the stream must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
+
 		// Execute query.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
@@ -301,7 +319,8 @@ public class MongoStreamBin extends StreamBin {
 	@Override
 	public boolean exists(
 		final String streamId,
-		final Long streamVersion)
+		final Long streamVersion,
+        final boolean omhVisibleOnly)
 		throws IllegalArgumentException {
 
 		// Validate the input.
@@ -309,16 +328,24 @@ public class MongoStreamBin extends StreamBin {
 			throw new IllegalArgumentException("The stream ID is null.");
 		}
 
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
 		// Add the stream ID to the query.
-		BasicDBObject query = new BasicDBObject(Schema.JSON_KEY_ID, streamId);
+		queryBuilder.and(Schema.JSON_KEY_ID).is(streamId);
 
 		// Add the stream version to the query, if given.
 		if(streamVersion != null) {
-			query.put(Schema.JSON_KEY_VERSION, streamVersion);
+		    queryBuilder.and(Schema.JSON_KEY_VERSION).is(streamVersion);
 		}
 
+        // Check if the stream must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
+
 		// The result is based on whether or not any results were found.
-		return (MONGO_COLLECTION.findOne(query) != null);
+		return (MONGO_COLLECTION.findOne(queryBuilder.get()) != null);
 	}
 
 	/*
@@ -327,7 +354,8 @@ public class MongoStreamBin extends StreamBin {
 	 */
 	@Override
 	public Stream getLatestStream(
-		final String streamId)
+		final String streamId,
+        final boolean omhVisibleOnly)
 		throws IllegalArgumentException {
 
 		// Validate the input.
@@ -340,6 +368,11 @@ public class MongoStreamBin extends StreamBin {
 
 		// Add the schema ID.
 		queryBuilder.and(Schema.JSON_KEY_ID).is(streamId);
+
+        // Check if the stream must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
 
 		// Create the sort.
 		DBObject sort = new BasicDBObject(Schema.JSON_KEY_VERSION, -1);

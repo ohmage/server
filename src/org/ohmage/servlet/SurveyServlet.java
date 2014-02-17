@@ -234,7 +234,7 @@ public class SurveyServlet extends OhmageServlet {
         MultiValueResult<String> ids =
             SurveyBin
                 .getInstance()
-                .getSurveyIds(query, numToSkip, numToReturn);
+                .getSurveyIds(query, false, numToSkip, numToReturn);
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -307,7 +307,12 @@ public class SurveyServlet extends OhmageServlet {
         MultiValueResult<Long> versions =
             SurveyBin
                 .getInstance()
-                .getSurveyVersions(surveyId, query, numToSkip, numToReturn);
+                .getSurveyVersions(
+                    surveyId,
+                    query,
+                    false,
+                    numToSkip,
+                    numToReturn);
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -359,7 +364,7 @@ public class SurveyServlet extends OhmageServlet {
         Survey result =
             SurveyBin
                 .getInstance()
-                .getSurvey(surveyId, surveyVersion);
+                .getSurvey(surveyId, surveyVersion, false);
 
         LOGGER.log(Level.FINE, "Ensuring that a survey was found.");
         if(result == null) {
@@ -413,7 +418,7 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the latest version of the survey.");
         Survey latestSchema =
-            SurveyBin.getInstance().getLatestSurvey(surveyId);
+            SurveyBin.getInstance().getLatestSurvey(surveyId, false);
 
         LOGGER
             .log(
@@ -549,7 +554,7 @@ public class SurveyServlet extends OhmageServlet {
         Survey survey =
             SurveyBin
                 .getInstance()
-                .getSurvey(surveyId, surveyVersion);
+                .getSurvey(surveyId, surveyVersion, false);
 
         LOGGER.log(Level.FINE, "Ensuring that a survey was found.");
         if(survey == null) {
@@ -728,7 +733,7 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the latest versino of the survey.");
         Survey latestSurvey =
-            SurveyBin.getInstance().getLatestSurvey(surveyId);
+            SurveyBin.getInstance().getLatestSurvey(surveyId, false);
         if(latestSurvey == null) {
             throw new UnknownEntityException("The survey is unknown.");
         }

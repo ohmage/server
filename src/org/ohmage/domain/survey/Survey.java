@@ -54,22 +54,27 @@ public class Survey extends Schema {
          * @param description
          *        The description of this schema.
          *
-         * @param surveyItems
-         *        The survey items that define this survey.
-         *
          * @param iconId
          *        The media ID for the icon image.
+         *
+         * @param omhVisible
+         *        Whether or not this schema is visible to the Open mHealth
+         *        APIs.
+         *
+         * @param surveyItems
+         *        The survey items that define this survey.
          */
         @JsonCreator
         public Builder(
             @JsonProperty(JSON_KEY_VERSION) final long version,
             @JsonProperty(JSON_KEY_NAME) final String name,
             @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
+            @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+            @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
             @JsonProperty(JSON_KEY_SURVEY_ITEMS)
-                final List<SurveyItem> surveyItems,
-            @JsonProperty(JSON_KEY_ICON_ID) final String iconId) {
+                final List<SurveyItem> surveyItems) {
 
-            super(version, name, description, iconId);
+            super(version, name, description, iconId, omhVisible);
 
             this.surveyItems = surveyItems;
         }
@@ -104,6 +109,7 @@ public class Survey extends Schema {
                     description,
                     owner,
                     iconId,
+                    omhVisible,
                     surveyItems,
                     internalReadVersion,
                     internalWriteVersion);
@@ -139,6 +145,9 @@ public class Survey extends Schema {
      * @param iconId
      *        The media ID for the icon image.
      *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
+     *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
      *
@@ -151,6 +160,7 @@ public class Survey extends Schema {
         final String description,
         final String owner,
         final String iconId,
+        final boolean omhVisible,
         final List<SurveyItem> surveyItems)
         throws InvalidArgumentException {
 
@@ -161,6 +171,7 @@ public class Survey extends Schema {
             description,
             owner,
             iconId,
+            omhVisible,
             surveyItems,
             null);
 
@@ -204,6 +215,9 @@ public class Survey extends Schema {
      * @param iconId
      *        The media ID for the icon image.
      *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
+     *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
      *
@@ -224,6 +238,7 @@ public class Survey extends Schema {
         @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
         @JsonProperty(JSON_KEY_OWNER) final String owner,
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+        @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
         @JsonProperty(JSON_KEY_SURVEY_ITEMS)
             final List<SurveyItem> surveyItems,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
@@ -236,6 +251,7 @@ public class Survey extends Schema {
             description,
             owner,
             iconId,
+            omhVisible,
             surveyItems,
             internalVersion,
             internalVersion);
@@ -262,6 +278,9 @@ public class Survey extends Schema {
      * @param iconId
      *        The media ID for the icon image.
      *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
+     *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
      *
@@ -286,6 +305,7 @@ public class Survey extends Schema {
         final String description,
         final String owner,
         final String iconId,
+        final Boolean omhVisible,
         final List<SurveyItem> surveyItems,
         final Long internalReadVersion,
         final Long internalWriteVersion)
@@ -298,6 +318,7 @@ public class Survey extends Schema {
             description,
             owner,
             iconId,
+            omhVisible,
             internalReadVersion,
             internalWriteVersion);
 

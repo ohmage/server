@@ -127,6 +127,7 @@ public class MongoSurveyBin extends SurveyBin {
     @Override
     public MultiValueResult<String> getSurveyIds(
         final String query,
+        final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn) {
 
@@ -154,6 +155,11 @@ public class MongoSurveyBin extends SurveyBin {
 
             // Add the name and version queries to the root query.
             queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
+        }
+
+        // Check if the survey must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
         }
 
         // Get the list of results.
@@ -194,6 +200,7 @@ public class MongoSurveyBin extends SurveyBin {
     public MultiValueResult<Long> getSurveyVersions(
         final String surveyId,
         final String query,
+        final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn)
         throws IllegalArgumentException {
@@ -232,6 +239,11 @@ public class MongoSurveyBin extends SurveyBin {
             queryBuilder.or(nameQueryBuilder.get(), versionQueryBuilder.get());
         }
 
+        // Check if the survey must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
+
         // Get the list of results.
         @SuppressWarnings("unchecked")
         List<Long> results =
@@ -267,7 +279,10 @@ public class MongoSurveyBin extends SurveyBin {
      * @see org.ohmage.bin.SurveyBin#getSurvey(java.lang.String, java.lang.Long)
      */
     @Override
-    public Survey getSurvey(final String surveyId, final Long surveyVersion)
+    public Survey getSurvey(
+        final String surveyId,
+        final Long surveyVersion,
+        final boolean omhVisibleOnly)
         throws IllegalArgumentException {
 
         // Validate the input.
@@ -287,6 +302,11 @@ public class MongoSurveyBin extends SurveyBin {
         // Add the survey version.
         queryBuilder.and(Schema.JSON_KEY_VERSION).is(surveyVersion);
 
+        // Check if the survey must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
+
         // Execute query.
         return MONGO_COLLECTION.findOne(queryBuilder.get());
     }
@@ -296,7 +316,10 @@ public class MongoSurveyBin extends SurveyBin {
      * @see org.ohmage.bin.SurveyBin#exists(java.lang.String, java.lang.Long)
      */
     @Override
-    public boolean exists(final String surveyId, final Long surveyVersion)
+    public boolean exists(
+        final String surveyId,
+        final Long surveyVersion,
+        final boolean omhVisibleOnly)
         throws IllegalArgumentException {
 
         // Validate the input.
@@ -304,20 +327,30 @@ public class MongoSurveyBin extends SurveyBin {
             throw new IllegalArgumentException("The survey ID is null.");
         }
 
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
         // Add the survey ID to the query.
-        BasicDBObject query = new BasicDBObject(Schema.JSON_KEY_ID, surveyId);
+        queryBuilder.and(Schema.JSON_KEY_ID).is(surveyId);
 
         // Add the survey version to the query, if given.
         if(surveyVersion != null) {
-            query.put(Schema.JSON_KEY_VERSION, surveyVersion);
+            queryBuilder.and(Schema.JSON_KEY_VERSION).is(surveyVersion);
+        }
+
+        // Check if the survey must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
         }
 
         // The result is based on whether or not any results were found.
-        return (MONGO_COLLECTION.findOne(query) != null);
+        return (MONGO_COLLECTION.findOne(queryBuilder.get()) != null);
     }
 
     @Override
-    public Survey getLatestSurvey(final String surveyId)
+    public Survey getLatestSurvey(
+        final String surveyId,
+        final boolean omhVisibleOnly)
         throws IllegalArgumentException {
 
         // Validate the input.
@@ -330,6 +363,11 @@ public class MongoSurveyBin extends SurveyBin {
 
         // Add the survey ID.
         queryBuilder.and(Schema.JSON_KEY_ID).is(surveyId);
+
+        // Check if the survey must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
 
         // Create the sort.
         DBObject sort = new BasicDBObject(Schema.JSON_KEY_VERSION, -1);

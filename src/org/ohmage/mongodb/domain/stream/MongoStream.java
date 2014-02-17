@@ -51,9 +51,19 @@ public class MongoStream extends Stream implements MongoDbObject {
 	 *
 	 * @param owner
 	 *        The owner of this schema.
+     *
+     * @param iconId
+     *        The media ID for the icon image.
+     *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
 	 *
 	 * @param definition
 	 *        The definition of this schema.
+     *
+     * @param apps
+     *        The list of information about applications that correspond to
+     *        this data stream.
 	 *
 	 * @param internalVersion
 	 *        The internal version of this schema.
@@ -73,6 +83,7 @@ public class MongoStream extends Stream implements MongoDbObject {
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_OWNER) final String owner,
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+        @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
         @JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
@@ -85,6 +96,7 @@ public class MongoStream extends Stream implements MongoDbObject {
 			description,
 			owner,
 			iconId,
+			omhVisible,
 			definition,
 			apps,
 			internalVersion);

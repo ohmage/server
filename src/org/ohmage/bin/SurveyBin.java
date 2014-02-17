@@ -54,6 +54,10 @@ public abstract class SurveyBin {
      * @param query
      *        A value that should appear in either the name or description.
      *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
+     *
      * @param numToSkip
      *        The number of stream IDs to skip.
      *
@@ -64,6 +68,7 @@ public abstract class SurveyBin {
      */
     public abstract MultiValueResult<String> getSurveyIds(
         final String query,
+        final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn);
 
@@ -75,6 +80,10 @@ public abstract class SurveyBin {
      *
      * @param query
      *        A value that should appear in either the name or description.
+     *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
      *
      * @param numToSkip
      *        The number of stream versions to skip.
@@ -90,6 +99,7 @@ public abstract class SurveyBin {
     public abstract MultiValueResult<Long> getSurveyVersions(
         final String surveyId,
         final String query,
+        final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn)
         throws IllegalArgumentException;
@@ -103,6 +113,10 @@ public abstract class SurveyBin {
      * @param surveyVersion
      *        The version of the survey.
      *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
+     *
      * @return A Survey object that represents this survey.
      *
      * @throws IllegalArgumentException
@@ -110,7 +124,8 @@ public abstract class SurveyBin {
      */
     public abstract Survey getSurvey(
         final String surveyId,
-        final Long surveyVersion)
+        final Long surveyVersion,
+        final boolean omhVisibleOnly)
         throws IllegalArgumentException;
 
     /**
@@ -122,6 +137,10 @@ public abstract class SurveyBin {
      * @param surveyVersion
      *        A specific version of a survey. Optional.
      *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
+     *
      * @return Whether or not the survey exists.
      *
      * @throws IllegalArgumentException
@@ -129,7 +148,8 @@ public abstract class SurveyBin {
      */
     public abstract boolean exists(
         final String surveyId,
-        final Long surveyVersion)
+        final Long surveyVersion,
+        final boolean omhVisibleOnly)
         throws IllegalArgumentException;
 
     /**
@@ -139,6 +159,10 @@ public abstract class SurveyBin {
      * @param surveyId
      *        The unique identifier for the survey.
      *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
+     *
      * @return A Survey object that represents the survey with the greatest
      *         version number or null if no surveys exist with the given ID.
      *
@@ -146,6 +170,7 @@ public abstract class SurveyBin {
      *         The survey ID is null.
      */
     public abstract Survey getLatestSurvey(
-        final String surveyId)
+        final String surveyId,
+        final boolean omhVisibleOnly)
         throws IllegalArgumentException;
 }

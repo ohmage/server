@@ -1944,7 +1944,9 @@ public class UserServletTest {
         EasyMock.expect(streamReference.getVersion()).andReturn(null);
 
         Stream stream = EasyMock.createMock(Stream.class);
-        EasyMock.expect(streamBin.getLatestStream(streamId)).andReturn(stream);
+        EasyMock
+            .expect(streamBin.getLatestStream(streamId, false))
+            .andReturn(stream);
 
         User updatedUser = EasyMock.createMock(User.class);
         EasyMock
@@ -2009,7 +2011,7 @@ public class UserServletTest {
 
         Stream stream = EasyMock.createMock(Stream.class);
         EasyMock
-            .expect(streamBin.getStream(streamId, streamVersion))
+            .expect(streamBin.getStream(streamId, streamVersion, false))
             .andReturn(stream);
 
         User updatedUser = EasyMock.createMock(User.class);
@@ -2249,7 +2251,9 @@ public class UserServletTest {
         EasyMock.expect(surveyReference.getVersion()).andReturn(null);
 
         Survey survey = EasyMock.createMock(Survey.class);
-        EasyMock.expect(surveyBin.getLatestSurvey(surveyId)).andReturn(survey);
+        EasyMock
+            .expect(surveyBin.getLatestSurvey(surveyId, false))
+            .andReturn(survey);
 
         User updatedUser = EasyMock.createMock(User.class);
         EasyMock
@@ -2314,7 +2318,7 @@ public class UserServletTest {
 
         Survey survey = EasyMock.createMock(Survey.class);
         EasyMock
-            .expect(surveyBin.getSurvey(surveyId, surveyVersion))
+            .expect(surveyBin.getSurvey(surveyId, surveyVersion, false))
             .andReturn(survey);
 
         User updatedUser = EasyMock.createMock(User.class);

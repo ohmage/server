@@ -102,13 +102,13 @@ public class SchemaServlet extends OhmageServlet {
         MultiValueResult<String> streamIds =
             StreamBin
                 .getInstance()
-                .getStreamIds(query, 0, numToSkip + numToReturn);
+                .getStreamIds(query, false, 0, numToSkip + numToReturn);
 
         LOGGER.log(Level.INFO, "Retrieving the survey IDs.");
         MultiValueResult<String> surveyIds =
             SurveyBin
                 .getInstance()
-                .getSurveyIds(query, 0, numToSkip + numToReturn);
+                .getSurveyIds(query, false, 0, numToSkip + numToReturn);
 
         LOGGER.log(Level.FINE, "Building the result.");
         MultiValueResultAggregation.Aggregator<String> aggregator =
@@ -184,7 +184,7 @@ public class SchemaServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the versions.");
         ResponseEntity<MultiValueResult<Long>> result;
-        if(StreamBin.getInstance().exists(schemaId, null)) {
+        if(StreamBin.getInstance().exists(schemaId, null, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
                 StreamServlet
@@ -195,7 +195,7 @@ public class SchemaServlet extends OhmageServlet {
                         numToReturn,
                         rootUrl);
         }
-        else if(SurveyBin.getInstance().exists(schemaId, null)) {
+        else if(SurveyBin.getInstance().exists(schemaId, null, false)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
                 SurveyServlet
@@ -243,12 +243,14 @@ public class SchemaServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the definition.");
         Schema result;
-        if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
+        if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
                 StreamServlet.getStreamDefinition(schemaId, schemaVersion);
         }
-        else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
+        else if(
+            SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
+
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
                 SurveyServlet.getSurveyDefinition(schemaId, schemaVersion);
@@ -329,7 +331,7 @@ public class SchemaServlet extends OhmageServlet {
         LOGGER.log(Level.INFO, "Delegating the request.");
         ResponseEntity<? extends MultiValueResult<? extends DataPoint<?>>>
             result;
-        if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
+        if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
                 StreamServlet
@@ -343,7 +345,8 @@ public class SchemaServlet extends OhmageServlet {
                         numToReturn,
                         rootUrl);
         }
-        else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
+        else if(
+            SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
                 SurveyServlet
@@ -413,13 +416,15 @@ public class SchemaServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the data.");
         DataPoint<?> result;
-        if(StreamBin.getInstance().exists(schemaId, schemaVersion)) {
+        if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
                 StreamServlet
                     .getPoint(authToken, schemaId, schemaVersion, pointId);
         }
-        else if(SurveyBin.getInstance().exists(schemaId, schemaVersion)) {
+        else if(
+            SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
+
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
                 SurveyServlet

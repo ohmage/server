@@ -51,6 +51,12 @@ public class MongoSurvey extends Survey implements MongoDbObject {
      * @param owner
      *        The owner of this survey.
      *
+     * @param iconId
+     *        The media ID for the icon image.
+     *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
+     *
      * @param surveyItems
      *        The ordered list of survey items that compose this survey.
      *
@@ -72,6 +78,7 @@ public class MongoSurvey extends Survey implements MongoDbObject {
         @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
         @JsonProperty(JSON_KEY_OWNER) final String owner,
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+        @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
         @JsonProperty(JSON_KEY_SURVEY_ITEMS)
             final List<SurveyItem> surveyItems,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
@@ -84,6 +91,7 @@ public class MongoSurvey extends Survey implements MongoDbObject {
             description,
             owner,
             iconId,
+            omhVisible,
             surveyItems,
             internalVersion);
 

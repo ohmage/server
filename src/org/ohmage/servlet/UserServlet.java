@@ -1282,7 +1282,7 @@ public class UserServlet extends OhmageServlet {
 			stream =
 				StreamBin
 					.getInstance()
-					.getLatestStream(streamReference.getSchemaId());
+					.getLatestStream(streamReference.getSchemaId(), false);
 		}
 		else {
 			stream =
@@ -1290,7 +1290,8 @@ public class UserServlet extends OhmageServlet {
 					.getInstance()
 					.getStream(
 						streamReference.getSchemaId(),
-						streamReference.getVersion());
+						streamReference.getVersion(),
+						false);
 		}
 
 		LOGGER.log(Level.INFO, "Verifying that the stream exists.");
@@ -1513,7 +1514,7 @@ public class UserServlet extends OhmageServlet {
 			survey =
 				SurveyBin
 					.getInstance()
-					.getLatestSurvey(surveyReference.getSchemaId());
+					.getLatestSurvey(surveyReference.getSchemaId(), false);
 		}
 		else {
 			survey =
@@ -1521,7 +1522,8 @@ public class UserServlet extends OhmageServlet {
 					.getInstance()
 					.getSurvey(
 						surveyReference.getSchemaId(),
-						surveyReference.getVersion());
+						surveyReference.getVersion(),
+						false);
 		}
 
 		LOGGER.log(Level.INFO, "Verifying that the survey exists.");

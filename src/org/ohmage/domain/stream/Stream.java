@@ -47,34 +47,43 @@ public class Stream extends Schema {
          */
         protected List<AppInformation> apps;
 
-		/**
-		 * Creates a new Stream builder object.
-		 *
-		 * @param version
-		 *        The version of this schema.
-		 *
-		 * @param name
-		 *        The name of this schema.
-		 *
-		 * @param description
-		 *        The description of this schema.
-		 *
-		 * @param definition
-		 *        The definition of this schema.
+        /**
+         * Creates a new Stream builder object.
+         *
+         * @param version
+         *        The version of this schema.
+         *
+         * @param name
+         *        The name of this schema.
+         *
+         * @param description
+         *        The description of this schema.
          *
          * @param iconId
          *        The media ID for the icon image.
-		 */
+         *
+         * @param omhVisible
+         *        Whether or not this schema is visible to the Open mHealth
+         *        APIs.
+         *
+         * @param definition
+         *        The definition of this schema.
+         *
+         * @param apps
+         *        The list of information about applications that correspond to
+         *        this data stream.
+         */
 		@JsonCreator
 		public Builder(
 			@JsonProperty(JSON_KEY_VERSION) final long version,
 			@JsonProperty(JSON_KEY_NAME) final String name,
 			@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
             @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+            @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 			@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
 	        @JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps) {
 
-			super(version, name, description, iconId);
+			super(version, name, description, iconId, omhVisible);
 
 			this.definition = definition;
 			this.apps = apps;
@@ -111,6 +120,7 @@ public class Stream extends Schema {
 					description,
 					owner,
 					iconId,
+					omhVisible,
 					definition,
 					apps,
 					internalReadVersion,
@@ -222,7 +232,7 @@ public class Stream extends Schema {
     @JsonProperty(JSON_KEY_APPS)
     private final List<AppInformation> apps;
 
-	    /**
+    /**
      * Creates a new Stream object.
      *
      * @param version
@@ -240,6 +250,9 @@ public class Stream extends Schema {
      * @param iconId
      *        The media ID for the icon image.
      *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
+     *
      * @param definition
      *        The definition of this stream.
      *
@@ -256,6 +269,7 @@ public class Stream extends Schema {
 		final String description,
 		final String owner,
 		final String iconId,
+        final boolean omhVisible,
 		final Concordia definition,
 		final List<AppInformation> apps)
 		throws InvalidArgumentException {
@@ -267,6 +281,7 @@ public class Stream extends Schema {
 		    description,
 		    owner,
 		    iconId,
+		    omhVisible,
 		    definition,
 		    apps,
 		    null);
@@ -293,6 +308,9 @@ public class Stream extends Schema {
      *
      * @param iconId
      *        The media ID for the icon image.
+     *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
 	 *
 	 * @param definition
 	 *        The definition of this schema.
@@ -318,6 +336,7 @@ public class Stream extends Schema {
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
         @JsonProperty(JSON_KEY_OWNER) final String owner,
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
+        @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
 		@JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
@@ -330,6 +349,7 @@ public class Stream extends Schema {
 			description,
 			owner,
 			iconId,
+			omhVisible,
 			definition,
 			apps,
 			internalVersion,
@@ -356,6 +376,9 @@ public class Stream extends Schema {
      *
      * @param iconId
      *        The media ID for the icon image.
+     *
+     * @param omhVisible
+     *        Whether or not this schema is visible to the Open mHealth APIs.
 	 *
 	 * @param definition
 	 *        The definition of this schema.
@@ -385,6 +408,7 @@ public class Stream extends Schema {
 		final String description,
 		final String owner,
 		final String iconId,
+        final Boolean omhVisible,
 		final Concordia definition,
 		final List<AppInformation> apps,
 		final Long internalReadVersion,
@@ -398,6 +422,7 @@ public class Stream extends Schema {
 			description,
 			owner,
 			iconId,
+			omhVisible,
 			internalReadVersion,
 			internalWriteVersion);
 

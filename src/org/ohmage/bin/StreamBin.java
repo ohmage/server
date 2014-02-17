@@ -54,6 +54,10 @@ public abstract class StreamBin {
      * @param query
      *        A value that should appear in either the name or description.
      *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
+     *
      * @param numToSkip
      *        The number of stream IDs to skip.
      *
@@ -64,6 +68,7 @@ public abstract class StreamBin {
      */
 	public abstract MultiValueResult<String> getStreamIds(
 	    final String query,
+	    final boolean omhVisibleOnly,
 	    final long numToSkip,
 	    final long numToReturn);
 
@@ -75,6 +80,10 @@ public abstract class StreamBin {
 	 *
 	 * @param query
 	 *        A value that should appear in either the name or description.
+     *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
      *
      * @param numToSkip
      *        The number of stream versions to skip.
@@ -90,6 +99,7 @@ public abstract class StreamBin {
 	public abstract MultiValueResult<Long> getStreamVersions(
 		final String streamId,
 		final String query,
+        final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn)
 		throws IllegalArgumentException;
@@ -102,6 +112,10 @@ public abstract class StreamBin {
 	 *
 	 * @param streamVersion
 	 *        The version of the stream.
+     *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
 	 *
 	 * @return A Stream object that represents this stream.
 	 *
@@ -110,7 +124,8 @@ public abstract class StreamBin {
 	 */
 	public abstract Stream getStream(
 		final String streamId,
-		final Long streamVersion)
+		final Long streamVersion,
+        final boolean omhVisibleOnly)
 		throws IllegalArgumentException;
 
 	/**
@@ -121,6 +136,10 @@ public abstract class StreamBin {
 	 *
 	 * @param streamVersion
 	 *        A specific version of a stream. Optional.
+     *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
 	 *
 	 * @return Whether or not the stream exists.
 	 *
@@ -129,7 +148,8 @@ public abstract class StreamBin {
 	 */
 	public abstract boolean exists(
 		final String streamId,
-		final Long streamVersion)
+		final Long streamVersion,
+        final boolean omhVisibleOnly)
 		throws IllegalArgumentException;
 
 	/**
@@ -138,6 +158,10 @@ public abstract class StreamBin {
 	 *
 	 * @param streamId
 	 *        The unique identifier for the stream.
+     *
+     * @param omhVisibleOnly
+     *        Whether or not the results must be visible to the Open mHealth
+     *        APIs.
 	 *
 	 * @return A Stream object that represents the stream with the greatest
 	 *         version number or null if no streams exist with the given ID.
@@ -146,6 +170,7 @@ public abstract class StreamBin {
 	 *         The stream ID is null.
 	 */
 	public abstract Stream getLatestStream(
-		final String streamId)
+		final String streamId,
+        final boolean omhVisibleOnly)
 		throws IllegalArgumentException;
 }

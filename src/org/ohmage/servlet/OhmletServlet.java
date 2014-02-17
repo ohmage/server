@@ -272,7 +272,7 @@ public class OhmletServlet extends OhmageServlet {
 
 			LOGGER
 				.log(Level.INFO, "Checking if the stream is a known stream.");
-			if(! StreamBin.getInstance().exists(id, version)) {
+			if(! StreamBin.getInstance().exists(id, version, false)) {
 				throw
 					new InvalidArgumentException(
 						"No such stream '" +
@@ -296,7 +296,7 @@ public class OhmletServlet extends OhmageServlet {
 
             LOGGER
                 .log(Level.INFO, "Checking if the survey is a known survey.");
-            if(! SurveyBin.getInstance().exists(id, version)) {
+            if(! SurveyBin.getInstance().exists(id, version, false)) {
                 throw
                     new InvalidArgumentException(
                         "No such survey '" +
@@ -591,7 +591,7 @@ public class OhmletServlet extends OhmageServlet {
 
             LOGGER
                 .log(Level.INFO, "Checking if the stream is a known stream.");
-            if(! StreamBin.getInstance().exists(id, version)) {
+            if(! StreamBin.getInstance().exists(id, version, false)) {
                 throw
                     new InvalidArgumentException(
                         "No such stream '" +
@@ -615,7 +615,7 @@ public class OhmletServlet extends OhmageServlet {
 
             LOGGER
                 .log(Level.INFO, "Checking if the survey is a known survey.");
-            if(! SurveyBin.getInstance().exists(id, version)) {
+            if(! SurveyBin.getInstance().exists(id, version, false)) {
                 throw
                     new InvalidArgumentException(
                         "No such survey '" +
@@ -1120,6 +1120,7 @@ public class OhmletServlet extends OhmageServlet {
                     new StringBuilder(rootUrl);
                 // Add the ohmlet endpoint.
                 invitationUrlBuilder.append(ROOT_MAPPING);
+
                 // Add the custom endpoint for accepting an invitation.
                 invitationUrlBuilder.append("/join");
                 // Begin adding the parameters.
