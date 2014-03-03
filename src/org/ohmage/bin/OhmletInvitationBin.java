@@ -45,7 +45,7 @@ public abstract class OhmletInvitationBin {
      *         An invitation with the same ID already exists.
      */
     public abstract void addInvitation(
-        final OhmletInvitation userInvitation)
+        final OhmletInvitation invitation)
         throws IllegalArgumentException, InvalidArgumentException;
 
     /**

@@ -3,9 +3,8 @@ package org.ohmage.mongodb.domain;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.user.User;
-import org.ohmage.mongodb.bin.MongoAuthenticationTokenBin;
+import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.mongodb.bin.MongoAuthorizationTokenBin;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -17,8 +16,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
-@MongoCollection(name = MongoAuthenticationTokenBin.COLLECTION_NAME)
-public class MongoAuthenticationToken
+@MongoCollection(name = MongoAuthorizationTokenBin.COLLECTION_NAME)
+public class MongoAuthorizationToken
 	extends AuthorizationToken
 	implements MongoDbObject {
 
@@ -33,10 +32,10 @@ public class MongoAuthenticationToken
      * layer.
      *
      * @param dbId
-     *        The database ID for this authentication token.
+     *        The database ID for this authorization token.
      *
      * @param accessToken
-     *        The authentication token.
+     *        The authorization token.
      *
      * @param refreshToken
      *        The refresh token.
@@ -46,6 +45,10 @@ public class MongoAuthenticationToken
      *
      * @param userId
      *        The user's internal unique identifier.
+     *
+     * @param authorizationCode
+     *        The authorization code that was used to authorize the creation of
+     *        this token.
      *
      * @param granted
      *        The time when the token was granted.
@@ -63,12 +66,14 @@ public class MongoAuthenticationToken
      *         granted after it has expired.
      */
 	@JsonCreator
-	protected MongoAuthenticationToken(
+	protected MongoAuthorizationToken(
 		@Id @ObjectId final String dbId,
         @JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
         @JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
         @JsonProperty(JSON_KEY_NEW_TOKEN) final String nextToken,
-        @JsonProperty(User.JSON_KEY_ID) final String userId,
+        @JsonProperty(JSON_KEY_USER_ID) final String userId,
+        @JsonProperty(JSON_KEY_AUTHORIZATION_CODE)
+            final String authorizationCode,
         @JsonProperty(JSON_KEY_GRANTED) final long granted,
         @JsonProperty(JSON_KEY_EXPIRES) final long expires,
         @JsonProperty(JSON_KEY_VALID) final boolean valid,
@@ -80,6 +85,7 @@ public class MongoAuthenticationToken
 			refreshToken,
 			nextToken,
 			userId,
+			authorizationCode,
 			granted,
 			expires,
 			valid,

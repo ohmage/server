@@ -13,7 +13,7 @@ import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.bin.UserInvitationBin;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -296,8 +296,7 @@ public class UserServlet extends OhmageServlet {
      * @param userBuilder
      *        The user's information.
      *
-     * @param request
-     *        The HTTP request.
+     * @return The new user object as represented in the system.
      */
 	@RequestMapping(
 		value = { "", "/" },
@@ -393,15 +392,8 @@ public class UserServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Requesting a list of visible users.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.FINE, "Create the result list.");
 		Set<String> result = new HashSet<String>(1);
@@ -437,11 +429,8 @@ public class UserServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Requesting information about a user.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -452,10 +441,6 @@ public class UserServlet extends OhmageServlet {
                 new InvalidArgumentException(
                     "The user's unique identifier is missing.");
         }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		// Users are only visible to read their own data at this time.
 		LOGGER
@@ -485,8 +470,6 @@ public class UserServlet extends OhmageServlet {
 	 *
 	 * @param newPassword
 	 *        The user's new password.
-	 *
-	 * @return The desired user's information.
 	 */
 	@RequestMapping(
 		value =
@@ -568,11 +551,8 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -583,10 +563,6 @@ public class UserServlet extends OhmageServlet {
                 new InvalidArgumentException(
                     "The user's unique identifier is missing.");
         }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -637,11 +613,8 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -657,10 +630,6 @@ public class UserServlet extends OhmageServlet {
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is missing.");
         }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -700,9 +669,6 @@ public class UserServlet extends OhmageServlet {
      *
      * @param ohmletId
      *        The ohmlet's unique identifier.
-     *
-     * @return The user-specific information about a ohmlet that they are
-     *         following.
      */
 	@RequestMapping(
 		value =
@@ -721,11 +687,8 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request to disassociate a user with a ohmlet.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -741,10 +704,6 @@ public class UserServlet extends OhmageServlet {
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is missing.");
         }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -831,22 +790,15 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to ignore a stream reference " +
 					"in a ohmlet.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
 		LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
 		if(streamReference == null) {
 		    throw
 		        new InvalidArgumentException(
 		            "The stream reference is missing.");
 		}
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -938,22 +890,15 @@ public class UserServlet extends OhmageServlet {
 					Ohmlet.OHMLET_SKIN +
 					".");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
         LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
         if(streamReference == null) {
             throw
                 new InvalidArgumentException(
                     "The stream reference is missing.");
         }
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1042,22 +987,15 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to ignore a survey reference " +
 					"in a ohmlet.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
         LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
         if(surveyReference == null) {
             throw
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1147,22 +1085,15 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to stop ignoring a survey " +
 					"reference in a ohmlet.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
         LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
         if(surveyReference == null) {
             throw
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1243,6 +1174,9 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to track a stream.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
 		LOGGER
 		    .log(Level.INFO, "Verifying that the stream reference was given.");
 		if(streamReference == null) {
@@ -1250,16 +1184,6 @@ public class UserServlet extends OhmageServlet {
 		        new InvalidArgumentException(
 		            "The stream reference is missing.");
 		}
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1338,15 +1262,8 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to view streams they are " +
 					"following.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER
 			.log(
@@ -1398,6 +1315,9 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to stop tracking a stream.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
         LOGGER
             .log(Level.INFO, "Verifying that the stream reference was given.");
         if(streamReference == null) {
@@ -1405,16 +1325,6 @@ public class UserServlet extends OhmageServlet {
                 new InvalidArgumentException(
                     "The stream reference is missing.");
         }
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1475,6 +1385,9 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to track a survey.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
         LOGGER
             .log(Level.INFO, "Verifying that the survey reference was given.");
         if(surveyReference == null) {
@@ -1482,16 +1395,6 @@ public class UserServlet extends OhmageServlet {
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(
@@ -1570,15 +1473,8 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to view surveys they are " +
 					"following.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER
 			.log(
@@ -1630,6 +1526,9 @@ public class UserServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request for a user to stop tracking a survey.");
 
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
         LOGGER
             .log(Level.INFO, "Verifying that the survey reference was given.");
         if(surveyReference == null) {
@@ -1637,16 +1536,6 @@ public class UserServlet extends OhmageServlet {
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
-
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
 
 		LOGGER
 			.log(

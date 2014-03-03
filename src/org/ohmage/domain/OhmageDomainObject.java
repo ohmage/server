@@ -2,6 +2,7 @@ package org.ohmage.domain;
 
 import java.util.UUID;
 
+import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
@@ -39,7 +40,7 @@ public abstract class OhmageDomainObject {
         isGetterVisibility = Visibility.NONE,
         setterVisibility = Visibility.NONE,
         creatorVisibility = Visibility.DEFAULT)
-	public static class Builder<T extends OhmageDomainObject> {
+	public static abstract class Builder<T extends OhmageDomainObject> {
 		/**
 		 * The internal read version of this object.
 		 */
@@ -66,6 +67,16 @@ public abstract class OhmageDomainObject {
 			this.internalReadVersion = object.getInternalReadVersion();
 			this.internalWriteVersion = object.getInternalWriteVersion() + 1;
 		}
+
+        /**
+         * Creates a new object from this builder.
+         *
+         * @return A new object from this builder.
+         *
+         * @throws OhmageException
+         *         The state of the builder contained invalid fields.
+         */
+		public abstract T build();
 	}
 
 	/**

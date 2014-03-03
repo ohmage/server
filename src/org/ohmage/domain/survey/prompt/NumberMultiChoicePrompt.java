@@ -58,9 +58,6 @@ public class NumberMultiChoicePrompt extends MultiChoicePrompt<Number> {
      * @param choices
      *        The list of choices.
      *
-     * @param allowCustom
-     *        Whether or not custom choices are allowed.
-     *
      * @param minChoices
      *        The minimum number of choices the user must select.
      *

@@ -45,14 +45,6 @@ public abstract class MediaPrompt extends Prompt<String> {
      *        The default response for this prompt or null if a default is not
      *        allowed.
      *
-     * @param min
-     *        The minimum allowed length for a response or null if any minimum
-     *        length is allowed.
-     *
-     * @param max
-     *        The maximum allowed length for a response or null if any maximum
-     *        length is allowed.
-     *
      * @throws InvalidArgumentException
      *         A parameter was invalid.
      */

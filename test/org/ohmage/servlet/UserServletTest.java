@@ -24,7 +24,7 @@ import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -150,6 +150,7 @@ public class UserServletTest {
         userBin = EasyMock.createMock(UserBin.class);
         EasyMock.expect(UserBin.getInstance()).andReturn(userBin).anyTimes();
         PowerMock.replay(UserBin.class);
+        EasyMock.expect(userBin.getUser(USER_ID)).andReturn(user).anyTimes();
     }
 
     /**
@@ -509,7 +510,8 @@ public class UserServletTest {
     public void testGetVisibleUsers() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
@@ -545,12 +547,14 @@ public class UserServletTest {
     public void testGetUserInformationUsernameNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.getUserInformation(token, null);
 
-        EasyMock.verify(token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -560,7 +564,8 @@ public class UserServletTest {
     public void testGetUserInformationUsernameAnother() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
@@ -577,7 +582,8 @@ public class UserServletTest {
     public void testGetUserInformation() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
@@ -636,7 +642,6 @@ public class UserServletTest {
     public void testUpdateUserPasswordOldPasswordWrong() {
         String newPassword = "New.Password";
 
-        EasyMock.expect(userBin.getUser(USER_ID)).andReturn(user);
         EasyMock
             .expect(user.verifyPassword(EasyMock.anyString()))
             .andReturn(false);
@@ -677,7 +682,6 @@ public class UserServletTest {
             .expect(user.updatePassword(newPasswordHashed))
             .andReturn(newUser);
 
-        EasyMock.expect(userBin.getUser(USER_ID)).andReturn(user);
         userBin.updateUser(newUser);
         EasyMock.expectLastCall();
 
@@ -710,13 +714,14 @@ public class UserServletTest {
     public void testGetFollowedCommunitiesUsernameNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.getFollowedOhmlets(token, null);
 
-        EasyMock.verify(token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -726,14 +731,15 @@ public class UserServletTest {
     public void testGetFollowedCommunitiesUsernameAnother() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         UserServlet.getFollowedOhmlets(token, "Other");
 
-        EasyMock.verify(user, token);
+        EasyMock.verify(user, userBin, token);
     }
 
     /**
@@ -747,7 +753,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
         EasyMock.expect(user.getOhmlets()).andReturn(expected);
 
@@ -784,12 +791,14 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.getFollowedOhmlet(token, null, ohmletId);
 
-        EasyMock.verify(token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -801,14 +810,15 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         UserServlet.getFollowedOhmlet(token, "Other", ohmletId);
 
-        EasyMock.verify(user, token);
+        EasyMock.verify(user, userBin, token);
     }
 
     /**
@@ -818,12 +828,14 @@ public class UserServletTest {
     public void testGetFollowedOhmletIdNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.getFollowedOhmlet(token, USER_ID, null);
 
-        EasyMock.verify(token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -833,7 +845,8 @@ public class UserServletTest {
     public void testGetFollowedOhmletIdUnknown() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
         EasyMock.expect(user.getOhmlet(EasyMock.anyString())).andReturn(null);
 
@@ -855,7 +868,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
         EasyMock.expect(user.getOhmlet(ohmletId)).andReturn(reference);
 
@@ -892,12 +906,14 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.leaveOhmlet(token, null, ohmletId);
 
-        EasyMock.verify(user, userBin, token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -909,7 +925,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
@@ -926,7 +943,8 @@ public class UserServletTest {
     public void testLeaveOhmletIdNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
@@ -951,7 +969,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
         EasyMock
             .expect(ohmletBin.getOhmlet(EasyMock.anyString()))
@@ -999,7 +1018,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         EasyMock.expect(user.getId()).andReturn(USER_ID).anyTimes();
 
@@ -1029,7 +1049,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1053,7 +1074,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1077,7 +1099,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1099,7 +1122,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1122,7 +1146,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1152,7 +1177,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
 
@@ -1172,7 +1198,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1229,7 +1256,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1257,7 +1285,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1281,7 +1310,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1307,7 +1337,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1331,7 +1362,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1361,7 +1393,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
 
@@ -1381,7 +1414,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1443,7 +1477,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1467,7 +1502,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1491,7 +1527,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1513,7 +1550,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1536,7 +1574,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1566,7 +1605,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
 
@@ -1586,7 +1626,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1643,7 +1684,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1671,7 +1713,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1695,7 +1738,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1721,7 +1765,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1745,7 +1790,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1775,7 +1821,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         EasyMock.replay(user, userBin, token);
 
@@ -1795,7 +1842,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1870,16 +1918,17 @@ public class UserServletTest {
     public void testFollowStreamUsernamesNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
 
-        EasyMock.replay(user, token, streamReference);
+        EasyMock.replay(user, userBin, token, streamReference);
 
         UserServlet.followStream(token, null, streamReference);
 
-        EasyMock.verify(user, token, streamReference);
+        EasyMock.verify(user, userBin, token, streamReference);
     }
 
     /**
@@ -1889,17 +1938,18 @@ public class UserServletTest {
     public void testFollowStreamUsernameUnknown() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
 
-        EasyMock.replay(user, token, streamReference);
+        EasyMock.replay(user, userBin, token, streamReference);
 
         UserServlet.followStream(token, "Unknown", streamReference);
 
-        EasyMock.verify(user, token, streamReference);
+        EasyMock.verify(user, userBin, token, streamReference);
     }
 
     /**
@@ -1909,12 +1959,14 @@ public class UserServletTest {
     public void testFollowStreamReferenceNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.followStream(token, USER_ID, null);
 
-        EasyMock.verify(token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -1936,7 +1988,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -1999,7 +2052,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -2062,10 +2116,11 @@ public class UserServletTest {
     public void testGetFollowedStreamsUsernameNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         UserServlet.getFollowedStreams(token, null);
     }
@@ -2077,10 +2132,11 @@ public class UserServletTest {
     public void testGetFollowedStreamsUsernameUnknown() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         UserServlet.getFollowedStreams(token, "Unknown");
     }
@@ -2092,19 +2148,20 @@ public class UserServletTest {
     public void testGetFollowedStreams() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         Set<SchemaReference> expected = new HashSet<SchemaReference>();
         expected.add(EasyMock.createMock(SchemaReference.class));
         EasyMock.expect(user.getStreams()).andReturn(expected);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         Set<SchemaReference> actual =
             UserServlet.getFollowedStreams(token, USER_ID);
 
-        EasyMock.verify(user, token);
+        EasyMock.verify(user, userBin, token);
 
         Assert
             .assertEquals(
@@ -2123,7 +2180,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference streamReference =
             EasyMock.createMock(SchemaReference.class);
@@ -2177,16 +2235,17 @@ public class UserServletTest {
     public void testFollowSurveyUsernamesNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
 
-        EasyMock.replay(user, token, surveyReference);
+        EasyMock.replay(user, userBin, token, surveyReference);
 
         UserServlet.followSurvey(token, null, surveyReference);
 
-        EasyMock.verify(user, token, surveyReference);
+        EasyMock.verify(user, userBin, token, surveyReference);
     }
 
     /**
@@ -2196,17 +2255,18 @@ public class UserServletTest {
     public void testFollowSurveyUsernameUnknown() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
 
-        EasyMock.replay(user, token, surveyReference);
+        EasyMock.replay(user, userBin, token, surveyReference);
 
         UserServlet.followSurvey(token, "Unknown", surveyReference);
 
-        EasyMock.verify(user, token, surveyReference);
+        EasyMock.verify(user, userBin, token, surveyReference);
     }
 
     /**
@@ -2216,12 +2276,14 @@ public class UserServletTest {
     public void testFollowSurveyReferenceNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
-        EasyMock.replay(token);
+        EasyMock.replay(userBin, token);
 
         UserServlet.followSurvey(token, USER_ID, null);
 
-        EasyMock.verify(token);
+        EasyMock.verify(userBin, token);
     }
 
     /**
@@ -2243,7 +2305,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -2306,7 +2369,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -2369,10 +2433,11 @@ public class UserServletTest {
     public void testGetFollowedSurveysUsernameNull() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         UserServlet.getFollowedSurveys(token, null);
     }
@@ -2384,10 +2449,11 @@ public class UserServletTest {
     public void testGetFollowedSurveysUsernameUnknown() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         UserServlet.getFollowedSurveys(token, "Unknown");
     }
@@ -2399,19 +2465,20 @@ public class UserServletTest {
     public void testGetFollowedSurveys() {
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
         EasyMock.expect(user.getId()).andReturn(USER_ID);
 
         Set<SchemaReference> expected = new HashSet<SchemaReference>();
         expected.add(EasyMock.createMock(SchemaReference.class));
         EasyMock.expect(user.getSurveys()).andReturn(expected);
 
-        EasyMock.replay(user, token);
+        EasyMock.replay(user, userBin, token);
 
         Set<SchemaReference> actual =
             UserServlet.getFollowedSurveys(token, USER_ID);
 
-        EasyMock.verify(user, token);
+        EasyMock.verify(user, userBin, token);
 
         Assert
             .assertEquals(
@@ -2430,7 +2497,8 @@ public class UserServletTest {
 
         AuthorizationToken token =
             EasyMock.createMock(AuthorizationToken.class);
-        EasyMock.expect(token.getUser()).andReturn(user);
+        EasyMock.expect(token.getAuthorizationCode()).andReturn(null);
+        EasyMock.expect(token.getUserId()).andReturn(USER_ID);
 
         SchemaReference surveyReference =
             EasyMock.createMock(SchemaReference.class);
@@ -2479,11 +2547,11 @@ public class UserServletTest {
      */
     @Test(expected = InvalidArgumentException.class)
     public void testDeleteUserWithPasswordUsernameUnknown() {
-        EasyMock.expect(userBin.getUser(USER_ID)).andReturn(null);
+        EasyMock.expect(userBin.getUser("Unknown")).andReturn(null);
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.deleteUserWithPassword(USER_ID, PASSWORD);
+        UserServlet.deleteUserWithPassword("Unknown", PASSWORD);
 
         EasyMock.verify(user, userBin);
     }
@@ -2505,7 +2573,6 @@ public class UserServletTest {
      */
     @Test(expected = AuthenticationException.class)
     public void testDeleteUserWithPasswordPasswordWrong() {
-        EasyMock.expect(userBin.getUser(USER_ID)).andReturn(user);
         EasyMock.expect(user.verifyPassword(PASSWORD)).andReturn(false);
 
         EasyMock.replay(user, userBin);
@@ -2520,7 +2587,6 @@ public class UserServletTest {
      */
     @Test
     public void testDeleteUserWithPassword() {
-        EasyMock.expect(userBin.getUser(USER_ID)).andReturn(user);
         EasyMock.expect(user.verifyPassword(PASSWORD)).andReturn(true);
         userBin.disableUser(USER_ID);
         EasyMock.expectLastCall();

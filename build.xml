@@ -36,6 +36,7 @@
         <include name="javassist-3.18.1-GA.jar" />
         <include name="javax.mail-1.5.1.jar" />
         <include name="jbcrypt-0.3m.jar" />
+        <include name="jettison-1.3.5.jar" />
         <include name="joda-time-2.3.jar" />
         <include name="jul-to-slf4j-1.7.5.jar" />
         <include name="junit-4.11.jar" />
@@ -46,6 +47,8 @@
         <include name="mongo-java-driver-2.11.2.jar" />
         <include name="mongojack-2.0.0-RC5.jar" />
         <include name="objenesis-2.1.jar" />
+        <include name="oltu-authzserver-0.31.jar" />
+        <include name="oltu-common-0.31.jar" />
         <include name="powermock-easymock-1.5.3-full.jar" />
         <include name="persistence-api-1.0.2.jar" />
         <include name="recaptcha4j-0.0.7.jar" />
@@ -91,6 +94,7 @@
         <include name="jackson-databind-2.2.2.jar" />
         <include name="javax.mail-1.5.1.jar" />
         <include name="jbcrypt-0.3m.jar" />
+        <include name="jettison-1.3.5.jar" />
         <include name="joda-time-2.3.jar" />
         <include name="jul-to-slf4j-1.7.5.jar" />
         <include name="junit-4.11.jar" />
@@ -100,6 +104,8 @@
         <include name="log4j-slf4j-impl-2.0-beta9.jar" />
         <include name="mongo-java-driver-2.11.2.jar" />
         <include name="mongojack-2.0.0-RC5.jar" />
+        <include name="oltu-authzserver-0.31.jar" />
+        <include name="oltu-common-0.31.jar" />
         <include name="persistence-api-1.0.2.jar" />
         <include name="recaptcha4j-0.0.7.jar" />
         <include name="slf4j-api-1.7.5.jar" />

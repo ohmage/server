@@ -3,16 +3,23 @@ package org.ohmage.servlet;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.joda.time.format.DateTimeFormatter;
+import org.ohmage.bin.AuthorizationCodeBin;
 import org.ohmage.bin.MultiValueResult;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.bin.UserBin;
 import org.ohmage.domain.ISOW3CDateTimeFormat;
+import org.ohmage.domain.auth.AuthorizationCode;
+import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.domain.auth.Scope;
 import org.ohmage.domain.exception.AuthenticationException;
+import org.ohmage.domain.exception.InsufficientPermissionsException;
+import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -106,72 +113,101 @@ public abstract class OhmageServlet {
         Logger.getLogger(OhmageServlet.class.getName());
 
     /**
-     * Retrieves the auth token from the request's attributes.
+     * Retrieves the user from the authorization token. Also, if the token was
+     * granted via OAuth, the token's scope will be checked to ensure that it
+     * matches the given scope.
      *
-     * @param request
-     *        The HTTP request.
+     * @param token
+     *        The authorization token. A null check will be performed.
      *
-     * @return The decoded {@link AuthorizationToken} from the request.
+     * @param scope
+     *        The required scope for this token. If null, OAuth-based tokens
+     *        will always be rejected.
+     *
+     * @return The user that corresponds to the token.
      *
      * @throws AuthenticationException
-     *         No authorization information was given.
+     *         The token was not given.
+     *
+     * @throws InsufficientPermissionsException
+     *         The token was generated via OAuth and its scope is insufficient
+     *         for the parameterized scope.
      *
      * @throws IllegalStateException
-     *         The request's authorization token was not an AuthorizationToken
-     *         object.
+     *         The user associated with the token no longer exists.
      */
-    @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
-    private AuthorizationToken getAuthToken(final HttpServletRequest request) {
-        return
-            (AuthorizationToken)
-                request.getAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN);
-    }
+    protected static User validateAuthorization(
+        final AuthorizationToken token,
+        final Scope scope)
+        throws
+            AuthenticationException,
+            InsufficientPermissionsException,
+            IllegalStateException {
 
-    /**
-     * Builds the request URL root. This is a URL that can be used as the basis
-     * for subsequent redirect requests as it is built off of the current
-     * request.
-     *
-     * @param httpRequest
-     *        The current request.
-     *
-     * @return The request URL root of the form
-     *         <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
-     */
-    @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT)
-    protected String buildRequestUrlRoot(
-        final HttpServletRequest httpRequest) {
-
-        // It must be a HTTP request.
-        StringBuilder builder = new StringBuilder("http");
-
-        // If security was used add the "s" to make it "https".
-        boolean secure = false;
-        if(httpRequest.isSecure()) {
-            secure = true;
-            builder.append('s');
+        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        if(token == null) {
+            throw
+                new AuthenticationException("No auth information was given.");
         }
 
-        // Add the protocol separator.
-        builder.append("://");
+        LOGGER
+            .log(
+                Level.INFO,
+                "Checking if this token was generated via OAuth.");
+        if(token.getAuthorizationCode() != null) {
+            LOGGER.log(Level.INFO, "This code was generated via OAuth.");
 
-        // Add the name of the server where the request was sent.
-        builder.append(httpRequest.getServerName());
+            LOGGER.log(Level.FINE, "Verifying that a scope was given.");
+            if(scope == null) {
+                throw
+                    new InsufficientPermissionsException(
+                        "This token does not grant its bearer sufficient " +
+                            "access to the requested data.");
+            }
 
-        // Add the port separator and the port.
-        int port = httpRequest.getServerPort();
-        if(!
-            ((! secure) && (port == 80)) ||
-            (secure && (port == 443))) {
+            LOGGER
+                .log(Level.INFO, "Retrieving the code that backs this token.");
+            AuthorizationCode code =
+                AuthorizationCodeBin
+                    .getInstance()
+                    .getCode(token.getAuthorizationCode());
 
-            builder.append(':').append(port);
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "Verifying that this OAuth code grants the necessary " +
+                        "permissions.");
+            Set<Scope> scopes = code.getScopes();
+            boolean found = false;
+            for(Scope currScope : scopes) {
+                if(currScope.covers(scope)) {
+
+                    found = true;
+                    break;
+                }
+            }
+            if(! found) {
+                throw
+                    new InsufficientPermissionsException(
+                        "This token does not grant its bearer sufficient " +
+                            "access to the requested data.");
+            }
         }
 
-        // Add the context path, e.g. "/ohmage".
-        builder.append(httpRequest.getContextPath());
+        LOGGER
+            .log(Level.INFO, "Retrieving the user associated with the token.");
+        User user = UserBin.getInstance().getUser(token.getUserId());
 
-        // Return the root URL.
-        return builder.toString();
+        LOGGER.log(Level.INFO, "Verifying that the user still exists.");
+        if(user == null) {
+            throw
+                new IllegalStateException(
+                    "The user that is associated with this token no longer " +
+                        "exists.");
+        }
+
+        LOGGER.log(Level.INFO, "Returning the user.");
+        return user;
     }
 
     /**
@@ -366,5 +402,74 @@ public abstract class OhmageServlet {
 
         // Return the, possibly, updated headers.
         return result;
+    }
+
+    /**
+     * Retrieves the auth token from the request's attributes.
+     *
+     * @param request
+     *        The HTTP request.
+     *
+     * @return The decoded {@link AuthorizationToken} from the request.
+     *
+     * @throws AuthenticationException
+     *         No authorization information was given.
+     *
+     * @throws IllegalStateException
+     *         The request's authorization token was not an AuthorizationToken
+     *         object.
+     */
+    @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+    private AuthorizationToken getAuthToken(final HttpServletRequest request) {
+        return
+            (AuthorizationToken)
+                request.getAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN);
+    }
+
+    /**
+     * Builds the request URL root. This is a URL that can be used as the basis
+     * for subsequent redirect requests as it is built off of the current
+     * request.
+     *
+     * @param httpRequest
+     *        The current request.
+     *
+     * @return The request URL root of the form
+     *         <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
+     */
+    @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT)
+    private String buildRequestUrlRoot(
+        final HttpServletRequest httpRequest) {
+
+        // It must be a HTTP request.
+        StringBuilder builder = new StringBuilder("http");
+
+        // If security was used add the "s" to make it "https".
+        boolean secure = false;
+        if(httpRequest.isSecure()) {
+            secure = true;
+            builder.append('s');
+        }
+
+        // Add the protocol separator.
+        builder.append("://");
+
+        // Add the name of the server where the request was sent.
+        builder.append(httpRequest.getServerName());
+
+        // Add the port separator and the port.
+        int port = httpRequest.getServerPort();
+        if(!
+            ((! secure) && (port == 80)) ||
+            (secure && (port == 443))) {
+
+            builder.append(':').append(port);
+        }
+
+        // Add the context path, e.g. "/ohmage".
+        builder.append(httpRequest.getContextPath());
+
+        // Return the root URL.
+        return builder.toString();
     }
 }

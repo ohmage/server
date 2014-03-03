@@ -2,6 +2,7 @@ package org.ohmage.servlet;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -13,8 +14,8 @@ import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
-import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.exception.AuthenticationException;
+import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.domain.auth.Scope;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
@@ -142,15 +143,8 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Creating a stream creation request.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the owner of the stream.");
         streamBuilder.setOwner(user.getId());
@@ -402,15 +396,8 @@ public class StreamServlet extends OhmageServlet {
 				"Creating a request to update a stream with a new version: " +
 					streamId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
 		Stream latestSchema =
@@ -493,15 +480,16 @@ public class StreamServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Storing some new stream data.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user =
+            OhmageServlet
+                .validateAuthorization(
+                    authToken,
+                    new Scope(
+                        Scope.Type.STREAM,
+                        streamId,
+                        streamVersion,
+                        Scope.Permission.WRITE));
 
 		LOGGER.log(Level.INFO, "Retrieving the stream.");
 		Stream stream =
@@ -586,15 +574,16 @@ public class StreamServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Retrieving some stream data.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+		LOGGER.log(Level.INFO, "Validating the user from the token");
+		User user =
+		    OhmageServlet
+		        .validateAuthorization(
+		            authToken,
+		            new Scope(
+    		            Scope.Type.STREAM,
+    		            streamId,
+    		            streamVersion,
+    		            Scope.Permission.READ));
 
         LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
         DateTime startDateObject =
@@ -633,12 +622,26 @@ public class StreamServlet extends OhmageServlet {
         LOGGER
             .log(
                 Level.INFO,
-                "Retrieving the list of user IDs that are visible to the " +
-                    "requesting user.");
-        Set<String> userIds = OhmletBin.getInstance().getMemberIds(ohmletIds);
-
-        LOGGER.log(Level.FINE, "Adding the request user's ID.");
-        userIds.add(user.getId());
+                "Determining which users are visible to the requesting user.");
+        Set<String> userIds;
+        if(authToken.getAuthorizationCode() == null) {
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "The auth token was granted directly to the requesting " +
+                        "user; retrieving the list of user IDs that are " +
+                        "visible to the requesting user.");
+            userIds = OhmletBin.getInstance().getMemberIds(ohmletIds);
+        }
+        else {
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "The auth token was granted via OAuth, so only the user " +
+                        "reference by the token may be searched.");
+            userIds = new HashSet<String>();
+            userIds.add(user.getId());
+        }
 
 		LOGGER.log(Level.INFO, "Finding the requested data.");
 		MultiValueResult<? extends StreamData> data =
@@ -712,15 +715,16 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving a specific stream data point.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user =
+            OhmageServlet
+                .validateAuthorization(
+                    authToken,
+                    new Scope(
+                        Scope.Type.STREAM,
+                        streamId,
+                        streamVersion,
+                        Scope.Permission.READ));
 
         LOGGER.log(Level.INFO, "Returning the stream data.");
         return
@@ -768,15 +772,16 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Deleting a specific stream data point.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user =
+            OhmageServlet
+                .validateAuthorization(
+                    authToken,
+                    new Scope(
+                        Scope.Type.STREAM,
+                        streamId,
+                        streamVersion,
+                        Scope.Permission.DELETE));
 
         LOGGER.log(Level.INFO, "Deleting the stream data.");
         StreamDataBin

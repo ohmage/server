@@ -19,8 +19,8 @@ public class MultiValueResultAggregation<T> implements MultiValueResult<T> {
     /**
      * <p>
      * The aggregator for the {@link MultiValueResultAggregation}. This class
-     * should be used to aggregate the data and its {@link #build()} function
-     * should be used to produce a {@link MultiValueResult} object.
+     * should be used to aggregate the data and its {@link #build(long, long)}
+     * function should be used to produce a {@link MultiValueResult} object.
      * </p>
      *
      * @author John Jenkins

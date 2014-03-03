@@ -5,8 +5,8 @@ import java.util.logging.Logger;
 
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.SurveyResponseBin;
-import org.ohmage.domain.AuthorizationToken;
-import org.ohmage.domain.exception.AuthenticationException;
+import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.domain.auth.Scope;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.survey.Media;
@@ -93,21 +93,16 @@ public class MediaServlet extends OhmageServlet {
                     "The media file is associated with a survey response, " +
                         "so permissions must be checked.");
 
-            LOGGER
-                .log(Level.INFO, "Verifying that auth information was given.");
-            if(authToken == null) {
-                throw
-                    new AuthenticationException(
-                        "The media file is associated with a survey " +
-                            "response and no authentication information was " +
-                            "given.");
-            }
-
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Retrieving the user associated with the token.");
-            User user = authToken.getUser();
+            LOGGER.log(Level.INFO, "Validating the user from the token");
+            User user =
+                OhmageServlet
+                    .validateAuthorization(
+                        authToken,
+                        new Scope(
+                            Scope.Type.STREAM,
+                            surveyResponse.getSchemaId(),
+                            surveyResponse.getSchemaVersion(),
+                            Scope.Permission.READ));
 
             LOGGER
                 .log(

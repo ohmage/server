@@ -1,8 +1,6 @@
 package org.ohmage.servlet;
 
 import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.List;
@@ -27,7 +25,7 @@ import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
 import org.ohmage.bin.UserInvitationBin;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -223,15 +221,8 @@ public class OhmletServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Creating a ohmlet creation request.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER
 			.log(
@@ -380,11 +371,10 @@ public class OhmletServlet extends OhmageServlet {
 		    LOGGER.log(Level.INFO, "The request is being made anonymously.");
 		}
 		else {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Retrieving the user associated with the token.");
-            userId = authToken.getUser().getId();
+
+            LOGGER.log(Level.INFO, "Validating the user from the token");
+            userId =
+                OhmageServlet.validateAuthorization(authToken, null).getId();
 		}
         LOGGER.log(Level.INFO, "Retrieving the stream IDs");
         MultiValueResult<String> ids =
@@ -411,25 +401,6 @@ public class OhmletServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Returning the stream IDs.");
         return result;
-	}
-
-   @RequestMapping(
-        value = "join",
-        method = RequestMethod.GET)
-	public static String invitationHandler(
-	    @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT) final String rootUrl) {
-
-	    URL url;
-	    try {
-            url = new URL(rootUrl);
-        }
-        catch(MalformedURLException e) {
-            throw new IllegalArgumentException(e);
-        }
-	    int pathLength = url.getPath().length();
-
-	    return
-	        "redirect:" + rootUrl.substring(0, rootUrl.length() - pathLength);
 	}
 
 	/**
@@ -534,15 +505,8 @@ public class OhmletServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request to update a ohmlet: " + ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
@@ -673,15 +637,8 @@ public class OhmletServlet extends OhmageServlet {
 					"ohmlet: " +
 					ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
@@ -863,7 +820,10 @@ public class OhmletServlet extends OhmageServlet {
 							"A user may not elevate another user's role " +
 								"beyond their own role.");
 				}
-				if(requesteeRole.supersedes(requesterRole)) {
+				if(
+				    (requesteeRole != null) &&
+				    requesteeRole.supersedes(requesterRole)) {
+
 					throw
 						new InsufficientPermissionsException(
 							"The user may not change the role of a user " +
@@ -942,15 +902,8 @@ public class OhmletServlet extends OhmageServlet {
                 "Creating a request to remove a user from an ohmlet: " +
                     ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User requester = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User requester = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the requestee.");
         User requestee = requester;
@@ -1064,15 +1017,8 @@ public class OhmletServlet extends OhmageServlet {
                 "Creating a request to invite users to an ohmlet: " +
                     ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
         Ohmlet ohmlet =
@@ -1237,15 +1183,8 @@ public class OhmletServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request to delete a ohmlet: " + ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
-        if(authToken == null) {
-            throw
-                new AuthenticationException("No auth information was given.");
-        }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authToken.getUser();
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =

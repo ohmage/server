@@ -10,7 +10,6 @@ import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 import name.jenkins.paul.john.concordia.validator.ValidationController;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 
@@ -66,7 +65,7 @@ public abstract class Schema extends OhmageDomainObject {
 	    /**
 	     * Whether or not a schema is visible to the Open mHealth APIs.
 	     */
-	    protected boolean omhVisible;
+	    protected Boolean omhVisible;
 
         /**
          * Creates a new Schema builder object.
@@ -211,16 +210,6 @@ public abstract class Schema extends OhmageDomainObject {
 
             return this;
         }
-
-		/**
-		 * Creates a new object from this builder.
-		 *
-		 * @return A new object from this builder.
-		 *
-		 * @throws OhmageException
-		 *         The state of the builder contained invalid fields.
-		 */
-		public abstract Schema build();
 	}
 
 	/**

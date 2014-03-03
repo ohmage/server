@@ -111,10 +111,10 @@ public abstract class OhmletBin {
      * @param userId
      *        The user's unique identifier.
      *
-     * @param surveyId
+     * @param streamId
      *        The survey's unique identifier.
      *
-     * @param surveyVersion
+     * @param streamVersion
      *        The survey's version.
      *
      * @param allowNull

@@ -6,7 +6,7 @@ import org.ohmage.domain.user.ProviderUserInformation;
 
 /**
  * <p>
- * A third-party authentication provider that can transform a validated token
+ * A OAuth client authentication provider that can transform a validated token
  * into a unique identifier for a user and supply additional information.
  * </p>
  *

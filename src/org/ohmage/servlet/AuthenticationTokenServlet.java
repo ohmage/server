@@ -7,11 +7,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
-import org.ohmage.bin.AuthenticationTokenBin;
+import org.ohmage.bin.AuthorizationTokenBin;
 import org.ohmage.bin.UserBin;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.HttpStatusCodeExceptionResponder;
+import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.User;
@@ -106,7 +107,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		}
 
 		/**
-		 * @returns {@link HttpServletResponse#SC_CONFLICT}
+		 * @return {@link HttpServletResponse#SC_CONFLICT}
 		 */
 		@Override
 		public int getStatusCode() {
@@ -185,7 +186,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		AuthorizationToken token = new AuthorizationToken(user);
 
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
-		AuthenticationTokenBin.getInstance().addToken(token);
+		AuthorizationTokenBin.getInstance().addToken(token);
 
 		LOGGER.log(Level.INFO, "Returning the token to the user.");
 		return token;
@@ -280,7 +281,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 		AuthorizationToken token = new AuthorizationToken(user);
 
 		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
-		AuthenticationTokenBin.getInstance().addToken(token);
+		AuthorizationTokenBin.getInstance().addToken(token);
 
 		LOGGER.log(Level.INFO, "Returning the token to the user.");
 		return token;
@@ -315,7 +316,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 				"Retrieveing the authentication token based on the refresh " +
 					"token.");
 		AuthorizationToken oldToken =
-			AuthenticationTokenBin
+			AuthorizationTokenBin
 				.getInstance()
 				.getTokenFromRefreshToken(refreshToken);
 
@@ -324,6 +325,14 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 			throw
 				new AuthenticationException(
 					"The given refresh token is unknown.");
+		}
+
+		LOGGER
+		    .log(Level.INFO, "Checking if this token was granted via OAuth.");
+		if(oldToken.getAuthorizationCode() != null) {
+		    throw
+		        new InvalidArgumentException(
+		            "This API may not be used to refresh OAuth-based tokens.");
 		}
 
 		LOGGER.log(Level.FINER, "Checking if the token was invalidated.");
@@ -340,7 +349,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 
 		    LOGGER.log(Level.INFO, "Retrieving the next token in the chain.");
 		    token =
-		        AuthenticationTokenBin
+		        AuthorizationTokenBin
 		            .getInstance()
 		            .getTokenFromAccessToken(oldToken.getNextToken());
 
@@ -373,7 +382,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
     		    .log(
     		        Level.INFO,
     		        "Adding the authentication token to the bin.");
-    		AuthenticationTokenBin.getInstance().addToken(token);
+    		AuthorizationTokenBin.getInstance().addToken(token);
 
             LOGGER.log(Level.INFO, "Invalidating the old token.");
             AuthorizationToken invalidatedOldToken =
@@ -382,7 +391,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
                     .build();
 
             LOGGER.log(Level.INFO, "Updating the invalidated old token.");
-            AuthenticationTokenBin
+            AuthorizationTokenBin
                 .getInstance()
                 .updateToken(invalidatedOldToken);
 		}
@@ -423,6 +432,6 @@ public class AuthenticationTokenServlet extends OhmageServlet {
                 .build();
 
 		LOGGER.log(Level.INFO, "Updating the token.");
-		AuthenticationTokenBin.getInstance().updateToken(updatedToken);
+		AuthorizationTokenBin.getInstance().updateToken(updatedToken);
 	}
 }

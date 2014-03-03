@@ -8,9 +8,9 @@ import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.MultiValueResultAggregation;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
-import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.DataPoint;
 import org.ohmage.domain.Schema;
+import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
@@ -216,7 +216,7 @@ public class SchemaServlet extends OhmageServlet {
         return result;
 	}
 
-	/**
+    /**
      * Returns the definition for a given schema.
      *
      * @param schemaId
@@ -227,19 +227,39 @@ public class SchemaServlet extends OhmageServlet {
      *
      * @return The schema definition.
      */
-	@RequestMapping(
-		value = "{" + KEY_SCHEMA_ID + "}/{" + KEY_SCHEMA_VERSION + "}",
-		method = RequestMethod.GET)
-	public static @ResponseBody Schema getSchemaDefinition(
-		@PathVariable(KEY_SCHEMA_ID) final String schemaId,
-		@PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion) {
+    @RequestMapping(
+        value = "{" + KEY_SCHEMA_ID + "}/latest",
+        method = RequestMethod.GET)
+    public static @ResponseBody Schema getSchemaDefinition(
+        @PathVariable(KEY_SCHEMA_ID) final String schemaId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a schema definition: " +
-					schemaId + ", " +
-					schemaVersion);
+        LOGGER
+            .log(
+                Level.INFO,
+                "Creating a request for the latest schema definition.");
+
+        return getSchemaDefinition(schemaId, null);
+    }
+
+    /**
+     * Returns the definition for a given schema.
+     *
+     * @param schemaId
+     *        The schema's unique identifier.
+     *
+     * @param schemaVersion
+     *        The version of the schema.
+     *
+     * @return The schema definition.
+     */
+    @RequestMapping(
+        value = "{" + KEY_SCHEMA_ID + "}/{" + KEY_SCHEMA_VERSION + "}",
+        method = RequestMethod.GET)
+    public static @ResponseBody Schema getSchemaDefinition(
+        @PathVariable(KEY_SCHEMA_ID) final String schemaId,
+        @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion) {
+
+        LOGGER.log(Level.INFO, "Creating a request for a schema definition.");
 
         LOGGER.log(Level.INFO, "Retrieving the definition.");
         Schema result;
@@ -261,9 +281,9 @@ public class SchemaServlet extends OhmageServlet {
                     "The schema ID-verion pair is unknown.");
         }
 
-		LOGGER.log(Level.INFO, "Returning the schema.");
-		return result;
-	}
+        LOGGER.log(Level.INFO, "Returning the schema.");
+        return result;
+    }
 
     /**
      * Returns the data corresponding to the schema ID and version.

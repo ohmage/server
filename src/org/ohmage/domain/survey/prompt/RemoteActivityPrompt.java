@@ -14,6 +14,7 @@ import org.ohmage.domain.survey.condition.Condition;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 
 /**
@@ -23,7 +24,7 @@ import com.fasterxml.jackson.databind.node.NullNode;
  *
  * @author John Jenkins
  */
-public class RemoteActivityPrompt extends Prompt<JsonNode> {
+public class RemoteActivityPrompt extends Prompt<Object> {
     /**
      * The string type of this survey item.
      */
@@ -38,6 +39,12 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
      * The JSON key for the response's definition.
      */
     public static final String JSON_KEY_DEFINITION = "definition";
+
+    /**
+     * The static object mapper to use to convert the given objects into JSON
+     * nodes.
+     */
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * The URI to use to launch the remote activity. This may include query
@@ -77,15 +84,12 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
      *        The default response for this prompt or null if a default is not
      *        allowed.
      *
-     * @param minRuns
-     *        The minimum number of times the user must launch the remote
-     *        activity. This must be greater than zero and, if null, will
-     *        default to {@link DEFAULT_MIN_RUNS}.
+     * @param uri
+     *        The URI that the client should use to launch the remote activity.
      *
-     * @param maxRuns
-     *        The maximum number of times the user may launch the remote
-     *        activity. This must be greater than 'minRuns' and, if null, will
-     *        default to {@link DEFAULT_MAX_RUNS}.
+     * @param definition
+     *        The {@link Concordia} definition to which the remote activity
+     *        response must adhere.
      *
      * @throws InvalidArgumentException
      *         A parameter was invalid.
@@ -187,12 +191,14 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
      */
     @Override
     public JsonNode validateResponse(
-        final JsonNode response,
+        final Object response,
         final Map<String, Media> media)
         throws InvalidArgumentException {
 
+        JsonNode result = OBJECT_MAPPER.valueToTree(response);
+
         try {
-            definition.validateData(response);
+            definition.validateData(result);
         }
         catch(ConcordiaException e) {
             throw
@@ -203,6 +209,6 @@ public class RemoteActivityPrompt extends Prompt<JsonNode> {
                         getSurveyItemId());
         }
 
-        return response;
+        return result;
     }
 }

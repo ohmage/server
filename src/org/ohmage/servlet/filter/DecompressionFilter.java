@@ -38,7 +38,7 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 public class DecompressionFilter implements Filter {
     /**
      * <p>
-     * A wrapper for {@link ServetInputStream}s that add GZIP decompression
+     * A wrapper for {@link ServletInputStream}s that add GZIP decompression
      * when reading.
      * </p>
      *
@@ -160,7 +160,7 @@ public class DecompressionFilter implements Filter {
 
     /**
      * <p>
-     * A wrapper for {@link Parts}s that add GZIP decompression when reading.
+     * A wrapper for {@link Part}s that add GZIP decompression when reading.
      * </p>
      *
      * @author John Jenkins
@@ -294,7 +294,7 @@ public class DecompressionFilter implements Filter {
          * Wraps a {@link HttpServletRequest} with the GZIP input stream.
          *
          * @param request
-         *        The {@link HttpServletRequset} to wrap.
+         *        The {@link HttpServletRequest} to wrap.
          */
         public DecompressionAwareHttpServletRequest(
             final HttpServletRequest request) {

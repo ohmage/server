@@ -1,5 +1,7 @@
 package org.ohmage.servlet;
 
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,16 +14,18 @@ import java.util.logging.Logger;
 import name.jenkins.paul.john.concordia.Concordia;
 
 import org.joda.time.DateTime;
-import org.ohmage.bin.AuthenticationTokenBin;
+import org.ohmage.bin.AuthorizationTokenBin;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.MultiValueResultAggregation;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.StreamDataBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.SurveyResponseBin;
-import org.ohmage.domain.AuthorizationToken;
 import org.ohmage.domain.ColumnList;
 import org.ohmage.domain.Schema;
+import org.ohmage.domain.auth.AuthorizationCode;
+import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.domain.auth.Scope;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
@@ -268,6 +272,212 @@ public class OmhServlet extends OhmageServlet {
      */
     private static final Logger LOGGER =
         Logger.getLogger(OmhServlet.class.getName());
+
+    /**
+     * <p>
+     * The OAuth call where a user has been redirected to us by some
+     * OAuth client in order for us to present them with an authorization
+     * request, verify that the user is who they say they are, and grant or
+     * deny the request.
+     * </p>
+     *
+     * <p>
+     * This call will either redirect the user to the authorization HTML page
+     * with the parameters embedded or it will return a non-2xx response with a
+     * message indicating what was wrong with the request. Unfortunately,
+     * because the problem with the request may be that the given client ID is
+     * unknown, we have no way to direct the user back. If we simply force the
+     * browser to "go back", it may result in an infinite loop where the
+     * OAuth client continuously redirects them back to us and visa-versa. To
+     * avoid this, we should simply return an error string and let the user
+     * decide.
+     * </p>
+     *
+     * @param rootUrl
+     *        The root URL for this request which will be used to generate the
+     *        redirect to the authorization page.
+     *
+     * @param clientId
+     *        The client's (OAuth client's) unique identifier.
+     *
+     * @param scopeString
+     *        A string that represents space-delimited scopes.
+     *
+     * @param redirectUri
+     *        The URI that will be used to redirect the user after they have
+     *        responded to the authorization request.
+     *
+     * @param state
+     *        A string that is not validated or checked in any way and is
+     *        simply echoed between requests.
+     *
+     * @return A OAuth-specified JSON response that indicates what was wrong
+     *         with the request. If nothing was wrong with the request, a
+     *         redirect would have been returned.
+     *
+     * @throws IOException
+     *         There was a problem responding to the client.
+     *
+     * @throws OAuthSystemException
+     *         The OAuth library encountered an error.
+     */
+    @RequestMapping(
+        value = "/auth/oauth" + Oauth2Servlet.PATH_AUTHORIZE,
+        method = RequestMethod.GET,
+        params = "response_type" + "=" + "code")
+    public static String authorize(
+        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+            final String rootUrl,
+        @RequestParam(value = "client_id", required = true)
+            final String clientId,
+        @RequestParam(value = "scope", required = true)
+            final String scopeString,
+        @RequestParam(value = "redirect_uri", required = false)
+            final URI redirectUri,
+        @RequestParam(value = "state", required = false)
+            final String state) {
+
+        return
+            Oauth2Servlet
+                .authorize(rootUrl, clientId, scopeString, redirectUri, state);
+    }
+
+    /**
+     * <p>
+     * Handles the response from the user regarding whether or not the user
+     * granted permission to a OAuth client via OAuth. If the user's credentials
+     * are invalid or there was a general error reading the request, an error
+     * message will be returned and displayed to the user. As long as there is
+     * not an internal error, we will redirect the user back to the OAuth client
+     * with a code, which the OAuth client can then use to call us to determine
+     * the user's response.
+     * </p>
+     *
+     * @param email
+     *        The user's email address.
+     *
+     * @param password
+     *        The user's password.
+     *
+     * @param codeString
+     *        The authorization code.
+     *
+     * @param granted
+     *        Whether or not the user granted the OAuth client's request.
+     *
+     * @return A redirect back to the OAuth client with the code and state.
+     */
+    @RequestMapping(
+        value = "/auth/oauth" + Oauth2Servlet.PATH_AUTHORIZATION,
+        method = RequestMethod.POST)
+    public static String authorization(
+        @RequestParam(value = User.JSON_KEY_EMAIL, required = true)
+            final String email,
+        @RequestParam(value = User.JSON_KEY_PASSWORD, required = true)
+            final String password,
+        @RequestParam(
+            value = AuthorizationCode.JSON_KEY_AUTHORIZATION_CODE,
+            required = true)
+            final String codeString,
+        @RequestParam(value = "granted", required = true)
+            final boolean granted) {
+
+        return
+            Oauth2Servlet.authorization(email, password, codeString, granted);
+    }
+
+    /**
+     * <p>
+     * The OAuth call when a OAuth client is attempting to exchange their
+     * authorization code for a valid authorization token. Because this is a
+     * back-channel communication from the OAuth client, their ID and secret
+     * must be given to authenticate them. They will then be returned either an
+     * authorization token or an error message indicating what was wrong with
+     * the request.
+     * </p>
+     *
+     * @param oauthClientId
+     *        The unique identifier for the OAuth client that is exchanging the
+     *        code for a token.
+     *
+     * @param oauthClientSecret
+     *        The OAuth client's secret.
+     *
+     * @param codeString
+     *        The code that is being exchanged.
+     *
+     * @param redirectUri
+     *        The redirect URI that must match what was given when the code was
+     *        requested or the default one associated with this OAuth client. If
+     *        it is not given, the redirect URI from the code must be the
+     *        default one.
+     *
+     * @return A new authorization token.
+     */
+    @RequestMapping(
+        value = "/auth/oauth" + Oauth2Servlet.PATH_TOKEN,
+        method = RequestMethod.POST,
+        params = "grant_type" + "=" + "authorization_code")
+    public static @ResponseBody AuthorizationToken tokenFromCode(
+        @RequestParam(value = "client_id", required = true)
+            final String oauthClientId,
+        @RequestParam(value = "client_secret", required = true)
+            final String oauthClientSecret,
+        @RequestParam(value = "code", required = true) final String codeString,
+        @RequestParam(value = "redirect_uri", required = false)
+            final URI redirectUri) {
+
+        return
+            Oauth2Servlet
+                .tokenFromCode(
+                    oauthClientId,
+                    oauthClientSecret,
+                    codeString,
+                    redirectUri);
+    }
+
+    /**
+     * <p>
+     * The OAuth call when a OAuth client is attempting to exchange an expired
+     * authorization token for a new authorization token. Because this is a
+     * back-channel communication from the OAuth client, their ID and secret
+     * must be given to authenticate them. They will then be returned either an
+     * authorization token or an error message indicating what was wrong with
+     * the request.
+     * </p>
+     *
+     * @param oauthClientId
+     *        The unique identifier for the OAuth client that is exchanging the
+     *        code for a token.
+     *
+     * @param oauthClientSecret
+     *        The OAuth client's secret.
+     *
+     * @param refreshToken
+     *        The refresh token value from the latest version of the desired
+     *        token.
+     *
+     * @return A new authorization token.
+     */
+    @RequestMapping(
+        value = "/auth/oauth" + Oauth2Servlet.PATH_TOKEN,
+        method = RequestMethod.POST,
+        params = "grant_type" + "=" + "refresh_token")
+    public static @ResponseBody AuthorizationToken tokenFromRefresh(
+        @RequestParam(value = "client_id", required = true)
+            final String oauthClientId,
+        @RequestParam(value = "client_secret", required = true)
+            final String oauthClientSecret,
+        @RequestParam(value = "refresh_token", required = true)
+            final String refreshToken) {
+
+        return
+            Oauth2Servlet
+                .tokenFromRefresh(
+                    oauthClientId,
+                    oauthClientSecret,
+                    refreshToken);
+    }
 
     /**
      * Returns a list of visible stream IDs.
@@ -601,14 +811,20 @@ public class OmhServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving the auth information.");
         AuthorizationToken authTokenObject =
-            AuthenticationTokenBin
+            AuthorizationTokenBin
                 .getInstance()
                 .getTokenFromAccessToken(authToken);
 
-        LOGGER.log(Level.INFO, "Verifying the auth token is known.");
-        if(authTokenObject == null) {
-            throw new AuthenticationException("No auth token is unknown.");
-        }
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user =
+            OhmageServlet
+                .validateAuthorization(
+                    authTokenObject,
+                    new Scope(
+                        Scope.Type.STREAM,
+                        schemaId,
+                        schemaVersion,
+                        Scope.Permission.READ));
 
         LOGGER.log(Level.INFO, "Verifying the auth token is valid.");
         if(! authTokenObject.isValid()) {
@@ -616,10 +832,6 @@ public class OmhServlet extends OhmageServlet {
                 new AuthenticationException(
                     "No auth token is no longer valid.");
         }
-
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
-        User user = authTokenObject.getUser();
 
         LOGGER.log(Level.INFO, "Parsing the schema ID.");
         OmhSchemaId omhSchemaId = new OmhSchemaId(schemaId);

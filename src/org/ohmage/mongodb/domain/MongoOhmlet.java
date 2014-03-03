@@ -31,7 +31,7 @@ public class MongoOhmlet extends Ohmlet implements MongoDbObject {
 	 * @param dbId
 	 *        The database ID for this authentication token.
 	 *
-	 * @param ohmletId
+	 * @param id
 	 *        The ID for the ohmlet or null for a randomly generated one.
 	 *
 	 * @param name
@@ -39,12 +39,12 @@ public class MongoOhmlet extends Ohmlet implements MongoDbObject {
 	 *
 	 * @param description
 	 *        The description of this ohmlet.
-	 *
-	 * @param owner
-	 *        The owner of this ohmlet.
-	 *
-	 * @param schemas
-	 *        The schemas that define this ohmlet.
+     *
+     * @param streams
+     *        The streams that are followed by this ohmlet.
+     *
+     * @param surveys
+     *        The surveys that are followed by  this ohmlet.
 	 *
 	 * @param reminders
 	 *        The list of default reminders for users that download this

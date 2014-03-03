@@ -97,9 +97,6 @@ public class Ohmlet extends OhmageDomainObject {
 		 * @param description
 		 *        The description of this ohmlet.
 		 *
-		 * @param owner
-		 *        The creator and subsequent owner of this ohmlet.
-		 *
 		 * @param streams
 		 *        The list of streams that compose this ohmlet.
 		 *
@@ -109,9 +106,6 @@ public class Ohmlet extends OhmageDomainObject {
 		 * @param reminders
 		 *        The list of default reminders for users that download this
 		 *        ohmlet.
-		 *
-		 * @param members
-		 *        The map of member IDs to their roles of this ohmlet.
 		 *
 		 * @param privacyState
 		 *        The {@link PrivacyState} of this ohmlet.
@@ -321,7 +315,8 @@ public class Ohmlet extends OhmageDomainObject {
 		 * @throws OhmageException
 		 *         The state of the builder contained invalid fields.
 		 */
-		public Ohmlet build() {
+		@Override
+        public Ohmlet build() {
 			return
 				new Ohmlet(
 					(ohmletId == null) ? getRandomId() : ohmletId,
@@ -357,7 +352,7 @@ public class Ohmlet extends OhmageDomainObject {
 		/**
 		 * The JSON key for the schema version.
 		 */
-		public static final String JSON_KEY_VERSION = "version";
+		public static final String JSON_KEY_VERSION = "schema_version";
 
 		/**
 		 * The schema ID.
@@ -796,9 +791,6 @@ public class Ohmlet extends OhmageDomainObject {
 
 	/**
 	 * Creates a new ohmlet.
-	 *
-	 * @param owner
-	 *        The unique identifier for the user that is creating this ohmlet.
 	 *
 	 * @param name
 	 *        The name of this ohmlet.

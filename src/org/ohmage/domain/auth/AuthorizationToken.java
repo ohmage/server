@@ -1,6 +1,6 @@
-package org.ohmage.domain;
+package org.ohmage.domain.auth;
 
-import org.ohmage.bin.UserBin;
+import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A user's authentication token.
+ * A user's authorization token.
  * </p>
  *
  * <p>
@@ -35,7 +35,7 @@ public class AuthorizationToken extends OhmageDomainObject {
         extends OhmageDomainObject.Builder<AuthorizationToken> {
 
         /**
-         * The authentication token.
+         * The authorization token.
          */
         private final String accessToken;
         /**
@@ -51,13 +51,17 @@ public class AuthorizationToken extends OhmageDomainObject {
          */
         private final String userId;
         /**
-         * The number of milliseconds since the epoch at which time the token was
-         * granted.
+         * The authorization code that is associated with this token.
+         */
+        private final String authorizationCode;
+        /**
+         * The number of milliseconds since the epoch at which time the token
+         * was granted.
          */
         private final long granted;
         /**
-         * The number of milliseconds since the epoch at which time the token will
-         * expire.
+         * The number of milliseconds since the epoch at which time the token
+         * will expire.
          */
         private final long expires;
         /**
@@ -78,6 +82,7 @@ public class AuthorizationToken extends OhmageDomainObject {
             refreshToken = original.refreshToken;
             nextToken = original.nextToken;
             userId = original.userId;
+            authorizationCode = original.authorizationCode;
             granted = original.granted;
             expires = original.expires;
             valid = original.valid;
@@ -117,9 +122,11 @@ public class AuthorizationToken extends OhmageDomainObject {
          *
          * @return The new {@link AuthorizationToken}.
          *
-         * @throws IllegalArgumentException The state of this builder is invalid
-         * for building a new authorization token.
+         * @throws IllegalArgumentException
+         *         The state of this builder is invalid for building a new
+         *         authorization token.
          */
+        @Override
         public AuthorizationToken build() throws IllegalArgumentException {
             return
                 new AuthorizationToken(
@@ -127,6 +134,7 @@ public class AuthorizationToken extends OhmageDomainObject {
                     refreshToken,
                     nextToken,
                     userId,
+                    authorizationCode,
                     granted,
                     expires,
                     valid,
@@ -152,17 +160,26 @@ public class AuthorizationToken extends OhmageDomainObject {
     public static final String HEADER_AUTHORIZATION = "Authorization";
 
 	/**
-	 * The JSON key for the authentication token.
+	 * The JSON key for the authorization token.
 	 */
 	public static final String JSON_KEY_ACCESS_TOKEN = "access_token";
 	/**
 	 * The JSON key for the refresh token.
 	 */
 	public static final String JSON_KEY_REFRESH_TOKEN = "refresh_token";
-	/**
-	 * The JSON key for the token that was used to replace this token.
-	 */
-	public static final String JSON_KEY_NEW_TOKEN = "next_token";
+    /**
+     * The JSON key for the token that was used to replace this token.
+     */
+    public static final String JSON_KEY_NEW_TOKEN = "next_token";
+    /**
+     * The JSON key for the user's unique identifier.
+     */
+    public static final String JSON_KEY_USER_ID = "user_id";
+    /**
+     * The JSON key for the authorization code.
+     */
+    public static final String JSON_KEY_AUTHORIZATION_CODE =
+        "authorization_code";
 	/**
 	 * The JSON key for the time the token was granted.
 	 */
@@ -177,12 +194,12 @@ public class AuthorizationToken extends OhmageDomainObject {
 	public static final String JSON_KEY_VALID = "valid";
 
 	/**
-	 * The default duration of the authentication token.
+	 * The default duration of the authorization token.
 	 */
 	public static final long AUTH_TOKEN_LIFETIME = 1000 * 60 * 30;
 
 	/**
-	 * The authentication token.
+	 * The authorization token.
 	 */
 	@JsonProperty(JSON_KEY_ACCESS_TOKEN)
 	private final String accessToken;
@@ -200,8 +217,14 @@ public class AuthorizationToken extends OhmageDomainObject {
 	/**
 	 * The unique ID of the user to whom the token applies.
 	 */
-	@JsonProperty(User.JSON_KEY_ID)
+	@JsonProperty(JSON_KEY_USER_ID)
 	private final String userId;
+	/**
+	 * The authorization code that is associated with this token.
+	 */
+	@JsonProperty(JSON_KEY_AUTHORIZATION_CODE)
+	@JsonFilterField
+	private final String authorizationCode;
 	/**
 	 * The number of milliseconds since the epoch at which time the token was
 	 * granted.
@@ -221,10 +244,10 @@ public class AuthorizationToken extends OhmageDomainObject {
 	private final boolean valid;
 
 	/**
-	 * Creates a new authentication token for a user.
+	 * Creates a new authorization token for a user.
 	 *
 	 * @param user
-	 *        The user about whom the authentication token should apply.
+	 *        The user about whom the authorization token should apply.
 	 *
 	 * @throws IllegalArgumentException
 	 *         The user is null.
@@ -239,14 +262,46 @@ public class AuthorizationToken extends OhmageDomainObject {
 			getRandomId(),
 			null,
 			((user == null) ? null : user.getId()),
+			null,
 			System.currentTimeMillis(),
 			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
 			true,
 			null);
 	}
 
+    /**
+     * Creates a new authorization token based on an authorization code.
+     *
+     * @param code
+     *        The authorization code that must have a response.
+     *
+     * @throws IllegalArgumentException
+     *         The authorization code is null.
+     */
+	public AuthorizationToken(final AuthorizationCode code)
+	    throws IllegalArgumentException {
+
+        // Pass through to the builder constructor.
+        this(
+            getRandomId(),
+            getRandomId(),
+            null,
+            ((code == null) ?
+                null :
+                ((code.getResponse() == null) ?
+                    null :
+                    code.getResponse().getUserId())),
+            ((code == null) ?
+                null :
+                code.getCode()),
+            System.currentTimeMillis(),
+            System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
+            true,
+            null);
+	}
+
 	/**
-	 * Refreshes an existing authentication token by creating a new one in its
+	 * Refreshes an existing authorization token by creating a new one in its
 	 * place. After calling this, the old token will be invalidated.
 	 *
 	 * @param oldToken
@@ -265,6 +320,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 			getRandomId(),
 			null,
 			((oldToken == null) ? null : oldToken.getUserId()),
+			oldToken.getAuthorizationCode(),
 			System.currentTimeMillis(),
 			System.currentTimeMillis() + AUTH_TOKEN_LIFETIME,
 			true,
@@ -272,10 +328,10 @@ public class AuthorizationToken extends OhmageDomainObject {
 	}
 
     /**
-     * Recreates an existing authentication token.
+     * Recreates an existing authorization token.
      *
      * @param accessToken
-     *        The authentication token.
+     *        The authorization token.
      *
      * @param refreshToken
      *        The refresh token.
@@ -285,6 +341,10 @@ public class AuthorizationToken extends OhmageDomainObject {
      *
      * @param userId
      *        The user's unique identifier.
+     *
+     * @param authorizationCode
+     *        The authorization code that was used to authorize the creation of
+     *        this token.
      *
      * @param granted
      *        The time when the token was granted.
@@ -296,7 +356,7 @@ public class AuthorizationToken extends OhmageDomainObject {
      *        Whether or not this token is valid.
      *
      * @param internalVersion
-     *        The internal version of this authentication token.
+     *        The internal version of this authorization token.
      *
      * @throws IllegalArgumentException
      *         The token and/or unique identifier for the user are null, the
@@ -307,8 +367,10 @@ public class AuthorizationToken extends OhmageDomainObject {
 	protected AuthorizationToken(
 		@JsonProperty(JSON_KEY_ACCESS_TOKEN) final String accessToken,
 		@JsonProperty(JSON_KEY_REFRESH_TOKEN) final String refreshToken,
-		@JsonProperty(JSON_KEY_NEW_TOKEN) final String newToken,
-		@JsonProperty(User.JSON_KEY_ID) final String userId,
+		@JsonProperty(JSON_KEY_NEW_TOKEN) final String nextToken,
+		@JsonProperty(JSON_KEY_USER_ID) final String userId,
+		@JsonProperty(JSON_KEY_AUTHORIZATION_CODE)
+		    final String authorizationCode,
 		@JsonProperty(JSON_KEY_GRANTED) final long granted,
 		@JsonProperty(JSON_KEY_EXPIRES) final long expires,
 		@JsonProperty(JSON_KEY_VALID) final boolean valid,
@@ -319,8 +381,9 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this(
 			accessToken,
 			refreshToken,
-			newToken,
+			nextToken,
 			userId,
+			authorizationCode,
 			granted,
 			expires,
 			valid,
@@ -332,7 +395,7 @@ public class AuthorizationToken extends OhmageDomainObject {
      * Builds the AuthorizationToken object.
      *
      * @param accessToken
-     *        The authentication token.
+     *        The authorization token.
      *
      * @param refreshToken
      *        The refresh token.
@@ -342,6 +405,10 @@ public class AuthorizationToken extends OhmageDomainObject {
      *
      * @param userId
      *        The user's unique identifier.
+     *
+     * @param authorizationCode
+     *        The authorization code that was used to authorize the creation of
+     *        this token.
      *
      * @param granted
      *        The time when the token was granted.
@@ -353,12 +420,12 @@ public class AuthorizationToken extends OhmageDomainObject {
      *        Whether or not this token is valid.
      *
      * @param internalReadVersion
-     *        The internal version of this authentication token when it was
-     *        read from the database.
+     *        The internal version of this authorization token when it was read
+     *        from the database.
      *
      * @param internalWriteVersion
-     *        The new internal version of this authentication token when it
-     *        will be written back to the database.
+     *        The new internal version of this authorization token when it will
+     *        be written back to the database.
      *
      * @throws IllegalArgumentException
      *         The token and/or unique identifier for the user are null, the
@@ -370,6 +437,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		final String refreshToken,
 		final String nextToken,
 		final String userId,
+		final String authorizationCode,
 		final long granted,
 		final long expires,
 		final boolean valid,
@@ -384,7 +452,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		if(accessToken == null) {
 			throw
 				new IllegalArgumentException(
-					"The authentication token is null.");
+					"The authorization token is null.");
 		}
 		if(refreshToken == null) {
 			throw
@@ -399,8 +467,7 @@ public class AuthorizationToken extends OhmageDomainObject {
 		if(granted > System.currentTimeMillis()) {
 			throw
 				new IllegalArgumentException(
-					"An authentication token cannot be granted in the " +
-						"future.");
+					"An authorization token cannot be granted in the future.");
 		}
 		if(granted > expires) {
 			throw
@@ -413,15 +480,16 @@ public class AuthorizationToken extends OhmageDomainObject {
 		this.refreshToken = refreshToken;
 		this.nextToken = nextToken;
 		this.userId = userId;
+		this.authorizationCode = authorizationCode;
 		this.granted = granted;
 		this.expires = expires;
 		this.valid = valid;
 	}
 
 	/**
-	 * Returns the authentication token.
+	 * Returns the authorization token.
 	 *
-	 * @return The authentication token.
+	 * @return The authorization token.
 	 */
 	public String getAccessToken() {
 		return accessToken;
@@ -438,38 +506,22 @@ public class AuthorizationToken extends OhmageDomainObject {
 
     /**
      * Returns the unique identifier for the user associated with this
-     * authentication token.
+     * authorization token.
      *
      * @return The unique identifier for the user associated with this
-     *         authentication token.
+     *         authorization token.
      */
 	public String getUserId() {
 		return userId;
 	}
 
 	/**
-	 * Returns the user associated with this authentication token.
+	 * Returns the authorization code that was used to grant this token.
 	 *
-	 * @return The user associated with this authentication token.
-	 *
-	 * @throws IllegalStateException
-	 *         There is an internal error or the user associated with this
-	 *         token no longer exists.
+	 * @return The authorization code that was used to grant this token.
 	 */
-	public User getUser() throws IllegalArgumentException {
-		// Attempt to get the user.
-		User user = UserBin.getInstance().getUser(userId);
-
-		// If the user no longer exists, throw an exception.
-		if(user == null) {
-			throw
-				new IllegalStateException(
-					"The user that is associated with this token no longer " +
-						"exists.");
-		}
-
-		// Return the user.
-		return user;
+	public String getAuthorizationCode() {
+	    return authorizationCode;
 	}
 
 	/**

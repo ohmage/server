@@ -14,8 +14,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
-import org.ohmage.bin.AuthenticationTokenBin;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.bin.AuthorizationTokenBin;
+import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 
@@ -128,7 +128,7 @@ public class AuthFilter implements Filter {
 		if(authTokenString != null) {
 			// Attempt to get the authentication token.
 			authTokenObject =
-				AuthenticationTokenBin
+				AuthorizationTokenBin
 					.getInstance()
 					.getTokenFromAccessToken(authTokenString);
 			if(authTokenObject == null) {

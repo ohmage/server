@@ -1,0 +1,348 @@
+<html>
+    <head>
+        <title>ohmage Authorization</title>
+        
+        <!-- JQuery -->
+        <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+        
+        <!-- Bootstrap: Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        
+        <!-- Bootstrap: Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        
+        <!-- Bootstrap: Latest compiled and minified JavaScript -->
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        
+        <style type="text/css">
+            html, body, .container-fluid{
+                height: 100%;
+            }
+            .container-fluid{
+                display: table;
+                vertical-align: middle;
+            }
+            .vertical-center-row{
+                display: table-cell;
+                vertical-align: middle;
+            }
+
+            .col-lg-12 {
+                box-shadow: 0 0 30px black;
+                padding:0 15px 0 15px;
+            }
+            
+            .tooltip-inner {
+                width:400px;
+            }
+            
+            hr {
+                -moz-border-bottom-colors: none;
+                -moz-border-image: none;
+                -moz-border-left-colors: none;
+                -moz-border-right-colors: none;
+                -moz-border-top-colors: none;
+                border-color: #EEEEEE -moz-use-text-color #FFFFFF;
+                border-style: solid none;
+                border-width: 1px 0;
+                margin: 18px 0;
+            }
+        </style>
+        
+        <!-- Ohmage initialization. -->
+        <script type="text/javascript">
+            // Decode the query string into its fields.
+            var QueryParameters = function () {
+                // The map of parameter keys to an array of their values.
+                var result = {};
+                
+                // Get the query string portion of the URL.
+                var query = window.location.search.substring(1);
+                // Split each of the parameters.
+                var vars = query.split("&");
+                // For each parameter,
+                for (var i=0;i<vars.length;i++) {
+                    // Get the key and value pairs.
+                    var pair = vars[i].split("=");
+                    
+                    // If it is not exactly a key-value pair, then skip it.
+                    if(pair.length !== 2) {
+                        continue;
+                    }
+                    
+                    // Decode the key.
+                    var key = decodeURIComponent(pair[0]).replace(/\+/g, " ");
+                    
+                    // Decode the value.
+                    var value =
+                        decodeURIComponent(pair[1]).replace(/\+/g, " ");
+                    
+                    // If this is the first parameter with this key, then
+                    // create a new array entry and add it.
+                    if (typeof result[key] === "undefined") {
+                        result[key] = [ value ];
+                    }
+                    // Otherwise, just add this parameter to the list.
+                    else {
+                        result[key].push(value);
+                    }
+                }
+                
+                // Return the mapping.
+                return result;
+            }();
+            
+            // Create the variables for the authorization code and OAuth
+            // client.
+            var code;
+            var client;
+            
+            /**
+             * Presents error states to the user.
+             */
+            function handleError(jqXHR) {
+                if((jqXHR.status % 100) === 5) {
+                    $("#errorDiv").text("An internal error occurred.");
+                }
+                else {
+                    $("#errorDiv").text(jqXHR.responseText);
+                }
+                
+                $("#errorDiv").show();
+            }
+            
+            /**
+             * Presents error states to the user specifically when a 401 is
+             * received. If the error code is not a 401, it will cascade up to
+             * handleError(jqXHR).
+             */
+            function handle401(jqXHR) {
+                if(jqXHR.status === 401) {
+                    $("#errorDiv").text("The code has already been used.");
+                    $("#credentialsDiv").hide();
+                    $("#errorDiv").show();
+                }
+                else {
+                    handleError(jqXHR);
+                }
+            }
+            
+            /**
+             * Always check if we can hide the error box.
+             */
+            function checkError() {
+                if($("#errorDiv").text() === "") {
+                    $("#errorDiv").hide();
+                }
+            }
+            
+            /**
+             * Takes a scope object and adds it to the list of scope
+             * information.
+             */
+            function processScope(scope) {
+                var scopesTable = $("#scopes");
+
+                var version = scope['schema_version'];
+                if(typeof version === 'undefined') {
+                    version = "latest";
+                }
+
+                $.get(
+                    "/ohmage/schemas/" + 
+                        scope['schema_id'] + "/" + 
+                        version)
+                    .done(function(result) {
+                        scopesTable
+                            .append(
+                                $('<tr>')
+                                    .append($('<td>').append(result['name']))
+                                    .append($('<td>').append(scope['permission']))
+                                    .attr('data-toggle', "tooltip")
+                                    .attr('data-placement', "right")
+                                    .attr('title', result['description'])
+                                    .tooltip());
+                        }
+                    )
+                    .error(handleError)
+                    .always(checkError);
+            }
+            
+            // Populate the page with the information about the client and the
+            // code.
+            function populatePage() {
+                $("#name").text(client['name']);
+                $("#description").text(client['description']);
+                
+                // Parse the scopes and display them.
+                for(var i in code['scopes']) {
+                    processScope(code['scopes'][i]);
+                }
+            }
+            
+            // Parse the response from the clients API.
+            function parseClient(data) {
+                client = data;
+                
+                populatePage();
+            }
+            
+            // Parse the response from the codes API.
+            function parseCode(data) {
+                code = data;
+                
+                $.get("/ohmage/oauth/clients/" + code['oauth_client_id'])
+                    .done(parseClient)
+                    .fail(handleError)
+                    .always(checkError);
+            }
+            
+            // Begin the initialization flow by retreiving the information
+            // about the code.
+            $.get("/ohmage/oauth/codes/" + QueryParameters['code'][0])
+                .done(parseCode)
+                .fail(handle401)
+                .always(checkError);
+        </script>
+    </head>
+    <body style="background:#D2EAFD">
+        <div class="container-fluid">
+            <div class="row vertical-center-row">
+                <div class="col-lg-12" style="background:#FFFFFF" >
+                    <!-- Add our logo. -->
+                    <img src="/ohmage/images/ohmage-logo.png" style="display:block; margin-left:auto; margin-right:auto"/>
+                    
+                    <!-- Add a description of what the user is supposed to do. -->
+                    <br />
+                    <p>The following client is asking for your permission to
+                    access your data.</p>
+                    <br />
+    
+                    <!-- Add the name and description of the third-party. -->
+                    <dl>
+                        <dt>Client name:</dt>
+                        <dd id="name"></dd>
+                    </dl>
+                    
+                    <dl>
+                        <dt>Client description:</dt>
+                        <dd id="description"></dd>
+                    </dl>
+                    
+                    <!-- Add the list of desired schema IDs. -->
+                    <dl>
+                        <dt>What data:</dt>
+                        <dd>Hover over a row to get more information.</dd>
+                    </dl>
+                    
+                    <table id="scopes" class="table table-striped table-hover">
+                        <tr>
+                            <th>Name</th>
+                            <th>Privileges</th>
+                        </tr>
+                    </table>
+                    
+                    <hr>
+            
+                    <!-- Get the user's credentials. -->
+                    <div id="credentialsDiv">
+	                    <div class="form-group">
+	                        <label id="emailHeader" for="email">Email address</label>
+	                        <input id="email" type="email" class="form-control" placeholder="Enter email">
+	                    </div>
+	                    <div class="form-group">
+	                        <label id="passwordHeader" for="password">Password</label>
+	                        <input id="password" type="password" class="form-control" placeholder="Password">
+	                    </div>
+	                    
+	                    <div class="row">
+	                        <div class="col-lg-5">
+	                            <input type="button" class="btn btn-danger" value="Deny" onclick="handleDeny();" style="width:100%">
+	                        </div>
+	                        <div class="col-lg-2"></div>
+	                        <div class="col-lg-5">
+	                            <input type="button" class="btn btn-success" value="Allow" onclick="handleAllow();" style="width:100%">
+	                        </div>
+	                    </div>
+	                    <br />
+                    </div>
+                    <div id="errorDiv" class="alert alert-danger"></div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            /**
+             * Verifies that a user has supplied some credenti
+             *
+             * @return True if both a username and password are supplied;
+             *         otherwise, false.
+             */
+            function checkCredentials() {
+                $("#emailHeader").css("color", "black");
+                $("#passwordHeader").css("color", "black");
+                
+                if($("#email").val() === "") {
+                    $("#emailHeader").css("color", "red");
+                    $("#email").focus();
+                    return false;
+                }
+
+                if($("#password").val() === "") {
+                    $("#passwordHeader").css("color", "red");
+                    $("#password").focus();
+                    return false;
+                }
+                
+                return true;
+            }
+        
+            /**
+             * Sets the grant value to false and then validates and submits the
+             * request.
+             */
+            function handleDeny() {
+                if(checkCredentials()) {
+                    makeRequest(buildParameters(false));
+                }
+            }
+            
+            /**
+             * Sets the grant value to true and then validates and submits the
+             * request.
+             */
+            function handleAllow() {
+                if(checkCredentials()) {
+                    makeRequest(buildParameters(true));
+                }
+            }
+        
+            /**
+             * Validates the parameters and builds and returns the parameter
+             * object.
+             *
+             * @return The parameters object read to be serialized.
+             */
+            function buildParameters(granted) {
+                var result = new Object();
+
+                result['email'] = $("#email").val();
+                result['password'] = $("#password").val();
+                result['granted'] = granted;
+                result['code'] = code['code'];
+                
+                return result;
+            }
+        
+            /**
+             * Makes the request to the server and, if it fails, updates the
+             * error message.
+             */
+            function makeRequest(parameters) {
+                // Send the response to the server.
+                $.post("/ohmage/oauth/authorization", parameters)
+                    .fail(handleError)
+                    .always(checkError);
+            }
+        </script>
+    </body>
+</html>

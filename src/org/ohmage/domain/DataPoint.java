@@ -211,6 +211,7 @@ public abstract class DataPoint<T> extends OhmageDomainObject {
          *         The state of this builder is insufficient to build a new
          *         {@link DataPoint} object.
          */
+        @Override
         public abstract DataPoint<T> build() throws InvalidArgumentException;
     }
 
@@ -271,7 +272,7 @@ public abstract class DataPoint<T> extends OhmageDomainObject {
      */
     @JsonProperty(JSON_KEY_SCHEMA_VERSION)
     @JsonFilterField
-    private final Long schemaVersion;
+    private final long schemaVersion;
 
     /**
      * The meta-data about this data point.
@@ -368,5 +369,25 @@ public abstract class DataPoint<T> extends OhmageDomainObject {
      */
     public String getOwner() {
         return ownerId;
+    }
+
+    /**
+     * Returns the unique identifier of the schema to which this data point
+     * belongs.
+     *
+     * @return The unique identifier of the schema to which this data point
+     *         belongs.
+     */
+    public String getSchemaId() {
+        return schemaId;
+    }
+
+    /**
+     * Returns the version of the to which this data point belongs.
+     *
+     * @return The version of the to which this data point belongs.
+     */
+    public long getSchemaVersion() {
+        return schemaVersion;
     }
 }

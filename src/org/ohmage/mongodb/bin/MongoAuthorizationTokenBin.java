@@ -1,34 +1,37 @@
 package org.ohmage.mongodb.bin;
 
+import org.mongojack.DBCursor;
 import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
-import org.ohmage.bin.AuthenticationTokenBin;
-import org.ohmage.domain.AuthorizationToken;
+import org.ohmage.bin.AuthorizationTokenBin;
+import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.mongodb.domain.MongoAuthenticationToken;
+import org.ohmage.mongodb.domain.MongoAuthorizationToken;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 
 /**
  * <p>
- * The MongoDB implementation of the database-backed authentication token
+ * The MongoDB implementation of the database-backed authorization token
  * repository.
  * </p>
  *
  * @author John Jenkins
  */
-public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
+public class MongoAuthorizationTokenBin extends AuthorizationTokenBin {
 	/**
-	 * The name of the collection that contains all of the authentication
+	 * The name of the collection that contains all of the authorization
 	 * tokens.
 	 */
-	public static final String COLLECTION_NAME = "authentication_token_bin";
-	
-	/** 
-	 * Get the connection to the authentication token bin with the Jackson
+	public static final String COLLECTION_NAME = "authorization_token_bin";
+
+	/**
+	 * Get the connection to the authorization token bin with the Jackson
 	 * wrapper.
 	 */
 	private static final JacksonDBCollection<AuthorizationToken, String> COLLECTION =
@@ -41,32 +44,32 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 				AuthorizationToken.class,
 				String.class,
 				MongoBinController.getObjectMapper());
-	
-	/** 
-	 * Get the connection to the authentication token bin with the Jackson
-	 * wrapper, specifically for {@link MongoAuthenticationToken} objects.
+
+	/**
+	 * Get the connection to the authorization token bin with the Jackson
+	 * wrapper, specifically for {@link MongoAuthorizationToken} objects.
 	 */
-	private static final JacksonDBCollection<MongoAuthenticationToken, Object> MONGO_COLLECTION =
+	private static final JacksonDBCollection<MongoAuthorizationToken, Object> MONGO_COLLECTION =
 		JacksonDBCollection
 			.wrap(
 				MongoBinController
 					.getInstance()
 					.getDb()
 					.getCollection(COLLECTION_NAME),
-				MongoAuthenticationToken.class,
+				MongoAuthorizationToken.class,
 				Object.class,
 				MongoBinController.getObjectMapper());
-	
+
 	/**
 	 * Default constructor.
 	 */
-	protected MongoAuthenticationTokenBin() {
+	protected MongoAuthorizationTokenBin() {
 		// Ensure that there is an index on the access token.
 		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(
 					AuthorizationToken.JSON_KEY_ACCESS_TOKEN,
-					1), 
+					1),
 				COLLECTION_NAME + "_" +
 					AuthorizationToken.JSON_KEY_ACCESS_TOKEN + "_unique",
 				true);
@@ -75,7 +78,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			.ensureIndex(
 				new BasicDBObject(
 					AuthorizationToken.JSON_KEY_REFRESH_TOKEN,
-					1), 
+					1),
 				COLLECTION_NAME + "_" +
 					AuthorizationToken.JSON_KEY_REFRESH_TOKEN + "_unique",
 				true);
@@ -83,7 +86,7 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 		COLLECTION
 			.ensureIndex(
 				new BasicDBObject(AuthorizationToken.JSON_KEY_EXPIRES, 1),
-				COLLECTION_NAME + 
+				COLLECTION_NAME +
 					"_" +
 					AuthorizationToken.JSON_KEY_EXPIRES +
 					"_index",
@@ -92,18 +95,18 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.AuthenticationTokenBin#addToken(org.ohmage.domain.AuthorizationToken)
+	 * @see org.ohmage.bin.AuthorizationTokenBin#addToken(org.ohmage.domain.AuthorizationToken)
 	 */
 	@Override
 	public void addToken(
 		final AuthorizationToken token)
 		throws IllegalArgumentException, InvalidArgumentException {
-		
+
 		// Validate the parameter.
 		if(token == null) {
 			throw new IllegalArgumentException("The token is null.");
 		}
-		
+
 		// Save it.
 		try {
 			COLLECTION.insert(token);
@@ -112,80 +115,126 @@ public class MongoAuthenticationTokenBin extends AuthenticationTokenBin {
 			throw new InvalidArgumentException("The token already exists.");
 		}
 	}
-	
+
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.AuthenticationTokenBin#getToken(java.lang.String)
+	 * @see org.ohmage.bin.AuthorizationTokenBin#getToken(java.lang.String)
 	 */
 	@Override
-	public MongoAuthenticationToken getTokenFromAccessToken(
+	public MongoAuthorizationToken getTokenFromAccessToken(
 		final String accessToken)
-		throws IllegalArgumentException, IllegalStateException {
-		
+		throws IllegalArgumentException {
+
 		// Validate the parameter.
 		if(accessToken == null) {
 			throw new IllegalArgumentException("The access token is null.");
 		}
-		
+
 		// Build the query.
 		QueryBuilder queryBuilder = QueryBuilder.start();
-		
-		// Add the authentication token to the query.
+
+		// Add the authorization token to the query.
 		queryBuilder
 			.and(AuthorizationToken.JSON_KEY_ACCESS_TOKEN)
 			.is(accessToken);
-		
-		// Execute query.
-		return MONGO_COLLECTION.findOne(queryBuilder.get());
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.bin.AuthenticationTokenBin#getTokenFromRefreshToken(java.lang.String)
-	 */
-	@Override
-	public MongoAuthenticationToken getTokenFromRefreshToken(
-		final String refreshToken)
-		throws IllegalArgumentException {
-		
-		// Validate the parameter.
-		if(refreshToken == null) {
-			throw new IllegalArgumentException("The refresh token is null.");
-		}
-		
-		// Build the query.
-		QueryBuilder queryBuilder = QueryBuilder.start();
-		
-		// Add the authentication token to the query.
-		queryBuilder
-			.and(AuthorizationToken.JSON_KEY_REFRESH_TOKEN)
-			.is(refreshToken);
-		
+
 		// Execute query.
 		return MONGO_COLLECTION.findOne(queryBuilder.get());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.AuthenticationTokenBin#updateToken(org.ohmage.domain.AuthorizationToken)
+	 * @see org.ohmage.bin.AuthorizationTokenBin#getTokenFromRefreshToken(java.lang.String)
+	 */
+	@Override
+	public MongoAuthorizationToken getTokenFromRefreshToken(
+		final String refreshToken)
+		throws IllegalArgumentException {
+
+		// Validate the parameter.
+		if(refreshToken == null) {
+			throw new IllegalArgumentException("The refresh token is null.");
+		}
+
+		// Build the query.
+		QueryBuilder queryBuilder = QueryBuilder.start();
+
+		// Add the authorization token to the query.
+		queryBuilder
+			.and(AuthorizationToken.JSON_KEY_REFRESH_TOKEN)
+			.is(refreshToken);
+
+		// Execute query.
+		return MONGO_COLLECTION.findOne(queryBuilder.get());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.bin.AuthorizationTokenBin#getTokenFromAuthorizationCode(java.lang.String)
+	 */
+    @Override
+    public AuthorizationToken getTokenFromAuthorizationCode(
+        final String authorizationCode)
+        throws IllegalArgumentException {
+
+        // Validate the parameter.
+        if(authorizationCode == null) {
+            throw
+                new IllegalArgumentException(
+                    "The authorization code is null.");
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the authorization token to the query.
+        queryBuilder
+            .and(AuthorizationToken.JSON_KEY_AUTHORIZATION_CODE)
+            .is(authorizationCode);
+
+        // Make sure it is the oldest one (the first one that was granted).
+        DBObject sort =
+            new BasicDBObject(AuthorizationToken.JSON_KEY_GRANTED, 1);
+
+        // Execute query.
+        DBCursor<MongoAuthorizationToken> tokens =
+            MONGO_COLLECTION.find(queryBuilder.get()).sort(sort).limit(1);
+
+        // If no tokens were returned, return null.
+        if(tokens.size() == 0) {
+            return null;
+        }
+        // Otherwise, return the first token that was found.
+        else {
+            return tokens.next();
+        }
+    }
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.bin.AuthorizationTokenBin#updateToken(org.ohmage.domain.AuthorizationToken)
 	 */
 	@Override
 	public void updateToken(
 		final AuthorizationToken token)
 		throws IllegalArgumentException {
-		
+
 		// Validate the parameter.
 		if(token == null) {
 			throw new IllegalArgumentException("The token is null.");
 		}
-		
-		// Ensure that we are only updating the given authentication token.
+
+		// Ensure that we are only updating the given authorization token.
 		Query query =
 			DBQuery
 				.is(AuthorizationToken.JSON_KEY_ACCESS_TOKEN,
 					token.getAccessToken());
-		
+
 		// Update the token.
-		COLLECTION.update(query, token);
+		if(COLLECTION.update(query, token).getN() == 0) {
+            throw
+                new InconsistentDatabaseException(
+                    "A conflict occurred. Please, try again.");
+		}
 	}
 }

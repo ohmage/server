@@ -166,15 +166,17 @@ public class MongoBinController extends BinController {
 		db = mongo.getDB(getDatabaseName());
 
 		// Instantiate the specific components.
-		new MongoUserBin();
-		new MongoAuthenticationTokenBin();
+		new MongoAuthorizationCodeBin();
+		new MongoAuthorizationTokenBin();
+        new MongoMediaBin();
+        new MongoOhmletBin();
+        new MongoOhmletInvitationBin();
 		new MongoStreamBin();
 		new MongoStreamDataBin();
 		new MongoSurveyBin();
 		new MongoSurveyResponseBin();
-		new MongoOhmletBin();
-		new MongoMediaBin();
-		new MongoOhmletInvitationBin();
+		new MongoOauthClientBin();
+        new MongoUserBin();
 		new MongoUserInvitationBin();
 	}
 

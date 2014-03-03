@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 public class InconsistentDatabaseException
 	extends OhmageException
 	implements HttpStatusCodeExceptionResponder {
-	
+
 	/**
 	 * The unique version of this class for serialization purposes.
 	 */
@@ -23,34 +23,34 @@ public class InconsistentDatabaseException
 
 	/**
 	 * Creates a new exception with a reason.
-	 * 
+	 *
 	 * @param reason
 	 *        The user-friendly reason this exception was thrown.
 	 */
 	public InconsistentDatabaseException(
 		final String reason) {
-		
+
 		super(reason);
 	}
 
 	/**
 	 * Creates a new exception with a reason and a cause.
-	 * 
+	 *
 	 * @param reason
 	 *        The user-friendly reason this exception was thrown.
-	 * 
+	 *
 	 * @param cause
 	 *        An underlying exception that caused this exception.
 	 */
 	public InconsistentDatabaseException(
 		final String reason,
 		final Throwable cause) {
-		
+
 		super(reason, cause);
 	}
 
 	/**
-	 * Returns a {@link HttpServletResponse.SC_CONFLICT}.
+	 * Returns a {@link HttpServletResponse#SC_CONFLICT}.
 	 */
 	@Override
 	public int getStatusCode() {
