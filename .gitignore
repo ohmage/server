@@ -5,4 +5,5 @@
 /build
 /bin
 /dist
+/web/WEB-INF/config/system.properties
 /web/WEB-INF/properties/system.properties

@@ -1,7 +1,9 @@
 package org.ohmage.servlet;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +23,7 @@ import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.ohmlet.Ohmlet;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
 import org.ohmage.domain.ohmlet.OhmletReference;
+import org.ohmage.domain.ohmlet.OhmletReferenceView;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.user.ProviderUserInformation;
@@ -407,27 +410,27 @@ public class UserServlet extends OhmageServlet {
 		return result;
 	}
 
-	/**
-	 * Retrieves the information about a user.
+    /**
+     * Retrieves the information about a user.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
      *        making this call.
-	 *
-	 * @param userId
-	 *        The unique identifier for the user whose information is desired.
-	 *
-	 * @return The desired user's information.
-	 */
-	@RequestMapping(
-		value = "{" + KEY_USER_ID + ":.+" + "}",
-		method = RequestMethod.GET)
-	public static @ResponseBody User getUserInformation(
+     *
+     * @param userId
+     *        The unique identifier for the user whose information is desired.
+     *
+     * @return The desired user's information.
+     */
+    @RequestMapping(
+        value = "{" + KEY_USER_ID + ":.+" + "}",
+        method = RequestMethod.GET)
+    public static @ResponseBody User getUserInformation(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-		@PathVariable(KEY_USER_ID) final String userId) {
+        @PathVariable(KEY_USER_ID) final String userId) {
 
-		LOGGER.log(Level.INFO, "Requesting information about a user.");
+        LOGGER.log(Level.INFO, "Requesting information about a user.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
         User user = OhmageServlet.validateAuthorization(authToken, null);
@@ -442,22 +445,300 @@ public class UserServlet extends OhmageServlet {
                     "The user's unique identifier is missing.");
         }
 
-		// Users are only visible to read their own data at this time.
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is requesting information about " +
-					"themselves.");
-		if(! user.getId().equals(userId)) {
-			throw
-				new InsufficientPermissionsException(
-					"A user may only view their own information.");
-		}
+        // Users are only visible to read their own data at this time.
+        LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user is requesting information about " +
+                    "themselves.");
+        if(! user.getId().equals(userId)) {
+            throw
+                new InsufficientPermissionsException(
+                    "A user may only view their own information.");
+        }
 
-		// Pull the user object from the token.
-		LOGGER.log(Level.INFO, "Retreiving the user object.");
-		return user;
-	}
+        // Pull the user object from the token.
+        LOGGER.log(Level.INFO, "Retreiving the user object.");
+        return user;
+    }
+
+    /**
+     * Retrieves the information about a user populated with the current state
+     * of the system.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
+     * @param userId
+     *        The unique identifier for the user whose information is desired.
+     *
+     * @return The desired user's information.
+     */
+    @RequestMapping(
+        value = "{" + KEY_USER_ID + ":.+" + "}" + "/current",
+        method = RequestMethod.GET)
+    public static @ResponseBody User getUserInformationPopulated(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+        @PathVariable(KEY_USER_ID) final String userId) {
+
+        LOGGER.log(Level.INFO, "Requesting information about a user.");
+
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user's unique identifier was given.");
+        if(userId == null) {
+            throw
+                new InvalidArgumentException(
+                    "The user's unique identifier is missing.");
+        }
+
+        // Users are only visible to read their own data at this time.
+        LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user is requesting information about " +
+                    "themselves.");
+        if(! user.getId().equals(userId)) {
+            throw
+                new InsufficientPermissionsException(
+                    "A user may only view their own information.");
+        }
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Creating a user builder to use to update the fields.");
+        User.Builder userBuilder = new User.Builder(user);
+
+        LOGGER.log(Level.INFO, "Updating the stream references.");
+        Map<String, Long> streamLookup = new HashMap<String, Long>();
+        for(SchemaReference streamRef : user.getStreams()) {
+            if(streamRef.getVersion() == null) {
+                // Attempt to lookup the value.
+                Long version = streamLookup.get(streamRef.getSchemaId());
+
+                // If the lookup failed, perform the actual lookup from the
+                // database.
+                if(version == null) {
+                    // Get the stream.
+                    Stream stream =
+                        StreamBin
+                            .getInstance()
+                            .getLatestStream(streamRef.getSchemaId(), false);
+
+                    // Make sure it exists.
+                    if(stream == null) {
+                        throw new IllegalStateException(
+                            "A referenced stream does not exist.");
+                    }
+
+                    // Get the version.
+                    version = stream.getVersion();
+
+                    // Add the entry to our lookup table.
+                    streamLookup.put(streamRef.getSchemaId(), version);
+                }
+
+                // Update the stream reference.
+                userBuilder.removeStream(streamRef);
+                userBuilder
+                    .addStream(
+                        new SchemaReference(
+                            streamRef.getSchemaId(),
+                            version));
+            }
+        }
+
+        LOGGER.log(Level.INFO, "Updating the survey references.");
+        Map<String, Long> surveyLookup = new HashMap<String, Long>();
+        for(SchemaReference surveyRef : user.getSurveys()) {
+            if(surveyRef.getVersion() == null) {
+                // Attempt to lookup the value.
+                Long version = surveyLookup.get(surveyRef.getSchemaId());
+
+                // If the lookup failed, perform the actual lookup from the
+                // database.
+                if(version == null) {
+                    // Get the survey.
+                    Survey survey =
+                        SurveyBin
+                            .getInstance()
+                            .getLatestSurvey(surveyRef.getSchemaId(), false);
+
+                    // Make sure it exists.
+                    if(survey == null) {
+                        throw new IllegalStateException(
+                            "A referenced survey does not exist.");
+                    }
+
+                    // Get the version.
+                    version = survey.getVersion();
+
+                    // Add the entry to our lookup table.
+                    surveyLookup.put(surveyRef.getSchemaId(), version);
+                }
+
+                // Update the stream reference.
+                userBuilder.removeSurvey(surveyRef);
+                userBuilder
+                    .addSurvey(
+                        new SchemaReference(
+                            surveyRef.getSchemaId(),
+                            version));
+            }
+        }
+
+        LOGGER.log(Level.INFO, "Updating the ohmlet references.");
+        for(OhmletReference ohmletRef : user.getOhmlets()) {
+            // Create a new builder to update this reference.
+            OhmletReferenceView.Builder refBuilder =
+                new OhmletReferenceView.Builder(ohmletRef);
+
+            // Get the original ohmlet.
+            Ohmlet ohmlet =
+                OhmletBin.getInstance().getOhmlet(ohmletRef.getOhmletId());
+
+            // Add each of the referenced streams to the reference builder.
+            for(SchemaReference streamRef : ohmlet.getStreams()) {
+                // Check if the user is ignoring this stream reference.
+                boolean ignored = false;
+                for(SchemaReference ignoredStream :
+                    ohmletRef.getIgnoredStreams()) {
+
+                    // Check if we have found the right ignored stream.
+                    if(streamRef.equals(ignoredStream)) {
+                        ignored = true;
+                        break;
+                    }
+                }
+                // Now, check if the ignored stream was found.
+                if(ignored) {
+                    // Skip it.
+                    continue;
+                }
+                // Otherwise, we need to add it to the list of streams.
+
+                // Get the stream reference with the version filled in.
+                SchemaReference sanitizedStreamRef = streamRef;
+                // If the version isn't present...
+                if(streamRef.getVersion() == null) {
+                    // Attempt to lookup the value.
+                    Long version = surveyLookup.get(streamRef.getSchemaId());
+
+                    // If the lookup failed, perform the actual lookup from the
+                    // database.
+                    if(version == null) {
+                        // Get the stream.
+                        Stream stream =
+                            StreamBin
+                                .getInstance()
+                                .getLatestStream(
+                                    streamRef.getSchemaId(),
+                                    false);
+
+                        // Make sure it exists.
+                        if(stream == null) {
+                            throw
+                                new IllegalStateException(
+                                    "A referenced stream does not exist.");
+                        }
+
+                        // Get the version.
+                        version = stream.getVersion();
+
+                        // Add the entry to our lookup table.
+                        streamLookup.put(streamRef.getSchemaId(), version);
+                    }
+
+                    // Update the reference.
+                    sanitizedStreamRef =
+                        new SchemaReference(
+                            streamRef.getSchemaId(),
+                            version);
+                }
+
+                // Add it to the list of stream references.
+                refBuilder.addStream(sanitizedStreamRef);
+            }
+
+            // Add each of the referenced surveys to the reference builder.
+            for(SchemaReference surveyRef : ohmlet.getSurveys()) {
+                // Check if the user is ignoring this survey reference.
+                boolean ignored = false;
+                for(SchemaReference ignoredSurvey :
+                    ohmletRef.getIgnoredSurveys()) {
+
+                    // Check if we have found the right ignored survey.
+                    if(surveyRef.equals(ignoredSurvey)) {
+                        ignored = true;
+                        break;
+                    }
+                }
+                // Now, check if the ignored survey was found.
+                if(ignored) {
+                    // Skip it.
+                    continue;
+                }
+                // Otherwise, we need to add it to the list of surveys.
+
+                // Get the survey reference with the version filled in.
+                SchemaReference sanitizedSurveyRef = surveyRef;
+                // If the version isn't present...
+                if(surveyRef.getVersion() == null) {
+                    // Attempt to lookup the value.
+                    Long version = surveyLookup.get(surveyRef.getSchemaId());
+
+                    // If the lookup failed, perform the actual lookup from the
+                    // database.
+                    if(version == null) {
+                        // Get the survey.
+                        Survey survey =
+                            SurveyBin
+                                .getInstance()
+                                .getLatestSurvey(
+                                    surveyRef.getSchemaId(),
+                                    false);
+
+                        // Make sure it exists.
+                        if(survey == null) {
+                            throw
+                                new IllegalStateException(
+                                    "A referenced survey does not exist.");
+                        }
+
+                        // Get the version.
+                        version = survey.getVersion();
+
+                        // Add the entry to our lookup table.
+                        surveyLookup.put(surveyRef.getSchemaId(), version);
+                    }
+
+                    // Update the reference.
+                    sanitizedSurveyRef =
+                        new SchemaReference(
+                            surveyRef.getSchemaId(),
+                            version);
+                }
+
+                // Add it to the list of survey references.
+                refBuilder.addSurvey(sanitizedSurveyRef);
+            }
+
+            // Update the ohmlet's definition.
+            userBuilder
+                .removeOhmlet(ohmlet.getId())
+                .addOhmlet(refBuilder.build());
+        }
+
+        LOGGER.log(Level.INFO, "Returning the updated user object.");
+        return userBuilder.build();
+    }
 
 	/**
 	 * Updates a user's password.

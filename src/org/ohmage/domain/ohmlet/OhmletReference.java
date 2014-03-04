@@ -156,7 +156,7 @@ public class OhmletReference {
          *
          * @return This builder to facilitate chaining.
          */
-        public OhmletReference.Builder addStream(final SchemaReference streamReference) {
+        public Builder ignoreStream(final SchemaReference streamReference) {
             if(ignoredStreams == null) {
                 ignoredStreams = new HashSet<SchemaReference>();
             }
@@ -164,6 +164,15 @@ public class OhmletReference {
             ignoredStreams.add(streamReference);
 
             return this;
+        }
+
+        /**
+         * Returns the set of ignored streams.
+         *
+         * @return The set of ignored streams.
+         */
+        public Set<SchemaReference> getIgnoredStreams() {
+            return ignoredStreams;
         }
 
         /**
@@ -175,7 +184,7 @@ public class OhmletReference {
          *
          * @return This builder to facilitate chaining.
          */
-        public OhmletReference.Builder removeStream(
+        public Builder stopIgnoringStream(
             final SchemaReference streamReference) {
 
             if(ignoredStreams == null) {
@@ -188,6 +197,17 @@ public class OhmletReference {
         }
 
         /**
+         * Stops ignoring all streams.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder stopIgnoringAllStreams() {
+            ignoredStreams.clear();
+
+            return this;
+        }
+
+        /**
          * Adds a survey to be ignored.
          *
          * @param surveyReference
@@ -195,7 +215,7 @@ public class OhmletReference {
          *
          * @return This builder to facilitate chaining.
          */
-        public OhmletReference.Builder addSurvey(final SchemaReference surveyReference) {
+        public Builder ignoreSurvey(final SchemaReference surveyReference) {
             if(ignoredSurveys == null) {
                 ignoredSurveys = new HashSet<SchemaReference>();
             }
@@ -203,6 +223,15 @@ public class OhmletReference {
             ignoredSurveys.add(surveyReference);
 
             return this;
+        }
+
+        /**
+         * Returns the set of ignored surveys.
+         *
+         * @return The set of ignored surveys.
+         */
+        public Set<SchemaReference> getIgnoredSurveys() {
+            return ignoredSurveys;
         }
 
         /**
@@ -214,7 +243,7 @@ public class OhmletReference {
          *
          * @return This builder to facilitate chaining.
          */
-        public OhmletReference.Builder removeSurvey(
+        public Builder stopIgnoringSurvey(
             final SchemaReference surveyReference) {
 
             if(ignoredSurveys == null) {
@@ -224,6 +253,35 @@ public class OhmletReference {
             ignoredSurveys.remove(surveyReference);
 
             return this;
+        }
+
+        /**
+         * Stops ignoring all surveys.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder stopIgnoringAllSurveys() {
+            ignoredStreams.clear();
+
+            return this;
+        }
+
+        /**
+         * Returns the currently set pseudonym.
+         *
+         * @return The currently set pseudonym.
+         */
+        public String getPseudonym() {
+            return pseudonym;
+        }
+
+        /**
+         * Returns the currently set privacy state.
+         *
+         * @return The currently set privacy state.
+         */
+        public OhmletReference.PrivacyState getPrivacyState() {
+            return privacyState;
         }
 
         /**
@@ -323,13 +381,18 @@ public class OhmletReference {
      * @param ohmletId
      *        The ohmlet's unique identifier.
      *
+     * @param version
+     *        The current internal version of the referenced ohmlet. This
+     *        should never be stored in the database and should only be used
+     *        for echoing back to the user.
+     *
      * @param ignoredStreams
-     *        The set of stream references that are defined by the ohmlet
-     *        but should be ignored.
+     *        The set of stream references that are defined by the ohmlet but
+     *        should be ignored.
      *
      * @param ignoredSurveys
-     *        The set of survey references that are defined by the ohmlet
-     *        but should be ignored.
+     *        The set of survey references that are defined by the ohmlet but
+     *        should be ignored.
      *
      * @throws InvalidArgumentException
      *         The ohmlet identifier is null.
@@ -387,7 +450,7 @@ public class OhmletReference {
     public OhmletReference ignoreStream(
         final SchemaReference streamReference) {
 
-        return (new Builder(this)).addStream(streamReference).build();
+        return (new Builder(this)).ignoreStream(streamReference).build();
     }
 
     /**
@@ -414,7 +477,7 @@ public class OhmletReference {
     public OhmletReference stopIgnoringStream(
         final SchemaReference streamReference) {
 
-        return (new Builder(this)).removeStream(streamReference).build();
+        return (new Builder(this)).stopIgnoringStream(streamReference).build();
     }
 
     /**
@@ -429,7 +492,7 @@ public class OhmletReference {
     public OhmletReference ignoreSurvey(
         final SchemaReference surveyReference) {
 
-        return (new Builder(this)).addSurvey(surveyReference).build();
+        return (new Builder(this)).ignoreSurvey(surveyReference).build();
     }
 
     /**
@@ -456,7 +519,7 @@ public class OhmletReference {
     public OhmletReference stopIgnoringSurvey(
         final SchemaReference surveyReference) {
 
-        return (new Builder(this)).removeSurvey(surveyReference).build();
+        return (new Builder(this)).stopIgnoringSurvey(surveyReference).build();
     }
 
     /**
