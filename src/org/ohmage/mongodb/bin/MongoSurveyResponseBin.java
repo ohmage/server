@@ -214,7 +214,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponses(java.lang.String, java.lang.String, long, java.util.Collection, org.joda.time.DateTime, org.joda.time.DateTime)
+     * @see org.ohmage.bin.SurveyResponseBin#getSurveyResponses(java.lang.String, long, java.util.Set, java.util.Collection, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, boolean, long, long)
      */
     @Override
     public MultiValueResult<? extends SurveyResponse> getSurveyResponses(
@@ -225,6 +225,7 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
         final DateTime startDate,
         final DateTime endDate,
         final ColumnList columnList,
+        final boolean chronological,
         final long numToSkip,
         final long numToReturn)
         throws IllegalArgumentException {
@@ -288,11 +289,19 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
             }
         }
 
+        // Create the ordering.
+        BasicDBObject sort =
+            new BasicDBObject(
+                DataPoint.JSON_KEY_META_DATA + "." +
+                    MetaData.JSON_KEY_TIMESTAMP_MILLIS,
+                ((chronological) ? 1 : -1));
+
         // Make the query and return the results.
         return
             new MongoMultiValueResultCursor<MongoSurveyResponse>(
                 MONGO_COLLECTION
                     .find(queryBuilder.get(), columns)
+                    .sort(sort)
                     .skip((int) numToSkip)
                     .limit((int) numToReturn));
     }

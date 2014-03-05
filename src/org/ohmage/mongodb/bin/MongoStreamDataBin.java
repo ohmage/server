@@ -132,7 +132,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, long, java.util.Set, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, long, long)
+	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, long, java.util.Set, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, boolean, long, long)
 	 */
 	@Override
 	public MultiValueResult<MongoStreamData> getStreamData(
@@ -142,6 +142,7 @@ public class MongoStreamDataBin extends StreamDataBin {
         final DateTime startDate,
         final DateTime endDate,
         final ColumnList columnList,
+        final boolean chronological,
         final long numToSkip,
         final long numToReturn)
 		throws IllegalArgumentException {
@@ -194,11 +195,19 @@ public class MongoStreamDataBin extends StreamDataBin {
             }
         }
 
+        // Create the ordering.
+        BasicDBObject sort =
+            new BasicDBObject(
+                DataPoint.JSON_KEY_META_DATA + "." +
+                    MetaData.JSON_KEY_TIMESTAMP_MILLIS,
+                ((chronological) ? 1 : -1));
+
 		// Make the query and return the results.
 		return
 			new MongoMultiValueResultCursor<MongoStreamData>(
 				MONGO_COLLECTION
 				    .find(queryBuilder.get(), columns)
+				    .sort(sort)
 				    .skip((int) numToSkip)
 				    .limit((int) numToReturn));
 	}

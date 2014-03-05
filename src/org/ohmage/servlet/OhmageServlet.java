@@ -44,6 +44,16 @@ public abstract class OhmageServlet {
     public static final String PARAM_END_DATE = "end_date";
 
     /**
+     * The parameter for whether or not the records should be returned in
+     * chronological order.
+     */
+    public static final String PARAM_CHRONOLOGICAL = "chronological";
+    /**
+     * The default value for the {@link #PARAM_CHRONOLOGICAL} parameter.
+     */
+    public static final String PARAM_DEFAULT_CHRONOLOGICAL = "true";
+
+    /**
      * The key for the number of elements to skip for requests that return a
      * list of results.
      */

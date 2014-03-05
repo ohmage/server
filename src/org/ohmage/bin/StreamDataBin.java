@@ -50,14 +50,14 @@ public abstract class StreamDataBin {
 		final List<StreamData> streamData)
 		throws IllegalArgumentException, InvalidArgumentException;
 
-	/**
-	 * Retrieves data specific to a user and a stream.
-	 *
-	 * @param streamId
-	 *        The stream's unique identifier.
-	 *
-	 * @param streamVersion
-	 *        The version of the stream.
+	    /**
+     * Retrieves data specific to a user and a stream.
+     *
+     * @param streamId
+     *        The stream's unique identifier.
+     *
+     * @param streamVersion
+     *        The version of the stream.
      *
      * @param userIds
      *        The users' unique identifier whose data should be returned.
@@ -74,17 +74,21 @@ public abstract class StreamDataBin {
      *        The projection of columns that should be returned. Null indicates
      *        that all columns should be returned.
      *
+     * @param chronological
+     *        Whether or not the data should be sorted in chronological order
+     *        (as opposed to reverse-chronological order).
+     *
      * @param numToSkip
      *        The number of stream data points to skip.
      *
      * @param numToReturn
      *        The number of stream data points to return.
-	 *
-	 * @return The data that matches the parameters.
-	 *
-	 * @throws IllegalArgumentException
-	 *         A required parameter was null.
-	 */
+     *
+     * @return The data that matches the parameters.
+     *
+     * @throws IllegalArgumentException
+     *         A required parameter was null.
+     */
 	public abstract MultiValueResult<? extends StreamData> getStreamData(
 		final String streamId,
 		final long streamVersion,
@@ -92,6 +96,7 @@ public abstract class StreamDataBin {
         final DateTime startDate,
         final DateTime endDate,
         final ColumnList columnList,
+        final boolean chronological,
         final long numToSkip,
         final long numToReturn)
 		throws IllegalArgumentException;

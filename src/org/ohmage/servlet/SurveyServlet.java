@@ -635,6 +635,7 @@ public class SurveyServlet extends OhmageServlet {
                     null,
                     null,
                     null,
+                    true,
                     0,
                     Long.MAX_VALUE);
     }
@@ -658,6 +659,10 @@ public class SurveyServlet extends OhmageServlet {
      *
      * @param endDate
      *        The latest date for a given point.
+     *
+     * @param chronological
+     *        Whether or not the data should be sorted in chronological order
+     *        (as opposed to reverse-chronological order).
      *
      * @param numToSkip
      *        The number of stream IDs to skip.
@@ -683,6 +688,11 @@ public class SurveyServlet extends OhmageServlet {
             final String startDate,
         @RequestParam(value = PARAM_END_DATE, required = false)
             final String endDate,
+        @RequestParam(
+            value = PARAM_CHRONOLOGICAL,
+            required = false,
+            defaultValue = PARAM_DEFAULT_CHRONOLOGICAL)
+            final boolean chronological,
         @RequestParam(
             value = PARAM_PAGING_NUM_TO_SKIP,
             required = false,
@@ -779,6 +789,7 @@ public class SurveyServlet extends OhmageServlet {
                     startDateObject,
                     endDateObject,
                     null,
+                    chronological,
                     numToSkip,
                     numToReturn);
 

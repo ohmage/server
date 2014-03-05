@@ -113,6 +113,10 @@ public abstract class SurveyResponseBin {
      *        The projection of columns that should be returned. Null indicates
      *        that all columns should be returned.
      *
+     * @param chronological
+     *        Whether or not the data should be sorted in chronological order
+     *        (as opposed to reverse-chronological order).
+     *
      * @param numToSkip
      *        The number of survey responses to skip.
      *
@@ -132,6 +136,7 @@ public abstract class SurveyResponseBin {
         final DateTime startDate,
         final DateTime endDate,
         final ColumnList columnList,
+        final boolean chronological,
         final long numToSkip,
         final long numToReturn)
         throws IllegalArgumentException;

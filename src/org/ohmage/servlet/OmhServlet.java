@@ -758,6 +758,10 @@ public class OmhServlet extends OhmageServlet {
      *        A column-separated list of the fields that should be returned
      *        from the resulting data.
      *
+     * @param chronological
+     *        Whether or not the data should be sorted in chronological order
+     *        (as opposed to reverse-chronological order).
+     *
      * @param numToSkip
      *        The number of stream IDs to skip.
      *
@@ -783,6 +787,11 @@ public class OmhServlet extends OhmageServlet {
             final String endDate,
         @RequestParam(value = KEY_COLUMN_LIST, required = false)
             final List<String> columnList,
+        @RequestParam(
+            value = PARAM_CHRONOLOGICAL,
+            required = false,
+            defaultValue = PARAM_DEFAULT_CHRONOLOGICAL)
+            final boolean chronological,
         @RequestParam(
             value = PARAM_PAGING_NUM_TO_SKIP,
             required = false,
@@ -887,6 +896,7 @@ public class OmhServlet extends OhmageServlet {
                             startDateObject,
                             endDateObject,
                             columnListObject,
+                            chronological,
                             numToSkip,
                             numToReturn);
                 break;
@@ -904,6 +914,7 @@ public class OmhServlet extends OhmageServlet {
                             startDateObject,
                             endDateObject,
                             columnListObject,
+                            chronological,
                             numToSkip,
                             numToReturn);
                 break;

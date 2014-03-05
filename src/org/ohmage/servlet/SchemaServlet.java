@@ -304,6 +304,10 @@ public class SchemaServlet extends OhmageServlet {
      * @param endDate
      *        The latest date for a given point.
      *
+     * @param chronological
+     *        Whether or not the data should be sorted in chronological order
+     *        (as opposed to reverse-chronological order).
+     *
      * @param numToSkip
      *        The number of stream IDs to skip.
      *
@@ -328,6 +332,11 @@ public class SchemaServlet extends OhmageServlet {
             final String startDate,
         @RequestParam(value = PARAM_END_DATE, required = false)
             final String endDate,
+        @RequestParam(
+            value = PARAM_CHRONOLOGICAL,
+            required = false,
+            defaultValue = PARAM_DEFAULT_CHRONOLOGICAL)
+            final boolean chronological,
         @RequestParam(
             value = PARAM_PAGING_NUM_TO_SKIP,
             required = false,
@@ -361,6 +370,7 @@ public class SchemaServlet extends OhmageServlet {
                         schemaVersion,
                         startDate,
                         endDate,
+                        chronological,
                         numToSkip,
                         numToReturn,
                         rootUrl);
@@ -376,6 +386,7 @@ public class SchemaServlet extends OhmageServlet {
                         schemaVersion,
                         startDate,
                         endDate,
+                        chronological,
                         numToSkip,
                         numToReturn,
                         rootUrl);
