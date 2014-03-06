@@ -1,0 +1,2271 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>ohmage Easy Post</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+           <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+        
+        <!-- JQuery -->
+        <script src="//code.jquery.com/jquery-2.1.0.js"></script>
+        
+        <!-- Bootstrap: Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        
+        <!-- Bootstrap: Optional theme -->
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap-theme.min.css">
+        
+        <!-- Bootstrap: Latest compiled and minified JavaScript -->
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+        
+        <style>
+            html, body, .container-fluid {
+                height: 100%;
+            }
+            
+            .panel {
+                padding: 5px;
+            }
+            
+            .panel-group {
+                margin-bottom: 0px;
+            }
+            
+            .well {
+                margin-bottom: 0px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container-fluid">
+        
+            <!-- Add our logo at the top of the page. -->
+            <div class="row">
+                <img src="images/ohmage-logo.png">
+            </div>
+        
+            <!-- The body of the page. -->
+            <div class="row">
+            
+                <!-- The list of APIs. -->
+                <div class="col-lg-4">
+                
+                    <!-- The API groups. -->
+                    <div class="panel-group" id="accordionRoot">
+
+                        <!-- Authorization APIs accordion. -->
+                        <div class="panel panel-default">
+                            <!-- Authorization APIs header. -->
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a
+                                        data-toggle="collapse"
+                                        data-parent="#accordionRoot"
+                                        href="#collapseAuthorization">
+                                        
+                                        <button class="btn btn-primary">
+                                           <i class="glyphicon glyphicon-plus"></i>
+                                           Authorization APIs
+                                        </button>
+                                    </a>
+                                </h4>
+                            </div>
+                            <!-- Authorization APIs body. -->
+                            <div
+                                id="collapseAuthorization"
+                                class="panel-collapse collapse">
+
+                                <!-- Authorization APIs. -->
+                                <div class="panel-group" id="accordionAuthorization">
+                                    <!-- Authorization token API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Authorization token API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionAuthorization" 
+                                                    href="#collapseAuthorizationToken">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Authorization Token
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Authorization token body. -->
+                                        <div
+                                            id="collapseAuthorizationToken"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="authorizationToken" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Email address -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Email
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="authEmail" 
+                                                            type="email" 
+                                                            name="email" 
+                                                            class="form-control" 
+                                                            placeholder="Email address">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Password -->
+                                                    <div class="input-group">
+                                                        <span 
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Password
+                                                            </button>
+                                                            </span>
+                                                        <input 
+                                                            id="authPassword" 
+                                                            type="password" 
+                                                            name="password" 
+                                                            class="form-control" 
+                                                            placeholder="Password">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit" 
+                                                        onclick="handleLogin();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- TODO: Refresh -->
+                                    
+                                    <!-- Example API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Example API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionAuthorization" 
+                                                    href="#collapseExample">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Example
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Example body. -->
+                                        <div
+                                            id="collapseExample"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="example" 
+                                                    class="well"
+                                                    method="post" 
+                                                    action="endpoint" 
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Email address -->
+                                                    <div class="input-group">
+                                                        <span class="input-group-btn"><button class="btn btn-danger" type="button" disabled="disabled">Email</button></span>
+                                                        <input type="text" name="email" class="form-control" placeholder="Email address">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Test -->
+                                                    <div class="input-group">
+                                                        <span class="input-group-btn"><button class="btn btn-info" type="button" disabled="disabled">Test</button></span>
+                                                        <input type="text" name="password" class="form-control" placeholder="Password">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Email address -->
+                                                    <div class="form-group">
+                                                        <label for="authEmail"><span class="label label-danger">Required</span> Email</label>
+                                                        <textarea id="authEmail" type="textbox" name="email" class="form-control" placeholder="Email address" style="resize: vertical;"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input type="submit" class="btn btn-success" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Stream APIs accordion. -->
+                        <div class="panel panel-default">
+                            <!-- Stream APIs header. -->
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a
+                                        data-toggle="collapse"
+                                        data-parent="#accordionRoot"
+                                        href="#collapseStream">
+                                        
+                                        <button class="btn btn-primary">
+                                           <i class="glyphicon glyphicon-plus"></i>
+                                           Stream APIs
+                                        </button>
+                                    </a>
+                                </h4>
+                            </div>
+                            <!-- Stream APIs body. -->
+                            <div
+                                id="collapseStream"
+                                class="panel-collapse collapse">
+
+                                <!-- Stream APIs. -->
+                                <div class="panel-group" id="accordionStream">
+                                    <!-- Stream creation API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream creation API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamCreation">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Creation
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream creation body. -->
+                                        <div
+                                            id="collapseStreamCreation"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamCreation" 
+                                                    class="well"
+                                                    method="post" 
+                                                    action="streams"
+                                                    enctype="application/json"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Definition -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="streamCreationDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="streamCreationDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Stream JSON Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="createStream();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream IDs API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream IDs API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamIds">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream IDs
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream IDs body. -->
+                                        <div
+                                            id="collapseStreamIds"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamIds" 
+                                                    class="well"
+                                                    method="get" 
+                                                    action="streams" 
+                                                    target="output">
+                                                    
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="submit" 
+                                                        class="btn btn-success" 
+                                                        value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream versions API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream versions API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamVersions">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Versions
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream versions body. -->
+                                        <div
+                                            id="collapseStreamVersions"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamVersions" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Stream ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamVersionsStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getStreamVersions();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream definition API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream definition API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamDefinition">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Definition
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream definition body. -->
+                                        <div
+                                            id="collapseStreamDefinition"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamDefinition" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Stream ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDefinitionStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Stream version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDefinitionStreamVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Stream Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getStreamDefinition();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream update API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream update API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamUpdate">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Update
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream update body. -->
+                                        <div
+                                            id="collapseStreamUpdate"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamUpdate" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamUpdateStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Definition -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="streamUpdateDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="streamUpdateDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Stream JSON Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="updateStream();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream data upload API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream data upload API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamDataUpload">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Data - Upload
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream data upload body. -->
+                                        <div
+                                            id="collapseStreamDataUpload"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamDataUpload" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Stream ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button"
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataUploadStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Stream version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button"
+                                                                disabled="disabled"  
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataUploadStreamVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Stream Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Data -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="streamDataUploadData">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Data
+                                                        </label>
+                                                        <textarea 
+                                                            id="streamDataUploadData" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Stream Data" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="uploadStreamData();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream data read API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream data read API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamDataRead">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Data - Read
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream data read body. -->
+                                        <div
+                                            id="collapseStreamDataRead"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamDataRead" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Stream ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Stream version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadStreamVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Stream Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Start Date -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Start Date
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadStartDate" 
+                                                            type="datetime"
+                                                            class="form-control" 
+                                                            placeholder="Start Date">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: End Date -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                End Date
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadEndDate" 
+                                                            type="datetime"
+                                                            class="form-control" 
+                                                            placeholder="End Date">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Chronological -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Chronological
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadChronological" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Chronological">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataReadNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getStreamData();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream data point read API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream data point read API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamDataPointRead">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Data Point - Read
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream data point body. -->
+                                        <div
+                                            id="collapseStreamDataPointRead"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamDataPointRead" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Stream ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataPointReadStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Stream version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataPointReadStreamVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Stream Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Point ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Point ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataPointReadPointId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Point ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getStreamDataPoint();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stream data point delete API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stream data point delete API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionStream" 
+                                                    href="#collapseStreamDataPointDelete">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stream Data Point - Delete
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stream data point body. -->
+                                        <div
+                                            id="collapseStreamDataPointDelete"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="streamDataPointDelete" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Stream ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataPointDeleteStreamId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Stream version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataPointDeleteStreamVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Stream Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Point ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Point ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamDataPointDeletePointId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Point ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="deleteStreamDataPoint();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Survey APIs accordion. -->
+                        <div class="panel panel-default">
+                            <!-- Survey APIs header. -->
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a
+                                        data-toggle="collapse"
+                                        data-parent="#accordionRoot"
+                                        href="#collapseSurvey">
+                                        
+                                        <button class="btn btn-primary">
+                                           <i class="glyphicon glyphicon-plus"></i>
+                                           Survey APIs
+                                        </button>
+                                    </a>
+                                </h4>
+                            </div>
+                            <!-- Survey APIs body. -->
+                            <div
+                                id="collapseSurvey"
+                                class="panel-collapse collapse">
+
+                                <!-- Survey APIs. -->
+                                <div class="panel-group" id="accordionSurvey">
+                                    <!-- Survey creation API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey creation API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyCreation">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Creation
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey creation body. -->
+                                        <div
+                                            id="collapseSurveyCreation"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyCreation" 
+                                                    class="well"
+                                                    method="post" 
+                                                    action="surveys"
+                                                    enctype="application/json"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Definition -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="surveyCreationDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="surveyCreationDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Survey JSON Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="createSurvey();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey IDs API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey IDs API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyIds">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey IDs
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey IDs body. -->
+                                        <div
+                                            id="collapseSurveyIds"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyIds" 
+                                                    class="well"
+                                                    method="get" 
+                                                    action="surveys" 
+                                                    target="output">
+                                                    
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="submit" 
+                                                        class="btn btn-success" 
+                                                        value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey versions API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey versions API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyVersions">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Versions
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey versions body. -->
+                                        <div
+                                            id="collapseSurveyVersions"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyVersions" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyVersionsSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSurveyVersions();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey definition API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey definition API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyDefinition">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Definition
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey versions body. -->
+                                        <div
+                                            id="collapseSurveyDefinition"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyDefinition" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDefinitionSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Survey version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDefinitionSurveyVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Survey Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSurveyDefinition();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey update API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey update API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyUpdate">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Update
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey update body. -->
+                                        <div
+                                            id="collapseSurveyUpdate"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyUpdate" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyUpdateSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Definition -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="surveyUpdateDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="surveyUpdateDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Survey JSON Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="updateSurvey();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey data upload API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey data upload API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyDataUpload">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Data - Upload
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey data upload body. -->
+                                        <div
+                                            id="collapseSurveyDataUpload"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyDataUpload" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button"
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataUploadSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Survey version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button"
+                                                                disabled="disabled"  
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataUploadSurveyVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Survey Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Data -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="surveyDataUploadData">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Data
+                                                        </label>
+                                                        <textarea 
+                                                            id="surveyDataUploadData" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Survey Data" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="uploadSurveyData();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey data read API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey data read API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyDataRead">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Data - Read
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey data read body. -->
+                                        <div
+                                            id="collapseSurveyDataRead"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyDataRead" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Survey version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadSurveyVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Survey Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Start Date -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Start Date
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadStartDate" 
+                                                            type="datetime"
+                                                            class="form-control" 
+                                                            placeholder="Start Date">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: End Date -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                End Date
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadEndDate" 
+                                                            type="datetime"
+                                                            class="form-control" 
+                                                            placeholder="End Date">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Chronological -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Chronological
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadChronological" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Chronological">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataReadNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSurveyData();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey data point read API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey data point read API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyDataPointRead">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Data Point - Read
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey data point body. -->
+                                        <div
+                                            id="collapseSurveyDataPointRead"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyDataPointRead" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataPointReadSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Survey version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataPointReadSurveyVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Survey Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Point ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Point ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataPointReadPointId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Point ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSurveyDataPoint();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Survey data point delete API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Survey data point delete API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSurvey" 
+                                                    href="#collapseSurveyDataPointDelete">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Survey Data Point - Delete
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Survey data point body. -->
+                                        <div
+                                            id="collapseSurveyDataPointDelete"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="surveyDataPointDelete" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Survey ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataPointDeleteSurveyId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Survey ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Survey version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataPointDeleteSurveyVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Survey Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Point ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Point ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyDataPointDeletePointId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Point ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="deleteSurveyDataPoint();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- The output frame. -->
+                <div class="col-lg-8">
+                    <iframe id="output" style="width: 100%;"></iframe>
+                </div>
+            </div>
+        </div>
+        
+        <script type="text/javascript">
+            /**
+             * Prints to the output frame.
+             * 
+             * @param text
+             *        The text to be displayed to the user without any
+             *        modifications.
+             */
+            function print(text) {
+                $("#output").contents().find('body').text(text);
+            }
+        
+            /**
+             * A generic success function that outputs the data as a string to
+             * the output iframe.
+             */
+            function genericSuccess(data) {
+                print(JSON.stringify(data));
+            }
+            
+            /**
+             * A generic failure function that will attempt to parse the error
+             * and display it to the user through the output iframe.
+             */
+            var lastFailure;
+            function genericFailure(jqXHR) {
+                lastFailure = jqXHR;
+                
+                if((jqXHR.status / 100) === 5) {
+                    print("An internal error occurred.");
+                }
+                else {
+                    print(jqXHR.responseText);
+                }
+            }
+            
+            /**
+             * The authorization token.
+             */
+            var auth = null;
+                
+            /**
+             * Handles the user's login attempt and stores the authorization
+             * information.
+             */
+            function handleLogin() {
+                var parameters = new Object();
+                
+                parameters['email'] = $("#authEmail").val();
+                parameters['password'] = $("#authPassword").val();
+                
+                $.post("auth_token", parameters)
+                    .success(function(data) {
+                        genericSuccess(data);
+                        
+                        auth = data;
+                    })
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Creates a new stream.
+             */
+            function createStream() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "streams/",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#streamCreationDefinition").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the stream versions.
+             */
+            function getStreamVersions() {
+                $.get("streams/" + $("#streamVersionsStreamId").val())
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the stream definition.
+             */
+            function getStreamDefinition() {
+                $.get(
+                    "streams/" + 
+                    $("#streamDefinitionStreamId").val() + "/" + 
+                    $("#streamDefinitionStreamVersion").val())
+                    
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Updates an existing stream.
+             */
+            function updateStream() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "streams/" + $("#streamUpdateStreamId").val(),
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#streamUpdateDefinition").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Uploads some stream data.
+             */
+            function uploadStreamData() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "streams/" + 
+                        $("#streamDataUploadStreamId").val() + "/" + 
+                        $("#streamDataUploadStreamVersion").val() + "/" +
+                        "data",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#streamDataUploadData").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the stream data.
+             */
+            function getStreamData() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = new Object();
+
+                var startDate = $("#streamDataReadStartDate").val();
+                if(startDate !== "") {
+                    parameters['start_date'] = startDate;
+                }
+                var endDate = $("#streamDataReadEndDate").val();
+                if(endDate !== "") {
+                    parameters['end_date'] = endDate;
+                }
+                var chronological = $("#streamDataReadChronological").val();
+                if(chronological !== "") {
+                    parameters['chronological'] = chronological;
+                }
+                var numToSkip = $("#streamDataReadNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#streamDataReadNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.ajax(
+                    "streams/" + 
+                        $("#streamDataReadStreamId").val() + "/" + 
+                        $("#streamDataReadStreamVersion").val() + "/" +
+                        "data",
+                    {
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: parameters
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves a specific stream data point.
+             */
+            function getStreamDataPoint() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "streams/" + 
+                        $("#streamDataPointReadStreamId").val() + "/" + 
+                        $("#streamDataPointReadStreamVersion").val() + "/" +
+                        "data/" +
+                        $("#streamDataPointReadPointId").val(),
+                    {
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Deletes a specific stream data point.
+             */
+            function deleteStreamDataPoint() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "streams/" + 
+                        $("#streamDataPointDeleteStreamId").val() + "/" + 
+                        $("#streamDataPointDeleteStreamVersion").val() + "/" +
+                        "data/" +
+                        $("#streamDataPointDeletePointId").val(),
+                    {
+                        type: "DELETE",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Creates a new survey.
+             */
+            function createSurvey() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "surveys/",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#surveyCreationDefinition").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the survey versions.
+             */
+            function getSurveyVersions() {
+                $.get("surveys/" + $("#surveyVersionsSurveyId").val())
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the survey definition.
+             */
+            function getSurveyDefinition() {
+                $.get(
+                    "surveys/" + 
+                    $("#surveyDefinitionSurveyId").val() + "/" + 
+                    $("#surveyDefinitionSurveyVersion").val())
+                    
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Updates an existing survey.
+             */
+            function updateSurvey() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "surveys/" + $("#surveyUpdateSurveyId").val(),
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#surveyUpdateDefinition").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Uploads some survey data.
+             */
+            function uploadSurveyData() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "surveys/" + 
+                        $("#surveyDataUploadSurveyId").val() + "/" + 
+                        $("#surveyDataUploadSurveyVersion").val() + "/" +
+                        "data",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#surveyDataUploadData").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the survey data.
+             */
+            function getSurveyData() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = new Object();
+
+                var startDate = $("#surveyDataReadStartDate").val();
+                if(startDate !== "") {
+                    parameters['start_date'] = startDate;
+                }
+                var endDate = $("#surveyDataReadEndDate").val();
+                if(endDate !== "") {
+                    parameters['end_date'] = endDate;
+                }
+                var chronological = $("#surveyDataReadChronological").val();
+                if(chronological !== "") {
+                    parameters['chronological'] = chronological;
+                }
+                var numToSkip = $("#surveyDataReadNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#surveyDataReadNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.ajax(
+                    "surveys/" + 
+                        $("#surveyDataReadSurveyId").val() + "/" + 
+                        $("#surveyDataReadSurveyVersion").val() + "/" +
+                        "data",
+                    {
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: parameters
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves a specific survey data point.
+             */
+            function getSurveyDataPoint() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "surveys/" + 
+                        $("#surveyDataPointReadSurveyId").val() + "/" + 
+                        $("#surveyDataPointReadSurveyVersion").val() + "/" +
+                        "data/" +
+                        $("#surveyDataPointReadPointId").val(),
+                    {
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Deletes a specific survey data point.
+             */
+            function deleteSurveyDataPoint() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "surveys/" + 
+                        $("#surveyDataPointDeleteSurveyId").val() + "/" + 
+                        $("#surveyDataPointDeleteSurveyVersion").val() + "/" +
+                        "data/" +
+                        $("#surveyDataPointDeletePointId").val(),
+                    {
+                        type: "DELETE",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+        </script>
+    </body>
+</html>
