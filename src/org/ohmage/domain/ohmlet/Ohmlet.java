@@ -1070,28 +1070,32 @@ public class Ohmlet extends OhmageDomainObject {
         this.iconId = iconId;
 
         this.streams = new HashMap<String, List<SchemaReference>>();
-        for(SchemaReference stream : streams) {
-            List<SchemaReference> streamReferences =
-                this.streams.get(stream.getSchemaId());
+        if(streams != null) {
+            for(SchemaReference stream : streams) {
+                List<SchemaReference> streamReferences =
+                    this.streams.get(stream.getSchemaId());
 
-            if(streamReferences == null) {
-                streamReferences = new LinkedList<SchemaReference>();
-                this.streams.put(stream.getSchemaId(), streamReferences);
+                if(streamReferences == null) {
+                    streamReferences = new LinkedList<SchemaReference>();
+                    this.streams.put(stream.getSchemaId(), streamReferences);
+                }
+
+                streamReferences.add(stream);
             }
-
-            streamReferences.add(stream);
         }
         this.surveys = new HashMap<String, List<SchemaReference>>();
-        for(SchemaReference survey : surveys) {
-            List<SchemaReference> surveyReferences =
-                this.surveys.get(survey.getSchemaId());
+        if(surveys != null) {
+            for(SchemaReference survey : surveys) {
+                List<SchemaReference> surveyReferences =
+                    this.surveys.get(survey.getSchemaId());
 
-            if(surveyReferences == null) {
-                surveyReferences = new LinkedList<SchemaReference>();
-                this.surveys.put(survey.getSchemaId(), surveyReferences);
+                if(surveyReferences == null) {
+                    surveyReferences = new LinkedList<SchemaReference>();
+                    this.surveys.put(survey.getSchemaId(), surveyReferences);
+                }
+
+                surveyReferences.add(survey);
             }
-
-            surveyReferences.add(survey);
         }
 
 		this.members = new HashMap<String, Member>();

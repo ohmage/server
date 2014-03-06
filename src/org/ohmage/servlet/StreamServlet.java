@@ -595,14 +595,25 @@ public class StreamServlet extends OhmageServlet {
     		            Scope.Permission.READ));
 
         LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
-        DateTime startDateObject =
-            (startDate == null) ?
-                null :
-                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
-        DateTime endDateObject =
-            (endDate == null) ?
-                null :
-                OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
+        DateTime startDateObject, endDateObject;
+        try {
+            startDateObject =
+                (startDate == null) ?
+                    null :
+                    OHMAGE_DATE_TIME_FORMATTER.parseDateTime(startDate);
+        }
+        catch(IllegalArgumentException e) {
+            throw new InvalidArgumentException("The start date is invalid.");
+        }
+        try {
+            endDateObject =
+                (endDate == null) ?
+                    null :
+                    OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
+        }
+        catch(IllegalArgumentException e) {
+            throw new InvalidArgumentException("The end date is invalid.");
+        }
 
         LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
         Stream latestStream =
