@@ -101,7 +101,7 @@
              * Presents error states to the user.
              */
             function handleError(jqXHR) {
-                if((jqXHR.status % 100) === 5) {
+                if((jqXHR.status / 100) === 5) {
                     $("#errorDiv").text("An internal error occurred.");
                 }
                 else {

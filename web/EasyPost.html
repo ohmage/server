@@ -161,9 +161,41 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- TODO: Refresh -->
-                                    
+                                    <!-- Authorization token refresh API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Authorization token refresh API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionAuthorization" 
+                                                    href="#collapseAuthorizationTokenRefresh">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Refresh Token
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Authorization token body. -->
+                                        <div
+                                            id="collapseAuthorizationTokenRefresh"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="authorizationTokenRefresh" 
+                                                    class="well">
+                                                    
+                                                    <!-- Button: Submit -->
+                                                    <input
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit" 
+                                                        onclick="refreshToken();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!-- Example API accordion. -->
                                     <div class="panel panel-default">
                                         <!-- Example API header. -->
@@ -212,6 +244,566 @@
                                                     <p></p>
                                                     <!-- Button: Submit -->
                                                     <input type="submit" class="btn btn-success" value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Schema APIs accordion. -->
+                        <div class="panel panel-default">
+                            <!-- Schema APIs header. -->
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a
+                                        data-toggle="collapse"
+                                        data-parent="#accordionRoot"
+                                        href="#collapseSchema">
+                                        
+                                        <button class="btn btn-primary">
+                                           <i class="glyphicon glyphicon-plus"></i>
+                                           Schema APIs
+                                        </button>
+                                    </a>
+                                </h4>
+                            </div>
+                            <!-- Schema APIs body. -->
+                            <div
+                                id="collapseSchema"
+                                class="panel-collapse collapse">
+
+                                <!-- Schema APIs. -->
+                                <div class="panel-group" id="accordionSchema">
+                                    <!-- Schema IDs API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Schema IDs API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSchema" 
+                                                    href="#collapseSchemaIds">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Schema IDs
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Schema IDs body. -->
+                                        <div
+                                            id="collapseSchemaIds"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="schemaIds" 
+                                                    class="well"
+                                                    method="get" 
+                                                    action="schemas" 
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaIdsNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaIdsNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSchemaIds();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Schema versions API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Schema versions API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSchema" 
+                                                    href="#collapseSchemaVersions">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Schema Versions
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Schema versions body. -->
+                                        <div
+                                            id="collapseSchemaVersions"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="schemaVersions" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Schema ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaVersionsSchemaId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Schema ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaVersionsNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaVersionsNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSchemaVersions();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Schema definition API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Schema definition API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSchema" 
+                                                    href="#collapseSchemaDefinition">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Schema Definition
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Schema definition body. -->
+                                        <div
+                                            id="collapseSchemaDefinition"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="schemaDefinition" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Schema ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDefinitionSchemaId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Schema ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Schema version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDefinitionSchemaVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Schema Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSchemaDefinition();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Schema data read API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Schema data read API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSchema" 
+                                                    href="#collapseSchemaDataRead">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Schema Data - Read
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Schema data read body. -->
+                                        <div
+                                            id="collapseSchemaDataRead"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="schemaDataRead" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Schema ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadSchemaId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Schema ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Schema version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadSchemaVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Schema Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Start Date -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Start Date
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadStartDate" 
+                                                            type="datetime"
+                                                            class="form-control" 
+                                                            placeholder="Start Date">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: End Date -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                End Date
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadEndDate" 
+                                                            type="datetime"
+                                                            class="form-control" 
+                                                            placeholder="End Date">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Chronological -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Chronological
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadChronological" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Chronological">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataReadNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSchemaData();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Schema data point read API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Schema data point read API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionSchema" 
+                                                    href="#collapseSchemaDataPointRead">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Schema Data Point - Read
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Schema data point body. -->
+                                        <div
+                                            id="collapseSchemaDataPointRead"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="schemaDataPointRead" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Schema ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataPointReadSchemaId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Schema ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Schema version -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Version
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataPointReadSchemaVersion" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Schema Version">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Point ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Point ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="schemaDataPointReadPointId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Point ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getSchemaDataPoint();">
                                                 </form>
                                             </div>
                                         </div>
@@ -327,11 +919,54 @@
                                                     action="streams" 
                                                     target="output">
                                                     
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamIdsNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamIdsReadNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
                                                     <!-- Button: Submit -->
                                                     <input 
-                                                        type="submit" 
+                                                        type="button" 
                                                         class="btn btn-success" 
-                                                        value="Submit">
+                                                        value="Submit"
+                                                        onclick="getStreamIds();">
                                                 </form>
                                             </div>
                                         </div>
@@ -380,6 +1015,48 @@
                                                             type="text"
                                                             class="form-control" 
                                                             placeholder="Stream ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamVersionsReadNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="streamVersionsReadNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
                                                     </div>
                                                     <p></p>
                                                     <!-- Button: Submit -->
@@ -495,7 +1172,7 @@
                                                     class="well"
                                                     target="output">
                                                     
-                                                    <!-- Param: Survey ID -->
+                                                    <!-- Param: Stream ID -->
                                                     <div class="input-group">
                                                         <span
                                                             class="input-group-btn">
@@ -1126,11 +1803,54 @@
                                                     action="surveys" 
                                                     target="output">
                                                     
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyIdsNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyIdsNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
                                                     <!-- Button: Submit -->
                                                     <input 
-                                                        type="submit" 
+                                                        type="button" 
                                                         class="btn btn-success" 
-                                                        value="Submit">
+                                                        value="Submit"
+                                                        onclick="getSurveyIds();">
                                                 </form>
                                             </div>
                                         </div>
@@ -1181,6 +1901,48 @@
                                                             placeholder="Survey ID">
                                                     </div>
                                                     <p></p>
+                                                    <!-- Param: Number to skip -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Skip
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyVersionsNumToSkip" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to skip">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Number to return -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Return
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="surveyVersionsNumToReturn" 
+                                                            type="number"
+                                                            class="form-control" 
+                                                            placeholder="Number to return">
+                                                    </div>
+                                                    <p></p>
                                                     <!-- Button: Submit -->
                                                     <input 
                                                         type="button" 
@@ -1206,7 +1968,7 @@
                                                 </a>
                                             </h3>
                                         </div>
-                                        <!-- Survey versions body. -->
+                                        <!-- Survey definition body. -->
                                         <div
                                             id="collapseSurveyDefinition"
                                             class="panel-collapse collapse">
@@ -1226,7 +1988,7 @@
                                                                 type="button" 
                                                                 disabled="disabled" 
                                                                 tabindex="-1">
-                                                                
+
                                                                 ID
                                                             </button>
                                                         </span>
@@ -1817,17 +2579,612 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- ohmlet APIs accordion. -->
+                        <div class="panel panel-default">
+                            <!-- ohmlet APIs header. -->
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a
+                                        data-toggle="collapse"
+                                        data-parent="#accordionRoot"
+                                        href="#collapseOhmlet">
+                                        
+                                        <button class="btn btn-primary">
+                                           <i class="glyphicon glyphicon-plus"></i>
+                                           ohmlet APIs
+                                        </button>
+                                    </a>
+                                </h4>
+                            </div>
+                            <!-- ohmlet APIs body. -->
+                            <div
+                                id="collapseOhmlet"
+                                class="panel-collapse collapse">
+
+                                <!-- ohmlet APIs. -->
+                                <div class="panel-group" id="accordionOhmlet">
+                                    <!-- ohmlet creation API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet creation API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletCreation">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Creation
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet creation body. -->
+                                        <div
+                                            id="collapseOhmletCreation"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletCreation" 
+                                                    class="well"
+                                                    method="post" 
+                                                    action="ohmlets"
+                                                    enctype="application/json"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: Definition -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="ohmletCreationDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="ohmletCreationDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Ohmlet JSON Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="createOhmlet();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet IDs API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet IDs API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletIds">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet IDs
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet IDs body. -->
+                                        <div
+                                            id="collapseOhmletIds"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletIds" 
+                                                    class="well"
+                                                    method="get" 
+                                                    action="ohmlets" 
+                                                    target="output">
+                                                    
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="submit" 
+                                                        class="btn btn-success" 
+                                                        value="Submit">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet definition API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet definition API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletDefinition">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Definition
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet definition body. -->
+                                        <div
+                                            id="collapseOhmletDefinition"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletDefinition" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletDefinitionOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getOhmletDefinition();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet update API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet update API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletUpdate">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Update
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet update body. -->
+                                        <div
+                                            id="collapseOhmletUpdate"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletUpdate" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletUpdateOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Definition -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="ohmletUpdateDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="ohmletUpdateDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="ohmlet JSON Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="updateOhmlet();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet invitation API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet invitation API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletInvitation">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Invitation
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet invtation body. -->
+                                        <div
+                                            id="collapseOhmletInvitation"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletInvitation" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletInvitationOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Email Addresses -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Emails
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletInvitationEmails" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="JSON Array of Email Addresses">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="sendOhmletInvitations();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet update role API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet update role API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletUpdateRole">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Update Role
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet update role body. -->
+                                        <div
+                                            id="collapseOhmletUpdateRole"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletUpdateRole" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletUpdateRoleOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Invitation ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Invitation
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletUpdateRoleInvitationId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Invitation ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Member Information -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="ohmletUpdateRoleMember">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Member
+                                                        </label>
+                                                        <textarea 
+                                                            id="ohmletUpdateRoleMember" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="Member JSON Object" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="updateOhmletRole();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet remove user API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet remove user API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletRemoveUser">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Remove User
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet remove user body. -->
+                                        <div
+                                            id="collapseOhmletRemoveUser"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletRemoveUser" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletRemoveUserOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Invitation ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletRemoveUserUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="deleteOhmletUser();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- ohmlet deletion API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- ohmlet deletion API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionOhmlet" 
+                                                    href="#collapseOhmletDeletion">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    ohmlet Deletion
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- ohmlet deletion body. -->
+                                        <div
+                                            id="collapseOhmletDeletion"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="ohmletDeletion" 
+                                                    class="well"
+                                                    target="output">
+                                                    
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="ohmletDeletionOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="deleteOhmlet();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- The output frame. -->
-                <div class="col-lg-8">
-                    <iframe id="output" style="width: 100%;"></iframe>
+                <div id="outputContainer" class="col-lg-8">
+                    <pre><code id="output" style="width: 100%;"></code></pre>
                 </div>
             </div>
         </div>
         
+        <!--
+            All of the JavaScript goodness that could hopefully be turned into
+            a JavaScript library for ohmage.
+         -->
         <script type="text/javascript">
+            // Add the scrolling animation for the output.
+            var OUTPUT_BUFFER = 10;
+            var UPDATE_SPEED = 0;
+            var outputContainer = $('#outputContainer');
+            var outputContainerOriginalTop = outputContainer.offset().top;
+            $(window)
+                .scroll(
+                    function() {
+                        var outputContainerCurrentTop =
+                            outputContainer.offset().top;
+                        var windowTop = $(window).scrollTop();
+                        // The window hasn't passed below the top of the output
+                        // frame yet.
+                        if(windowTop < outputContainerOriginalTop) {
+                            outputContainer.stop().css( { 'top' : 0 } );
+                        } 
+                        // The window has passed the output frame, so we need
+                        // to update the output frame's position.
+                        else {
+                            outputContainer
+                                .stop()
+                                .animate(
+                                    {
+                                        'top' : 
+                                            windowTop - 
+                                                outputContainerOriginalTop + 
+                                                OUTPUT_BUFFER
+                                    },
+                                    UPDATE_SPEED);
+                        }
+                    }
+                );
+        
             /**
              * Prints to the output frame.
              * 
@@ -1836,7 +3193,7 @@
              *        modifications.
              */
             function print(text) {
-                $("#output").contents().find('body').text(text);
+                $("#output").text(text);
             }
         
             /**
@@ -1866,7 +3223,9 @@
             /**
              * The authorization token.
              */
-            var auth = null;
+            var KEY_AUTHORIZATION_TOKEN = "authorization_token";
+            var auth =
+                JSON.parse(sessionStorage.getItem(KEY_AUTHORIZATION_TOKEN));
                 
             /**
              * Handles the user's login attempt and stores the authorization
@@ -1883,7 +3242,163 @@
                         genericSuccess(data);
                         
                         auth = data;
+                        sessionStorage
+                            .setItem(
+                                KEY_AUTHORIZATION_TOKEN, 
+                                JSON.stringify(auth));
                     })
+                    .fail(genericFailure);
+            }
+                
+            /**
+             * Handles refreshing the user's authorization token.
+             */
+            function refreshToken() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = new Object();
+                
+                parameters['refresh_token'] = auth['refresh_token'];
+                
+                $.post("auth_token", parameters)
+                    .success(function(data) {
+                        genericSuccess(data);
+                        
+                        auth = data;
+                        sessionStorage
+                            .setItem(
+                                KEY_AUTHORIZATION_TOKEN, 
+                                JSON.stringify(auth));
+                    })
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the schema IDs.
+             */
+            function getSchemaIds() {
+                var parameters = new Object();
+                
+                var numToSkip = $("#schemaIdsNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#schemaIdsNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.get("schemas", parameters)
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the schema versions.
+             */
+            function getSchemaVersions() {
+                var parameters = new Object();
+                
+                var numToSkip = $("#schemaVersionsNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#schemaVersionsNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.get(
+                    "schemas/" + $("#schemaVersionsSchemaId").val(),
+                    parameters)
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the schema definition.
+             */
+            function getSchemaDefinition() {
+                $.get(
+                    "schemas/" + 
+                    $("#schemaDefinitionSchemaId").val() + "/" + 
+                    $("#schemaDefinitionSchemaVersion").val())
+                    
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the schema data.
+             */
+            function getSchemaData() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = new Object();
+
+                var startDate = $("#schemaDataReadStartDate").val();
+                if(startDate !== "") {
+                    parameters['start_date'] = startDate;
+                }
+                var endDate = $("#schemaDataReadEndDate").val();
+                if(endDate !== "") {
+                    parameters['end_date'] = endDate;
+                }
+                var chronological = $("#schemaDataReadChronological").val();
+                if(chronological !== "") {
+                    parameters['chronological'] = chronological;
+                }
+                var numToSkip = $("#schemaDataReadNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#schemaDataReadNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.ajax(
+                    "streams/" + 
+                        $("#schemaDataReadSchemaId").val() + "/" + 
+                        $("#schemaDataReadSchemaVersion").val() + "/" +
+                        "data",
+                    {
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: parameters
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves a specific schema data point.
+             */
+            function getSchemaDataPoint() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "streams/" + 
+                        $("#schemaDataPointReadSchemaId").val() + "/" + 
+                        $("#schemaDataPointReadSchemaVersion").val() + "/" +
+                        "data/" +
+                        $("#schemaDataPointReadPointId").val(),
+                    {
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -1911,10 +3426,43 @@
             }
             
             /**
+             * Retrieves the stream IDs.
+             */
+            function getStreamIds() {
+                var parameters = new Object();
+                
+                var numToSkip = $("#streamIdsNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#streamIdsNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.get("streams", parameters)
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
              * Retrieves the stream versions.
              */
             function getStreamVersions() {
-                $.get("streams/" + $("#streamVersionsStreamId").val())
+                var parameters = new Object();
+                
+                var numToSkip = $("#streamVersionsNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#streamVersionsNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.get(
+                    "streams/" + $("#streamVersionsStreamId").val(), 
+                    parameters)
                     .success(genericSuccess)
                     .fail(genericFailure);
             }
@@ -2101,10 +3649,43 @@
             }
             
             /**
+             * Retrieves the survey IDs.
+             */
+            function getSurveyIds() {
+                var parameters = new Object();
+                
+                var numToSkip = $("#surveyIdsNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#surveyIdsNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.get("surveys", parameters)
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
              * Retrieves the survey versions.
              */
             function getSurveyVersions() {
-                $.get("surveys/" + $("#surveyVersionsSurveyId").val())
+                var parameters = new Object();
+                
+                var numToSkip = $("#surveyVersionsNumToSkip").val();
+                if(numToSkip !== "") {
+                    parameters['num_to_skip'] = numToSkip;
+                }
+                var numToReturn = $("#surveyVersionsNumToReturn").val();
+                if(numToReturn !== "") {
+                    parameters['num_to_return'] = numToReturn;
+                }
+                
+                $.get(
+                    "surveys/" + $("#surveyVersionsSurveyId").val(),
+                    parameters)
                     .success(genericSuccess)
                     .fail(genericFailure);
             }
@@ -2257,6 +3838,161 @@
                         $("#surveyDataPointDeleteSurveyVersion").val() + "/" +
                         "data/" +
                         $("#surveyDataPointDeletePointId").val(),
+                    {
+                        type: "DELETE",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Creates a new ohmlet.
+             */
+            function createOhmlet() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "ohmlets/",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#ohmletCreationDefinition").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the ohmlet definition.
+             */
+            function getOhmletDefinition() {
+                $.get("ohmlets/" + $("#ohmletDefinitionOhmletId").val())
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Updates an existing ohmlet.
+             */
+            function updateOhmlet() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "ohmlets/" + $("#ohmletUpdateOhmletId").val(),
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#ohmletUpdateDefinition").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Sends invitations to an ohmlet.
+             */
+            function sendOhmletInvitation() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "ohmlets/" + $("#ohmletInvitationOhmletId").val() + "/" +
+                        "people" + "/" +
+                        "invitations",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#ohmletInvitationEmails").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Updates an existing survey.
+             */
+            function updateOhmletRole() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = 
+                    { 
+                        'ohmlet_invitation_id' : 
+                            $("#ohmletUpdateRoleInvitationId").val() };
+                
+                $.ajax(
+                    "ohmlets/" +
+                        $("#ohmletUpdateRoleOhmletId").val() + "/" +
+                        "people" + "?" +
+                        $.param(parameters),
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#surveyUpdateRoleMember").val()
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+
+            /**
+             * Updates an existing survey.
+             */
+            function deleteOhmletUser() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "ohmlets/" +
+                        $("#ohmletRemoveUserOhmletId").val() + "/" +
+                        "people" + "/" +
+                        $("#ohmletRemoveUserUserId").val(),
+                    {
+                        type: "DELETE",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .success(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Deletes an ohmlet.
+             */
+            function deleteOhmlet() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax("ohmlets/" + $("#ohmletDeletionOhmletId").val(),
                     {
                         type: "DELETE",
                         headers: {

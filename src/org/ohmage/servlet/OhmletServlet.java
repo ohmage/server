@@ -404,7 +404,7 @@ public class OhmletServlet extends OhmageServlet {
 	}
 
 	/**
-	 * Returns a communities definition.
+	 * Returns a ohmlet's definition.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
@@ -595,6 +595,188 @@ public class OhmletServlet extends OhmageServlet {
 		LOGGER.log(Level.FINE, "Storing the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(newOhmlet);
 	}
+
+    /**
+     * Invites a set of users to ohmate and to a specific ohmlet. If a user
+     * exists with the given email address, they are immediately set to the
+     * INVITED role if they are not already at INVITED+. If no such user exists
+     * then an email is sent to the email address inviting them to use the
+     * system.
+     *
+     * @param authToken
+     *        The inviting user's authentication token.
+     *
+     * @param rootUrl
+     *        The root URL for the incoming request used to build the
+     *        invitation URL in the email.
+     *
+     * @param ohmletId
+     *        The specific ohmlet's unique identifier.
+     *
+     * @param emails
+     *        The set of emails that should be used to invite users.
+     */
+    @RequestMapping(
+        value =
+            "{" + KEY_OHMLET_ID + "}" +
+            "/" + Ohmlet.JSON_KEY_MEMBERS +
+            "/" + PATH_INVITATIONS,
+        method = RequestMethod.POST)
+    public static @ResponseBody void inviteUsers(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+        @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT) final String rootUrl,
+        @PathVariable(KEY_OHMLET_ID) final String ohmletId,
+        @RequestBody final List<String> emails) {
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Creating a request to invite users to an ohmlet: " +
+                    ohmletId);
+
+        LOGGER.log(Level.INFO, "Validating the user from the token");
+        User user = OhmageServlet.validateAuthorization(authToken, null);
+
+        LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+        Ohmlet ohmlet =
+            OhmletBin.getInstance().getOhmlet(ohmletId);
+
+        LOGGER
+            .log(
+                Level.INFO,
+                "Verifying that the user is allowed to invite other users.");
+        if(ohmlet.getInviteRole().supersedes(ohmlet.getRole(user.getId()))) {
+            throw
+                new InsufficientPermissionsException(
+                    "The user does not have sufficient permissions to " +
+                        "invite other users.");
+        }
+
+        // Keep a copy of the ohmlet to be updated as people are granted roles.
+        boolean wasUpdated = false;
+        Ohmlet.Builder ohmletBuilder = new Ohmlet.Builder(ohmlet);
+
+        // Each email address is treated independently.
+        for(String email : emails) {
+            // Check if an account already exists with the given email address.
+            User currUser = UserBin.getInstance().getUserFromEmail(email);
+
+            // If the user doesn't exist,
+            if(currUser == null) {
+                // Create the ohmlet invitation.
+                OhmletInvitation ohmletInvitation =
+                    new OhmletInvitation(ohmletId);
+
+                // Create the user invitation.
+                UserInvitation userInvitation =
+                    new UserInvitation(email, ohmletInvitation.getId());
+
+                // Store the invitations in the database.
+                OhmletInvitationBin
+                    .getInstance()
+                    .addInvitation(ohmletInvitation);
+                UserInvitationBin.getInstance().addInvitation(userInvitation);
+
+                // Build the URL.
+                // Start with the root URL to our web app.
+                StringBuilder invitationUrlBuilder =
+                    new StringBuilder(rootUrl);
+                // Add the ohmlet endpoint.
+                invitationUrlBuilder.append(ROOT_MAPPING);
+
+                // Add the custom endpoint for accepting an invitation.
+                invitationUrlBuilder.append("/join");
+                // Begin adding the parameters.
+                invitationUrlBuilder.append('?');
+                try {
+                    // Add the email address.
+                    invitationUrlBuilder
+                        .append(
+                            URLEncoder
+                                .encode(User.JSON_KEY_EMAIL, URL_ENCODING))
+                        .append('=')
+                        .append(URLEncoder.encode(email, URL_ENCODING));
+
+                    // Add the user invitation code.
+                    invitationUrlBuilder
+                        .append('&')
+                        .append(
+                            URLEncoder
+                                .encode(
+                                    UserInvitation.JSON_KEY_INVITATION_ID,
+                                    URL_ENCODING))
+                        .append('=')
+                        .append(
+                            URLEncoder
+                                .encode(
+                                    userInvitation.getId(),
+                                    URL_ENCODING));
+
+                    // Add the ohmlet ID.
+                    invitationUrlBuilder
+                        .append('&')
+                        .append(
+                            URLEncoder
+                                .encode(Ohmlet.JSON_KEY_ID, URL_ENCODING))
+                        .append('=')
+                        .append(
+                            URLEncoder.encode(ohmlet.getId(), URL_ENCODING));
+
+                    // Add the ohmlet invitation code.
+                    invitationUrlBuilder
+                        .append('&')
+                        .append(
+                            URLEncoder
+                                .encode(
+                                    OhmletInvitation.JSON_KEY_INVITATION_ID,
+                                    URL_ENCODING))
+                        .append('=')
+                        .append(
+                            URLEncoder
+                                .encode(
+                                    ohmletInvitation.getId(),
+                                    URL_ENCODING));
+                }
+                catch(UnsupportedEncodingException e) {
+                    throw
+                        new IllegalStateException(
+                            "The encoding is unknown: " + URL_ENCODING);
+                }
+
+                // Send an invitation email.
+                sendUserInvitationEmail(
+                    email,
+                    invitationUrlBuilder.toString());
+            }
+            // If the user does exist,
+            else {
+                // Get the current user's role in the ohmlet.
+                Ohmlet.Role currRole = ohmlet.getRole(currUser.getId());
+
+                // If the user has no association with the ohmlet or is in the
+                // requested state, set them as invited.
+                if(
+                    (currRole == null) ||
+                    (Ohmlet.Role.REQUESTED.equals(currRole))) {
+
+                    // Set the flag.
+                    wasUpdated = true;
+
+                    // Update the ohmlet with the new role.
+                    ohmletBuilder
+                        .addMember(currUser.getId(), Ohmlet.Role.INVITED)
+                        .build();
+                }
+                // Otherwise, just keep on keeping on.
+            }
+        }
+
+        if(wasUpdated) {
+            LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
+            OhmletBin.getInstance().updateOhmlet(ohmletBuilder.build());
+        }
+    }
 
     /**
      * Allows a user to modify their or another user's privileges. This can be
@@ -976,188 +1158,6 @@ public class OhmletServlet extends OhmageServlet {
                     "account.");
         User updatedRequestee = requestee.leaveOhmlet(ohmletId);
         UserBin.getInstance().updateUser(updatedRequestee);
-    }
-
-    /**
-     * Invites a set of users to ohmate and to a specific ohmlet. If a user
-     * exists with the given email address, they are immediately set to the
-     * INVITED role if they are not already at INVITED+. If no such user exists
-     * then an email is sent to the email address inviting them to use the
-     * system.
-     *
-     * @param authToken
-     *        The inviting user's authentication token.
-     *
-     * @param rootUrl
-     *        The root URL for the incoming request used to build the
-     *        invitation URL in the email.
-     *
-     * @param ohmletId
-     *        The specific ohmlet's unique identifier.
-     *
-     * @param emails
-     *        The set of emails that should be used to invite users.
-     */
-    @RequestMapping(
-        value =
-            "{" + KEY_OHMLET_ID + "}" +
-            "/" + Ohmlet.JSON_KEY_MEMBERS +
-            "/" + PATH_INVITATIONS,
-        method = RequestMethod.POST)
-    public static @ResponseBody void inviteUsers(
-        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
-            final AuthorizationToken authToken,
-        @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT) final String rootUrl,
-        @PathVariable(KEY_OHMLET_ID) final String ohmletId,
-        @RequestBody final List<String> emails) {
-
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to invite users to an ohmlet: " +
-                    ohmletId);
-
-        LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
-
-        LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
-        Ohmlet ohmlet =
-            OhmletBin.getInstance().getOhmlet(ohmletId);
-
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user is allowed to invite other users.");
-        if(ohmlet.getInviteRole().supersedes(ohmlet.getRole(user.getId()))) {
-            throw
-                new InsufficientPermissionsException(
-                    "The user does not have sufficient permissions to " +
-                        "invite other users.");
-        }
-
-        // Keep a copy of the ohmlet to be updated as people are granted roles.
-        boolean wasUpdated = false;
-        Ohmlet.Builder ohmletBuilder = new Ohmlet.Builder(ohmlet);
-
-        // Each email address is treated independently.
-        for(String email : emails) {
-            // Check if an account already exists with the given email address.
-            User currUser = UserBin.getInstance().getUserFromEmail(email);
-
-            // If the user doesn't exist,
-            if(currUser == null) {
-                // Create the ohmlet invitation.
-                OhmletInvitation ohmletInvitation =
-                    new OhmletInvitation(ohmletId);
-
-                // Create the user invitation.
-                UserInvitation userInvitation =
-                    new UserInvitation(email, ohmletInvitation.getId());
-
-                // Store the invitations in the database.
-                OhmletInvitationBin
-                    .getInstance()
-                    .addInvitation(ohmletInvitation);
-                UserInvitationBin.getInstance().addInvitation(userInvitation);
-
-                // Build the URL.
-                // Start with the root URL to our web app.
-                StringBuilder invitationUrlBuilder =
-                    new StringBuilder(rootUrl);
-                // Add the ohmlet endpoint.
-                invitationUrlBuilder.append(ROOT_MAPPING);
-
-                // Add the custom endpoint for accepting an invitation.
-                invitationUrlBuilder.append("/join");
-                // Begin adding the parameters.
-                invitationUrlBuilder.append('?');
-                try {
-                    // Add the email address.
-                    invitationUrlBuilder
-                        .append(
-                            URLEncoder
-                                .encode(User.JSON_KEY_EMAIL, URL_ENCODING))
-                        .append('=')
-                        .append(URLEncoder.encode(email, URL_ENCODING));
-
-                    // Add the user invitation code.
-                    invitationUrlBuilder
-                        .append('&')
-                        .append(
-                            URLEncoder
-                                .encode(
-                                    UserInvitation.JSON_KEY_INVITATION_ID,
-                                    URL_ENCODING))
-                        .append('=')
-                        .append(
-                            URLEncoder
-                                .encode(
-                                    userInvitation.getId(),
-                                    URL_ENCODING));
-
-                    // Add the ohmlet ID.
-                    invitationUrlBuilder
-                        .append('&')
-                        .append(
-                            URLEncoder
-                                .encode(Ohmlet.JSON_KEY_ID, URL_ENCODING))
-                        .append('=')
-                        .append(
-                            URLEncoder.encode(ohmlet.getId(), URL_ENCODING));
-
-                    // Add the ohmlet invitation code.
-                    invitationUrlBuilder
-                        .append('&')
-                        .append(
-                            URLEncoder
-                                .encode(
-                                    OhmletInvitation.JSON_KEY_INVITATION_ID,
-                                    URL_ENCODING))
-                        .append('=')
-                        .append(
-                            URLEncoder
-                                .encode(
-                                    ohmletInvitation.getId(),
-                                    URL_ENCODING));
-                }
-                catch(UnsupportedEncodingException e) {
-                    throw
-                        new IllegalStateException(
-                            "The encoding is unknown: " + URL_ENCODING);
-                }
-
-                // Send an invitation email.
-                sendUserInvitationEmail(
-                    email,
-                    invitationUrlBuilder.toString());
-            }
-            // If the user does exist,
-            else {
-                // Get the current user's role in the ohmlet.
-                Ohmlet.Role currRole = ohmlet.getRole(currUser.getId());
-
-                // If the user has no association with the ohmlet or is in the
-                // requested state, set them as invited.
-                if(
-                    (currRole == null) ||
-                    (Ohmlet.Role.REQUESTED.equals(currRole))) {
-
-                    // Set the flag.
-                    wasUpdated = true;
-
-                    // Update the ohmlet with the new role.
-                    ohmletBuilder
-                        .addMember(currUser.getId(), Ohmlet.Role.INVITED)
-                        .build();
-                }
-                // Otherwise, just keep on keeping on.
-            }
-        }
-
-        if(wasUpdated) {
-            LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
-            OhmletBin.getInstance().updateOhmlet(ohmletBuilder.build());
-        }
     }
 
 	/**
