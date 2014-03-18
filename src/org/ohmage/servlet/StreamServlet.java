@@ -660,8 +660,10 @@ public class StreamServlet extends OhmageServlet {
                     "The auth token was granted via OAuth, so only the user " +
                         "reference by the token may be searched.");
             userIds = new HashSet<String>();
-            userIds.add(user.getId());
         }
+
+        LOGGER.log(Level.INFO, "Adding the user's own user ID.");
+        userIds.add(user.getId());
 
 		LOGGER.log(Level.INFO, "Finding the requested data.");
 		MultiValueResult<? extends StreamData> data =
