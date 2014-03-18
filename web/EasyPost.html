@@ -53,7 +53,7 @@
             <div class="row">
             
                 <!-- The list of APIs. -->
-                <div class="col-lg-4">
+                <div id="apiContainer" class="col-lg-4">
                 
                     <!-- The API groups. -->
                     <div class="panel-group" id="accordionRoot">
@@ -196,6 +196,41 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Logout API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Logout API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionAuthorization" 
+                                                    href="#collapseAuthorizationLogout">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Logout
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Logout body. -->
+                                        <div
+                                            id="collapseAuthorizationLogout"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="authorizationLogout" 
+                                                    class="well">
+                                                    
+                                                    <!-- Button: Submit -->
+                                                    <input
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit" 
+                                                        onclick="logout();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <!-- Example API accordion. -->
                                     <div class="panel panel-default">
                                         <!-- Example API header. -->
@@ -219,10 +254,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="example" 
-                                                    class="well"
-                                                    method="post" 
-                                                    action="endpoint" 
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Email address -->
                                                     <div class="input-group">
@@ -298,10 +330,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="schemaIds" 
-                                                    class="well"
-                                                    method="get" 
-                                                    action="schemas" 
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Number to skip -->
                                                     <div class="input-group">
@@ -858,11 +887,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="streamCreation" 
-                                                    class="well"
-                                                    method="post" 
-                                                    action="streams"
-                                                    enctype="application/json"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Definition -->
                                                     <div class="form-group">
@@ -914,10 +939,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="streamIds" 
-                                                    class="well"
-                                                    method="get" 
-                                                    action="streams" 
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Number to skip -->
                                                     <div class="input-group">
@@ -1169,8 +1191,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="streamUpdate" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Stream ID -->
                                                     <div class="input-group">
@@ -1742,11 +1763,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="surveyCreation" 
-                                                    class="well"
-                                                    method="post" 
-                                                    action="surveys"
-                                                    enctype="application/json"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Definition -->
                                                     <div class="form-group">
@@ -1798,10 +1815,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="surveyIds" 
-                                                    class="well"
-                                                    method="get" 
-                                                    action="surveys" 
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Number to skip -->
                                                     <div class="input-group">
@@ -2053,8 +2067,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="surveyUpdate" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Survey ID -->
                                                     <div class="input-group">
@@ -2626,11 +2639,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletCreation" 
-                                                    class="well"
-                                                    method="post" 
-                                                    action="ohmlets"
-                                                    enctype="application/json"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: Definition -->
                                                     <div class="form-group">
@@ -2682,10 +2691,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletIds" 
-                                                    class="well"
-                                                    method="get" 
-                                                    action="ohmlets" 
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Button: Submit -->
                                                     <input 
@@ -2775,8 +2781,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletUpdate" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: ohmlet ID -->
                                                     <div class="input-group">
@@ -2849,8 +2854,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletInvitation" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: ohmlet ID -->
                                                     <div class="input-group">
@@ -2927,8 +2931,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletUpdateRole" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: ohmlet ID -->
                                                     <div class="input-group">
@@ -3022,8 +3025,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletRemoveUser" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: ohmlet ID -->
                                                     <div class="input-group">
@@ -3100,8 +3102,7 @@
                                             <div class="panel-body">
                                                 <form 
                                                     id="ohmletDeletion" 
-                                                    class="well"
-                                                    target="output">
+                                                    class="well">
                                                     
                                                     <!-- Param: ohmlet ID -->
                                                     <div class="input-group">
@@ -3142,7 +3143,9 @@
 
                 <!-- The output frame. -->
                 <div id="outputContainer" class="col-lg-8">
-                    <pre><code id="output" style="width: 100%;"></code></pre>
+                    <hr id="outputBuffer" />
+                    <div id="outputCode" class="alert"></div>
+                    <pre><code id="outputText" style="width: 100%;"></code></pre>
                 </div>
             </div>
         </div>
@@ -3152,71 +3155,157 @@
             a JavaScript library for ohmage.
          -->
         <script type="text/javascript">
-            // Add the scrolling animation for the output.
+            // The constants for the scrolling animation for the output.
             var OUTPUT_BUFFER = 10;
             var UPDATE_SPEED = 0;
+            var apiContainer = $('#apiContainer');
             var outputContainer = $('#outputContainer');
-            var outputContainerOriginalTop = outputContainer.offset().top;
-            $(window)
-                .scroll(
-                    function() {
-                        var outputContainerCurrentTop =
-                            outputContainer.offset().top;
-                        var windowTop = $(window).scrollTop();
-                        // The window hasn't passed below the top of the output
-                        // frame yet.
-                        if(windowTop < outputContainerOriginalTop) {
-                            outputContainer.stop().css( { 'top' : 0 } );
-                        } 
-                        // The window has passed the output frame, so we need
-                        // to update the output frame's position.
-                        else {
-                            outputContainer
-                                .stop()
-                                .animate(
-                                    {
-                                        'top' : 
-                                            windowTop - 
-                                                outputContainerOriginalTop + 
-                                                OUTPUT_BUFFER
-                                    },
-                                    UPDATE_SPEED);
-                        }
+            var outputBuffer = $('#outputBuffer');
+            var stacked;
+            var outputContainerOrientationTop;
+            
+            /**
+             * Moves the output container based on the page's orientation.
+             */
+            function moveOutputContainer() {
+                if(stacked) {
+                    outputContainer.stop().css( { 'top' : 0 } );
+                }
+                else {
+                    var outputContainerCurrentTop =
+                        outputContainer.offset().top;
+                    var windowTop = $(window).scrollTop();
+                    // The window isn't below the top of the output container.
+                    if(windowTop < outputContainerOrientationTop) {
+                        outputContainer.stop().css( { 'top' : 0 } );
+                    } 
+                    // The window has passed the output frame, so we need
+                    // to update the output frame's position.
+                    else {
+                        outputContainer
+                            .stop()
+                            .animate(
+                                {
+                                    'top' : 
+                                        windowTop - 
+                                            outputContainerOrientationTop + 
+                                            OUTPUT_BUFFER
+                                },
+                                UPDATE_SPEED);
                     }
-                );
+                }
+            }
+            
+            /**
+             * Resets the output container's location information which may
+             * change when the page is reset.
+             */
+            function resetOutputContainer() {
+                // Determine if they are stacked.
+                if(apiContainer.offset().left === outputContainer.offset().left) {
+                    stacked = true;
+                    outputBuffer.show();
+                }
+                else {
+                    stacked = false;
+                    outputBuffer.hide();
+                }
+                
+                // Reset the container to its top-most origin and then get the
+                // offset from that origin.
+                outputContainer.stop().css( { 'top' : 0 } );
+                outputContainerOrientationTop = outputContainer.offset().top;
+
+                // Update the container's location.
+                moveOutputContainer();
+            }
+            
+            // Reset the container information and setup the window.
+            resetOutputContainer();
+            $(window).resize(resetOutputContainer);
+            $(window).scroll(moveOutputContainer);
         
             /**
-             * Prints to the output frame.
+             * Prints to the output text.
              * 
              * @param text
              *        The text to be displayed to the user without any
              *        modifications.
+             *
+             * @param jqXHR
+             *        The jQuery XmlHttpRequest object that was returned as
+             *        part of the response. If null, the output code will be
+             *        hidden and only the text will be used.
              */
-            function print(text) {
-                $("#output").text(text);
+            var currAlertClass = null;
+            function print(text, jqXHR) {
+                $("#outputText").text(text);
+                
+                if((typeof jqXHR === "undefined") || (jqXHR === null)) {
+                    $("#outputCode").hide();
+                }
+                else {
+                    // Remove the current alert class, if one exists.
+                    if(currAlertClass != null) {
+                        $("#outputCode").removeClass(currAlertClass);
+                    }
+                    
+                    // Use the code to get the new alert class.
+                    var codeClass = parseInt(jqXHR.status / 100);
+                    if(codeClass === 2) {
+                        currAlertClass = "alert-success";
+                    }
+                    else if(codeClass === 4) {
+                        currAlertClass = "alert-warning";
+                    }
+                    else {
+                        // Default to a warning message.
+                        currAlertClass = "alert-danger";
+                    }
+                    
+                    // If an alert class was given, and it always should be,
+                    // update the HTML element.
+                    if(currAlertClass !== null) {
+                        $("#outputCode").addClass(currAlertClass);
+                    }
+                    
+                    // Set the alert text.
+                    $("#outputCode")
+                        .text(jqXHR.status + " - " + jqXHR.statusText);
+                    
+                    // Show the alert.
+                    $("#outputCode").show();
+                }
             }
+            $("#outputCode").hide();
         
             /**
              * A generic success function that outputs the data as a string to
-             * the output iframe.
+             * the output text.
              */
-            function genericSuccess(data) {
-                print(JSON.stringify(data));
+            function genericSuccess(data, statusText, jqXHR) {
+                var text = data;
+                
+                if(Object.prototype.toString.call(data) === "[object String]") {
+                    text = data;
+                }
+                else {
+                    text = JSON.stringify(data, null, 4);
+                }
+                
+                print(text, jqXHR);
             }
             
             /**
              * A generic failure function that will attempt to parse the error
              * and display it to the user through the output iframe.
              */
-            var lastFailure;
             function genericFailure(jqXHR) {
-                lastFailure = jqXHR;
-                
                 if((jqXHR.status / 100) === 5) {
-                    print("An internal error occurred.");
+                    print("An internal error occurred.", jqXHR);
                 }
                 else {
-                    print(jqXHR.responseText);
+                    print(jqXHR.responseText, jqXHR);
                 }
             }
             
@@ -3238,16 +3327,17 @@
                 parameters['password'] = $("#authPassword").val();
                 
                 $.post("auth_token", parameters)
-                    .success(function(data) {
-                        genericSuccess(data);
-                        
-                        auth = data;
-                        sessionStorage
-                            .setItem(
-                                KEY_AUTHORIZATION_TOKEN, 
-                                JSON.stringify(auth));
-                    })
-                    .fail(genericFailure);
+                    .done(genericSuccess)
+                    .fail(genericFailure)
+                    .then(function(data) {
+                        if(Object.prototype.toString.call(data) === "[object Object]") {
+                            auth = data;
+                            sessionStorage
+                                .setItem(
+                                    KEY_AUTHORIZATION_TOKEN, 
+                                    JSON.stringify(auth));
+                        }
+                    });
             }
                 
             /**
@@ -3264,16 +3354,41 @@
                 parameters['refresh_token'] = auth['refresh_token'];
                 
                 $.post("auth_token", parameters)
-                    .success(function(data) {
-                        genericSuccess(data);
-                        
-                        auth = data;
-                        sessionStorage
-                            .setItem(
-                                KEY_AUTHORIZATION_TOKEN, 
-                                JSON.stringify(auth));
+                    .done(genericSuccess)
+                    .fail(genericFailure)
+                    .then(function(data) {
+                        if(Object.prototype.toString.call(data) === "[object Object]") {
+                            auth = data;
+                            sessionStorage
+                                .setItem(
+                                    KEY_AUTHORIZATION_TOKEN, 
+                                    JSON.stringify(auth));
+                        }
+                    });
+            }
+                
+            /**
+             * Handles logging out.
+             */
+            function logout() {
+                if(auth === null) {
+                    print("Already logged out.");
+                    return;
+                }
+                
+                $.ajax(
+                    "auth_token",
+                    {
+                        type: "DELETE",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
                     })
+                    .done(genericSuccess)
                     .fail(genericFailure);
+                
+                auth = null;
+                sessionStorage.setItem(KEY_AUTHORIZATION_TOKEN, null);
             }
             
             /**
@@ -3292,7 +3407,7 @@
                 }
                 
                 $.get("schemas", parameters)
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3314,7 +3429,7 @@
                 $.get(
                     "schemas/" + $("#schemaVersionsSchemaId").val(),
                     parameters)
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3327,7 +3442,7 @@
                     $("#schemaDefinitionSchemaId").val() + "/" + 
                     $("#schemaDefinitionSchemaVersion").val())
                     
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3374,7 +3489,7 @@
                         },
                         data: parameters
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3398,7 +3513,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3421,7 +3536,7 @@
                         },
                         data: $("#streamCreationDefinition").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3441,7 +3556,7 @@
                 }
                 
                 $.get("streams", parameters)
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3463,7 +3578,7 @@
                 $.get(
                     "streams/" + $("#streamVersionsStreamId").val(), 
                     parameters)
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3476,7 +3591,7 @@
                     $("#streamDefinitionStreamId").val() + "/" + 
                     $("#streamDefinitionStreamVersion").val())
                     
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3499,7 +3614,7 @@
                         },
                         data: $("#streamUpdateDefinition").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3525,7 +3640,7 @@
                         },
                         data: $("#streamDataUploadData").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3572,7 +3687,7 @@
                         },
                         data: parameters
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3596,7 +3711,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3621,7 +3736,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3644,7 +3759,7 @@
                         },
                         data: $("#surveyCreationDefinition").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3664,7 +3779,7 @@
                 }
                 
                 $.get("surveys", parameters)
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3686,7 +3801,7 @@
                 $.get(
                     "surveys/" + $("#surveyVersionsSurveyId").val(),
                     parameters)
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3699,7 +3814,7 @@
                     $("#surveyDefinitionSurveyId").val() + "/" + 
                     $("#surveyDefinitionSurveyVersion").val())
                     
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3722,7 +3837,7 @@
                         },
                         data: $("#surveyUpdateDefinition").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3748,7 +3863,7 @@
                         },
                         data: $("#surveyDataUploadData").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3795,7 +3910,7 @@
                         },
                         data: parameters
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3819,7 +3934,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3844,7 +3959,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3867,7 +3982,7 @@
                         },
                         data: $("#ohmletCreationDefinition").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3876,7 +3991,7 @@
              */
             function getOhmletDefinition() {
                 $.get("ohmlets/" + $("#ohmletDefinitionOhmletId").val())
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3899,7 +4014,7 @@
                         },
                         data: $("#ohmletUpdateDefinition").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3924,7 +4039,7 @@
                         },
                         data: $("#ohmletInvitationEmails").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3937,10 +4052,11 @@
                     return;
                 }
                 
-                var parameters = 
-                    { 
-                        'ohmlet_invitation_id' : 
-                            $("#ohmletUpdateRoleInvitationId").val() };
+                var parameters = new Object();
+                if($("#ohmletUpdateRoleInvitationId").val() !== "") {
+                    parameters['ohmlet_invitation_id'] =
+                        $("#ohmletUpdateRoleInvitationId").val();
+                }
                 
                 $.ajax(
                     "ohmlets/" +
@@ -3955,7 +4071,7 @@
                         },
                         data: $("#surveyUpdateRoleMember").val()
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
 
@@ -3979,7 +4095,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
             
@@ -3999,7 +4115,7 @@
                             "Authorization" : "ohmage " + auth['access_token']
                         }
                     })
-                    .success(genericSuccess)
+                    .done(genericSuccess)
                     .fail(genericFailure);
             }
         </script>
