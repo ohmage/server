@@ -45,7 +45,7 @@
         <div class="container-fluid">
         
             <!-- Add our logo at the top of the page. -->
-            <div class="row">
+            <div id="pageHeader" class="row">
                 <img src="images/ohmage-logo.png">
             </div>
         
@@ -3168,7 +3168,13 @@
              * Moves the output container based on the page's orientation.
              */
             function moveOutputContainer() {
-                if(stacked) {
+                // If the output frame is stacked below the API frame OR if the
+                // output frame is taller than the window, don't move the
+                // output frame with the scolling.
+                if(stacked || 
+                    ((outputContainer.height() + $("#pageHeader").height()) > 
+                        $(window).height())) {
+                    
                     outputContainer.stop().css( { 'top' : 0 } );
                 }
                 else {
