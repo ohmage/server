@@ -86,6 +86,9 @@ public class MetaData {
      *        The point in time to which this data should be associated or null
      *        if it is not associated with time in any way.
      *
+     * @param timestampMillis
+     *        The time-stamp associated with the data point.
+     *
      * @param location
      *        The location of the user or null if no location was able to be
      *        retrieved.
