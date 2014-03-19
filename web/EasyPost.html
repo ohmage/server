@@ -231,55 +231,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Example API accordion. -->
-                                    <div class="panel panel-default">
-                                        <!-- Example API header. -->
-                                        <div class="panel-heading">
-                                            <h3 class="panel-title">
-                                                <a
-                                                    data-toggle="collapse" 
-                                                    data-parent="#accordionAuthorization" 
-                                                    href="#collapseExample">
-                                                    
-                                                    <i class="glyphicon glyphicon-plus"></i>
-                                                    Example
-                                                </a>
-                                            </h3>
-                                        </div>
-                                        <!-- Example body. -->
-                                        <div
-                                            id="collapseExample"
-                                            class="panel-collapse collapse">
-                                            
-                                            <div class="panel-body">
-                                                <form 
-                                                    id="example" 
-                                                    class="well">
-                                                    
-                                                    <!-- Param: Email address -->
-                                                    <div class="input-group">
-                                                        <span class="input-group-btn"><button class="btn btn-danger" type="button" disabled="disabled">Email</button></span>
-                                                        <input type="text" name="email" class="form-control" placeholder="Email address">
-                                                    </div>
-                                                    <p></p>
-                                                    <!-- Param: Test -->
-                                                    <div class="input-group">
-                                                        <span class="input-group-btn"><button class="btn btn-info" type="button" disabled="disabled">Test</button></span>
-                                                        <input type="text" name="password" class="form-control" placeholder="Password">
-                                                    </div>
-                                                    <p></p>
-                                                    <!-- Param: Email address -->
-                                                    <div class="form-group">
-                                                        <label for="authEmail"><span class="label label-danger">Required</span> Email</label>
-                                                        <textarea id="authEmail" type="textbox" name="email" class="form-control" placeholder="Email address" style="resize: vertical;"></textarea>
-                                                    </div>
-                                                    <p></p>
-                                                    <!-- Button: Submit -->
-                                                    <input type="submit" class="btn btn-success" value="Submit">
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -977,7 +928,7 @@
                                                             </button>
                                                         </span>
                                                         <input 
-                                                            id="streamIdsReadNumToReturn" 
+                                                            id="streamIdsNumToReturn" 
                                                             type="number"
                                                             class="form-control" 
                                                             placeholder="Number to return">
@@ -2695,9 +2646,10 @@
                                                     
                                                     <!-- Button: Submit -->
                                                     <input 
-                                                        type="submit" 
+                                                        type="button" 
                                                         class="btn btn-success" 
-                                                        value="Submit">
+                                                        value="Submit"
+                                                        onclick="getOhlmetIds();">
                                                 </form>
                                             </div>
                                         </div>
@@ -3131,6 +3083,127 @@
                                                         class="btn btn-success" 
                                                         value="Submit"
                                                         onclick="deleteOhmlet();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- User APIs accordion. -->
+                        <div class="panel panel-default">
+                            <!-- User APIs header. -->
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a
+                                        data-toggle="collapse"
+                                        data-parent="#accordionRoot"
+                                        href="#collapseUser">
+                                        
+                                        <button class="btn btn-primary">
+                                           <i class="glyphicon glyphicon-plus"></i>
+                                           User APIs
+                                        </button>
+                                    </a>
+                                </h4>
+                            </div>
+                            <!-- User APIs body. -->
+                            <div
+                                id="collapseUser"
+                                class="panel-collapse collapse">
+
+                                <!-- User APIs. -->
+                                <div class="panel-group" id="accordionUser">
+                                    <!-- User creation API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- User creation API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserCreation">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    User Creation
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- User creation body. -->
+                                        <div
+                                            id="collapseUserCreation"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userCreation" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: Password -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+
+                                                                Password
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userCreationPassword" 
+                                                            type="password"
+                                                            class="form-control" 
+                                                            placeholder="Password">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Invitation ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-info" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+
+                                                                Invitation ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userCreationInvitationId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="Invitation ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Body: User -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="userCreationDefinition">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Definition
+                                                        </label>
+                                                        <textarea 
+                                                            id="userCreationDefinition" 
+                                                            type="textbox" 
+                                                            class="form-control" 
+                                                            placeholder="User Definition" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="createUser();">
                                                 </form>
                                             </div>
                                         </div>
@@ -3995,6 +4068,13 @@
             }
             
             /**
+             * Retrieves the ohmlet IDs.
+             */
+            function getOhlmetIds() {
+                $.get("ohmlets").done(genericSuccess).fail(genericFailure);
+            }
+            
+            /**
              * Retrieves the ohmlet definition.
              */
             function getOhmletDefinition() {
@@ -4122,6 +4202,35 @@
                         headers: {
                             "Authorization" : "ohmage " + auth['access_token']
                         }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Creates a new user.
+             */
+            function createUser() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = new Object();
+                if($("#userCreationPassword").val() !== "") {
+                    parameters['password'] = $("#userCreationPassword").val();
+                }
+                if($("#userCreationInvitationId").val() !== "") {
+                    parameters['user_invitation_id'] =
+                        $("#userCreationInvitationId").val();
+                }
+                
+                $.ajax(
+                    "people" + "?" + $.param(parameters),
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        data: $("#userCreationDefinition").val()
                     })
                     .done(genericSuccess)
                     .fail(genericFailure);

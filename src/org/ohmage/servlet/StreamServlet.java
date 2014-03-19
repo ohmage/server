@@ -204,16 +204,8 @@ public class StreamServlet extends OhmageServlet {
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getStreamIds(
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
 		    final String rootUrl) {
 
@@ -274,16 +266,8 @@ public class StreamServlet extends OhmageServlet {
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@RequestParam(value = KEY_QUERY, required = false)
 			final String query,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
@@ -568,16 +552,8 @@ public class StreamServlet extends OhmageServlet {
             required = false,
             defaultValue = PARAM_DEFAULT_CHRONOLOGICAL)
             final boolean chronological,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 

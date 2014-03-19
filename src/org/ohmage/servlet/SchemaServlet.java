@@ -11,6 +11,7 @@ import org.ohmage.bin.SurveyBin;
 import org.ohmage.domain.DataPoint;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.auth.AuthorizationToken;
+import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
@@ -83,16 +84,8 @@ public class SchemaServlet extends OhmageServlet {
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
 	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getSchemaIds(
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
@@ -161,18 +154,9 @@ public class SchemaServlet extends OhmageServlet {
 		method = RequestMethod.GET)
 	public static @ResponseBody ResponseEntity<MultiValueResult<Long>> getSchemaVersions(
 		@PathVariable(KEY_SCHEMA_ID) final String schemaId,
-		@RequestParam(value = KEY_QUERY, required = false)
-			final String query,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+		@RequestParam(value = KEY_QUERY, required = false) final String query,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
@@ -181,6 +165,31 @@ public class SchemaServlet extends OhmageServlet {
 				Level.INFO,
 				"Creating a request to read the versions of a schema: " +
 					schemaId);
+
+        LOGGER.log(Level.INFO, "Validating the number to skip.");
+        if(numToSkip < 0) {
+            throw
+                new InvalidArgumentException(
+                    "The number to skip must be greater than or equal to 0.");
+        }
+        LOGGER.log(Level.INFO, "Validating the number to return.");
+        if(numToReturn <= 0) {
+            throw
+                new InvalidArgumentException(
+                    "The number to return must be greater than 0.");
+        }
+        LOGGER
+            .log(
+                Level.INFO,
+                "Validating the upper bound of the number to return.");
+        if(numToReturn > MAX_NUM_TO_RETURN) {
+            throw
+                new InvalidArgumentException(
+                    "The number to return must be less than the upper limit " +
+                        "of " +
+                        MAX_NUM_TO_RETURN +
+                        ".");
+        }
 
         LOGGER.log(Level.INFO, "Retrieving the versions.");
         ResponseEntity<MultiValueResult<Long>> result;
@@ -337,16 +346,8 @@ public class SchemaServlet extends OhmageServlet {
             required = false,
             defaultValue = PARAM_DEFAULT_CHRONOLOGICAL)
             final boolean chronological,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 

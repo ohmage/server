@@ -19,10 +19,12 @@ import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.auth.Scope;
 import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
+import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.user.User;
 import org.ohmage.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * <p>
@@ -75,11 +77,16 @@ public abstract class OhmageServlet {
     /**
      * The global default number of entities to return.
      */
-    public static final long DEFAULT_NUM_TO_RETURN = 100;
+    public static final long DEFAULT_NUM_TO_RETURN = 50;
     /**
      * The global default number of entities to return as a string.
      */
     public static final String DEFAULT_NUM_TO_RETURN_STRING = "100";
+    /**
+     * The maximum number of results that may be returned by any API that
+     * returns a list of items.
+     */
+    public static final long MAX_NUM_TO_RETURN = 100;
 
     /**
      * The header for the number of elements being returned in this response.
@@ -481,5 +488,69 @@ public abstract class OhmageServlet {
 
         // Return the root URL.
         return builder.toString();
+    }
+
+    /**
+     * Retrieves and validates the number of elements to skip.
+     *
+     * @param numToSkip
+     *        The number of elements to skip from the request.
+     *
+     * @return A valid number of elements to skip.
+     */
+    @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP)
+    private long getNumToSkip(
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_SKIP,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
+            final long numToSkip) {
+
+        LOGGER.log(Level.INFO, "Validating the number to skip.");
+        if(numToSkip < 0) {
+            throw
+                new InvalidArgumentException(
+                    "The number to skip must be greater than or equal to 0.");
+        }
+
+        return numToSkip;
+    }
+
+    /**
+     * Retrieves and validates the number of elements to return.
+     *
+     * @param numToReturn
+     *        The number of elements to return from the request.
+     *
+     * @return A valid number of elements to return.
+     */
+    @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN)
+    private long getNumToReturn(
+        @RequestParam(
+            value = PARAM_PAGING_NUM_TO_RETURN,
+            required = false,
+            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
+            final long numToReturn) {
+
+        LOGGER.log(Level.INFO, "Validating the number to return.");
+        if(numToReturn <= 0) {
+            throw
+                new InvalidArgumentException(
+                    "The number to return must be greater than 0.");
+        }
+        LOGGER
+            .log(
+                Level.INFO,
+                "Validating the upper bound of the number to return.");
+        if(numToReturn > MAX_NUM_TO_RETURN) {
+            throw
+                new InvalidArgumentException(
+                    "The number to return must be less than the upper limit " +
+                        "of " +
+                        MAX_NUM_TO_RETURN +
+                        ".");
+        }
+
+        return numToReturn;
     }
 }

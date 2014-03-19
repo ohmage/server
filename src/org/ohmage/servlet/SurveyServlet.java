@@ -208,16 +208,8 @@ public class SurveyServlet extends OhmageServlet {
     @RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
     public static @ResponseBody ResponseEntity<MultiValueResult<String>> getSurveyIds(
         @RequestParam(value = KEY_QUERY, required = false) final String query,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
@@ -277,16 +269,8 @@ public class SurveyServlet extends OhmageServlet {
     public static @ResponseBody ResponseEntity<MultiValueResult<Long>> getSurveyVersions(
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @RequestParam(value = KEY_QUERY, required = false) final String query,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
@@ -295,6 +279,31 @@ public class SurveyServlet extends OhmageServlet {
                 Level.INFO,
                 "Creating a request to read the versions of a survey: " +
                     surveyId);
+
+        LOGGER.log(Level.INFO, "Validating the number to skip.");
+        if(numToSkip < 0) {
+            throw
+                new InvalidArgumentException(
+                    "The number to skip must be greater than or equal to 0.");
+        }
+        LOGGER.log(Level.INFO, "Validating the number to return.");
+        if(numToReturn <= 0) {
+            throw
+                new InvalidArgumentException(
+                    "The number to return must be greater than 0.");
+        }
+        LOGGER
+            .log(
+                Level.INFO,
+                "Validating the upper bound of the number to return.");
+        if(numToReturn > MAX_NUM_TO_RETURN) {
+            throw
+                new InvalidArgumentException(
+                    "The number to return must be less than the upper limit " +
+                        "of " +
+                        MAX_NUM_TO_RETURN +
+                        ".");
+        }
 
         LOGGER.log(Level.INFO, "Retreiving the survey versions.");
         MultiValueResult<Long> versions =
@@ -693,22 +702,14 @@ public class SurveyServlet extends OhmageServlet {
             required = false,
             defaultValue = PARAM_DEFAULT_CHRONOLOGICAL)
             final boolean chronological,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_SKIP,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
-            final long numToSkip,
-        @RequestParam(
-            value = PARAM_PAGING_NUM_TO_RETURN,
-            required = false,
-            defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
-            final long numToReturn,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
+        @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
         @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER.log(Level.INFO, "Retrieving some survey responses.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.log(Level.INFO, "Validating the user from the token.");
         User user =
             OhmageServlet
                 .validateAuthorization(
@@ -851,7 +852,7 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Retrieving a specific survey data point.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.log(Level.INFO, "Validating the user from the token.");
         User user =
             OhmageServlet
                 .validateAuthorization(
@@ -908,7 +909,7 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Deleting a specific survey data point.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.log(Level.INFO, "Validating the user from the token.");
         User user =
             OhmageServlet
                 .validateAuthorization(

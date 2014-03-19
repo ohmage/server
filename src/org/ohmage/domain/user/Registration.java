@@ -16,6 +16,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.servlet.listener.ConfigurationFileImport;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -311,8 +312,10 @@ public class Registration {
      *        account was activated.
      *
      * @throws IllegalArgumentException
-     *         The user's unique identifier, email address, or activation ID is
-     *         null.
+     *         The user's unique identifier or activation ID is null.
+     *
+     * @throws InvalidArgumentException
+     *         The user's email address is null.
      */
     @JsonCreator
     protected Registration(
@@ -329,7 +332,7 @@ public class Registration {
                     "The user's unique identifier is null.");
         }
         if(emailAddress == null) {
-            throw new IllegalArgumentException("The email address is null.");
+            throw new InvalidArgumentException("The email address is null.");
         }
 
         this.userId = userId;
