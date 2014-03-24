@@ -23,7 +23,6 @@ import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.mongodb.WriteConcern;
 
 /**
  * <p>
@@ -160,7 +159,7 @@ public class MongoBinController extends BinController {
 		}
 
 		// Ensure that all writes use the safest write concern.
-		mongo.setWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
+		//mongo.setWriteConcern(WriteConcern.REPLICA_ACKNOWLEDGED);
 
 		// Connect to the database.
 		db = mongo.getDB(getDatabaseName());

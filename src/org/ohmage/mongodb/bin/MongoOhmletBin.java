@@ -36,7 +36,6 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
-import com.mongodb.WriteConcern;
 
 /**
  * <p>
@@ -600,14 +599,7 @@ public class MongoOhmletBin extends OhmletBin {
 
 		// Commit the update and don't return until the collection has heard
 		// the result.
-		WriteResult<Ohmlet, Object> result =
-			COLLECTION
-				.update(
-					query,
-					ohmlet,
-					false,
-					false,
-					WriteConcern.REPLICA_ACKNOWLEDGED);
+		WriteResult<Ohmlet, Object> result = COLLECTION.update(query, ohmlet);
 
 		// Be sure that at least one document was updated.
 		if(result.getN() == 0) {

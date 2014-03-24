@@ -14,7 +14,6 @@ import org.ohmage.mongodb.domain.MongoOhmletInvitation;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
-import com.mongodb.WriteConcern;
 
 /**
  * <p>
@@ -151,13 +150,7 @@ public class MongoOhmletInvitationBin extends OhmletInvitationBin {
         // Commit the update and don't return until the collection has heard
         // the result.
         WriteResult<OhmletInvitation, String> result =
-            COLLECTION
-                .update(
-                    query,
-                    invitation,
-                    false,
-                    false,
-                    WriteConcern.REPLICA_ACKNOWLEDGED);
+            COLLECTION.update(query, invitation);
 
         // Be sure that at least one document was updated.
         if(result.getN() == 0) {

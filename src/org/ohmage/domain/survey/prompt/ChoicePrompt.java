@@ -189,7 +189,7 @@ public abstract class ChoicePrompt<ChoiceType, ResponseType>
                 throw
                     new InvalidArgumentException(
                         "Two choices have the same value '" +
-                            choice.getText() +
+                            choice.getValue() +
                             "': " +
                             getSurveyItemId());
             }

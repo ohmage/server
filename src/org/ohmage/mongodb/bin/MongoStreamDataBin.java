@@ -65,36 +65,20 @@ public class MongoStreamDataBin extends StreamDataBin {
 	 * Default constructor.
 	 */
 	protected MongoStreamDataBin() {
-		// Ensure that there is an index on the point's version.
-		COLLECTION
-			.ensureIndex(
-				new BasicDBObject(
-					DataPoint.JSON_KEY_META_DATA +
-						"." + MetaData.JSON_KEY_ID,
-					1),
-				COLLECTION_NAME + "_" +
-					DataPoint.JSON_KEY_META_DATA + "." +
-						MetaData.JSON_KEY_ID,
-				false);
-
-		// Create the set of indexes.
-		DBObject indexes = new BasicDBObject();
-		// Index the stream ID.
-		indexes.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
-		// Index the stream version.
-		indexes.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
-		// Index the data point's unique ID.
-		indexes
-			.put(
-				DataPoint.JSON_KEY_META_DATA + "." +
-					MetaData.JSON_KEY_ID,
-				1);
-
 		// Ensure that there is a unique index on the stream ID and version and
-		// the point's ID.
+        // the point's ID.
+		DBObject uniqueId = new BasicDBObject();
+		// Index the stream ID.
+		uniqueId.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
+		// Index the stream version.
+		uniqueId.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
+		// Index the data point's unique ID.
+		uniqueId
+			.put(DataPoint.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID, 1);
+		// Create the index.
 		COLLECTION
 			.ensureIndex(
-				indexes,
+			    uniqueId,
 				COLLECTION_NAME + "_" +
 					DataPoint.JSON_KEY_SCHEMA_ID + "_" +
 					DataPoint.JSON_KEY_SCHEMA_VERSION + "_" +
@@ -102,6 +86,58 @@ public class MongoStreamDataBin extends StreamDataBin {
 						MetaData.JSON_KEY_ID +
 					"_unique",
 				true);
+
+        // To speed-up queries, create an index on the fields that will always
+        // be queried when querying a group of data points. Even if the
+        // time-stamp is not part of the query, it will be part of the sort.
+        DBObject standardQuery = new BasicDBObject();
+        // Add the stream's owner.
+        standardQuery.put(DataPoint.JSON_KEY_OWNER, 1);
+        // Add the stream ID.
+        standardQuery.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
+        // Add the stream version.
+        standardQuery.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
+        // Add the time-stamp.
+        standardQuery
+            .put(
+                DataPoint.JSON_KEY_META_DATA + "." +
+                    MetaData.JSON_KEY_TIMESTAMP_MILLIS,
+                1);
+        // Create the index.
+        COLLECTION
+            .ensureIndex(
+                standardQuery,
+                COLLECTION_NAME + "_" +
+                    DataPoint.JSON_KEY_OWNER + "_" +
+                    DataPoint.JSON_KEY_SCHEMA_ID + "_" +
+                    DataPoint.JSON_KEY_SCHEMA_VERSION + "_" +
+                    DataPoint.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_TIMESTAMP_MILLIS,
+                false);
+
+        // To speed-up queries, create an index for searching for a specific
+        // point.
+        DBObject specificPointQuery = new BasicDBObject();
+        // Add the stream's owner.
+        specificPointQuery.put(DataPoint.JSON_KEY_OWNER, 1);
+        // Add the stream ID.
+        specificPointQuery.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
+        // Add the stream version.
+        specificPointQuery.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
+        // Add the point's ID.
+        specificPointQuery
+            .put(DataPoint.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID, 1);
+        // Create the index.
+        COLLECTION
+            .ensureIndex(
+                specificPointQuery,
+                COLLECTION_NAME + "_" +
+                    DataPoint.JSON_KEY_OWNER + "_" +
+                    DataPoint.JSON_KEY_SCHEMA_ID + "_" +
+                    DataPoint.JSON_KEY_SCHEMA_VERSION + "_" +
+                    DataPoint.JSON_KEY_META_DATA + "." +
+                        MetaData.JSON_KEY_ID,
+                false);
 	}
 
 	/*

@@ -14,7 +14,6 @@ import org.ohmage.mongodb.domain.MongoUserInvitation;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
-import com.mongodb.WriteConcern;
 
 /**
  * <p>
@@ -152,13 +151,7 @@ public class MongoUserInvitationBin extends UserInvitationBin {
         // Commit the update and don't return until the collection has heard
         // the result.
         WriteResult<UserInvitation, String> result =
-            COLLECTION
-                .update(
-                    query,
-                    invitation,
-                    false,
-                    false,
-                    WriteConcern.REPLICA_ACKNOWLEDGED);
+            COLLECTION.update(query, invitation);
 
         // Be sure that at least one document was updated.
         if(result.getN() == 0) {

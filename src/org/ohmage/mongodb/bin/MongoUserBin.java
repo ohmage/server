@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
-import com.mongodb.WriteConcern;
 
 /**
  * <p>
@@ -320,14 +319,7 @@ public class MongoUserBin extends UserBin {
 
 		// Commit the update and don't return until the collection has heard
 		// the result.
-		WriteResult<User, Object> result =
-			COLLECTION
-				.update(
-					query,
-					user,
-					false,
-					false,
-					WriteConcern.REPLICA_ACKNOWLEDGED);
+		WriteResult<User, Object> result = COLLECTION.update(query, user);
 
 		// Be sure that at least one document was updated.
 		if(result.getN() == 0) {

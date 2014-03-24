@@ -592,7 +592,7 @@ public class OhmletServlet extends OhmageServlet {
             }
         }
 
-		LOGGER.log(Level.FINE, "Storing the updated ohmlet.");
+		LOGGER.log(Level.INFO, "Storing the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(newOhmlet);
 	}
 
