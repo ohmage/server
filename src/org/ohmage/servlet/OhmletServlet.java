@@ -767,6 +767,18 @@ public class OhmletServlet extends OhmageServlet {
                     ohmletBuilder
                         .addMember(currUser.getId(), Ohmlet.Role.INVITED)
                         .build();
+
+                    // Update the user.
+                    UserBin
+                        .getInstance()
+                        .updateUser(
+                            user
+                                .joinOhmlet(
+                                    (new OhmletReference.Builder(
+                                        ohmletId,
+                                        null,
+                                        null))
+                                    .build()));
                 }
                 // Otherwise, just keep on keeping on.
             }

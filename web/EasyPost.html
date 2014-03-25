@@ -3208,6 +3208,251 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Visible users API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Visible users API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseVisibleUsers">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Visible Users
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Visible users body. -->
+                                        <div
+                                            id="collapseVisibleUsers"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userVisibleUsers" 
+                                                    class="well">
+                                                    
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getVisibleUsers();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- User information API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- User information API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserInformation">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    User Information
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- User information body. -->
+                                        <div
+                                            id="collapseUserInformation"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userInformation" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userInformationUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getUserInformation();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- User current information API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- User current information API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserInformationCurrent">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    User Information - Current
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- User current information body. -->
+                                        <div
+                                            id="collapseUserInformationCurrent"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userInformationCurrent" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userInformationCurrentUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getUserInformationCurrent();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- User change password API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- User change password API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserChangePassword">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Change Password
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- User change password body. -->
+                                        <div
+                                            id="collapseUserChangePassword"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userChangePassword" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userChangePasswordUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: Current password -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                Current
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userChangePasswordCurrentPassword" 
+                                                            type="password"
+                                                            class="form-control" 
+                                                            placeholder="Current Password">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: New Password -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                New
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userChangePasswordNewPassword" 
+                                                            type="password"
+                                                            class="form-control" 
+                                                            placeholder="New Password">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="changeUserPassword();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4109,7 +4354,7 @@
             /**
              * Sends invitations to an ohmlet.
              */
-            function sendOhmletInvitations() {
+            function sendOhmletInvitation() {
                 if(auth === null) {
                     print("You must be authenticated to make this call.");
                     return;
@@ -4157,7 +4402,7 @@
                         headers: {
                             "Authorization" : "ohmage " + auth['access_token']
                         },
-                        data: $("#ohmletUpdateRoleMember").val()
+                        data: $("#surveyUpdateRoleMember").val()
                     })
                     .done(genericSuccess)
                     .fail(genericFailure);
@@ -4231,6 +4476,104 @@
                         type: "POST",
                         contentType: "application/json",
                         data: $("#userCreationDefinition").val()
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the visible users.
+             */
+            function getVisibleUsers() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people",
+                    {
+                        type: "GET",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves a user's information.
+             */
+            function getUserInformation() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" + $("#userInformationUserId").val(),
+                    {
+                        type: "GET",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves a user's information with the null schema versions
+             * populated.
+             */
+            function getUserInformationCurrent() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" + 
+                        $("#userInformationCurrentUserId").val() + "/" + 
+                        "current",
+                    {
+                        type: "GET",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Changes a user's password.
+             */
+            function changeUserPassword() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                var parameters = new Object();
+                if($("#userChangePasswordCurrentPassword").val() !== "") {
+                    parameters['password'] =
+                        $("#userChangePasswordCurrentPassword").val();
+                }
+                
+                $.ajax(
+                    "people" + "/" + 
+                        $("#userChangePasswordUserId").val() + "/" + 
+                        "password" + "?" +
+                        $.param(parameters),
+                    {
+                        type: "POST",
+                        contentType: "text/plain",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        body: $("#userChangePasswordNewPassword").val()
                     })
                     .done(genericSuccess)
                     .fail(genericFailure);
