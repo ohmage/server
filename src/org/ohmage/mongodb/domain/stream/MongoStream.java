@@ -85,7 +85,7 @@ public class MongoStream extends Stream implements MongoDbObject {
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
         @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-        @JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps,
+        @JsonProperty(JSON_KEY_APPS) final List<AppInformationWithAuthorization> apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 

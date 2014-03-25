@@ -8,6 +8,7 @@ import java.util.List;
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 
+import org.ohmage.domain.AppInformation;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
@@ -15,10 +16,6 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.JdkDeserializers.URIDeserializer;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 
 /**
  * <p>
@@ -45,7 +42,7 @@ public class Stream extends Schema {
          * The list of information about the apps that correspond to this
          * stream.
          */
-        protected List<AppInformation> apps;
+        protected List<AppInformationWithAuthorization> apps;
 
         /**
          * Creates a new Stream builder object.
@@ -81,7 +78,7 @@ public class Stream extends Schema {
             @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
             @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 			@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-	        @JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps) {
+	        @JsonProperty(JSON_KEY_APPS) final List<AppInformationWithAuthorization> apps) {
 
 			super(version, name, description, iconId, omhVisible);
 
@@ -139,16 +136,8 @@ public class Stream extends Schema {
      *
      * @author John Jenkins
      */
-	public static class AppInformation {
-	    /**
-	     * The JSON key for the platform.
-	     */
-	    public static final String JSON_KEY_PLATFORM = "platform";
-
-	    /**
-	     * The JSON key for the application's URI.
-	     */
-	    public static final String JSON_KEY_APP_URI = "app_uri";
+	public static class AppInformationWithAuthorization
+	    extends AppInformation {
 
 	    /**
 	     * The JSON key for the authorization URI.
@@ -157,30 +146,14 @@ public class Stream extends Schema {
 	        "authorization_uri";
 
 	    /**
-	     * The platform to which this application applies, e.g. Android, iOS,
-	     * Windows, etc..
-	     */
-	    @JsonProperty(JSON_KEY_PLATFORM)
-	    private final String platform;
-
-	    /**
-	     * The URI to use to direct the user to installing the application.
-	     */
-	    @JsonProperty(JSON_KEY_APP_URI)
-	    @JsonDeserialize(using = URIDeserializer.class)
-	    @JsonSerialize(using = ToStringSerializer.class)
-	    private final URI appUri;
-
-	    /**
 	     * The URI to use to direct the user to authorize the application.
 	     */
 	    @JsonProperty(JSON_KEY_AUTHORIZATION_URI)
-        @JsonDeserialize(using = URIDeserializer.class)
-        @JsonSerialize(using = ToStringSerializer.class)
 	    private final URI authorizationUri;
 
         /**
-         * Creates a new or reconstructs an existing AppInformation object.
+         * Creates a new or reconstructs an existing
+         * AppInformationWithAuthorization object.
          *
          * @param platform
          *        The application platform, e.g. Android, iOS, Windows, etc..
@@ -196,24 +169,16 @@ public class Stream extends Schema {
          * @throws InvalidArgumentException
          *         The platform or application URI are null.
          */
-	    public AppInformation(
+	    @JsonCreator
+	    public AppInformationWithAuthorization(
 	        @JsonProperty(JSON_KEY_PLATFORM) final String platform,
 	        @JsonProperty(JSON_KEY_APP_URI) final URI appUri,
 	        @JsonProperty(JSON_KEY_AUTHORIZATION_URI)
 	            final URI authorizationUri)
 	        throws InvalidArgumentException {
 
-	        if(platform == null) {
-	            throw new InvalidArgumentException("The platform is missing.");
-	        }
-	        if(appUri == null) {
-	            throw
-	                new InvalidArgumentException(
-	                    "The application URI is missing.");
-	        }
+	        super(platform, appUri);
 
-	        this.platform = platform;
-	        this.appUri = appUri;
 	        this.authorizationUri = authorizationUri;
 	    }
 	}
@@ -230,7 +195,7 @@ public class Stream extends Schema {
      * The list of applications that supply data for this stream.
      */
     @JsonProperty(JSON_KEY_APPS)
-    private final List<AppInformation> apps;
+    private final List<AppInformationWithAuthorization> apps;
 
     /**
      * Creates a new Stream object.
@@ -271,7 +236,7 @@ public class Stream extends Schema {
 		final String iconId,
         final boolean omhVisible,
 		final Concordia definition,
-		final List<AppInformation> apps)
+		final List<AppInformationWithAuthorization> apps)
 		throws InvalidArgumentException {
 
 		this(
@@ -338,7 +303,7 @@ public class Stream extends Schema {
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
         @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-		@JsonProperty(JSON_KEY_APPS) final List<AppInformation> apps,
+		@JsonProperty(JSON_KEY_APPS) final List<AppInformationWithAuthorization> apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
 
@@ -410,7 +375,7 @@ public class Stream extends Schema {
 		final String iconId,
         final Boolean omhVisible,
 		final Concordia definition,
-		final List<AppInformation> apps,
+		final List<AppInformationWithAuthorization> apps,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
@@ -433,8 +398,8 @@ public class Stream extends Schema {
         this.definition = definition;
         this.apps =
             (apps == null) ?
-                Collections.<AppInformation>emptyList() :
-                new ArrayList<AppInformation>(apps);
+                Collections.<AppInformationWithAuthorization>emptyList() :
+                new ArrayList<AppInformationWithAuthorization>(apps);
 	}
 
 	/**

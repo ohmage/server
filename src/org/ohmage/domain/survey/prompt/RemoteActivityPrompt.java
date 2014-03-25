@@ -1,12 +1,15 @@
 package org.ohmage.domain.survey.prompt;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
+import org.ohmage.domain.AppInformation;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.condition.Condition;
@@ -41,6 +44,11 @@ public class RemoteActivityPrompt extends Prompt<Object> {
     public static final String JSON_KEY_DEFINITION = "definition";
 
     /**
+     * The JSON key for the URI to download and install the application.
+     */
+    public static final String JSON_KEY_APP_URI = "apps";
+
+    /**
      * The static object mapper to use to convert the given objects into JSON
      * nodes.
      */
@@ -58,6 +66,12 @@ public class RemoteActivityPrompt extends Prompt<Object> {
      */
     @JsonProperty(JSON_KEY_DEFINITION)
     private final Concordia definition;
+
+    /**
+     * The URI to download and install the application.
+     */
+    @JsonProperty(JSON_KEY_APP_URI)
+    private final List<AppInformation> apps;
 
     /**
      * Creates a new remote activity prompt.
@@ -91,6 +105,10 @@ public class RemoteActivityPrompt extends Prompt<Object> {
      *        The {@link Concordia} definition to which the remote activity
      *        response must adhere.
      *
+     * @param apps
+     *        The list of applications that a client may / should install to
+     *        launch this remote activity.
+     *
      * @throws InvalidArgumentException
      *         A parameter was invalid.
      */
@@ -105,7 +123,8 @@ public class RemoteActivityPrompt extends Prompt<Object> {
         @JsonProperty(JSON_KEY_DEFAULT_RESPONSE)
             final JsonNode defaultResponse,
         @JsonProperty(JSON_KEY_URI) final URI uri,
-        @JsonProperty(JSON_KEY_DEFINITION) final Concordia definition)
+        @JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
+        @JsonProperty(JSON_KEY_APP_URI) final List<AppInformation> apps)
         throws InvalidArgumentException {
 
         super(
@@ -158,6 +177,14 @@ public class RemoteActivityPrompt extends Prompt<Object> {
         }
         else {
             this.definition = definition;
+        }
+
+        // Validate the app URI.
+        if(apps == null) {
+            this.apps = Collections.emptyList();
+        }
+        else {
+            this.apps = apps;
         }
     }
 
