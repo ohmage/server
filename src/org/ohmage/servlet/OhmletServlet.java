@@ -685,6 +685,8 @@ public class OhmletServlet extends OhmageServlet {
                 // Add the ohmlet endpoint.
                 invitationUrlBuilder.append(ROOT_MAPPING);
 
+                // Add the ohmlet's ID.
+                invitationUrlBuilder.append('/').append(ohmletId);
                 // Add the custom endpoint for accepting an invitation.
                 invitationUrlBuilder.append("/join");
                 // Begin adding the parameters.
