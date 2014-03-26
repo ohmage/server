@@ -715,16 +715,6 @@ public class OhmletServlet extends OhmageServlet {
                                     userInvitation.getId(),
                                     URL_ENCODING));
 
-                    // Add the ohmlet ID.
-                    invitationUrlBuilder
-                        .append('&')
-                        .append(
-                            URLEncoder
-                                .encode(Ohmlet.JSON_KEY_ID, URL_ENCODING))
-                        .append('=')
-                        .append(
-                            URLEncoder.encode(ohmlet.getId(), URL_ENCODING));
-
                     // Add the ohmlet invitation code.
                     invitationUrlBuilder
                         .append('&')
