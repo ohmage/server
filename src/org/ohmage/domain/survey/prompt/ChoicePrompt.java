@@ -1,16 +1,16 @@
 package org.ohmage.domain.survey.prompt;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 import org.ohmage.domain.survey.condition.Condition;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * <p>
@@ -104,11 +104,17 @@ public abstract class ChoicePrompt<ChoiceType, ResponseType>
     public static final String JSON_KEY_CHOICES = "choices";
 
     /**
-     * The map of choices from their value to their actual {@link Choice}
-     * object.
+     * The actual list of choices that backs this choice prompt.
      */
     @JsonProperty(JSON_KEY_CHOICES)
-    @JsonSerialize(using = MapValuesJsonSerializer.class)
+    private final List<? extends Choice<? extends ChoiceType>> choiceList;
+
+    /**
+     * The map of choices from their value to their actual {@link Choice}
+     * object, which is used as a lookup table and ignored during
+     * (de)serialization.
+     */
+    @JsonIgnore
     private final Map<ChoiceType, Choice<? extends ChoiceType>> choices;
 
     /**
@@ -179,6 +185,7 @@ public abstract class ChoicePrompt<ChoiceType, ResponseType>
         }
 
         // Create a lookup table for the choices.
+        choiceList = new ArrayList<Choice<? extends ChoiceType>>(choices);
         this.choices =
             new HashMap<ChoiceType, Choice<? extends ChoiceType>>(
                 choices.size());
