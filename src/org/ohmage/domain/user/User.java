@@ -18,6 +18,7 @@ import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 import org.ohmage.domain.jackson.OhmageObjectMapper;
 import org.ohmage.domain.jackson.OhmageObjectMapper.JsonFilterField;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletInvitation;
 import org.ohmage.domain.ohmlet.OhmletReference;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -87,6 +88,10 @@ public class User extends OhmageDomainObject {
          * create their account.
          */
         private String invitationId;
+        /**
+         * The set of ohmlet invitations that a user may redeem to join an ohmlet.
+         */
+        private Set<OhmletInvitation> ohmletInvitations;
 
         /**
          * Creates a new builder with the outward-facing allowed parameters.
@@ -133,6 +138,9 @@ public class User extends OhmageDomainObject {
             streams = new HashSet<SchemaReference>(user.streams);
             surveys = new HashSet<SchemaReference>(user.surveys);
             registration = user.registration;
+            invitationId = user.invitationId;
+            ohmletInvitations =
+                new HashSet<OhmletInvitation>(user.ohmletInvitations.values());
         }
 
         /**
@@ -487,6 +495,49 @@ public class User extends OhmageDomainObject {
         }
 
         /**
+         * Adds an ohmlet invitation to this user. This can also be used to
+         * upgrade an existing ohmlet invitation by adding an invitation with
+         * the same unique identifier and ohlmet ID as another invitation but
+         * with different fields like the time-stamp it was accepted.
+         *
+         * @param ohmletInvitation
+         *        The ohmlet invitation to add.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder addOhlmetInvitation(
+            final OhmletInvitation ohmletInvitation) {
+
+            if(ohmletInvitations == null) {
+                ohmletInvitations = new HashSet<OhmletInvitation>();
+            }
+
+            ohmletInvitations.add(ohmletInvitation);
+
+            return this;
+        }
+
+        /**
+         * Removes an ohmlet invitation from this user.
+         *
+         * @param ohmletInvitation
+         *        The ohmlet invitation to remove.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder removeOhmletInvitation(
+            final OhmletInvitation ohmletInvitation) {
+
+            if(ohmletInvitations == null) {
+                ohmletInvitations = new HashSet<OhmletInvitation>();
+            }
+
+            ohmletInvitations.remove(ohmletInvitation);
+
+            return this;
+        }
+
+        /**
          * Creates a {@link User} object based on the state of this builder.
          *
          * @return A {@link User} object based on the state of this builder.
@@ -494,6 +545,7 @@ public class User extends OhmageDomainObject {
          * @throws OhmageException
          *         The state of the builder contained invalid fields.
          */
+        @Override
         public User build() {
             return new User(
                 userId,
@@ -506,6 +558,7 @@ public class User extends OhmageDomainObject {
                 surveys,
                 registration,
                 invitationId,
+                ohmletInvitations,
                 internalReadVersion,
                 internalWriteVersion);
         }
@@ -567,6 +620,11 @@ public class User extends OhmageDomainObject {
      * The JSON key for the invitation ID.
      */
     public static final String JSON_KEY_INVITATION_ID = "invitation_id";
+    /**
+     * The JSON key for the set of ohmlet invitations.
+     */
+    public static final String JSON_KEY_OHMLET_INVITATIONS =
+        "ohmlet_invitations";
 
     /**
      * The internal unique ID for a user.
@@ -628,6 +686,16 @@ public class User extends OhmageDomainObject {
     @JsonProperty(JSON_KEY_INVITATION_ID)
     @JsonFilterField
     private final String invitationId;
+    /**
+     * The set of ohmlet invitations that a user may redeem to join an ohmlet.
+     */
+    // FIXME: This should probably be done in a more abstract way. This should
+    // probably reference just the ohmlet invitation IDs, which exist in an
+    // external table. Then, both the inviter and invitee can access them and
+    // use/revoke them.
+    @JsonProperty(JSON_KEY_OHMLET_INVITATIONS)
+    @JsonSerialize(using = MapValuesJsonSerializer.class)
+    private final Map<String, OhmletInvitation> ohmletInvitations;
 
     /**
      * Creates a new User object.
@@ -661,6 +729,14 @@ public class User extends OhmageDomainObject {
      *        The user's self-registration information if the user was
      *        self-registered; if not, null.
      *
+     * @param invitationId
+     *        The unique identifier of the user invitation that was used to
+     *        create this account.
+     *
+     * @param ohmletInvitations
+     *        The invitations to ohmlets that have been given to this user.
+     *        They may or may not have been used.
+     *
      * @throws InvalidArgumentException
      *         A required parameter is null or invalid.
      */
@@ -673,7 +749,8 @@ public class User extends OhmageDomainObject {
         final Set<SchemaReference> streams,
         final Set<SchemaReference> surveys,
         final Registration registration,
-        final String invitationId)
+        final String invitationId,
+        final Set<OhmletInvitation> ohmletInvitations)
         throws InvalidArgumentException {
 
         // Pass through to the builder constructor.
@@ -688,6 +765,7 @@ public class User extends OhmageDomainObject {
             surveys,
             registration,
             invitationId,
+            ohmletInvitations,
             null);
     }
 
@@ -726,6 +804,14 @@ public class User extends OhmageDomainObject {
      *        The user's self-registration information if the user was
      *        self-registered; if not, null.
      *
+     * @param invitationId
+     *        The unique identifier of the user invitation that was used to
+     *        create this account.
+     *
+     * @param ohmletInvitations
+     *        The invitations to ohmlets that have been given to this user.
+     *        They may or may not have been used.
+     *
      * @param internalVersion
      *        The internal version of this entity.
      *
@@ -745,6 +831,8 @@ public class User extends OhmageDomainObject {
         @JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
         @JsonProperty(JSON_KEY_REGISTRATION) final Registration registration,
         @JsonProperty(JSON_KEY_INVITATION_ID) final String invitationId,
+        @JsonProperty(JSON_KEY_OHMLET_INVITATIONS)
+            final Set<OhmletInvitation> ohmletInvitations,
         @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
         throws InvalidArgumentException {
 
@@ -760,6 +848,7 @@ public class User extends OhmageDomainObject {
             surveys,
             registration,
             invitationId,
+            ohmletInvitations,
             internalVersion,
             null);
     }
@@ -799,6 +888,14 @@ public class User extends OhmageDomainObject {
      *        The user's self-registration information if the user was
      *        self-registered; if not, null.
      *
+     * @param invitationId
+     *        The unique identifier of the user invitation that was used to
+     *        create this account.
+     *
+     * @param ohmletInvitations
+     *        The invitations to ohmlets that have been given to this user.
+     *        They may or may not have been used.
+     *
      * @param internalReadVersion
      *        The version of this entity when it was read from the database.
      *
@@ -820,6 +917,7 @@ public class User extends OhmageDomainObject {
         final Set<SchemaReference> surveys,
         final Registration registration,
         final String invitationId,
+        final Set<OhmletInvitation> ohmletInvitations,
         final Long internalReadVersion,
         final Long internalWriteVersion)
         throws InvalidArgumentException {
@@ -880,6 +978,15 @@ public class User extends OhmageDomainObject {
 
         this.registration = registration;
         this.invitationId = invitationId;
+
+        this.ohmletInvitations = new HashMap<String, OhmletInvitation>();
+        if(ohmletInvitations != null) {
+            for(OhmletInvitation ohmletInvitation : ohmletInvitations) {
+                this
+                    .ohmletInvitations
+                    .put(ohmletInvitation.getId(), ohmletInvitation);
+            }
+        }
     }
 
     /**
@@ -1140,6 +1247,64 @@ public class User extends OhmageDomainObject {
      */
     public Registration getRegistration() {
         return registration;
+    }
+
+    /**
+     * Returns the unique identifier for the user invitation used to create
+     * this account.
+     *
+     * @return The unique identifier for the user invitation used to create
+     *         this account.
+     */
+    public String getInvitationId() {
+        return invitationId;
+    }
+
+    /**
+     * Returns the set of ohmlet invitations for this user.
+     *
+     * @return The set of ohmlet invitations for this user.
+     */
+    public Collection<OhmletInvitation> getOhmletInvitations() {
+        return Collections.unmodifiableCollection(ohmletInvitations.values());
+    }
+
+    /**
+     * Returns a specific ohmlet invitation based on the given ohmlet
+     * invitation ID or null if no such ID is known for this user.
+     *
+     * @param invitationId
+     *        The ohmlet invitation's unique identifier.
+     *
+     * @return The ohmlet invitation or null if the invitation is unknown for
+     *         this user.
+     */
+    public OhmletInvitation getOhmletInvitation(
+        final String ohmletInvitationId) {
+
+        return ohmletInvitations.get(ohmletInvitationId);
+    }
+
+    /**
+     * Returns a specific ohmlet invitation based on the given ohmlet ID or
+     * null if no such ID is known for this user.
+     *
+     * @param ohmletId
+     *        The ohmlet's unique identifier.
+     *
+     * @return The ohmlet invitation or null if the invitation is unknown for
+     *         this user.
+     */
+    public OhmletInvitation getOhmletInvitationFromOhmletId(
+        final String ohmletId) {
+
+        for(OhmletInvitation ohmletInvitation : ohmletInvitations.values()) {
+            if(ohmletInvitation.getOhmletId().equals(ohmletId)) {
+                return ohmletInvitation;
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -90,6 +90,7 @@ public class UserInvitation extends OhmageDomainObject {
          * @return The {@link UserInvitation} object based on the state of this
          *         builder.
          */
+        @Override
         public UserInvitation build() {
             return
                 new UserInvitation(
@@ -316,6 +317,15 @@ public class UserInvitation extends OhmageDomainObject {
      */
     public String getEmail() {
         return email;
+    }
+
+    /**
+     * Returns the ohmlet invitation ID associated with this user invitation.
+     *
+     * @return The ohmlet invitation ID associated with this user invitation.
+     */
+    public String getOhmletInvitationId() {
+        return ohmletInvitationId;
     }
 
     /**

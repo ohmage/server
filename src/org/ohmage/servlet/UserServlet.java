@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
 import org.ohmage.bin.OhmletBin;
+import org.ohmage.bin.OhmletInvitationBin;
 import org.ohmage.bin.StreamBin;
 import org.ohmage.bin.SurveyBin;
 import org.ohmage.bin.UserBin;
@@ -22,6 +23,7 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.ohmlet.Ohmlet;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletInvitation;
 import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.ohmlet.OhmletReferenceView;
 import org.ohmage.domain.stream.Stream;
@@ -246,6 +248,51 @@ public class UserServlet extends OhmageServlet {
 
             LOGGER.log(Level.FINE, "Setting the invitation ID.");
             userBuilder.setInvitationId(userInvitationId);
+
+            // Get the other user invitations for this email address, get the
+            // corresponding ohmlet invitations, and add those invitations to
+            // the pending invitations for this user object.
+            LOGGER
+                .log(
+                    Level.INFO,
+                    "Finding other user invitations and adding their ohmlet " +
+                        "invitations.");
+            for(UserInvitation userInvitation :
+                    UserInvitationBin
+                        .getInstance()
+                        .getInvitations(userBuilder.getEmail())) {
+
+                // Get the corresponding ohmlet invitation.
+                OhmletInvitation ohmletInvitation =
+                    OhmletInvitationBin
+                        .getInstance()
+                        .getInvitation(userInvitation.getOhmletInvitationId());
+
+                // Update this ohmlet invitation with a new ohmlet invitation.
+                OhmletInvitation updatedOhmletInvitation =
+                    (new OhmletInvitation.Builder(ohmletInvitation))
+                        .setUsedTimestamp(System.currentTimeMillis())
+                        .build();
+
+                // Store the updated ohmlet invitation.
+                OhmletInvitationBin
+                    .getInstance()
+                    .updateInvitation(updatedOhmletInvitation);
+
+                // Add the original ohmlet invitation to this user.
+                userBuilder.addOhlmetInvitation(ohmletInvitation);
+
+                // Update the user invitation.
+                UserInvitation updatedUserInvitation =
+                    (new UserInvitation.Builder(userInvitation))
+                        .setUsedTimestamp(System.currentTimeMillis())
+                        .build();
+
+                // Store the updated user invitation.
+                UserInvitationBin
+                    .getInstance()
+                    .updateInvitation(updatedUserInvitation);
+            }
 		}
 
 		LOGGER.log(Level.FINE, "Building the user.");
@@ -268,18 +315,6 @@ public class UserServlet extends OhmageServlet {
                 .getRegistration()
                 .sendUserRegistrationEmail(
                     rootUrl + UserActivationServlet.ROOT_MAPPING);
-        }
-        else {
-            LOGGER.log(Level.INFO, "Invalidating the invitation.");
-            UserInvitation expiredInvitation =
-                (new UserInvitation.Builder(invitation))
-                    .setUsedTimestamp(System.currentTimeMillis())
-                    .build();
-
-            LOGGER.log(Level.INFO, "Saving the invalidated invitation.");
-            UserInvitationBin
-                .getInstance()
-                .updateInvitation(expiredInvitation);
         }
 
 		LOGGER.log(Level.INFO, "Echoing the user back.");

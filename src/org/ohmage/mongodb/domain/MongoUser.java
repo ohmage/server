@@ -7,6 +7,7 @@ import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.ohmlet.OhmletInvitation;
 import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.Registration;
@@ -68,6 +69,14 @@ public class MongoUser extends User implements MongoDbObject {
      * @param registration
      *        The user's self-registration information if the user was
      *        self-registered; if not, null.
+     *
+     * @param invitationId
+     *        The unique identifier of the user invitation that was used to
+     *        create this account.
+     *
+     * @param ohmletInvitations
+     *        The invitations to ohmlets that have been given to this user.
+     *        They may or may not have been used.
 	 *
 	 * @param internalVersion
 	 *        The internal version of this entity used for checking for update
@@ -91,6 +100,8 @@ public class MongoUser extends User implements MongoDbObject {
 		@JsonProperty(JSON_KEY_SURVEYS) final Set<SchemaReference> surveys,
         @JsonProperty(JSON_KEY_REGISTRATION) final Registration registration,
         @JsonProperty(JSON_KEY_INVITATION_ID) final String invitationId,
+        @JsonProperty(JSON_KEY_OHMLET_INVITATIONS)
+            final Set<OhmletInvitation> ohmletInvitations,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 
@@ -105,6 +116,7 @@ public class MongoUser extends User implements MongoDbObject {
 			surveys,
 			registration,
 			invitationId,
+			ohmletInvitations,
 			internalVersion);
 
 		// Store the MongoDB ID.

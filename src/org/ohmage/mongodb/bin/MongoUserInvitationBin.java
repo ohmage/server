@@ -4,6 +4,7 @@ import org.mongojack.DBQuery;
 import org.mongojack.DBQuery.Query;
 import org.mongojack.JacksonDBCollection;
 import org.mongojack.WriteResult;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.UserInvitationBin;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
@@ -67,8 +68,17 @@ public class MongoUserInvitationBin extends UserInvitationBin {
             .ensureIndex(
                 new BasicDBObject(UserInvitation.JSON_KEY_INVITATION_ID, 1),
                 COLLECTION_NAME + "_" +
-                    UserInvitation.JSON_KEY_INVITATION_ID,
+                    UserInvitation.JSON_KEY_INVITATION_ID + "_" +
+                    "unique",
                 true);
+
+        // Ensure that there is an index on the email address.
+        COLLECTION
+            .ensureIndex(
+                new BasicDBObject(UserInvitation.JSON_KEY_EMAIL, 1),
+                COLLECTION_NAME + "_" +
+                    UserInvitation.JSON_KEY_EMAIL,
+                false);
     }
 
     /*
@@ -122,6 +132,32 @@ public class MongoUserInvitationBin extends UserInvitationBin {
 
         // Execute the query.
         return MONGO_COLLECTION.findOne(queryBuilder.get());
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.UserInvitationBin#getInvitations(java.lang.String)
+     */
+    @Override
+    public MultiValueResult<? extends UserInvitation> getInvitations(
+        final String email)
+        throws IllegalArgumentException {
+
+        // Validate the parameter.
+        if(email == null) {
+            throw new IllegalArgumentException("The email address is null.");
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the email address.
+        queryBuilder.and(UserInvitation.JSON_KEY_EMAIL).is(email);
+
+        // Execute the query.
+        return
+            new MongoMultiValueResultCursor<MongoUserInvitation>(
+                MONGO_COLLECTION.find(queryBuilder.get()));
     }
 
     /*

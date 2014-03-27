@@ -147,7 +147,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -164,7 +165,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -181,7 +183,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -198,7 +201,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -221,7 +225,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -238,7 +243,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -259,7 +265,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -276,7 +283,8 @@ public class UserTest {
             null,
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -297,7 +305,8 @@ public class UserTest {
             streams,
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -314,7 +323,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             null,
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -335,7 +345,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             surveys,
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -352,7 +363,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             null,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -369,7 +381,8 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             Collections.<SchemaReference>emptySet(),
             registration,
-            INVITATION_ID);
+            INVITATION_ID,
+            null);
     }
 
     /**
@@ -388,6 +401,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -407,6 +421,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -426,6 +441,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -445,6 +461,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -464,6 +481,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -489,6 +507,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -508,6 +527,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -531,6 +551,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -550,6 +571,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -573,6 +595,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -592,6 +615,7 @@ public class UserTest {
             null,
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -615,6 +639,7 @@ public class UserTest {
             surveys,
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -634,6 +659,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             null,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -653,6 +679,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             null);
     }
 
@@ -672,6 +699,7 @@ public class UserTest {
             Collections.<SchemaReference>emptySet(),
             registration,
             INVITATION_ID,
+            null,
             INTERNAL_VERSION);
     }
 
@@ -690,7 +718,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
         Assert
             .assertEquals(
                 "The returned password did not match the built password.",
@@ -713,7 +742,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
         Assert
             .assertEquals(
                 "The returned email did not match the built email.",
@@ -748,7 +778,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
         Assert
             .assertNull(
                 "A non-existant provider was associated with a user.",
@@ -782,7 +813,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
         Assert.assertEquals(provider, user.getProvider(providerId));
     }
 
@@ -823,7 +855,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
 
         // Update the provider.
         ProviderUserInformation newProvider =
@@ -901,7 +934,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
         Collection<OhmletReference> ohmletReferences = user.getOhmlets();
 
         Assert
@@ -940,7 +974,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
         OhmletReference retrievedOhmlet = user.getOhmlet(ohmletId);
 
         Assert
@@ -971,7 +1006,8 @@ public class UserTest {
                 streams,
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
 
         Set<SchemaReference> retrievedStreams = user.getStreams();
 
@@ -1008,7 +1044,8 @@ public class UserTest {
                 surveys,
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
 
         Set<SchemaReference> retrievedSurveys = user.getStreams();
 
@@ -1041,7 +1078,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
 
         Assert
             .assertEquals(
@@ -1066,7 +1104,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+                null);
 
         User newUser = originalUser.activate();
 
@@ -1121,7 +1160,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+            null);
 
         Assert
             .assertTrue(
@@ -1148,7 +1188,8 @@ public class UserTest {
                 Collections.<SchemaReference>emptySet(),
                 Collections.<SchemaReference>emptySet(),
                 registration,
-                INVITATION_ID);
+                INVITATION_ID,
+            null);
 
         // Update the user with the new provider.
         User newUser = originalUser.updatePassword(newPassword);

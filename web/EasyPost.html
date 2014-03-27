@@ -4354,7 +4354,7 @@
             /**
              * Sends invitations to an ohmlet.
              */
-            function sendOhmletInvitation() {
+            function sendOhmletInvitations() {
                 if(auth === null) {
                     print("You must be authenticated to make this call.");
                     return;
@@ -4402,7 +4402,7 @@
                         headers: {
                             "Authorization" : "ohmage " + auth['access_token']
                         },
-                        data: $("#surveyUpdateRoleMember").val()
+                        data: $("#ohmletUpdateRoleMember").val()
                     })
                     .done(genericSuccess)
                     .fail(genericFailure);
