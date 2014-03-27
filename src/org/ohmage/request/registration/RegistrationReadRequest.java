@@ -90,6 +90,6 @@ public class RegistrationReadRequest extends Request {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		return new HashMap<String, String[]>();
+		return super.getAuditInformation();
 	}
 }
