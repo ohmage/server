@@ -1110,16 +1110,16 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"osd.data " +
 				"FROM " +
 					"observer_stream_data AS osd " +
-						"LEFT JOIN observer_stream_link AS osl " +
-						"ON osd.observer_stream_link_id = osl.id " +
 				"WHERE " +
 					"osd.user_id = (" +
 						"SELECT id " +
 						"FROM user " +
 						"WHERE username = ?" +
 					") " +
-				"AND osl.observer_id = " +
-					"(SELECT id FROM observer WHERE observer_id = ?");
+                "AND osd.observer_stream_link_id = " +
+					"( SELECT id FROM observer_stream_link WHERE observer_id = " +
+						"( SELECT id FROM observer WHERE observer_id = ? ");
+				
 		List<Object> parameters = new LinkedList<Object>();
 		parameters.add(username);
 		parameters.add(observerId);
@@ -1138,13 +1138,16 @@ public class ObserverQueries extends Query implements IObserverQueries {
 		// components.
 		builder
 			.append(
-				" AND osl.observer_stream_id IN " +
-					"(" +
-						"SELECT id " +
-						"FROM observer_stream " +
-						"WHERE stream_id = ? " +
-						"AND version = ?" +
-					")");
+				" AND observer_stream_id IN " +
+				"(" +
+					"SELECT id " +
+					"FROM observer_stream " +
+					"WHERE stream_id = ? " +
+					"AND version = ?" +
+				")");
+        
+		builder.append(")");
+		
 		parameters.add(stream.getId());
 		parameters.add(stream.getVersion());
 		
