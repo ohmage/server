@@ -277,7 +277,7 @@ public class ClassReadRequest extends UserRequest {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
+		Map<String, String[]> auditInfo = super.getAuditInformation();
 		
 		if(classIds != null) {
 			auditInfo.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));

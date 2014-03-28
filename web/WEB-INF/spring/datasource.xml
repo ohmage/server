@@ -21,6 +21,7 @@
     <property name="timeBetweenEvictionRunsMillis" value="3600000" />
     <property name="minEvictableIdleTimeMillis" value="14400000" />
     <property name="commitOnReturn" value="true" />
+    <property name="testOnBorrow" value="true" />
     
   </bean>
 

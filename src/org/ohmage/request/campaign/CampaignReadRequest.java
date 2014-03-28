@@ -618,7 +618,7 @@ public class CampaignReadRequest extends UserRequest {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> auditInfo = new HashMap<String, String[]>();
+		Map<String, String[]> auditInfo = super.getAuditInformation();
 		
 		// Retrieve all of the campaign IDs from the result.
 		List<String> campaignIds = new LinkedList<String>();

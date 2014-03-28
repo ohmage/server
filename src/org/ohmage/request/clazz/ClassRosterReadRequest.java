@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -226,7 +225,7 @@ public class ClassRosterReadRequest extends UserRequest {
 	 */
 	@Override
 	public Map<String, String[]> getAuditInformation() {
-		Map<String, String[]> result = new HashMap<String, String[]>();
+		Map<String, String[]> result = super.getAuditInformation();
 		
 		if(classIds != null) {
 			result.put(InputKeys.CLASS_URN, classIds.toArray(new String[0]));
