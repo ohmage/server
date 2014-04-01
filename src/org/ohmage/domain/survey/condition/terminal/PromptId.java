@@ -175,6 +175,9 @@ public class PromptId extends Terminal {
         if(thisResponse instanceof Number) {
             thisNumber = new OhmageNumber((Number) thisResponse);
         }
+        else if(value instanceof OhmageNumber) {
+            thisNumber = (OhmageNumber) value;
+        }
         else {
             return false;
         }
@@ -182,6 +185,9 @@ public class PromptId extends Terminal {
         Number otherNumber;
         if(value instanceof Number) {
             otherNumber = (Number) value;
+        }
+        else if(value instanceof OhmageNumber) {
+            otherNumber = ((OhmageNumber) value).getNumber();
         }
         else {
             return false;
@@ -201,11 +207,11 @@ public class PromptId extends Terminal {
 
         Object response = getValue(responses);
 
-        if(response instanceof OhmageNumber) {
-            response.equals(value);
-        }
         if(response instanceof Number) {
             return (new OhmageNumber((Number) response)).equals(value);
+        }
+        else if(response instanceof OhmageNumber) {
+            return response.equals(value);
         }
         else {
             return response.equals(value);
@@ -226,6 +232,9 @@ public class PromptId extends Terminal {
         if(thisResponse instanceof Number) {
             thisNumber = new OhmageNumber((Number) thisResponse);
         }
+        else if(value instanceof OhmageNumber) {
+            thisNumber = (OhmageNumber) value;
+        }
         else {
             return false;
         }
@@ -233,6 +242,9 @@ public class PromptId extends Terminal {
         Number otherNumber;
         if(value instanceof Number) {
             otherNumber = (Number) value;
+        }
+        else if(value instanceof OhmageNumber) {
+            otherNumber = ((OhmageNumber) value).getNumber();
         }
         else {
             return false;

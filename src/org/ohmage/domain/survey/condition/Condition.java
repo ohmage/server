@@ -211,7 +211,8 @@ public class Condition {
      * that have been seen.
      *
      * @param surveyItems
-     *        The map of survey item IDs to their {@link SurveyItem}.
+     *        The map of survey item IDs to their corresponding
+     *        {@link SurveyItem}.
      */
     public void validate(final Map<String, SurveyItem> surveyItems) {
         root.validate(surveyItems);

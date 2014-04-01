@@ -57,8 +57,8 @@ public abstract class Fragment {
      * Validates that the condition is valid given the previous survey items.
      *
      * @param surveyItems
-     *        A map of survey item IDs to their {@link SurveyItem} object of
-     *        the survey items that have already been validated.
+     *        A map of survey item IDs to their corresponding
+     *        {@link SurveyItem}.
      *
      * @throws InvalidArgumentException
      *         The condition is invalid.

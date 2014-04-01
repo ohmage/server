@@ -1,12 +1,11 @@
 package org.ohmage.mongodb.domain.stream;
 
-import java.util.List;
-
 import name.jenkins.paul.john.concordia.Concordia;
 
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
+import org.ohmage.domain.appcontainer.Apps;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.stream.Stream;
 import org.ohmage.mongodb.bin.MongoStreamBin;
@@ -85,7 +84,7 @@ public class MongoStream extends Stream implements MongoDbObject {
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
         @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-        @JsonProperty(JSON_KEY_APPS) final List<AppInformationWithAuthorization> apps,
+        @JsonProperty(JSON_KEY_APPS) final Apps apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException {
 

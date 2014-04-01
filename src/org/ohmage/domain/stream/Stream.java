@@ -1,16 +1,11 @@
 package org.ohmage.domain.stream;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 
-import org.ohmage.domain.AppInformation;
 import org.ohmage.domain.MetaData;
 import org.ohmage.domain.Schema;
+import org.ohmage.domain.appcontainer.Apps;
 import org.ohmage.domain.exception.InvalidArgumentException;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -42,7 +37,7 @@ public class Stream extends Schema {
          * The list of information about the apps that correspond to this
          * stream.
          */
-        protected List<AppInformationWithAuthorization> apps;
+        protected Apps apps;
 
         /**
          * Creates a new Stream builder object.
@@ -78,7 +73,7 @@ public class Stream extends Schema {
             @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
             @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 			@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-	        @JsonProperty(JSON_KEY_APPS) final List<AppInformationWithAuthorization> apps) {
+	        @JsonProperty(JSON_KEY_APPS) final Apps apps) {
 
 			super(version, name, description, iconId, omhVisible);
 
@@ -125,64 +120,6 @@ public class Stream extends Schema {
 		}
 	}
 
-    /**
-     * <p>
-     * Information about an application that corresponds to a particular
-     * stream. This should be used to indicate to users of a particular
-     * platform, e.g. Android, iOS, Windows, etc., how to install an
-     * application and how to begin the flow of authorizing ohmage to install
-     * the data.
-     * </p>
-     *
-     * @author John Jenkins
-     */
-	public static class AppInformationWithAuthorization
-	    extends AppInformation {
-
-	    /**
-	     * The JSON key for the authorization URI.
-	     */
-	    public static final String JSON_KEY_AUTHORIZATION_URI =
-	        "authorization_uri";
-
-	    /**
-	     * The URI to use to direct the user to authorize the application.
-	     */
-	    @JsonProperty(JSON_KEY_AUTHORIZATION_URI)
-	    private final URI authorizationUri;
-
-        /**
-         * Creates a new or reconstructs an existing
-         * AppInformationWithAuthorization object.
-         *
-         * @param platform
-         *        The application platform, e.g. Android, iOS, Windows, etc..
-         *
-         * @param appUri
-         *        A URI to direct the user to install the application, e.g. the
-         *        platform's app store.
-         *
-         * @param authorizationUri
-         *        A URI to direct the user to grant ohmage permission to read
-         *        the user's data.
-         *
-         * @throws InvalidArgumentException
-         *         The platform or application URI are null.
-         */
-	    @JsonCreator
-	    public AppInformationWithAuthorization(
-	        @JsonProperty(JSON_KEY_PLATFORM) final String platform,
-	        @JsonProperty(JSON_KEY_APP_URI) final URI appUri,
-	        @JsonProperty(JSON_KEY_AUTHORIZATION_URI)
-	            final URI authorizationUri)
-	        throws InvalidArgumentException {
-
-	        super(platform, appUri);
-
-	        this.authorizationUri = authorizationUri;
-	    }
-	}
-
 	public static final String JSON_KEY_APPS = "apps";
 
     /**
@@ -195,7 +132,7 @@ public class Stream extends Schema {
      * The list of applications that supply data for this stream.
      */
     @JsonProperty(JSON_KEY_APPS)
-    private final List<AppInformationWithAuthorization> apps;
+    private final Apps apps;
 
     /**
      * Creates a new Stream object.
@@ -236,7 +173,7 @@ public class Stream extends Schema {
 		final String iconId,
         final boolean omhVisible,
 		final Concordia definition,
-		final List<AppInformationWithAuthorization> apps)
+		final Apps apps)
 		throws InvalidArgumentException {
 
 		this(
@@ -303,7 +240,7 @@ public class Stream extends Schema {
         @JsonProperty(JSON_KEY_ICON_ID) final String iconId,
         @JsonProperty(JSON_KEY_OMH_VISIBLE) final Boolean omhVisible,
 		@JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-		@JsonProperty(JSON_KEY_APPS) final List<AppInformationWithAuthorization> apps,
+		@JsonProperty(JSON_KEY_APPS) final Apps apps,
 		@JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
 
@@ -375,7 +312,7 @@ public class Stream extends Schema {
 		final String iconId,
         final Boolean omhVisible,
 		final Concordia definition,
-		final List<AppInformationWithAuthorization> apps,
+		final Apps apps,
 		final Long internalReadVersion,
 		final Long internalWriteVersion)
 		throws IllegalArgumentException, InvalidArgumentException {
@@ -396,10 +333,7 @@ public class Stream extends Schema {
         }
 
         this.definition = definition;
-        this.apps =
-            (apps == null) ?
-                Collections.<AppInformationWithAuthorization>emptyList() :
-                new ArrayList<AppInformationWithAuthorization>(apps);
+        this.apps = apps;
 	}
 
 	/**

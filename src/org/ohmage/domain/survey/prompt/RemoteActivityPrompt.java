@@ -1,15 +1,13 @@
 package org.ohmage.domain.survey.prompt;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
 import name.jenkins.paul.john.concordia.schema.Schema;
 
-import org.ohmage.domain.AppInformation;
+import org.ohmage.domain.appcontainer.AppsWithoutAuthorization;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.condition.Condition;
@@ -71,7 +69,7 @@ public class RemoteActivityPrompt extends Prompt<Object> {
      * The URI to download and install the application.
      */
     @JsonProperty(JSON_KEY_APP_URI)
-    private final List<AppInformation> apps;
+    private final AppsWithoutAuthorization apps;
 
     /**
      * Creates a new remote activity prompt.
@@ -124,7 +122,7 @@ public class RemoteActivityPrompt extends Prompt<Object> {
             final JsonNode defaultResponse,
         @JsonProperty(JSON_KEY_URI) final URI uri,
         @JsonProperty(JSON_KEY_DEFINITION) final Concordia definition,
-        @JsonProperty(JSON_KEY_APP_URI) final List<AppInformation> apps)
+        @JsonProperty(JSON_KEY_APP_URI) final AppsWithoutAuthorization apps)
         throws InvalidArgumentException {
 
         super(
@@ -180,12 +178,7 @@ public class RemoteActivityPrompt extends Prompt<Object> {
         }
 
         // Validate the app URI.
-        if(apps == null) {
-            this.apps = Collections.emptyList();
-        }
-        else {
-            this.apps = apps;
-        }
+        this.apps = apps;
     }
 
     /*
