@@ -850,7 +850,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="streamCreationDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Stream JSON Definition" 
                                                             style="resize: vertical;"
@@ -1175,7 +1174,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="streamUpdateDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Stream JSON Definition" 
                                                             style="resize: vertical;"
@@ -1269,7 +1267,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="streamDataUploadData" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Stream Data" 
                                                             style="resize: vertical;"
@@ -1726,7 +1723,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="surveyCreationDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Survey JSON Definition" 
                                                             style="resize: vertical;"
@@ -2051,7 +2047,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="surveyUpdateDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Survey JSON Definition" 
                                                             style="resize: vertical;"
@@ -2145,7 +2140,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="surveyDataUploadData" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Survey Data" 
                                                             style="resize: vertical;"
@@ -2602,7 +2596,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="ohmletCreationDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Ohmlet JSON Definition" 
                                                             style="resize: vertical;"
@@ -2766,7 +2759,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="ohmletUpdateDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="ohmlet JSON Definition" 
                                                             style="resize: vertical;"
@@ -2937,7 +2929,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="ohmletUpdateRoleMember" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="Member JSON Object" 
                                                             style="resize: vertical;"
@@ -3191,7 +3182,6 @@
                                                         </label>
                                                         <textarea 
                                                             id="userCreationDefinition" 
-                                                            type="textbox" 
                                                             class="form-control" 
                                                             placeholder="User Definition" 
                                                             style="resize: vertical;"
@@ -3449,6 +3439,588 @@
                                                         class="btn btn-success" 
                                                         value="Submit"
                                                         onclick="changeUserPassword();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Followed ohmlets API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Followed ohmlets API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserFollowedOhmlets">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Followed ohmlets
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Followed ohmlets body. -->
+                                        <div
+                                            id="collapseUserFollowedOhmlets"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userFollowedOhmlets" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userFollowedOhmletsUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getUserFollowedOhmlets();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Followed ohmlet API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Followed ohmlet API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserFollowedOhmlet">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Followed ohmlet
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Followed ohmlet body. -->
+                                        <div
+                                            id="collapseUserFollowedOhmlet"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userFollowedOhmlet" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userFollowedOhmletUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ohmlet ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userFollowedOhmletOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="getUserFollowedOhmlet();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Leave ohmlet API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Leave ohmlet API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserLeaveOhmlet">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Leave ohmlet
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Leave ohmlet body. -->
+                                        <div
+                                            id="collapseUserLeaveOhmlet"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userLeaveOhmlet" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userLeaveOhmletUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ohmlet ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userLeaveOhmletOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="deleteUserLeaveOhmlet();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Ignore stream API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Ignore stream API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserIgnoreStream">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Ignore Stream
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Ignore stream body. -->
+                                        <div
+                                            id="collapseUserIgnoreStream"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userIgnoreStream" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userIgnoreStreamUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ohmlet ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userIgnoreStreamOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Body: Stream reference -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="userIgnoreStreamReference">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Stream Reference
+                                                        </label>
+                                                        <textarea 
+                                                            id="userIgnoreStreamReference" 
+                                                            class="form-control" 
+                                                            placeholder="Stream Reference" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="userIgnoreStream();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stop ignoring stream API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stop ignoring stream API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserStopIgnoringStream">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stop Ignoring Stream
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stop ignoring stream body. -->
+                                        <div
+                                            id="collapseUserStopIgnoringStream"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userStopIgnoringStream" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userStopIgnoringStreamUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ohmlet ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userStopIgnoringStreamOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Body: Stream reference -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="userStopIgnoringStreamReference">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Stream Reference
+                                                        </label>
+                                                        <textarea 
+                                                            id="userStopIgnoringStreamReference" 
+                                                            class="form-control" 
+                                                            placeholder="Stream Reference" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="userStopIgnoringStream();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Ignore survey API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Ignore survey API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserIgnoreSurvey">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Ignore Survey
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Ignore survey body. -->
+                                        <div
+                                            id="collapseUserIgnoreSurvey"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userIgnoreSurvey" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userIgnoreSurveyUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ohmlet ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userIgnoreSurveyOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Body: Survey reference -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="userIgnoreSurveyReference">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Survey Reference
+                                                        </label>
+                                                        <textarea 
+                                                            id="userIgnoreSurveyReference" 
+                                                            class="form-control" 
+                                                            placeholder="Survey Reference" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="userIgnoreSurvey();">
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Stop ignoring survey API accordion. -->
+                                    <div class="panel panel-default">
+                                        <!-- Stop ignoring survey API header. -->
+                                        <div class="panel-heading">
+                                            <h3 class="panel-title">
+                                                <a
+                                                    data-toggle="collapse" 
+                                                    data-parent="#accordionUser" 
+                                                    href="#collapseUserStopIgnoringSurvey">
+                                                    
+                                                    <i class="glyphicon glyphicon-plus"></i>
+                                                    Stop Ignoring Survey
+                                                </a>
+                                            </h3>
+                                        </div>
+                                        <!-- Stop ignoring survey body. -->
+                                        <div
+                                            id="collapseUserStopIgnoringSurvey"
+                                            class="panel-collapse collapse">
+                                            
+                                            <div class="panel-body">
+                                                <form 
+                                                    id="userStopIgnoringSurvey" 
+                                                    class="well">
+                                                    
+                                                    <!-- Param: User ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                User ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userStopIgnoringSurveyUserId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="User ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Param: ohmlet ID -->
+                                                    <div class="input-group">
+                                                        <span
+                                                            class="input-group-btn">
+                                                            
+                                                            <button 
+                                                                class="btn btn-danger" 
+                                                                type="button" 
+                                                                disabled="disabled" 
+                                                                tabindex="-1">
+                                                                
+                                                                ohmlet ID
+                                                            </button>
+                                                        </span>
+                                                        <input 
+                                                            id="userStopIgnoringSurveyOhmletId" 
+                                                            type="text"
+                                                            class="form-control" 
+                                                            placeholder="ohmlet ID">
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Body: Survey reference -->
+                                                    <div class="form-group">
+                                                        <label 
+                                                            for="userStopIgnoringSurveyReference">
+                                                            
+                                                            <span class="label label-danger">Required</span>
+                                                            Survey Reference
+                                                        </label>
+                                                        <textarea 
+                                                            id="userStopIgnoringSurveyReference" 
+                                                            class="form-control" 
+                                                            placeholder="Survey Reference" 
+                                                            style="resize: vertical;"
+                                                            rows="8"></textarea>
+                                                    </div>
+                                                    <p></p>
+                                                    <!-- Button: Submit -->
+                                                    <input 
+                                                        type="button" 
+                                                        class="btn btn-success" 
+                                                        value="Submit"
+                                                        onclick="userStopIgnoringSurvey();">
                                                 </form>
                                             </div>
                                         </div>
@@ -4573,7 +5145,187 @@
                         headers: {
                             "Authorization" : "ohmage " + auth['access_token']
                         },
-                        body: $("#userChangePasswordNewPassword").val()
+                        data: $("#userChangePasswordNewPassword").val()
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the ohmlet's a user is following.
+             */
+            function getUserFollowedOhmlets() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userFollowedOhmletsUserId").val() + "/" +
+                        "ohmlets",
+                    {
+                        type: "GET",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Retrieves the information for a specific ohmlet's a user is 
+             * following.
+             */
+            function getUserFollowedOhmlet() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userFollowedOhmletUserId").val() + "/" +
+                        "ohmlets" + "/" +
+                        $("#userFollowedOhmletOhmletId").val(),
+                    {
+                        type: "GET",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Allows a user to leave an ohmlet.
+             */
+            function deleteUserLeaveOhmlet() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userFollowedOhmletUserId").val() + "/" +
+                        "ohmlets" + "/" +
+                        $("#userFollowedOhmletOhmletId").val(),
+                    {
+                        type: "DELETE",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        }
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Ignore a stream from an ohmlet.
+             */
+            function userIgnoreStream() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userIgnoreStreamUserId").val() + "/" +
+                        "ohmlets" + "/" +
+                        $("#userIgnoreStreamOhmletId").val() + "/" +
+                        "ignored_streams",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#userIgnoreStreamReference").val()
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Stop ignoring a stream from an ohmlet.
+             */
+            function userStopIgnoringStream() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userStopIgnoringStreamUserId").val() + "/" +
+                        "ohmlets" + "/" +
+                        $("#userStopIgnoringStreamOhmletId").val() + "/" +
+                        "ignored_streams",
+                    {
+                        type: "DELETE",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#userStopIgnoringStreamReference").val()
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Ignore a survey from an ohmlet.
+             */
+            function userIgnoreSurvey() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userIgnoreSurveyUserId").val() + "/" +
+                        "ohmlets" + "/" +
+                        $("#userIgnoreSurveyOhmletId").val() + "/" +
+                        "ignored_surveys",
+                    {
+                        type: "POST",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#userIgnoreSurveyReference").val()
+                    })
+                    .done(genericSuccess)
+                    .fail(genericFailure);
+            }
+            
+            /**
+             * Stop ignoring a survey from an ohmlet.
+             */
+            function userStopIgnoringSurvey() {
+                if(auth === null) {
+                    print("You must be authenticated to make this call.");
+                    return;
+                }
+                
+                $.ajax(
+                    "people" + "/" +
+                        $("#userStopIgnoringSurveyUserId").val() + "/" +
+                        "ohmlets" + "/" +
+                        $("#userStopIgnoringSurveyOhmletId").val() + "/" +
+                        "ignored_surveys",
+                    {
+                        type: "DELETE",
+                        contentType: "application/json",
+                        headers: {
+                            "Authorization" : "ohmage " + auth['access_token']
+                        },
+                        data: $("#userStopIgnoringSurveyReference").val()
                     })
                     .done(genericSuccess)
                     .fail(genericFailure);
