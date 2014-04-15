@@ -1109,7 +1109,7 @@ public class ObserverQueries extends Query implements IObserverQueries {
 					"osd.location_provider, " +
 					"osd.data " +
 				"FROM " +
-					"observer_stream_data AS osd " +
+					"observer_stream_data AS osd FORCE INDEX (observer_stream_data_query)" +
 				"WHERE " +
 					"osd.user_id = (" +
 						"SELECT id " +
