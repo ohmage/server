@@ -670,7 +670,7 @@ CREATE TABLE observer_stream_data (
     FOREIGN KEY (observer_stream_link_id) 
     REFERENCES observer_stream_link (id) 
     ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf16;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------------------
 -- A lookup table for survey IDs to their respective campaigns.
