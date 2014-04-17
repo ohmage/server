@@ -660,6 +660,8 @@ CREATE TABLE observer_stream_data (
     (`user_id`,`observer_stream_link_id`,`time_adjusted`,`time`),
   INDEX `observer_stream_data_index_link_user_adjusted`
     (`observer_stream_link_id`,`user_id`,`time_adjusted`),
+  INDEX `osd_duplicate_data_point_read`
+    (`user_id`, `observer_stream_link_id`, `uid`),  
   CONSTRAINT observer_stream_data_foreign_key_user_id 
     FOREIGN KEY (user_id) 
     REFERENCES user (id) 
