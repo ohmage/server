@@ -661,6 +661,14 @@ public class OhmletServlet extends OhmageServlet {
         }
 
         // Build the URL.
+        
+        // Note that this URL is currently used only by the Android app.
+        // The user must have ohmage installed on their device and must click
+        // the invitation link in an email client running on the device. This 
+        // will cause ohmage to launch and perform the API call to /ohmlets/<ohmlet_id>/people
+        // with the invitation code. In the future, this would be a great feature 
+        // to have on the server, so users don't have to always join from their phones.
+        
         // Start with the root URL to our web app.
         StringBuilder baseInvitationUrlBuilder =
             new StringBuilder(rootUrl);
@@ -669,8 +677,8 @@ public class OhmletServlet extends OhmageServlet {
         // Add the ohmlet's ID.
         baseInvitationUrlBuilder.append('/').append(ohmletId);
         // Add the custom endpoint for accepting an invitation.
-        baseInvitationUrlBuilder.append("/join");
-
+        baseInvitationUrlBuilder.append("/invitation");
+        
         // Each email address is treated independently.
         for(String email : emails) {
             // Create the map of parameters.
