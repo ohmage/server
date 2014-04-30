@@ -5028,11 +5028,6 @@
              * Creates a new user.
              */
             function createUser() {
-                if(auth === null) {
-                    print("You must be authenticated to make this call.");
-                    return;
-                }
-                
                 var parameters = new Object();
                 if($("#userCreationPassword").val() !== "") {
                     parameters['password'] = $("#userCreationPassword").val();
