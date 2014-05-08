@@ -81,7 +81,18 @@ public class MongoBinController extends BinController {
             .addSerializer(BigDecimal.class, new BigDecimalSerializer());
         mapper.registerModule(bigDecimalSerializer);
 
-		// Ensure that it stores and reads enums using their ordinal value.
+		// Ensure that it stores enums using their ordinal value.
+        // ***
+        // Note that the ordinal value from an Enum will be serialized as the 
+        // NumberInt MongoDB datatype. In the Mongo shell, numbers that have 
+        // the NumberInt BSON datatype are not immediately discernible in query
+        // results like NumberLongs are. If you have to go into the database
+        // to make manual changes for a number that is deserialized into an
+        // Enum, make sure you set the value using NumberInt() otherwise 
+        // deserialization will fail because Jackson will see a 
+        // VALUE_NUMBER_FLOAT token from Mongo and won't use it to set the 
+        // Enum's ordinal value.
+        // ***
 		mapper.enable(SerializationFeature.WRITE_ENUMS_USING_INDEX);
 
 		// Ignore unknown fields.
