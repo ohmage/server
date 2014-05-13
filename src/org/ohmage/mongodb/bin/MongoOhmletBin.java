@@ -1,5 +1,6 @@
 package org.ohmage.mongodb.bin;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mongodb.AggregationOutput;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
@@ -165,12 +167,30 @@ public class MongoOhmletBin extends OhmletBin {
 		}
 	}
 
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.OhmletBin#getOhmletIds(java.lang.String, java.lang.String)
+     */
+    @Override
+    public MultiValueResult<String> getOhmletIds(
+        final String userId,
+        final String query,
+        final long numToSkip,
+        final long numToReturn) {
+        ArrayList<String> results = new ArrayList<String>();
+        MultiValueResult<Ohmlet> ohmlets = getOhmlets(userId, query, numToSkip, numToReturn);
+        for(Ohmlet ohmlet : ohmlets) {
+            results.add(ohmlet.getId());
+        }
+        return new MongoMultiValueResultList<String>(results, results.size());
+    }
+
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.bin.OhmletBin#getOhmletIds(java.lang.String, java.lang.String)
+	 * @see org.ohmage.bin.OhmletBin#getOhmlets(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public MultiValueResult<String> getOhmletIds(
+	public MultiValueResult<Ohmlet> getOhmlets(
 		final String userId,
 		final String query,
         final long numToSkip,
@@ -236,31 +256,23 @@ public class MongoOhmletBin extends OhmletBin {
 						.get());
 		}
 
+        BasicDBObjectBuilder fields = BasicDBObjectBuilder
+            .start()
+            .add(Schema.JSON_KEY_ID , 1 )
+            .add(Schema.JSON_KEY_NAME , 1 )
+            .add(Schema.JSON_KEY_DESCRIPTION, "");
+
 		// Get the list of results.
 		@SuppressWarnings("unchecked")
-		List<String> results =
-			MONGO_COLLECTION.distinct(Ohmlet.JSON_KEY_ID, queryBuilder.get());
-
-        // Remember the total number of results.
-        int numResults = results.size();
+		DBCursor<Ohmlet> results =
+			COLLECTION.find(queryBuilder.get()).skip((int)numToSkip).limit((int)numToReturn);
 
         // Sort the results.
-        Collections.sort(results);
-
-        // Get the lower index.
-        int lowerIndex =
-            (new Long(Math.min(numToSkip, results.size()))).intValue();
-        // Get the upper index.
-        int upperIndex =
-            (new Long(Math.min(numToSkip + numToReturn, results.size())))
-                .intValue();
-
-        // Get the results based on the upper and lower bounds.
-        results = results.subList(lowerIndex, upperIndex);
+        results.sort(BasicDBObjectBuilder.start().add(Schema.JSON_KEY_ID,1).get());
 
         // Create a MultiValueResult.
-        MultiValueResult<String> result =
-            new MongoMultiValueResultList<String>(results, numResults);
+        MultiValueResult<Ohmlet> result =
+            new MongoMultiValueResultList<Ohmlet>(results.toArray(), results.size());
 
 		return result;
 	}
