@@ -148,6 +148,11 @@ public class Registration {
     }
 
     /**
+     * Can be used for testing to not try to connect to the mail client
+     */
+    public static final boolean SKIP_SENDING = true;
+
+    /**
      * The JSON key for the user's unique identifier.
      */
     public static final String JSON_KEY_USER_ID = "user_id";
@@ -366,6 +371,11 @@ public class Registration {
      */
     public void sendUserRegistrationEmail(final String activationUrl)
         throws IllegalStateException {
+
+        if(SKIP_SENDING) {
+            LOGGER.log(Level.INFO, createRegistrationText(activationUrl));
+            return;
+        }
 
         // Create a mail session.
         Session smtpSession = Session.getDefaultInstance(new Properties());
