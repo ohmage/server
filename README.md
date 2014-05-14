@@ -30,7 +30,7 @@ serving up static content and better SSL performance. Apache httpd is shipped wi
 ## Setting Up the Database
 
 ohmage depends on a MySQL instance. To update the database configuration,
-update the appropriate `web/WEB-INF/spring/system.xml` options. The default is a
+update the appropriate `web/WEB-INF/config/default.properties` options. The default is a
 server on the local machine at the standard port of '3306' and a user named
 'ohmage' with a password '&!sickly' that has full permissions on a database
 named 'ohmage'.
