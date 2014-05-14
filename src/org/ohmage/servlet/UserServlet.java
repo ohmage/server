@@ -552,17 +552,17 @@ public class UserServlet extends OhmageServlet {
         User.Builder userBuilder = new User.Builder(user);
 
         LOGGER.log(Level.INFO, "Updating the stream references.");
-        Map<String, Long> streamLookup = new HashMap<String, Long>();
+        Map<String, Stream> streamLookup = new HashMap<String, Stream>();
         for(SchemaReference streamRef : user.getStreams()) {
             if(streamRef.getVersion() == null) {
                 // Attempt to lookup the value.
-                Long version = streamLookup.get(streamRef.getSchemaId());
+                Stream stream = streamLookup.get(streamRef.getSchemaId());
 
                 // If the lookup failed, perform the actual lookup from the
                 // database.
-                if(version == null) {
+                if(stream == null) {
                     // Get the stream.
-                    Stream stream =
+                    stream =
                         StreamBin
                             .getInstance()
                             .getLatestStream(streamRef.getSchemaId(), false);
@@ -573,11 +573,8 @@ public class UserServlet extends OhmageServlet {
                             "A referenced stream does not exist.");
                     }
 
-                    // Get the version.
-                    version = stream.getVersion();
-
                     // Add the entry to our lookup table.
-                    streamLookup.put(streamRef.getSchemaId(), version);
+                    streamLookup.put(streamRef.getSchemaId(), stream);
                 }
 
                 // Update the stream reference.
@@ -586,22 +583,23 @@ public class UserServlet extends OhmageServlet {
                     .addStream(
                         new SchemaReference(
                             streamRef.getSchemaId(),
-                            version));
+                            stream.getVersion(),
+                            stream.getName()));
             }
         }
 
         LOGGER.log(Level.INFO, "Updating the survey references.");
-        Map<String, Long> surveyLookup = new HashMap<String, Long>();
+        Map<String, Survey> surveyLookup = new HashMap<String, Survey>();
         for(SchemaReference surveyRef : user.getSurveys()) {
             if(surveyRef.getVersion() == null) {
                 // Attempt to lookup the value.
-                Long version = surveyLookup.get(surveyRef.getSchemaId());
+                Survey survey = surveyLookup.get(surveyRef.getSchemaId());
 
                 // If the lookup failed, perform the actual lookup from the
                 // database.
-                if(version == null) {
+                if(survey == null) {
                     // Get the survey.
-                    Survey survey =
+                    survey =
                         SurveyBin
                             .getInstance()
                             .getLatestSurvey(surveyRef.getSchemaId(), false);
@@ -612,11 +610,8 @@ public class UserServlet extends OhmageServlet {
                             "A referenced survey does not exist.");
                     }
 
-                    // Get the version.
-                    version = survey.getVersion();
-
                     // Add the entry to our lookup table.
-                    surveyLookup.put(surveyRef.getSchemaId(), version);
+                    surveyLookup.put(surveyRef.getSchemaId(), survey);
                 }
 
                 // Update the stream reference.
@@ -625,19 +620,21 @@ public class UserServlet extends OhmageServlet {
                     .addSurvey(
                         new SchemaReference(
                             surveyRef.getSchemaId(),
-                            version));
+                            survey.getVersion(),
+                            survey.getName()));
             }
         }
 
         LOGGER.log(Level.INFO, "Updating the ohmlet references.");
         for(OhmletReference ohmletRef : user.getOhmlets()) {
-            // Create a new builder to update this reference.
-            OhmletReferenceView.Builder refBuilder =
-                new OhmletReferenceView.Builder(ohmletRef);
 
             // Get the original ohmlet.
             Ohmlet ohmlet =
                 OhmletBin.getInstance().getOhmlet(ohmletRef.getOhmletId());
+
+            // Create a new builder to update this reference.
+            OhmletReferenceView.Builder refBuilder =
+                new OhmletReferenceView.Builder(new OhmletReference(ohmlet.getId(), ohmlet.getName()));
 
             // Add each of the referenced streams to the reference builder.
             for(SchemaReference streamRef : ohmlet.getStreams()) {
@@ -662,15 +659,15 @@ public class UserServlet extends OhmageServlet {
                 // Get the stream reference with the version filled in.
                 SchemaReference sanitizedStreamRef = streamRef;
                 // If the version isn't present...
-                if(streamRef.getVersion() == null) {
+                if(streamRef.getVersion() == null || streamRef.getName() == null) {
                     // Attempt to lookup the value.
-                    Long version = streamLookup.get(streamRef.getSchemaId());
+                    Stream stream = streamLookup.get(streamRef.getSchemaId());
 
                     // If the lookup failed, perform the actual lookup from the
                     // database.
-                    if(version == null) {
+                    if(stream == null) {
                         // Get the stream.
-                        Stream stream =
+                        stream =
                             StreamBin
                                 .getInstance()
                                 .getLatestStream(
@@ -684,18 +681,16 @@ public class UserServlet extends OhmageServlet {
                                     "A referenced stream does not exist.");
                         }
 
-                        // Get the version.
-                        version = stream.getVersion();
-
                         // Add the entry to our lookup table.
-                        streamLookup.put(streamRef.getSchemaId(), version);
+                        streamLookup.put(streamRef.getSchemaId(), stream);
                     }
 
                     // Update the reference.
                     sanitizedStreamRef =
                         new SchemaReference(
                             streamRef.getSchemaId(),
-                            version);
+                            stream.getVersion(),
+                            stream.getName());
                 }
 
                 // Add it to the list of stream references.
@@ -725,15 +720,15 @@ public class UserServlet extends OhmageServlet {
                 // Get the survey reference with the version filled in.
                 SchemaReference sanitizedSurveyRef = surveyRef;
                 // If the version isn't present...
-                if(surveyRef.getVersion() == null) {
+                if(surveyRef.getVersion() == null || surveyRef.getName() == null) {
                     // Attempt to lookup the value.
-                    Long version = surveyLookup.get(surveyRef.getSchemaId());
+                    Survey survey = surveyLookup.get(surveyRef.getSchemaId());
 
                     // If the lookup failed, perform the actual lookup from the
                     // database.
-                    if(version == null) {
+                    if(survey == null) {
                         // Get the survey.
-                        Survey survey =
+                        survey =
                             SurveyBin
                                 .getInstance()
                                 .getLatestSurvey(
@@ -747,18 +742,16 @@ public class UserServlet extends OhmageServlet {
                                     "A referenced survey does not exist.");
                         }
 
-                        // Get the version.
-                        version = survey.getVersion();
-
                         // Add the entry to our lookup table.
-                        surveyLookup.put(surveyRef.getSchemaId(), version);
+                        surveyLookup.put(surveyRef.getSchemaId(), survey);
                     }
 
                     // Update the reference.
                     sanitizedSurveyRef =
                         new SchemaReference(
                             surveyRef.getSchemaId(),
-                            version);
+                            survey.getVersion(),
+                            survey.getName());
                 }
 
                 // Add it to the list of survey references.

@@ -103,12 +103,12 @@ public class OhmletReference {
         public Builder(
             @JsonProperty(JSON_KEY_OHMLET_ID)
                 final String ohmletId,
+            @JsonProperty(JSON_KEY_NAME)
+                final String name,
             @JsonProperty(JSON_KEY_IGNORED_STREAMS)
                 final Set<SchemaReference> ignoredStreams,
             @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
-                final Set<SchemaReference> ignoredSurveys,
-            @JsonProperty(JSON_KEY_NAME)
-                final String name) {
+                final Set<SchemaReference> ignoredSurveys) {
 
             this.ohmletId = ohmletId;
             this.ignoredStreams = ignoredStreams;
@@ -400,8 +400,8 @@ public class OhmletReference {
      * @param ohmletId
      *        The ohmlet's unique identifier.
      */
-    public OhmletReference(final String ohmletId) {
-        this(ohmletId, null, null, null, generatePseudonym(), null);
+    public OhmletReference(final String ohmletId, String name) {
+        this(ohmletId, name, null, null, generatePseudonym(), null);
     }
 
     /**

@@ -353,6 +353,10 @@ public class Ohmlet extends OhmageDomainObject {
 		 * The JSON key for the schema version.
 		 */
 		public static final String JSON_KEY_VERSION = "schema_version";
+		/**
+		 * The JSON key for the name.
+		 */
+		public static final String JSON_KEY_NAME = "name";
 
 		/**
 		 * The schema ID.
@@ -364,6 +368,11 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		@JsonProperty(JSON_KEY_VERSION)
 		private final Long version;
+		/**
+		 * The schema name.
+		 */
+		@JsonProperty(JSON_KEY_NAME)
+		private final String name;
 
 		/**
 		 * Creates or recreates a reference to a schema. The version may be
@@ -382,7 +391,8 @@ public class Ohmlet extends OhmageDomainObject {
 		@JsonCreator
 		public SchemaReference(
 			@JsonProperty(JSON_KEY_SCHEMA_ID) final String schemaId,
-			@JsonProperty(JSON_KEY_VERSION) final Long version)
+			@JsonProperty(JSON_KEY_VERSION) final Long version,
+			@JsonProperty(JSON_KEY_NAME) final String name)
 			throws IllegalArgumentException {
 
 			if(schemaId == null) {
@@ -391,6 +401,7 @@ public class Ohmlet extends OhmageDomainObject {
 
 			this.schemaId = schemaId;
 			this.version = version;
+			this.name = name;
 		}
 
 		/**
@@ -411,6 +422,15 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		public Long getVersion() {
 			return version;
+		}
+
+		/**
+		 * Returns the name the schema or null if no name was specified.
+		 *
+		 * @return The name the schema or null if no name was specified.
+		 */
+		public String getName() {
+			return name;
 		}
 
 		/* (non-Javadoc)
@@ -1111,6 +1131,15 @@ public class Ohmlet extends OhmageDomainObject {
 	 */
 	public String getId() {
 		return ohmletId;
+	}
+
+	/**
+	 * Returns the name of this ohmlet.
+	 *
+	 * @return The name of this ohmlet.
+	 */
+	public String getName() {
+		return name;
 	}
 
 	/**
