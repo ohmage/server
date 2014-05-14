@@ -664,7 +664,7 @@ public class UserServlet extends OhmageServlet {
                 // If the version isn't present...
                 if(streamRef.getVersion() == null) {
                     // Attempt to lookup the value.
-                    Long version = surveyLookup.get(streamRef.getSchemaId());
+                    Long version = streamLookup.get(streamRef.getSchemaId());
 
                     // If the lookup failed, perform the actual lookup from the
                     // database.
