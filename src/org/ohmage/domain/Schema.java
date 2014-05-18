@@ -147,6 +147,10 @@ public abstract class Schema extends OhmageDomainObject {
 			return version;
 		}
 
+    public void setVersion(long version) {
+      this.version = version;
+    }
+
         /**
          * Sets the owner of the schema.
          *
