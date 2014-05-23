@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.ohmage.domain.OhmageDomainObject;
+import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.jackson.MapCollectionJsonSerializer;
@@ -357,6 +358,10 @@ public class Ohmlet extends OhmageDomainObject {
 		 * The JSON key for the name.
 		 */
 		public static final String JSON_KEY_NAME = "name";
+		/**
+		 * The JSON key for the name.
+		 */
+		public static final String JSON_KEY_OWNER = "owner";
 
 		/**
 		 * The schema ID.
@@ -373,6 +378,11 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		@JsonProperty(JSON_KEY_NAME)
 		private final String name;
+		/**
+		 * The schema owner.
+		 */
+		@JsonProperty(JSON_KEY_OWNER)
+		private final String owner;
 
 		/**
 		 * Creates or recreates a reference to a schema. The version may be
@@ -392,7 +402,8 @@ public class Ohmlet extends OhmageDomainObject {
 		public SchemaReference(
 			@JsonProperty(JSON_KEY_SCHEMA_ID) final String schemaId,
 			@JsonProperty(JSON_KEY_VERSION) final Long version,
-			@JsonProperty(JSON_KEY_NAME) final String name)
+			@JsonProperty(JSON_KEY_NAME) final String name,
+			@JsonProperty(JSON_KEY_OWNER) final String owner)
 			throws IllegalArgumentException {
 
 			if(schemaId == null) {
@@ -402,7 +413,23 @@ public class Ohmlet extends OhmageDomainObject {
 			this.schemaId = schemaId;
 			this.version = version;
 			this.name = name;
+			this.owner = owner;
 		}
+
+		public SchemaReference(
+			final Schema schema)
+			throws IllegalArgumentException {
+
+			if(schema == null) {
+				throw new IllegalArgumentException("The schema is null.");
+			}
+
+			this.schemaId = schema.getId();
+			this.version = schema.getVersion();
+			this.name = schema.getName();
+			this.owner = schema.getOwner();
+		}
+
 
 		/**
 		 * Returns the unique identifier of the schema.

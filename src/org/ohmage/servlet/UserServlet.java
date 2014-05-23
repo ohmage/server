@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
+import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
 import org.ohmage.bin.OhmletInvitationBin;
 import org.ohmage.bin.StreamBin;
@@ -581,10 +582,7 @@ public class UserServlet extends OhmageServlet {
                 userBuilder.removeStream(streamRef);
                 userBuilder
                     .addStream(
-                        new SchemaReference(
-                            streamRef.getSchemaId(),
-                            stream.getVersion(),
-                            stream.getName()));
+                        new SchemaReference(stream));
             }
         }
 
@@ -618,11 +616,13 @@ public class UserServlet extends OhmageServlet {
                 userBuilder.removeSurvey(surveyRef);
                 userBuilder
                     .addSurvey(
-                        new SchemaReference(
-                            surveyRef.getSchemaId(),
-                            survey.getVersion(),
-                            survey.getName()));
+                        new SchemaReference(survey));
             }
+        }
+
+        MultiValueResult<Survey> ownedSurveys = SurveyBin.getInstance().getUsersSurveys(user.getId(), false);
+        for(Survey survey : ownedSurveys) {
+             userBuilder.addSurvey(new SchemaReference(survey));
         }
 
         LOGGER.log(Level.INFO, "Updating the ohmlet references.");
@@ -687,10 +687,7 @@ public class UserServlet extends OhmageServlet {
 
                     // Update the reference.
                     sanitizedStreamRef =
-                        new SchemaReference(
-                            streamRef.getSchemaId(),
-                            stream.getVersion(),
-                            stream.getName());
+                        new SchemaReference(stream);
                 }
 
                 // Add it to the list of stream references.
@@ -748,10 +745,7 @@ public class UserServlet extends OhmageServlet {
 
                     // Update the reference.
                     sanitizedSurveyRef =
-                        new SchemaReference(
-                            surveyRef.getSchemaId(),
-                            survey.getVersion(),
-                            survey.getName());
+                        new SchemaReference(survey);
                 }
 
                 // Add it to the list of survey references.

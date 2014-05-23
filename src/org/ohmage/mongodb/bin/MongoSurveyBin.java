@@ -396,4 +396,40 @@ public class MongoSurveyBin extends SurveyBin {
             return result.next();
         }
     }
+
+    @Override
+    public MultiValueResult<Survey> getUsersSurveys(
+        final String userId,
+        final boolean omhVisibleOnly)
+        throws IllegalArgumentException {
+
+        if(userId == null) {
+            throw new IllegalArgumentException("The user ID is null.");
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the survey ID.
+        queryBuilder.and(Schema.JSON_KEY_OWNER).is(userId);
+
+        // Check if the survey must be visible to the Open mHealth APIs.
+        if(omhVisibleOnly) {
+            queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+        }
+
+        // Get the list of results.
+        @SuppressWarnings("unchecked")
+        DBCursor<Survey> results = COLLECTION.find(queryBuilder.get());
+
+        // Sort the results.
+        results.sort(BasicDBObjectBuilder.start().add(Schema.JSON_KEY_ID,1).get());
+
+        // Create a MultiValueResult.
+        MultiValueResult<Survey> result =
+            new MongoMultiValueResultList<Survey>(results.toArray(), results.size());
+
+        // Return the list.
+        return result;
+    }
 }
