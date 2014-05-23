@@ -586,6 +586,11 @@ public class UserServlet extends OhmageServlet {
             }
         }
 
+        MultiValueResult<Stream> ownedStreams = StreamBin.getInstance().getUsersStreams(user.getId(), false);
+        for(Stream stream : ownedStreams) {
+             userBuilder.addStream(new SchemaReference(stream));
+        }
+
         LOGGER.log(Level.INFO, "Updating the survey references.");
         Map<String, Survey> surveyLookup = new HashMap<String, Survey>();
         for(SchemaReference surveyRef : user.getSurveys()) {
