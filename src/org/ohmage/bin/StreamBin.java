@@ -197,4 +197,21 @@ public abstract class StreamBin {
 		final String streamId,
         final boolean omhVisibleOnly)
 		throws IllegalArgumentException;
+
+
+  /**
+   * Returns all Surveys that are owned by the user
+   *
+   * @param userId
+   *        The unique identifier for the user.
+   *
+   * @return A list of the visible surveys.
+   *
+   * @throws IllegalArgumentException
+   *         The user ID is null.
+   */
+  public abstract MultiValueResult<Stream> getUsersStreams(
+      final String userId,
+      final boolean omhVisibleOnly)
+      throws IllegalArgumentException;
 }

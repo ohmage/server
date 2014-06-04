@@ -313,7 +313,7 @@ public class OhmletServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Updating the user.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
 		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
-		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId());
+		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId(), ohmlet.getName());
 		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
 		updatedUserBuilder.addOhmlet(ohmletReference);
 		LOGGER.log(Level.FINE, "Building the user.");
@@ -1063,7 +1063,7 @@ public class OhmletServlet extends OhmageServlet {
 		    if(userBuilder == null) {
 		        userBuilder = new User.Builder(user);
 		    }
-		    userBuilder.addOhmlet(new OhmletReference(ohmletId));
+		    userBuilder.addOhmlet(new OhmletReference(ohmletId, null));
 		}
 
 		if(userBuilder != null) {

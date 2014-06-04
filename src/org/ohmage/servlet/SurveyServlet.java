@@ -415,20 +415,8 @@ public class SurveyServlet extends OhmageServlet {
         Survey latestSchema =
             SurveyBin.getInstance().getLatestSurvey(surveyId, false);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the new version of the survey is greater " +
-                    "than all existing ones.");
-        long latestVersion = latestSchema.getVersion();
-        if(latestVersion >= surveyBuilder.getVersion()) {
-            throw
-                new InvalidArgumentException(
-                    "The new version of this survey must be greater than " +
-                        "the existing latest version of " +
-                        latestVersion +
-                        ".");
-        }
+        // Increase survey version by 1
+        surveyBuilder.setVersion(latestSchema.getVersion()+1);
 
         LOGGER
             .log(

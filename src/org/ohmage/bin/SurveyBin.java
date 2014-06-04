@@ -197,4 +197,20 @@ public abstract class SurveyBin {
         final String surveyId,
         final boolean omhVisibleOnly)
         throws IllegalArgumentException;
+
+    /**
+     * Returns all Surveys that are owned by the user
+     *
+     * @param userId
+     *        The unique identifier for the user.
+     *
+     * @return A list of the visible surveys.
+     *
+     * @throws IllegalArgumentException
+     *         The user ID is null.
+     */
+    public abstract MultiValueResult<Survey> getUsersSurveys(
+        final String userId,
+        final boolean omhVisibleOnly)
+        throws IllegalArgumentException;
 }

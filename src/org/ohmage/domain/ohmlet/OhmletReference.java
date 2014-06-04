@@ -82,6 +82,10 @@ public class OhmletReference {
          * The user's privacy state.
          */
         private PrivacyState privacyState;
+        /**
+         * Ohmlet name
+         */
+        private String name;
 
         /**
          * Creates a new builder.
@@ -99,6 +103,8 @@ public class OhmletReference {
         public Builder(
             @JsonProperty(JSON_KEY_OHMLET_ID)
                 final String ohmletId,
+            @JsonProperty(JSON_KEY_NAME)
+                final String name,
             @JsonProperty(JSON_KEY_IGNORED_STREAMS)
                 final Set<SchemaReference> ignoredStreams,
             @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
@@ -107,6 +113,7 @@ public class OhmletReference {
             this.ohmletId = ohmletId;
             this.ignoredStreams = ignoredStreams;
             this.ignoredSurveys = ignoredSurveys;
+            this.name = name;
         }
 
         /**
@@ -123,6 +130,7 @@ public class OhmletReference {
             ignoredSurveys = ohmletReference.ignoredSurveys;
             pseudonym = ohmletReference.pseudonym;
             privacyState = ohmletReference.privacyState;
+            name = ohmletReference.name;
         }
 
         /**
@@ -146,6 +154,15 @@ public class OhmletReference {
          */
         public String getOhmletId() {
             return ohmletId;
+        }
+
+        /**
+         * Returns the name of the ohmlet.
+         *
+         * @return The name of the ohmlet.
+         */
+        public String getOhmletName() {
+            return name;
         }
 
         /**
@@ -298,6 +315,7 @@ public class OhmletReference {
         public OhmletReference build() throws InvalidArgumentException {
             return new OhmletReference(
                 ohmletId,
+                name,
                 ignoredStreams,
                 ignoredSurveys,
                 pseudonym,
@@ -315,6 +333,12 @@ public class OhmletReference {
      * The JSON key for the ohmlet's unique identifier.
      */
     public static final String JSON_KEY_OHMLET_ID = "ohmlet_id";
+
+    /**
+     * The JSON key for the ohmlet name.
+     */
+    public static final String JSON_KEY_NAME = "name";
+
     /**
      * The JSON key for the set of stream references that should be
      * ignored.
@@ -341,6 +365,11 @@ public class OhmletReference {
      */
     @JsonProperty(JSON_KEY_OHMLET_ID)
     private final String ohmletId;
+    /**
+     * The unique identifier for the ohmlet that this object references.
+     */
+    @JsonProperty(JSON_KEY_NAME)
+    private final String name;
     /**
      * The set of stream references that the ohmlet define(d) that should
      * be ignored.
@@ -371,8 +400,8 @@ public class OhmletReference {
      * @param ohmletId
      *        The ohmlet's unique identifier.
      */
-    public OhmletReference(final String ohmletId) {
-        this(ohmletId, null, null, generatePseudonym(), null);
+    public OhmletReference(final String ohmletId, String name) {
+        this(ohmletId, name, null, null, generatePseudonym(), null);
     }
 
     /**
@@ -400,6 +429,7 @@ public class OhmletReference {
     @JsonCreator
     public OhmletReference(
         @JsonProperty(JSON_KEY_OHMLET_ID) final String ohmletId,
+        @JsonProperty(JSON_KEY_NAME) final String name,
         @JsonProperty(JSON_KEY_IGNORED_STREAMS)
             final Set<SchemaReference> ignoredStreams,
         @JsonProperty(JSON_KEY_IGNORED_SURVEYS)
@@ -427,6 +457,7 @@ public class OhmletReference {
         this.pseudonym = pseudonym;
         this.privacyState =
             (privacyState == null) ? DEFAULT_PRIVACY_STATE : privacyState;
+        this.name = name;
     }
 
     /**
@@ -436,6 +467,15 @@ public class OhmletReference {
      */
     public String getOhmletId() {
         return ohmletId;
+    }
+
+    /**
+     * Returns the name of the ohmlet.
+     *
+     * @return The name of the ohmlet.
+     */
+    public String getOhmletName() {
+        return name;
     }
 
     /**

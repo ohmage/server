@@ -401,4 +401,40 @@ public class MongoStreamBin extends StreamBin {
 			return result.next();
 		}
 	}
+
+  @Override
+  public MultiValueResult<Stream> getUsersStreams(
+      final String userId,
+      final boolean omhVisibleOnly)
+      throws IllegalArgumentException {
+
+      if(userId == null) {
+          throw new IllegalArgumentException("The user ID is null.");
+      }
+
+      // Build the query.
+      QueryBuilder queryBuilder = QueryBuilder.start();
+
+      // Add the stream ID.
+      queryBuilder.and(Schema.JSON_KEY_OWNER).is(userId);
+
+      // Check if the stream must be visible to the Open mHealth APIs.
+      if(omhVisibleOnly) {
+          queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
+      }
+
+      // Get the list of results.
+      @SuppressWarnings("unchecked")
+      DBCursor<Stream> results = COLLECTION.find(queryBuilder.get());
+
+      // Sort the results.
+      results.sort(BasicDBObjectBuilder.start().add(Schema.JSON_KEY_ID,1).get());
+
+      // Create a MultiValueResult.
+      MultiValueResult<Stream> result =
+          new MongoMultiValueResultList<Stream>(results.toArray(), results.size());
+
+      // Return the list.
+      return result;
+  }
 }

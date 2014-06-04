@@ -127,6 +127,7 @@ public class OhmletReferenceView extends OhmletReference {
             return
                 new OhmletReferenceView(
                     getOhmletId(),
+                    getOhmletName(),
                     getIgnoredStreams(),
                     getIgnoredSurveys(),
                     getPseudonym(),
@@ -188,6 +189,7 @@ public class OhmletReferenceView extends OhmletReference {
      */
     public OhmletReferenceView(
         final String ohmletId,
+        final String name,
         final Set<SchemaReference> ignoredStreams,
         final Set<SchemaReference> ignoredSurveys,
         final String pseudonym,
@@ -198,6 +200,7 @@ public class OhmletReferenceView extends OhmletReference {
 
         super(
             ohmletId,
+            name,
             ignoredStreams,
             ignoredSurveys,
             pseudonym,
