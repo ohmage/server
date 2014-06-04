@@ -1,5 +1,6 @@
 package org.ohmage.mongodb.bin;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -14,6 +15,7 @@ import org.ohmage.domain.stream.Stream;
 import org.ohmage.mongodb.domain.stream.MongoStream;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
@@ -131,6 +133,24 @@ public class MongoStreamBin extends StreamBin {
         final boolean omhVisibleOnly,
 	    final long numToSkip,
 	    final long numToReturn) {
+		ArrayList<String> results = new ArrayList<String>();
+		MultiValueResult<Stream> streams = getStreams(query, omhVisibleOnly, numToSkip, numToReturn);
+		for(Stream stream : streams) {
+			results.add(stream.getId());
+		}
+		return new MongoMultiValueResultList<String>(results, results.size());
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.bin.StreamBin#getStreams(java.lang.String, long, long)
+	 */
+	@Override
+	public MultiValueResult<Stream> getStreams(
+	    final String query,
+        final boolean omhVisibleOnly,
+	    final long numToSkip,
+	    final long numToReturn) {
 
 		// Build the query
 		QueryBuilder queryBuilder = QueryBuilder.start();
@@ -163,31 +183,23 @@ public class MongoStreamBin extends StreamBin {
 		    queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
 		}
 
-		// Get the list of results.
-		@SuppressWarnings("unchecked")
-		List<String> results =
-			MONGO_COLLECTION.distinct(Schema.JSON_KEY_ID, queryBuilder.get());
+        BasicDBObjectBuilder fields = BasicDBObjectBuilder
+            .start()
+            .add(Schema.JSON_KEY_ID , 1 )
+            .add(Schema.JSON_KEY_NAME , 1 )
+            .add(Schema.JSON_KEY_DESCRIPTION, "");
 
-        // Remember the total number of results.
-        int numResults = results.size();
+        // Get the list of results.
+        @SuppressWarnings("unchecked")
+        DBCursor<Stream> results =
+            COLLECTION.find(queryBuilder.get()).skip((int)numToSkip).limit((int)numToReturn);
 
         // Sort the results.
-        Collections.sort(results);
-
-        // Get the lower index.
-        int lowerIndex =
-            (new Long(Math.min(numToSkip, results.size()))).intValue();
-        // Get the upper index.
-        int upperIndex =
-            (new Long(Math.min(numToSkip + numToReturn, results.size())))
-                .intValue();
-
-        // Get the results based on the upper and lower bounds.
-        results = results.subList(lowerIndex, upperIndex);
+        results.sort(BasicDBObjectBuilder.start().add(Schema.JSON_KEY_ID,1).get());
 
         // Create a MultiValueResult.
-        MultiValueResult<String> result =
-            new MongoMultiValueResultList<String>(results, numResults);
+        MultiValueResult<Stream> result =
+            new MongoMultiValueResultList<Stream>(results.toArray(), results.size());
 
         // Return the list.
         return result;
