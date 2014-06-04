@@ -1,6 +1,5 @@
 package org.ohmage.mongodb.bin;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -15,7 +14,6 @@ import org.ohmage.domain.survey.Survey;
 import org.ohmage.mongodb.domain.survey.MongoSurvey;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
@@ -132,24 +130,6 @@ public class MongoSurveyBin extends SurveyBin {
         final boolean omhVisibleOnly,
         final long numToSkip,
         final long numToReturn) {
-        ArrayList<String> results = new ArrayList<String>();
-        MultiValueResult<Survey> surveys = getSurveys(query, omhVisibleOnly, numToSkip, numToReturn);
-        for(Survey survey : surveys) {
-            results.add(survey.getId());
-        }
-        return new MongoMultiValueResultList<String>(results, results.size());
-    }
-
-    /*
-     * (non-Javadoc)
-     * @see org.ohmage.bin.SurveyBin#getSurveys(java.lang.String, long, long)
-     */
-    @Override
-    public MultiValueResult<Survey> getSurveys(
-        final String query,
-        final boolean omhVisibleOnly,
-        final long numToSkip,
-        final long numToReturn) {
 
         // Build the query
         QueryBuilder queryBuilder = QueryBuilder.start();
@@ -182,23 +162,31 @@ public class MongoSurveyBin extends SurveyBin {
             queryBuilder.and(Schema.JSON_KEY_OMH_VISIBLE).is(true);
         }
 
-        BasicDBObjectBuilder fields = BasicDBObjectBuilder
-            .start()
-            .add(Schema.JSON_KEY_ID , 1 )
-            .add(Schema.JSON_KEY_NAME , 1 )
-            .add(Schema.JSON_KEY_DESCRIPTION, "");
-
         // Get the list of results.
         @SuppressWarnings("unchecked")
-        DBCursor<Survey> results =
-            COLLECTION.find(queryBuilder.get()).skip((int)numToSkip).limit((int)numToReturn);
+        List<String> results =
+            MONGO_COLLECTION.distinct(Schema.JSON_KEY_ID, queryBuilder.get());
+
+        // Remember the total number of results.
+        int numResults = results.size();
 
         // Sort the results.
-        results.sort(BasicDBObjectBuilder.start().add(Schema.JSON_KEY_ID,1).get());
+        Collections.sort(results);
+
+        // Get the lower index.
+        int lowerIndex =
+            (new Long(Math.min(numToSkip, results.size()))).intValue();
+        // Get the upper index.
+        int upperIndex =
+            (new Long(Math.min(numToSkip + numToReturn, results.size())))
+                .intValue();
+
+        // Get the results based on the upper and lower bounds.
+        results = results.subList(lowerIndex, upperIndex);
 
         // Create a MultiValueResult.
-        MultiValueResult<Survey> result =
-            new MongoMultiValueResultList<Survey>(results.toArray(), results.size());
+        MultiValueResult<String> result =
+            new MongoMultiValueResultList<String>(results, numResults);
 
         // Return the list.
         return result;

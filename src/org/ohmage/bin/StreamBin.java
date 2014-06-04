@@ -73,30 +73,6 @@ public abstract class StreamBin {
 	    final long numToReturn);
 
 	/**
-     * Returns a list of the visible streams.
-     *
-     * @param query
-     *        A value that should appear in either the name or description.
-     *
-     * @param omhVisibleOnly
-     *        Whether or not the results must be visible to the Open mHealth
-     *        APIs.
-     *
-     * @param numToSkip
-     *        The number of streams to skip.
-     *
-     * @param numToReturn
-     *        The number of streams to return.
-     *
-     * @return A list of the visible streams.
-     */
-	public abstract MultiValueResult<Stream> getStreams(
-	    final String query,
-	    final boolean omhVisibleOnly,
-	    final long numToSkip,
-	    final long numToReturn);
-
-	/**
 	 * Returns a list of the versions for a given stream.
 	 *
 	 * @param streamId

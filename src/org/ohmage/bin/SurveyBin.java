@@ -73,30 +73,6 @@ public abstract class SurveyBin {
         final long numToReturn);
 
     /**
-     * Returns a list of the visible surveys.
-     *
-     * @param query
-     *        A value that should appear in either the name or description.
-     *
-     * @param omhVisibleOnly
-     *        Whether or not the results must be visible to the Open mHealth
-     *        APIs.
-     *
-     * @param numToSkip
-     *        The number of surveys to skip.
-     *
-     * @param numToReturn
-     *        The number of surveys to return.
-     *
-     * @return A list of the visible surveys.
-     */
-    public abstract MultiValueResult<Survey> getSurveys(
-        final String query,
-        final boolean omhVisibleOnly,
-        final long numToSkip,
-        final long numToReturn);
-
-    /**
      * Returns a list of the versions for a given survey.
      *
      * @param surveyId
