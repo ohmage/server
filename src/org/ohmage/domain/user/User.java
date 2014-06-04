@@ -630,6 +630,7 @@ public class User extends OhmageDomainObject {
      * The internal unique ID for a user.
      */
     @JsonProperty(JSON_KEY_ID)
+    @JsonFilterField
     private final String id;
     /**
      * The user's hashed password.

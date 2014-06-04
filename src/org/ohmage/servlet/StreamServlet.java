@@ -387,8 +387,20 @@ public class StreamServlet extends OhmageServlet {
 		Stream latestSchema =
 			StreamBin.getInstance().getLatestStream(streamId, false);
 
-    // Increase survey version by 1
-    streamBuilder.setVersion(latestSchema.getVersion()+1);
+		LOGGER
+			.log(
+				Level.INFO,
+				"Verifying that the new version of the stream is greater " +
+					"than all existing ones.");
+		long latestVersion = latestSchema.getVersion();
+		if(latestVersion >= streamBuilder.getVersion()) {
+			throw
+				new InvalidArgumentException(
+					"The new version of this schema must be greater than " +
+						"the existing latest version of " +
+						latestVersion +
+						".");
+		}
 
 		LOGGER
 			.log(
