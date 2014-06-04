@@ -184,25 +184,25 @@ public class StreamServlet extends OhmageServlet {
     }
 
     /**
-     * Returns a list of visible stream IDs.
+     * Returns a list of visible streams.
      *
      * @param query
      *        A value that should appear in either the name or description.
      *
      * @param numToSkip
-     *        The number of stream IDs to skip.
+     *        The number of streams to skip.
      *
      * @param numToReturn
-     *        The number of stream IDs to return.
+     *        The number of streams to return.
      *
      * @param rootUrl
      *        The root URL of the request. This should be of the form
      *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
      *
-     * @return A list of visible stream IDs.
+     * @return A list of visible streams.
      */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getStreamIds(
+	public static @ResponseBody ResponseEntity<MultiValueResult<Stream>> getStreams(
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
@@ -212,10 +212,10 @@ public class StreamServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Creating a stream ID read request.");
 
 		LOGGER.log(Level.INFO, "Retrieving the stream IDs");
-		MultiValueResult<String> ids =
+		MultiValueResult<Stream> ids =
 		    StreamBin
 		        .getInstance()
-		        .getStreamIds(query, false, numToSkip, numToReturn);
+		        .getStreams(query, false, numToSkip, numToReturn);
 
 		LOGGER.log(Level.INFO, "Building the paging headers.");
 		HttpHeaders headers =
@@ -228,8 +228,8 @@ public class StreamServlet extends OhmageServlet {
 		            rootUrl + ROOT_MAPPING);
 
 		LOGGER.log(Level.INFO, "Creating the response object.");
-		ResponseEntity<MultiValueResult<String>> result =
-		    new ResponseEntity<MultiValueResult<String>>(
+		ResponseEntity<MultiValueResult<Stream>> result =
+		    new ResponseEntity<MultiValueResult<Stream>>(
 		        ids,
 		        headers,
 		        HttpStatus.OK);

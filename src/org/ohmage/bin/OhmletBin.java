@@ -76,6 +76,30 @@ public abstract class OhmletBin {
         final long numToReturn);
 
     /**
+     * Returns a list of the visible ohmlets.
+     *
+     * @param userId
+     *        The unique identifier for the user making the request or null if
+     *        the request is being made anonymously.
+     *
+     * @param query
+     *        A value that should appear in either the name or description.
+     *
+     * @param numToSkip
+     *        The number of ohmlets to skip.
+     *
+     * @param numToReturn
+     *        The number of ohmlets to return.
+     *
+     * @return A list of the visible ohmlets.
+     */
+    public abstract MultiValueResult<Ohmlet> getOhmlets(
+        final String userId,
+        final String query,
+        final long numToSkip,
+        final long numToReturn);
+
+    /**
      * Returns all of the ohlmet IDs where the user can read stream data about
      * other users.
      *

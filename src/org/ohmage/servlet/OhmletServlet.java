@@ -326,7 +326,7 @@ public class OhmletServlet extends OhmageServlet {
 	}
 
 	/**
-	 * Returns a list of visible ohmlet IDs.
+	 * Returns a list of visible ohmlets.
      *
      * @param authToken
      *        The authorization information corresponding to the user that is
@@ -336,19 +336,19 @@ public class OhmletServlet extends OhmageServlet {
 	 *        A value that should appear in either the name or description.
      *
      * @param numToSkip
-     *        The number of stream IDs to skip.
+     *        The number of ohmlets to skip.
      *
      * @param numToReturn
-     *        The number of stream IDs to return.
+     *        The number of ohmlets to return.
      *
      * @param rootUrl
      *        The root URL of the request. This should be of the form
      *        <tt>http[s]://{domain}[:{port}]{servlet_root_path}</tt>.
 	 *
-	 * @return A list of visible ohmlet IDs.
+	 * @return A list of visible ohmlets.
 	 */
 	@RequestMapping(value = { "", "/" }, method = RequestMethod.GET)
-	public static @ResponseBody ResponseEntity<MultiValueResult<String>> getOhmletIds(
+	public static @ResponseBody ResponseEntity<MultiValueResult<Ohmlet>> getOhmlets(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
@@ -379,10 +379,10 @@ public class OhmletServlet extends OhmageServlet {
                 OhmageServlet.validateAuthorization(authToken, null).getId();
 		}
         LOGGER.log(Level.INFO, "Retrieving the stream IDs");
-        MultiValueResult<String> ids =
+        MultiValueResult<Ohmlet> ids =
             OhmletBin
                 .getInstance()
-                .getOhmletIds(userId, query, numToSkip, numToReturn);
+                .getOhmlets(userId, query, numToSkip, numToReturn);
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -395,8 +395,8 @@ public class OhmletServlet extends OhmageServlet {
                     rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
-        ResponseEntity<MultiValueResult<String>> result =
-            new ResponseEntity<MultiValueResult<String>>(
+        ResponseEntity<MultiValueResult<Ohmlet>> result =
+            new ResponseEntity<MultiValueResult<Ohmlet>>(
                 ids,
                 headers,
                 HttpStatus.OK);
