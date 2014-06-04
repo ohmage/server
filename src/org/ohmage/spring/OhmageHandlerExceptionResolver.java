@@ -1,4 +1,4 @@
-package org.ohmage.servlet.spring;
+package org.ohmage.spring;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

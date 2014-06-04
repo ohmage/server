@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,14 +37,14 @@ import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.Registration;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.listener.ConfigurationFileImport;
+import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 import org.powermock.api.easymock.PowerMock;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * <p>
- * Test everything about the {@link UserServlet} class.
+ * Test everything about the {@link UserController} class.
  * </p>
  *
  * @author John Jenkins
@@ -59,7 +59,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
         User.class,
         UserBin.class
     })
-public class UserServletTest {
+public class UserControllerTest {
     private static final String ROOT_URL = "http://localhost:8080/ohmage";
 
     private static final String USER_ID = "User.ID";
@@ -170,7 +170,7 @@ public class UserServletTest {
     public void testCreateOhmageUserUrlNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet
+        UserController
             .createOhmageUser(null, PASSWORD, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
@@ -183,7 +183,7 @@ public class UserServletTest {
     public void testCreateOhmageUserPasswordNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet
+        UserController
             .createOhmageUser(ROOT_URL, null, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
@@ -196,7 +196,7 @@ public class UserServletTest {
     public void testCreateOhmageUserUserBuilderNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createOhmageUser(ROOT_URL, PASSWORD, null, null);
+        UserController.createOhmageUser(ROOT_URL, PASSWORD, null, null);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -225,7 +225,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet
+        UserController
             .createOhmageUser(ROOT_URL, PASSWORD, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
@@ -261,7 +261,7 @@ public class UserServletTest {
         EasyMock.replay(user, userBuilder, userBin, registration);
 
         User result =
-            UserServlet
+            UserController
                 .createOhmageUser(
                     ROOT_URL,
                     PASSWORD,
@@ -305,7 +305,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBuilder, userBin, registration);
 
-        UserServlet
+        UserController
             .createOhmageUser(ROOT_URL, PASSWORD, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin, registration);
@@ -339,7 +339,7 @@ public class UserServletTest {
         EasyMock.replay(user, userBuilder, userBin, registration);
 
         User result =
-            UserServlet
+            UserController
                 .createOhmageUser(
                     ROOT_URL,
                     PASSWORD,
@@ -362,7 +362,7 @@ public class UserServletTest {
     public void testCreateUserProviderNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createUser(null, PROVIDER_ACCESS_TOKEN, userBuilder);
+        UserController.createUser(null, PROVIDER_ACCESS_TOKEN, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -376,7 +376,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createUser("Unknown", PROVIDER_ACCESS_TOKEN, userBuilder);
+        UserController.createUser("Unknown", PROVIDER_ACCESS_TOKEN, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -388,7 +388,7 @@ public class UserServletTest {
     public void testCreateUserTokenNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createUser(PROVIDER_ID, null, userBuilder);
+        UserController.createUser(PROVIDER_ID, null, userBuilder);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -416,7 +416,7 @@ public class UserServletTest {
                 userBin,
                 provider);
 
-        UserServlet.createUser(PROVIDER_ID, "Unknown", userBuilder);
+        UserController.createUser(PROVIDER_ID, "Unknown", userBuilder);
 
         EasyMock
             .verify(
@@ -433,7 +433,7 @@ public class UserServletTest {
     public void testCreateUserUserBuilderNull() {
         EasyMock.replay(user, userBuilder, userBin);
 
-        UserServlet.createUser(PROVIDER_ID, PROVIDER_ACCESS_TOKEN, null);
+        UserController.createUser(PROVIDER_ID, PROVIDER_ACCESS_TOKEN, null);
 
         EasyMock.verify(user, userBuilder, userBin);
     }
@@ -477,7 +477,7 @@ public class UserServletTest {
                 providerUserInformation);
 
         User result =
-            UserServlet
+            UserController
                 .createUser(PROVIDER_ID, PROVIDER_ACCESS_TOKEN, userBuilder);
 
         EasyMock
@@ -500,7 +500,7 @@ public class UserServletTest {
      */
     @Test(expected = AuthenticationException.class)
     public void testGetVisibleUsersTokenNull() {
-        UserServlet.getVisibleUsers(null);
+        UserController.getVisibleUsers(null);
     }
 
     /**
@@ -516,7 +516,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        Set<String> usernames = UserServlet.getVisibleUsers(token);
+        Set<String> usernames = UserController.getVisibleUsers(token);
 
         EasyMock.verify(user, userBin, token);
 
@@ -537,7 +537,7 @@ public class UserServletTest {
      */
     @Test(expected = AuthenticationException.class)
     public void testGetUserInformationTokenNull() {
-        UserServlet.getUserInformation(null, USER_ID);
+        UserController.getUserInformation(null, USER_ID);
     }
 
     /**
@@ -552,7 +552,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.getUserInformation(token, null);
+        UserController.getUserInformation(token, null);
 
         EasyMock.verify(userBin, token);
     }
@@ -570,7 +570,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getUserInformation(token, "Other.Username");
+        UserController.getUserInformation(token, "Other.Username");
 
         EasyMock.verify(user, userBin, token);
     }
@@ -588,7 +588,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        User user = UserServlet.getUserInformation(token, USER_ID);
+        User user = UserController.getUserInformation(token, USER_ID);
 
         EasyMock.verify(user, userBin, token);
 
@@ -606,7 +606,7 @@ public class UserServletTest {
     public void testUpdateUserPasswordUsernameNull() {
         String newPassword = "New.Password";
 
-        UserServlet.updateUserPassword(null, PASSWORD, newPassword);
+        UserController.updateUserPassword(null, PASSWORD, newPassword);
     }
 
     /**
@@ -620,7 +620,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.updateUserPassword("Unknown", PASSWORD, newPassword);
+        UserController.updateUserPassword("Unknown", PASSWORD, newPassword);
 
         EasyMock.verify(user, userBin);
     }
@@ -632,7 +632,7 @@ public class UserServletTest {
     public void testUpdateUserPasswordOldPasswordNull() {
         String newPassword = "New.Password";
 
-        UserServlet.updateUserPassword(USER_ID, null, newPassword);
+        UserController.updateUserPassword(USER_ID, null, newPassword);
     }
 
     /**
@@ -648,7 +648,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.updateUserPassword(USER_ID, "Wrong", newPassword);
+        UserController.updateUserPassword(USER_ID, "Wrong", newPassword);
 
         EasyMock.verify(user, userBin);
     }
@@ -658,7 +658,7 @@ public class UserServletTest {
      */
     @Test(expected = InvalidArgumentException.class)
     public void testUpdateUserPasswordNewPasswordNull() {
-        UserServlet.updateUserPassword(USER_ID, PASSWORD, null);
+        UserController.updateUserPassword(USER_ID, PASSWORD, null);
     }
 
     /**
@@ -687,7 +687,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.updateUserPassword(USER_ID, PASSWORD, newPassword);
+        UserController.updateUserPassword(USER_ID, PASSWORD, newPassword);
 
         EasyMock.verify(user, userBin);
     }
@@ -702,7 +702,7 @@ public class UserServletTest {
 
         EasyMock.replay(token);
 
-        UserServlet.getFollowedOhmlets(null, USER_ID);
+        UserController.getFollowedOhmlets(null, USER_ID);
 
         EasyMock.verify(token);
     }
@@ -719,7 +719,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.getFollowedOhmlets(token, null);
+        UserController.getFollowedOhmlets(token, null);
 
         EasyMock.verify(userBin, token);
     }
@@ -737,7 +737,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedOhmlets(token, "Other");
+        UserController.getFollowedOhmlets(token, "Other");
 
         EasyMock.verify(user, userBin, token);
     }
@@ -761,7 +761,7 @@ public class UserServletTest {
         EasyMock.replay(user, userBin, token);
 
         Collection<OhmletReference> actual =
-            UserServlet.getFollowedOhmlets(token, USER_ID);
+            UserController.getFollowedOhmlets(token, USER_ID);
 
         EasyMock.verify(user, userBin, token);
 
@@ -779,7 +779,7 @@ public class UserServletTest {
     public void testGetFollowedOhmletTokenNull() {
         String ohmletId = "Ohmlet.ID";
 
-        UserServlet.getFollowedOhmlet(null, USER_ID, ohmletId);
+        UserController.getFollowedOhmlet(null, USER_ID, ohmletId);
     }
 
     /**
@@ -796,7 +796,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.getFollowedOhmlet(token, null, ohmletId);
+        UserController.getFollowedOhmlet(token, null, ohmletId);
 
         EasyMock.verify(userBin, token);
     }
@@ -816,7 +816,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedOhmlet(token, "Other", ohmletId);
+        UserController.getFollowedOhmlet(token, "Other", ohmletId);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -833,7 +833,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.getFollowedOhmlet(token, USER_ID, null);
+        UserController.getFollowedOhmlet(token, USER_ID, null);
 
         EasyMock.verify(userBin, token);
     }
@@ -852,7 +852,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedOhmlet(token, USER_ID, "Unknown");
+        UserController.getFollowedOhmlet(token, USER_ID, "Unknown");
 
         EasyMock.verify(user, userBin, token);
     }
@@ -876,7 +876,7 @@ public class UserServletTest {
         EasyMock.replay(user, userBin, token);
 
         OhmletReference actual =
-            UserServlet.getFollowedOhmlet(token, USER_ID, ohmletId);
+            UserController.getFollowedOhmlet(token, USER_ID, ohmletId);
 
         EasyMock.verify(user, userBin, token);
 
@@ -894,7 +894,7 @@ public class UserServletTest {
     public void testLeaveOhmletTokenNull() {
         String ohmletId = "Ohmlet.ID";
 
-        UserServlet.leaveOhmlet(null, USER_ID, ohmletId);
+        UserController.leaveOhmlet(null, USER_ID, ohmletId);
     }
 
     /**
@@ -911,7 +911,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.leaveOhmlet(token, null, ohmletId);
+        UserController.leaveOhmlet(token, null, ohmletId);
 
         EasyMock.verify(userBin, token);
     }
@@ -931,7 +931,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.leaveOhmlet(token, "Other", ohmletId);
+        UserController.leaveOhmlet(token, "Other", ohmletId);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -949,7 +949,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.leaveOhmlet(token, USER_ID, null);
+        UserController.leaveOhmlet(token, USER_ID, null);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -986,7 +986,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, ohmletBin);
 
-        UserServlet.leaveOhmlet(token, USER_ID, "Unknown");
+        UserController.leaveOhmlet(token, USER_ID, "Unknown");
 
         EasyMock.verify(user, userBin, token, ohmletBin);
     }
@@ -1034,7 +1034,7 @@ public class UserServletTest {
         EasyMock
             .replay(user, userBin, token, ohmletBin, ohmlet, updatedOhmlet);
 
-        UserServlet.leaveOhmlet(token, USER_ID, ohmletId);
+        UserController.leaveOhmlet(token, USER_ID, ohmletId);
 
         EasyMock
             .verify(user, userBin, token, ohmletBin, ohmlet, updatedOhmlet);
@@ -1057,7 +1057,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletStream(null, USER_ID, ohmletId, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
@@ -1082,7 +1082,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletStream(token, null, ohmletId, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
@@ -1107,7 +1107,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletStream(token, "Unknown", ohmletId, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
@@ -1130,7 +1130,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet.ignoreOhmletStream(token, USER_ID, null, streamReference);
+        UserController.ignoreOhmletStream(token, USER_ID, null, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
     }
@@ -1156,7 +1156,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletStream(
                 token,
                 USER_ID,
@@ -1182,7 +1182,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.ignoreOhmletStream(token, USER_ID, ohmletId, null);
+        UserController.ignoreOhmletStream(token, USER_ID, ohmletId, null);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -1233,7 +1233,7 @@ public class UserServletTest {
                 streamReference,
                 updatedUser);
 
-        UserServlet
+        UserController
             .ignoreOhmletStream(token, USER_ID, ohmletId, streamReference);
 
         EasyMock
@@ -1264,7 +1264,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletStream(
                 null,
                 USER_ID,
@@ -1293,7 +1293,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletStream(token, null, ohmletId, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
@@ -1318,7 +1318,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletStream(
                 token,
                 "Unknown",
@@ -1345,7 +1345,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletStream(token, USER_ID, null, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
@@ -1372,7 +1372,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletStream(
                 token,
                 USER_ID,
@@ -1398,7 +1398,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.stopIgnoringOhmletStream(token, USER_ID, ohmletId, null);
+        UserController.stopIgnoringOhmletStream(token, USER_ID, ohmletId, null);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -1450,7 +1450,7 @@ public class UserServletTest {
                 streamReference,
                 updatedUser);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletStream(
                 token,
                 USER_ID,
@@ -1485,7 +1485,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletSurvey(null, USER_ID, ohmletId, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
@@ -1510,7 +1510,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletSurvey(token, null, ohmletId, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
@@ -1535,7 +1535,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletSurvey(token, "Unknown", ohmletId, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
@@ -1558,7 +1558,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet.ignoreOhmletSurvey(token, USER_ID, null, surveyReference);
+        UserController.ignoreOhmletSurvey(token, USER_ID, null, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
     }
@@ -1584,7 +1584,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .ignoreOhmletSurvey(
                 token,
                 USER_ID,
@@ -1610,7 +1610,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.ignoreOhmletSurvey(token, USER_ID, ohmletId, null);
+        UserController.ignoreOhmletSurvey(token, USER_ID, ohmletId, null);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -1661,7 +1661,7 @@ public class UserServletTest {
                 surveyReference,
                 updatedUser);
 
-        UserServlet
+        UserController
             .ignoreOhmletSurvey(token, USER_ID, ohmletId, surveyReference);
 
         EasyMock
@@ -1692,7 +1692,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletSurvey(
                 null,
                 USER_ID,
@@ -1721,7 +1721,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletSurvey(token, null, ohmletId, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
@@ -1746,7 +1746,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletSurvey(
                 token,
                 "Unknown",
@@ -1773,7 +1773,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletSurvey(token, USER_ID, null, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
@@ -1800,7 +1800,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletSurvey(
                 token,
                 USER_ID,
@@ -1826,7 +1826,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.stopIgnoringOhmletSurvey(token, USER_ID, ohmletId, null);
+        UserController.stopIgnoringOhmletSurvey(token, USER_ID, ohmletId, null);
 
         EasyMock.verify(user, userBin, token);
     }
@@ -1878,7 +1878,7 @@ public class UserServletTest {
                 surveyReference,
                 updatedUser);
 
-        UserServlet
+        UserController
             .stopIgnoringOhmletSurvey(
                 token,
                 USER_ID,
@@ -1906,7 +1906,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, streamReference);
 
-        UserServlet.followStream(null, USER_ID, streamReference);
+        UserController.followStream(null, USER_ID, streamReference);
 
         EasyMock.verify(user, userBin, streamReference);
     }
@@ -1926,7 +1926,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet.followStream(token, null, streamReference);
+        UserController.followStream(token, null, streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
     }
@@ -1947,7 +1947,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, streamReference);
 
-        UserServlet.followStream(token, "Unknown", streamReference);
+        UserController.followStream(token, "Unknown", streamReference);
 
         EasyMock.verify(user, userBin, token, streamReference);
     }
@@ -1964,7 +1964,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.followStream(token, USER_ID, null);
+        UserController.followStream(token, USER_ID, null);
 
         EasyMock.verify(userBin, token);
     }
@@ -2019,7 +2019,7 @@ public class UserServletTest {
                 stream,
                 updatedUser);
 
-        UserServlet.followStream(token, USER_ID, streamReference);
+        UserController.followStream(token, USER_ID, streamReference);
 
         EasyMock
             .verify(
@@ -2086,7 +2086,7 @@ public class UserServletTest {
                 stream,
                 updatedUser);
 
-        UserServlet.followStream(token, USER_ID, streamReference);
+        UserController.followStream(token, USER_ID, streamReference);
 
         EasyMock
             .verify(
@@ -2106,7 +2106,7 @@ public class UserServletTest {
     public void testGetFollowedStreamsTokenNull() {
         EasyMock.replay(user);
 
-        UserServlet.getFollowedStreams(null, USER_ID);
+        UserController.getFollowedStreams(null, USER_ID);
     }
 
     /**
@@ -2122,7 +2122,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedStreams(token, null);
+        UserController.getFollowedStreams(token, null);
     }
 
     /**
@@ -2138,7 +2138,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedStreams(token, "Unknown");
+        UserController.getFollowedStreams(token, "Unknown");
     }
 
     /**
@@ -2159,7 +2159,7 @@ public class UserServletTest {
         EasyMock.replay(user, userBin, token);
 
         Set<SchemaReference> actual =
-            UserServlet.getFollowedStreams(token, USER_ID);
+            UserController.getFollowedStreams(token, USER_ID);
 
         EasyMock.verify(user, userBin, token);
 
@@ -2202,7 +2202,7 @@ public class UserServletTest {
                 streamReference,
                 updatedUser);
 
-        UserServlet.forgetStream(token, USER_ID, streamReference);
+        UserController.forgetStream(token, USER_ID, streamReference);
 
         EasyMock
             .verify(
@@ -2223,7 +2223,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, surveyReference);
 
-        UserServlet.followSurvey(null, USER_ID, surveyReference);
+        UserController.followSurvey(null, USER_ID, surveyReference);
 
         EasyMock.verify(user, userBin, surveyReference);
     }
@@ -2243,7 +2243,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet.followSurvey(token, null, surveyReference);
+        UserController.followSurvey(token, null, surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
     }
@@ -2264,7 +2264,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token, surveyReference);
 
-        UserServlet.followSurvey(token, "Unknown", surveyReference);
+        UserController.followSurvey(token, "Unknown", surveyReference);
 
         EasyMock.verify(user, userBin, token, surveyReference);
     }
@@ -2281,7 +2281,7 @@ public class UserServletTest {
 
         EasyMock.replay(userBin, token);
 
-        UserServlet.followSurvey(token, USER_ID, null);
+        UserController.followSurvey(token, USER_ID, null);
 
         EasyMock.verify(userBin, token);
     }
@@ -2336,7 +2336,7 @@ public class UserServletTest {
                 survey,
                 updatedUser);
 
-        UserServlet.followSurvey(token, USER_ID, surveyReference);
+        UserController.followSurvey(token, USER_ID, surveyReference);
 
         EasyMock
             .verify(
@@ -2403,7 +2403,7 @@ public class UserServletTest {
                 survey,
                 updatedUser);
 
-        UserServlet.followSurvey(token, USER_ID, surveyReference);
+        UserController.followSurvey(token, USER_ID, surveyReference);
 
         EasyMock
             .verify(
@@ -2423,7 +2423,7 @@ public class UserServletTest {
     public void testGetFollowedSurveysTokenNull() {
         EasyMock.replay(user);
 
-        UserServlet.getFollowedSurveys(null, USER_ID);
+        UserController.getFollowedSurveys(null, USER_ID);
     }
 
     /**
@@ -2439,7 +2439,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedSurveys(token, null);
+        UserController.getFollowedSurveys(token, null);
     }
 
     /**
@@ -2455,7 +2455,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, token);
 
-        UserServlet.getFollowedSurveys(token, "Unknown");
+        UserController.getFollowedSurveys(token, "Unknown");
     }
 
     /**
@@ -2476,7 +2476,7 @@ public class UserServletTest {
         EasyMock.replay(user, userBin, token);
 
         Set<SchemaReference> actual =
-            UserServlet.getFollowedSurveys(token, USER_ID);
+            UserController.getFollowedSurveys(token, USER_ID);
 
         EasyMock.verify(user, userBin, token);
 
@@ -2519,7 +2519,7 @@ public class UserServletTest {
                 surveyReference,
                 updatedUser);
 
-        UserServlet.forgetSurvey(token, USER_ID, surveyReference);
+        UserController.forgetSurvey(token, USER_ID, surveyReference);
 
         EasyMock
             .verify(
@@ -2537,7 +2537,7 @@ public class UserServletTest {
     public void testDeleteUserWithPasswordUsernameNull() {
         EasyMock.replay(user, userBin);
 
-        UserServlet.deleteUserWithPassword(null, PASSWORD);
+        UserController.deleteUserWithPassword(null, PASSWORD);
 
         EasyMock.verify(user, userBin);
     }
@@ -2551,7 +2551,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.deleteUserWithPassword("Unknown", PASSWORD);
+        UserController.deleteUserWithPassword("Unknown", PASSWORD);
 
         EasyMock.verify(user, userBin);
     }
@@ -2563,7 +2563,7 @@ public class UserServletTest {
     public void testDeleteUserWithPasswordPasswordNull() {
         EasyMock.replay(user, userBin);
 
-        UserServlet.deleteUserWithPassword(USER_ID, null);
+        UserController.deleteUserWithPassword(USER_ID, null);
 
         EasyMock.verify(user, userBin);
     }
@@ -2577,7 +2577,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.deleteUserWithPassword(USER_ID, PASSWORD);
+        UserController.deleteUserWithPassword(USER_ID, PASSWORD);
 
         EasyMock.verify(user, userBin);
     }
@@ -2593,7 +2593,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet.deleteUserWithPassword(USER_ID, PASSWORD);
+        UserController.deleteUserWithPassword(USER_ID, PASSWORD);
 
         EasyMock.verify(user, userBin);
     }
@@ -2624,7 +2624,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, provider, information);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 null,
                 PROVIDER_ID,
@@ -2661,7 +2661,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, provider, information);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 "Unknown",
                 PROVIDER_ID,
@@ -2678,7 +2678,7 @@ public class UserServletTest {
     public void testDeleteUserWithProviderProviderIdNull() {
         EasyMock.replay(user, userBin);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 USER_ID,
                 null,
@@ -2702,7 +2702,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 USER_ID,
                 PROVIDER_ID,
@@ -2719,7 +2719,7 @@ public class UserServletTest {
     public void testDeleteUserWithProviderAccessTokenNull() {
         EasyMock.replay(user, userBin);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 USER_ID,
                 PROVIDER_ID,
@@ -2746,7 +2746,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, provider);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 USER_ID,
                 PROVIDER_ID,
@@ -2786,7 +2786,7 @@ public class UserServletTest {
 
         EasyMock.replay(user, userBin, provider, information);
 
-        UserServlet
+        UserController
             .deleteUserWithProvider(
                 USER_ID,
                 PROVIDER_ID,

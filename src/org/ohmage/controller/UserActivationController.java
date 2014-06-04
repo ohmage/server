@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,8 +21,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(UserActivationServlet.ROOT_MAPPING)
-public class UserActivationServlet extends OhmageServlet {
+@RequestMapping(UserActivationController.ROOT_MAPPING)
+public class UserActivationController extends OhmageController {
     /**
      * The root API mapping for this Servlet.
      */
@@ -32,7 +32,7 @@ public class UserActivationServlet extends OhmageServlet {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(UserActivationServlet.class.getName());
+        Logger.getLogger(UserActivationController.class.getName());
 
     /**
      * Activates a user's account.

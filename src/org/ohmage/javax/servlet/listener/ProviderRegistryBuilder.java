@@ -1,4 +1,4 @@
-package org.ohmage.servlet.listener;
+package org.ohmage.javax.servlet.listener;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.io.IOException;
 import java.net.URI;
@@ -51,8 +51,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(OmhServlet.ROOT_MAPPING)
-public class OmhServlet extends OhmageServlet {
+@RequestMapping(OmhController.ROOT_MAPPING)
+public class OmhController extends OhmageController {
     /**
      * <p>
      * The Open mHealth representation of schema IDs.
@@ -271,7 +271,7 @@ public class OmhServlet extends OhmageServlet {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(OmhServlet.class.getName());
+        Logger.getLogger(OmhController.class.getName());
 
     /**
      * <p>
@@ -322,11 +322,11 @@ public class OmhServlet extends OhmageServlet {
      *         The OAuth library encountered an error.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Servlet.PATH_AUTHORIZE,
+        value = "/auth/oauth" + Oauth2Controller.PATH_AUTHORIZE,
         method = RequestMethod.GET,
         params = "response_type" + "=" + "code")
     public static String authorize(
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl,
         @RequestParam(value = "client_id", required = true)
             final String clientId,
@@ -338,7 +338,7 @@ public class OmhServlet extends OhmageServlet {
             final String state) {
 
         return
-            Oauth2Servlet
+            Oauth2Controller
                 .authorize(rootUrl, clientId, scopeString, redirectUri, state);
     }
 
@@ -368,7 +368,7 @@ public class OmhServlet extends OhmageServlet {
      * @return A redirect back to the OAuth client with the code and state.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Servlet.PATH_AUTHORIZATION,
+        value = "/auth/oauth" + Oauth2Controller.PATH_AUTHORIZATION,
         method = RequestMethod.POST)
     public static String authorization(
         @RequestParam(value = User.JSON_KEY_EMAIL, required = true)
@@ -383,7 +383,7 @@ public class OmhServlet extends OhmageServlet {
             final boolean granted) {
 
         return
-            Oauth2Servlet.authorization(email, password, codeString, granted);
+            Oauth2Controller.authorization(email, password, codeString, granted);
     }
 
     /**
@@ -415,7 +415,7 @@ public class OmhServlet extends OhmageServlet {
      * @return A new authorization token.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Servlet.PATH_TOKEN,
+        value = "/auth/oauth" + Oauth2Controller.PATH_TOKEN,
         method = RequestMethod.POST,
         params = "grant_type" + "=" + "authorization_code")
     public static @ResponseBody AuthorizationToken tokenFromCode(
@@ -428,7 +428,7 @@ public class OmhServlet extends OhmageServlet {
             final URI redirectUri) {
 
         return
-            Oauth2Servlet
+            Oauth2Controller
                 .tokenFromCode(
                     oauthClientId,
                     oauthClientSecret,
@@ -460,7 +460,7 @@ public class OmhServlet extends OhmageServlet {
      * @return A new authorization token.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Servlet.PATH_TOKEN,
+        value = "/auth/oauth" + Oauth2Controller.PATH_TOKEN,
         method = RequestMethod.POST,
         params = "grant_type" + "=" + "refresh_token")
     public static @ResponseBody AuthorizationToken tokenFromRefresh(
@@ -472,7 +472,7 @@ public class OmhServlet extends OhmageServlet {
             final String refreshToken) {
 
         return
-            Oauth2Servlet
+            Oauth2Controller
                 .tokenFromRefresh(
                     oauthClientId,
                     oauthClientSecret,
@@ -510,7 +510,7 @@ public class OmhServlet extends OhmageServlet {
             required = false,
             defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
             final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER.log(Level.INFO, "Creating an OmH registry read request.");
@@ -551,13 +551,13 @@ public class OmhServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    aggregation,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        aggregation,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<String>> resultEntity =
@@ -604,7 +604,7 @@ public class OmhServlet extends OhmageServlet {
             required = false,
             defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
             final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER
@@ -653,13 +653,13 @@ public class OmhServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    versions,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        versions,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<Long>> result =
@@ -802,7 +802,7 @@ public class OmhServlet extends OhmageServlet {
             required = false,
             defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
             final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER
@@ -826,14 +826,14 @@ public class OmhServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authTokenObject,
-                    new Scope(
-                        Scope.Type.STREAM,
-                        schemaId,
-                        schemaVersion,
-                        Scope.Permission.READ));
+                        authTokenObject,
+                        new Scope(
+                                Scope.Type.STREAM,
+                                schemaId,
+                                schemaVersion,
+                                Scope.Permission.READ));
 
         LOGGER.log(Level.INFO, "Verifying the auth token is valid.");
         if(! authTokenObject.isValid()) {
@@ -927,13 +927,13 @@ public class OmhServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    data,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        data,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<?>> result =

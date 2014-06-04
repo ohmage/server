@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,7 +16,7 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.OhmageException;
 import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,8 +32,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(AuthenticationTokenServlet.ROOT_MAPPING)
-public class AuthenticationTokenServlet extends OhmageServlet {
+@RequestMapping(AuthenticationTokenController.ROOT_MAPPING)
+public class AuthenticationTokenController extends OhmageController {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
@@ -64,7 +64,7 @@ public class AuthenticationTokenServlet extends OhmageServlet {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(AuthenticationTokenServlet.class.getName());
+		Logger.getLogger(AuthenticationTokenController.class.getName());
 
 	/**
 	 * <p>

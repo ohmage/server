@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -33,7 +33,7 @@ import org.ohmage.domain.user.ProviderUserInformation;
 import org.ohmage.domain.user.Registration;
 import org.ohmage.domain.user.User;
 import org.ohmage.domain.user.UserInvitation;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,8 +51,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(UserServlet.ROOT_MAPPING)
-public class UserServlet extends OhmageServlet {
+@RequestMapping(UserController.ROOT_MAPPING)
+public class UserController extends OhmageController {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
@@ -92,7 +92,7 @@ public class UserServlet extends OhmageServlet {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(UserServlet.class.getName());
+		Logger.getLogger(UserController.class.getName());
 
     /**
      * Creates a new user.
@@ -315,7 +315,7 @@ public class UserServlet extends OhmageServlet {
             validatedUser
                 .getRegistration()
                 .sendUserRegistrationEmail(
-                    rootUrl + UserActivationServlet.ROOT_MAPPING);
+                    rootUrl + UserActivationController.ROOT_MAPPING);
         }
 
 		LOGGER.log(Level.INFO, "Echoing the user back.");
@@ -432,7 +432,7 @@ public class UserServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Requesting a list of visible users.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.FINE, "Create the result list.");
 		Set<String> result = new HashSet<String>(1);
@@ -469,7 +469,7 @@ public class UserServlet extends OhmageServlet {
         LOGGER.log(Level.INFO, "Requesting information about a user.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -522,7 +522,7 @@ public class UserServlet extends OhmageServlet {
         LOGGER.log(Level.INFO, "Requesting information about a user.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -860,7 +860,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to track a stream.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -922,7 +922,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to track a stream.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -996,7 +996,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request to disassociate a user with a ohmlet.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -1099,7 +1099,7 @@ public class UserServlet extends OhmageServlet {
 					"in a ohmlet.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
 		if(streamReference == null) {
@@ -1199,7 +1199,7 @@ public class UserServlet extends OhmageServlet {
 					".");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
         if(streamReference == null) {
@@ -1296,7 +1296,7 @@ public class UserServlet extends OhmageServlet {
 					"in a ohmlet.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
         if(surveyReference == null) {
@@ -1394,7 +1394,7 @@ public class UserServlet extends OhmageServlet {
 					"reference in a ohmlet.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
         if(surveyReference == null) {
@@ -1483,7 +1483,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to track a stream.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER
 		    .log(Level.INFO, "Verifying that the stream reference was given.");
@@ -1571,7 +1571,7 @@ public class UserServlet extends OhmageServlet {
 					"following.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER
 			.log(
@@ -1624,7 +1624,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to stop tracking a stream.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(Level.INFO, "Verifying that the stream reference was given.");
@@ -1694,7 +1694,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to track a survey.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(Level.INFO, "Verifying that the survey reference was given.");
@@ -1782,7 +1782,7 @@ public class UserServlet extends OhmageServlet {
 					"following.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER
 			.log(
@@ -1835,7 +1835,7 @@ public class UserServlet extends OhmageServlet {
 				"Creating a request for a user to stop tracking a survey.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(Level.INFO, "Verifying that the survey reference was given.");

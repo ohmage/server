@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,7 +28,7 @@ import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,8 +49,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(Oauth2Servlet.ROOT_MAPPING)
-public class Oauth2Servlet extends OhmageServlet {
+@RequestMapping(Oauth2Controller.ROOT_MAPPING)
+public class Oauth2Controller extends OhmageController {
     /**
      * The root API mapping for this Servlet.
      */
@@ -87,7 +87,7 @@ public class Oauth2Servlet extends OhmageServlet {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(Oauth2Servlet.class.getName());
+        Logger.getLogger(Oauth2Controller.class.getName());
 
     /**
      * <p>
@@ -142,7 +142,7 @@ public class Oauth2Servlet extends OhmageServlet {
         method = RequestMethod.GET,
         params = "response_type" + "=" + "code")
     public static String authorize(
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl,
         @RequestParam(value = "client_id", required = true)
             final String clientId,
@@ -805,7 +805,7 @@ public class Oauth2Servlet extends OhmageServlet {
         LOGGER.log(Level.INFO, "Creating a new OAuth client.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the owner of the OAuth client.");
         oauthClientBuilder.setOwner(user.getId());
@@ -856,7 +856,7 @@ public class Oauth2Servlet extends OhmageServlet {
         value = "/clients",
         method = RequestMethod.GET)
     public static @ResponseBody ResponseEntity<MultiValueResult<String>> getClients(
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl,
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken) {
@@ -867,7 +867,7 @@ public class Oauth2Servlet extends OhmageServlet {
                 "Creating a request to retrieve the user-owned client IDs.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -878,13 +878,13 @@ public class Oauth2Servlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    0,
-                    Long.MAX_VALUE,
-                    Collections.<String, String>emptyMap(),
-                    clientIds,
-                    rootUrl + ROOT_MAPPING + "/clients");
+                        0,
+                        Long.MAX_VALUE,
+                        Collections.<String, String>emptyMap(),
+                        clientIds,
+                        rootUrl + ROOT_MAPPING + "/clients");
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<String>> result =
@@ -944,7 +944,7 @@ public class Oauth2Servlet extends OhmageServlet {
         value = "/codes",
         method = RequestMethod.GET)
     public static @ResponseBody ResponseEntity<MultiValueResult<String>> getCodes(
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl,
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken) {
@@ -956,7 +956,7 @@ public class Oauth2Servlet extends OhmageServlet {
                     "approved.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER
             .log(
@@ -967,13 +967,13 @@ public class Oauth2Servlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    0,
-                    Long.MAX_VALUE,
-                    Collections.<String, String>emptyMap(),
-                    codes,
-                    rootUrl + ROOT_MAPPING + "/codes");
+                        0,
+                        Long.MAX_VALUE,
+                        Collections.<String, String>emptyMap(),
+                        codes,
+                        rootUrl + ROOT_MAPPING + "/codes");
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<String>> result =
@@ -1028,7 +1028,7 @@ public class Oauth2Servlet extends OhmageServlet {
             LOGGER.log(Level.INFO, "The code has been responded to.");
 
             LOGGER.log(Level.INFO, "Validating the user from the token");
-            User user = OhmageServlet.validateAuthorization(authToken, null);
+            User user = OhmageController.validateAuthorization(authToken, null);
 
             LOGGER
                 .log(
@@ -1072,7 +1072,7 @@ public class Oauth2Servlet extends OhmageServlet {
                 "Creating a request to invalidate an authorization code.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Retrieving the code.");
         AuthorizationCode code =

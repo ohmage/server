@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,7 @@ import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.stream.StreamData;
 import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,8 +46,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(StreamServlet.ROOT_MAPPING)
-public class StreamServlet extends OhmageServlet {
+@RequestMapping(StreamController.ROOT_MAPPING)
+public class StreamController extends OhmageController {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
@@ -82,13 +82,13 @@ public class StreamServlet extends OhmageServlet {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(StreamServlet.class.getName());
+		Logger.getLogger(StreamController.class.getName());
 
 	/**
 	 * The usage in this class is entirely static, so there is no need to
 	 * instantiate it.
 	 */
-	private StreamServlet() {
+	private StreamController() {
 		// Do nothing.
 	}
 
@@ -144,7 +144,7 @@ public class StreamServlet extends OhmageServlet {
         LOGGER.log(Level.INFO, "Creating a stream creation request.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the owner of the stream.");
         streamBuilder.setOwner(user.getId());
@@ -206,7 +206,7 @@ public class StreamServlet extends OhmageServlet {
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
 		    final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Creating a stream ID read request.");
@@ -219,13 +219,13 @@ public class StreamServlet extends OhmageServlet {
 
 		LOGGER.log(Level.INFO, "Building the paging headers.");
 		HttpHeaders headers =
-		    OhmageServlet
+		    OhmageController
 		        .buildPagingHeaders(
-		            numToSkip,
-		            numToReturn,
-		            Collections.<String, String>emptyMap(),
-		            ids,
-		            rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        ids,
+                        rootUrl + ROOT_MAPPING);
 
 		LOGGER.log(Level.INFO, "Creating the response object.");
 		ResponseEntity<MultiValueResult<Stream>> result =
@@ -268,7 +268,7 @@ public class StreamServlet extends OhmageServlet {
 			final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
 		LOGGER
@@ -290,13 +290,13 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    versions,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        versions,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<Long>> result =
@@ -381,7 +381,7 @@ public class StreamServlet extends OhmageServlet {
 					streamId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
 		Stream latestSchema =
@@ -454,14 +454,14 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.STREAM,
-                        streamId,
-                        streamVersion,
-                        Scope.Permission.WRITE));
+                        authToken,
+                        new Scope(
+                                Scope.Type.STREAM,
+                                streamId,
+                                streamVersion,
+                                Scope.Permission.WRITE));
 
 		LOGGER.log(Level.INFO, "Retrieving the stream.");
 		Stream stream =
@@ -542,21 +542,21 @@ public class StreamServlet extends OhmageServlet {
             final boolean chronological,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Retrieving some stream data.");
 
 		LOGGER.log(Level.INFO, "Validating the user from the token");
 		User user =
-		    OhmageServlet
+		    OhmageController
 		        .validateAuthorization(
-		            authToken,
-		            new Scope(
-    		            Scope.Type.STREAM,
-    		            streamId,
-    		            streamVersion,
-    		            Scope.Permission.READ));
+                        authToken,
+                        new Scope(
+                                Scope.Type.STREAM,
+                                streamId,
+                                streamVersion,
+                                Scope.Permission.READ));
 
         LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
         DateTime startDateObject, endDateObject;
@@ -646,13 +646,13 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    data,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        data,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<? extends StreamData>> result =
@@ -704,14 +704,14 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.STREAM,
-                        streamId,
-                        streamVersion,
-                        Scope.Permission.READ));
+                        authToken,
+                        new Scope(
+                                Scope.Type.STREAM,
+                                streamId,
+                                streamVersion,
+                                Scope.Permission.READ));
 
         LOGGER.log(Level.INFO, "Returning the stream data.");
         return
@@ -761,14 +761,14 @@ public class StreamServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.STREAM,
-                        streamId,
-                        streamVersion,
-                        Scope.Permission.DELETE));
+                        authToken,
+                        new Scope(
+                                Scope.Type.STREAM,
+                                streamId,
+                                streamVersion,
+                                Scope.Permission.DELETE));
 
         LOGGER.log(Level.INFO, "Deleting the stream data.");
         StreamDataBin

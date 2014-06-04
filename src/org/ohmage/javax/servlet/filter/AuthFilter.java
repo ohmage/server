@@ -1,4 +1,4 @@
-package org.ohmage.servlet.filter;
+package org.ohmage.javax.servlet.filter;
 
 import java.io.IOException;
 import java.util.Collections;

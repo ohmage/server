@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -21,19 +21,19 @@ import org.ohmage.domain.exception.AuthenticationException;
 import org.ohmage.domain.exception.InsufficientPermissionsException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * <p>
- * The root class for all Servlets.
+ * The root class for all Controllers.
  * </p>
  *
  * @author John Jenkins
  */
-public abstract class OhmageServlet {
+public abstract class OhmageController {
     /**
      * The key for the earliest allowed time-stamp for some point when querying
      * a list of points.
@@ -127,7 +127,7 @@ public abstract class OhmageServlet {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(OhmageServlet.class.getName());
+        Logger.getLogger(OhmageController.class.getName());
 
     /**
      * Retrieves the user from the authorization token. Also, if the token was

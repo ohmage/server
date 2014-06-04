@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,7 +12,7 @@ import org.ohmage.domain.exception.UnknownEntityException;
 import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -32,8 +32,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(MediaServlet.ROOT_MAPPING)
-public class MediaServlet extends OhmageServlet {
+@RequestMapping(MediaController.ROOT_MAPPING)
+public class MediaController extends OhmageController {
     /**
      * The root API mapping for this Servlet.
      */
@@ -48,7 +48,7 @@ public class MediaServlet extends OhmageServlet {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(MediaServlet.class.getName());
+        Logger.getLogger(MediaController.class.getName());
 
     /**
      * Retrieves the data for the requesting user.
@@ -95,14 +95,14 @@ public class MediaServlet extends OhmageServlet {
 
             LOGGER.log(Level.INFO, "Validating the user from the token");
             User user =
-                OhmageServlet
+                OhmageController
                     .validateAuthorization(
-                        authToken,
-                        new Scope(
-                            Scope.Type.STREAM,
-                            surveyResponse.getSchemaId(),
-                            surveyResponse.getSchemaVersion(),
-                            Scope.Permission.READ));
+                            authToken,
+                            new Scope(
+                                    Scope.Type.STREAM,
+                                    surveyResponse.getSchemaId(),
+                                    surveyResponse.getSchemaVersion(),
+                                    Scope.Permission.READ));
 
             LOGGER
                 .log(

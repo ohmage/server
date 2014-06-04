@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
 import org.ohmage.domain.ohmlet.OhmletReference;
-import org.ohmage.servlet.listener.ConfigurationFileImport;
+import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 
 /**
  * <p>

@@ -95,7 +95,7 @@
     <!-- Loads the configuration file. -->
     <listener>
         <listener-class>
-            org.ohmage.servlet.listener.ConfigurationFileImport
+            org.ohmage.javax.servlet.listener.ConfigurationFileImport
         </listener-class>
     </listener>
 
@@ -105,7 +105,7 @@
      -->
      <listener>
         <listener-class>
-            org.ohmage.servlet.listener.DatabaseSetup
+            org.ohmage.javax.servlet.listener.DatabaseSetup
         </listener-class>
     </listener>
 
@@ -114,7 +114,7 @@
      -->
      <listener>
         <listener-class>
-            org.ohmage.servlet.listener.ProviderRegistryBuilder
+            org.ohmage.javax.servlet.listener.ProviderRegistryBuilder
         </listener-class>
     </listener>
   
@@ -139,7 +139,7 @@
         <display-name>Dump Filter</display-name>
         <filter-name>dumpFilter</filter-name>
         <filter-class>
-            org.ohmage.servlet.filter.DumpFilter
+            org.ohmage.javax.servlet.filter.DumpFilter
         </filter-class>
     </filter>
     <filter-mapping>
@@ -154,7 +154,7 @@
         <display-name>Exception Filter</display-name>
         <filter-name>exceptionFilter</filter-name>
         <filter-class>
-            org.ohmage.servlet.filter.ExceptionFilter
+            org.ohmage.javax.servlet.filter.ExceptionFilter
         </filter-class>
     </filter>
     <filter-mapping>
@@ -167,7 +167,7 @@
         <description>Parses, validates, and stores the authentication information.</description>
         <display-name>Authorization Filter</display-name>
         <filter-name>authFilter</filter-name>
-        <filter-class>org.ohmage.servlet.filter.AuthFilter</filter-class>
+        <filter-class>org.ohmage.javax.servlet.filter.AuthFilter</filter-class>
     </filter>
 
     <filter-mapping>
@@ -181,7 +181,7 @@
         <display-name>Decompression Filter</display-name>
         <filter-name>decompressionFilter</filter-name>
         <filter-class>
-            org.ohmage.servlet.filter.DecompressionFilter
+            org.ohmage.javax.servlet.filter.DecompressionFilter
         </filter-class>
     </filter>
     <filter-mapping>

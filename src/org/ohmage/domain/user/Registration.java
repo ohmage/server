@@ -17,7 +17,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.servlet.listener.ConfigurationFileImport;
+import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

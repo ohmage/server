@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +26,7 @@ import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.survey.SurveyResponse;
 import org.ohmage.domain.user.User;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,8 +49,8 @@ import org.springframework.web.multipart.MultipartFile;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(SurveyServlet.ROOT_MAPPING)
-public class SurveyServlet extends OhmageServlet {
+@RequestMapping(SurveyController.ROOT_MAPPING)
+public class SurveyController extends OhmageController {
     /**
      * The root API mapping for this Servlet.
      */
@@ -89,13 +89,13 @@ public class SurveyServlet extends OhmageServlet {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(SurveyServlet.class.getName());
+        Logger.getLogger(SurveyController.class.getName());
 
     /**
      * The usage in this class is entirely static, so there is no need to
      * instantiate it.
      */
-    private SurveyServlet() {
+    private SurveyController() {
         // Do nothing.
     }
 
@@ -148,7 +148,7 @@ public class SurveyServlet extends OhmageServlet {
         LOGGER.log(Level.INFO, "Creating a survey creation request.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the owner of the survey.");
         surveyBuilder.setOwner(user.getId());
@@ -210,7 +210,7 @@ public class SurveyServlet extends OhmageServlet {
         @RequestParam(value = KEY_QUERY, required = false) final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER.log(Level.INFO, "Creating a survey ID read request.");
@@ -223,13 +223,13 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    ids,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        ids,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<Survey>> result =
@@ -271,7 +271,7 @@ public class SurveyServlet extends OhmageServlet {
         @RequestParam(value = KEY_QUERY, required = false) final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER
@@ -318,13 +318,13 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    versions,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        versions,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<Long>> result =
@@ -409,7 +409,7 @@ public class SurveyServlet extends OhmageServlet {
                     surveyId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Retrieving the latest version of the survey.");
         Survey latestSchema =
@@ -525,14 +525,14 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.SURVEY,
-                        surveyId,
-                        surveyVersion,
-                        Scope.Permission.WRITE));
+                        authToken,
+                        new Scope(
+                                Scope.Type.SURVEY,
+                                surveyId,
+                                surveyVersion,
+                                Scope.Permission.WRITE));
 
         LOGGER.log(Level.INFO, "Retrieving the survey.");
         Survey survey =
@@ -692,21 +692,21 @@ public class SurveyServlet extends OhmageServlet {
             final boolean chronological,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER.log(Level.INFO, "Retrieving some survey responses.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token.");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.SURVEY,
-                        surveyId,
-                        surveyVersion,
-                        Scope.Permission.READ));
+                        authToken,
+                        new Scope(
+                                Scope.Type.SURVEY,
+                                surveyId,
+                                surveyVersion,
+                                Scope.Permission.READ));
 
         LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
         DateTime startDateObject =
@@ -784,13 +784,13 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    data,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        data,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<? extends SurveyResponse>> result =
@@ -842,14 +842,14 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token.");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.SURVEY,
-                        surveyId,
-                        surveyVersion,
-                        Scope.Permission.READ));
+                        authToken,
+                        new Scope(
+                                Scope.Type.SURVEY,
+                                surveyId,
+                                surveyVersion,
+                                Scope.Permission.READ));
 
         LOGGER.log(Level.INFO, "Returning the survey data.");
         return
@@ -899,14 +899,14 @@ public class SurveyServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Validating the user from the token.");
         User user =
-            OhmageServlet
+            OhmageController
                 .validateAuthorization(
-                    authToken,
-                    new Scope(
-                        Scope.Type.SURVEY,
-                        surveyId,
-                        surveyVersion,
-                        Scope.Permission.DELETE));
+                        authToken,
+                        new Scope(
+                                Scope.Type.SURVEY,
+                                surveyId,
+                                surveyVersion,
+                                Scope.Permission.DELETE));
 
         LOGGER.log(Level.INFO, "Deleting the survey data.");
         SurveyResponseBin

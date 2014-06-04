@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.util.Collections;
 import java.util.logging.Level;
@@ -13,7 +13,7 @@ import org.ohmage.domain.Schema;
 import org.ohmage.domain.auth.AuthorizationToken;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.exception.UnknownEntityException;
-import org.ohmage.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.filter.AuthFilter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +33,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(SchemaServlet.ROOT_MAPPING)
-public class SchemaServlet extends OhmageServlet {
+@RequestMapping(SchemaController.ROOT_MAPPING)
+public class SchemaController extends OhmageController {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
@@ -61,7 +61,7 @@ public class SchemaServlet extends OhmageServlet {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(SchemaServlet.class.getName());
+		Logger.getLogger(SchemaController.class.getName());
 
     /**
      * Returns a list of visible schema IDs.
@@ -86,7 +86,7 @@ public class SchemaServlet extends OhmageServlet {
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Creating a schema ID read request.");
@@ -112,13 +112,13 @@ public class SchemaServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    ids,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        ids,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<String>> result =
@@ -157,7 +157,7 @@ public class SchemaServlet extends OhmageServlet {
 		@RequestParam(value = KEY_QUERY, required = false) final String query,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
 		LOGGER
@@ -196,7 +196,7 @@ public class SchemaServlet extends OhmageServlet {
         if(StreamBin.getInstance().exists(schemaId, null, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
-                StreamServlet
+                StreamController
                     .getStreamVersions(
                         schemaId,
                         query,
@@ -207,7 +207,7 @@ public class SchemaServlet extends OhmageServlet {
         else if(SurveyBin.getInstance().exists(schemaId, null, false)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
-                SurveyServlet
+                SurveyController
                     .getSurveyVersions(
                         schemaId,
                         query,
@@ -275,14 +275,14 @@ public class SchemaServlet extends OhmageServlet {
         if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
-                StreamServlet.getStreamDefinition(schemaId, schemaVersion);
+                StreamController.getStreamDefinition(schemaId, schemaVersion);
         }
         else if(
             SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
 
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
-                SurveyServlet.getSurveyDefinition(schemaId, schemaVersion);
+                SurveyController.getSurveyDefinition(schemaId, schemaVersion);
         }
         else {
             throw
@@ -348,7 +348,7 @@ public class SchemaServlet extends OhmageServlet {
             final boolean chronological,
         @ModelAttribute(PARAM_PAGING_NUM_TO_SKIP) final long numToSkip,
         @ModelAttribute(PARAM_PAGING_NUM_TO_RETURN) final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
         LOGGER
@@ -364,7 +364,7 @@ public class SchemaServlet extends OhmageServlet {
         if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
-                StreamServlet
+                StreamController
                     .getData(
                         authToken,
                         schemaId,
@@ -380,7 +380,7 @@ public class SchemaServlet extends OhmageServlet {
             SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
-                SurveyServlet
+                SurveyController
                     .getData(
                         authToken,
                         schemaId,
@@ -451,7 +451,7 @@ public class SchemaServlet extends OhmageServlet {
         if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
             LOGGER.log(Level.INFO, "The schema is a stream.");
             result =
-                StreamServlet
+                StreamController
                     .getPoint(authToken, schemaId, schemaVersion, pointId);
         }
         else if(
@@ -459,7 +459,7 @@ public class SchemaServlet extends OhmageServlet {
 
             LOGGER.log(Level.INFO, "The schema is a survey.");
             result =
-                SurveyServlet
+                SurveyController
                     .getPoint(authToken, schemaId, schemaVersion, pointId);
         }
         else {

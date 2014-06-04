@@ -1,4 +1,4 @@
-package org.ohmage.servlet;
+package org.ohmage.controller;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -39,8 +39,8 @@ import org.ohmage.domain.ohmlet.OhmletReference;
 import org.ohmage.domain.survey.Media;
 import org.ohmage.domain.user.User;
 import org.ohmage.domain.user.UserInvitation;
-import org.ohmage.servlet.filter.AuthFilter;
-import org.ohmage.servlet.listener.ConfigurationFileImport;
+import org.ohmage.javax.servlet.filter.AuthFilter;
+import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,8 +65,8 @@ import com.sun.mail.smtp.SMTPTransport;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(OhmletServlet.ROOT_MAPPING)
-public class OhmletServlet extends OhmageServlet {
+@RequestMapping(OhmletController.ROOT_MAPPING)
+public class OhmletController extends OhmageController {
 	/**
 	 * The root API mapping for this Servlet.
 	 */
@@ -98,7 +98,7 @@ public class OhmletServlet extends OhmageServlet {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(OhmletServlet.class.getName());
+		Logger.getLogger(OhmletController.class.getName());
 
     /**
      * The mail protocol to use when sending mail.
@@ -172,7 +172,7 @@ public class OhmletServlet extends OhmageServlet {
 	 * The usage in this class is entirely static, so there is no need to
 	 * instantiate it.
 	 */
-	private OhmletServlet() {
+	private OhmletController() {
 		// Do nothing.
 	}
 
@@ -224,7 +224,7 @@ public class OhmletServlet extends OhmageServlet {
 		LOGGER.log(Level.INFO, "Creating a ohmlet creation request.");
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER
 			.log(
@@ -362,7 +362,7 @@ public class OhmletServlet extends OhmageServlet {
             required = false,
             defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
             final long numToReturn,
-        @ModelAttribute(OhmageServlet.ATTRIBUTE_REQUEST_URL_ROOT)
+        @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
 		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
@@ -376,7 +376,7 @@ public class OhmletServlet extends OhmageServlet {
 
             LOGGER.log(Level.INFO, "Validating the user from the token");
             userId =
-                OhmageServlet.validateAuthorization(authToken, null).getId();
+                OhmageController.validateAuthorization(authToken, null).getId();
 		}
         LOGGER.log(Level.INFO, "Retrieving the stream IDs");
         MultiValueResult<Ohmlet> ids =
@@ -386,13 +386,13 @@ public class OhmletServlet extends OhmageServlet {
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
-            OhmageServlet
+            OhmageController
                 .buildPagingHeaders(
-                    numToSkip,
-                    numToReturn,
-                    Collections.<String, String>emptyMap(),
-                    ids,
-                    rootUrl + ROOT_MAPPING);
+                        numToSkip,
+                        numToReturn,
+                        Collections.<String, String>emptyMap(),
+                        ids,
+                        rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<Ohmlet>> result =
@@ -508,7 +508,7 @@ public class OhmletServlet extends OhmageServlet {
 				"Creating a request to update a ohmlet: " + ohmletId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
@@ -638,7 +638,7 @@ public class OhmletServlet extends OhmageServlet {
                     ohmletId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
         Ohmlet ohmlet =
@@ -832,7 +832,7 @@ public class OhmletServlet extends OhmageServlet {
 					ohmletId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
@@ -1104,7 +1104,7 @@ public class OhmletServlet extends OhmageServlet {
                     ohmletId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User requester = OhmageServlet.validateAuthorization(authToken, null);
+        User requester = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the requestee.");
         User requestee = requester;
@@ -1203,7 +1203,7 @@ public class OhmletServlet extends OhmageServlet {
 				"Creating a request to delete a ohmlet: " + ohmletId);
 
         LOGGER.log(Level.INFO, "Validating the user from the token");
-        User user = OhmageServlet.validateAuthorization(authToken, null);
+        User user = OhmageController.validateAuthorization(authToken, null);
 
 		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
 		Ohmlet ohmlet =
