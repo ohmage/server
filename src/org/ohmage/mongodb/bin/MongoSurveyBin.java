@@ -165,7 +165,7 @@ public class MongoSurveyBin extends SurveyBin {
             // Add the name.
             nameQueryBuilder.and(Schema.JSON_KEY_NAME).regex(queryPattern);
 
-            // Create a query builder for the version protion.
+            // Create a query builder for the version portion.
             QueryBuilder versionQueryBuilder = QueryBuilder.start();
 
             // Add the version.

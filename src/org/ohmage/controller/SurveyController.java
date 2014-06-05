@@ -305,7 +305,7 @@ public class SurveyController extends OhmageController {
                         ".");
         }
 
-        LOGGER.log(Level.INFO, "Retreiving the survey versions.");
+        LOGGER.log(Level.INFO, "Retrieving the survey versions.");
         MultiValueResult<Long> versions =
             SurveyBin
                 .getInstance()

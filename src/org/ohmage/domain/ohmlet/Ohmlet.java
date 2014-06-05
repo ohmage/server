@@ -573,7 +573,7 @@ public class Ohmlet extends OhmageDomainObject {
 		 * @return True only if this role is just as privileged or more
 		 *         privileged than the given role.
 		 */
-		public boolean encompases(final Role role) {
+		public boolean encompasses(final Role role) {
 			return ordinal() >= role.ordinal();
 		}
 
@@ -1080,7 +1080,7 @@ public class Ohmlet extends OhmageDomainObject {
 					"The minimum role to invite other users is null or " +
 						"unknown.");
 		}
-		if(! inviteRole.encompases(MINIMUM_INVITE_ROLE)) {
+		if(! inviteRole.encompasses(MINIMUM_INVITE_ROLE)) {
 			throw
 				new InvalidArgumentException(
 					"The minimum role to invite other users is less than " +
@@ -1094,7 +1094,7 @@ public class Ohmlet extends OhmageDomainObject {
 					"The minimum role to view users' data is null or " +
 						"unknown.");
 		}
-		if(! visibilityRole.encompases(MINIMUM_VISIBILITY_ROLE)) {
+		if(! visibilityRole.encompasses(MINIMUM_VISIBILITY_ROLE)) {
 			throw
 				new InvalidArgumentException(
 					"The minimum role to view other user's data is less " +
@@ -1275,7 +1275,7 @@ public class Ohmlet extends OhmageDomainObject {
 			return false;
 		}
 
-		return member.getRole().encompases(role);
+		return member.getRole().encompasses(role);
 	}
 
 	/**
