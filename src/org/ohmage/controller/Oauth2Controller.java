@@ -244,7 +244,7 @@ public class Oauth2Controller extends OhmageController {
                     Level.INFO,
                     "Verifying that the normalized redirect URI is a " +
                         "sub-URI of the default redirect URI.");
-            supercedes(oauthClient.getRedirectUri(), validatedRedirectUri);
+            supersedes(oauthClient.getRedirectUri(), validatedRedirectUri);
         }
 
         LOGGER.log(Level.INFO, "Generating a new authorization code.");
@@ -1116,7 +1116,7 @@ public class Oauth2Controller extends OhmageController {
      * @param child
      *        The child URI.
      */
-    private static void supercedes(final URI base, final URI child) {
+    private static void supersedes(final URI base, final URI child) {
         if(
             ((base.getScheme() == null) && (child.getScheme() == null)) ||
             (! base.getScheme().equals(child.getScheme()))) {

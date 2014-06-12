@@ -260,7 +260,8 @@ public class MongoOhmletBin extends OhmletBin {
             .start()
             .add(Schema.JSON_KEY_ID , 1 )
             .add(Schema.JSON_KEY_NAME , 1 )
-            .add(Schema.JSON_KEY_DESCRIPTION, "");
+            .add(Schema.JSON_KEY_DESCRIPTION, 1);
+
 
 		// Get the list of results.
 		@SuppressWarnings("unchecked")

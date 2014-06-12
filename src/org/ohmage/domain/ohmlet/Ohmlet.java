@@ -54,11 +54,11 @@ public class Ohmlet extends OhmageDomainObject {
 		 */
 		private String description;
 		/**
-		 * The streams for this ohmlet.
+		 * The stream references for this ohmlet.
 		 */
 		private List<SchemaReference> streams;
-		/**
-		 * The schemas for this ohmlet.
+        /**
+		 * The survey references for this ohmlet.
 		 */
 		private List<SchemaReference> surveys;
 		/**

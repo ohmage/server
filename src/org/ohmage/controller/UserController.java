@@ -341,6 +341,9 @@ public class UserController extends OhmageController {
 		value = { "", "/" },
 		method = RequestMethod.POST,
 		params = { PARAMETER_PROVIDER })
+	
+	// TODO Is PARAMETER_ACCESS_TOKEN missing in the params array above?
+	
 	public static @ResponseBody User createUser(
 		@RequestParam(
 			value = PARAMETER_PROVIDER,
@@ -494,7 +497,7 @@ public class UserController extends OhmageController {
         }
 
         // Pull the user object from the token.
-        LOGGER.log(Level.INFO, "Retreiving the user object.");
+        LOGGER.log(Level.INFO, "Retrieving the user object.");
         return user;
     }
 
@@ -794,7 +797,7 @@ public class UserController extends OhmageController {
 
 		LOGGER.log(Level.INFO, "Updating a user's password.");
 
-		LOGGER.log(Level.INFO, "Verifing that a user ID was given.");
+		LOGGER.log(Level.INFO, "Verifying that a user ID was given.");
 		if(userId == null) {
 		    throw new InvalidArgumentException("The user ID is missing.");
 		}
@@ -959,7 +962,7 @@ public class UserController extends OhmageController {
 		                ".");
 		}
 
-		LOGGER.log(Level.INFO, "Returning the set of stream references.");
+		LOGGER.log(Level.INFO, "Returning the set of ohmlet references.");
 		return ohmletReference;
 	}
 

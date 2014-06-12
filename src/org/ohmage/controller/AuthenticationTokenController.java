@@ -265,6 +265,7 @@ public class AuthenticationTokenController extends OhmageController {
 			.log(
 				Level.FINE,
 				"Determining if the user's information has been updated.");
+
 		if(! newUserInformation.equals(savedUserInformation)) {
 			LOGGER.log(Level.INFO, "Updating the user's information.");
 			user = user.updateProvider(newUserInformation);
@@ -274,6 +275,9 @@ public class AuthenticationTokenController extends OhmageController {
 					Level.INFO,
 					"Updating the user with the new information from the " +
 						"provider.");
+
+            // TODO if this fails then what?
+
 			UserBin.getInstance().updateUser(user);
 		}
 
@@ -313,8 +317,9 @@ public class AuthenticationTokenController extends OhmageController {
 		LOGGER
 			.log(
 				Level.INFO,
-				"Retrieveing the authentication token based on the refresh " +
+				"Retrieving the authentication token based on the refresh " +
 					"token.");
+
 		AuthorizationToken oldToken =
 			AuthorizationTokenBin
 				.getInstance()

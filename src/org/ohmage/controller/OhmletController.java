@@ -1,24 +1,6 @@
 package org.ohmage.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.NoSuchProviderException;
-import javax.mail.SendFailedException;
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
-
+import com.sun.mail.smtp.SMTPTransport;
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
@@ -36,7 +18,9 @@ import org.ohmage.domain.ohmlet.Ohmlet;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
 import org.ohmage.domain.ohmlet.OhmletInvitation;
 import org.ohmage.domain.ohmlet.OhmletReference;
+import org.ohmage.domain.stream.Stream;
 import org.ohmage.domain.survey.Media;
+import org.ohmage.domain.survey.Survey;
 import org.ohmage.domain.user.User;
 import org.ohmage.domain.user.UserInvitation;
 import org.ohmage.javax.servlet.filter.AuthFilter;
@@ -55,7 +39,26 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.sun.mail.smtp.SMTPTransport;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.NoSuchProviderException;
+import javax.mail.SendFailedException;
+import javax.mail.Session;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>
@@ -302,27 +305,33 @@ public class OhmletController extends OhmageController {
             }
         }
 
+		LOGGER.log(Level.INFO, "Updating the user.");
+		User.Builder updatedUserBuilder = new User.Builder(user);
+
+		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
+		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId(), ohmlet.getName());
+
+		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
+		updatedUserBuilder.addOhmlet(ohmletReference);
+
+		LOGGER.log(Level.FINE, "Building the user.");
+		User updatedUser = updatedUserBuilder.build();
+
+        // Attempt to store the updated user first because if it fails, the subsequent inserts should not occur.
+        // The most likely cause of a user update failing is if some other process updated the user as this
+        // particular request was being handled.
+        LOGGER.log(Level.INFO, "Storing the updated user.");
+		UserBin.getInstance().updateUser(updatedUser);
+
         if(icon != null) {
             LOGGER.log(Level.INFO, "Storing the icon.");
             MediaBin.getInstance().addMedia(icon);
         }
 
-		LOGGER.log(Level.INFO, "Adding the ohmlet to the database.");
-		OhmletBin.getInstance().addOhmlet(ohmlet);
+        LOGGER.log(Level.INFO, "Adding the ohmlet to the database.");
+        OhmletBin.getInstance().addOhmlet(ohmlet);
 
-		LOGGER.log(Level.INFO, "Updating the user.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
-		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId(), ohmlet.getName());
-		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
-		updatedUserBuilder.addOhmlet(ohmletReference);
-		LOGGER.log(Level.FINE, "Building the user.");
-		User updatedUser = updatedUserBuilder.build();
-
-		LOGGER.log(Level.INFO, "Storing the updated user.");
-		UserBin.getInstance().updateUser(updatedUser);
-
-		return ohmlet;
+        return ohmlet;
 	}
 
 	/**
@@ -369,20 +378,86 @@ public class OhmletController extends OhmageController {
 
 		LOGGER.log(Level.FINE, "Determining the user making the request.");
 		String userId = null;
+
 		if(authToken == null) {
 		    LOGGER.log(Level.INFO, "The request is being made anonymously.");
 		}
 		else {
-
-            LOGGER.log(Level.INFO, "Validating the user from the token");
+            LOGGER.log(Level.INFO, "Validating the user from the token.");
             userId =
                 OhmageController.validateAuthorization(authToken, null).getId();
 		}
-        LOGGER.log(Level.INFO, "Retrieving the stream IDs");
-        MultiValueResult<Ohmlet> ids =
+
+        LOGGER.log(Level.INFO, "Retrieving the ohmlets.");
+        MultiValueResult<Ohmlet> ohmlets =
             OhmletBin
                 .getInstance()
                 .getOhmlets(userId, query, numToSkip, numToReturn);
+
+        LOGGER.log(Level.INFO, "Found " + ohmlets.size() + " ohmlets.");
+
+        // Find all of the unique schema ID-version pairs in order to avoid retrieving the same survey or stream
+        // multiple times (i.e., the Mongo n + 1 selects problem -- each ohmlet can have p surveys and q streams where
+        // p + q = n. The likelihood that there will be a large (> 5) number of surveys or streams in an ohmlet is
+        // small as is the likelihood that the number of ohmlets will number over 500. The maximum number of ohmlets
+        // returned by this call is 100, so the worst case would be 700 find() calls if every survey and stream
+        // definition was unique. Using 2.16 campaign and survey counts from test.ohmage.org, that VM has 97 active
+        // campaigns with an average of 2 surveys per campaign. It is impossible to determine the number of stream
+        // definitions per campaign because the relationship did not exist, but most 2.16 pilots only used one stream
+        // definition (mobility). That leaves the calculation as (97 * 2) + 1 = 195 selects. Per 100 ohmlets then, the
+        // limits are 195 < x < 700 selects per invocation of this method. In practice (e.g., 2.16 pilots.ohmage.org),
+        // the number of ohmlets is far smaller, say 20 max, which puts the upper bound at 41 find calls per invocation
+        // of this method. It is also important to note that it took 2 years for the 2.16 test.ohmage.org to grow into
+        // the size it did. The same applies to pilots.ohmage.org. For 3.0 there are also other factors at play:
+        // this call will only return the ohmlets that are visible to the logged-in user. For production environments,
+        // most ohmlets will be private and invite-only whereas for testing everything is public.
+
+        Set<SchemaReference> surveySet = new HashSet<SchemaReference>(); // Using HashSet because
+        Set<SchemaReference> streamSet = new HashSet<SchemaReference>();
+
+        for(Ohmlet ohmlet : ohmlets) {
+            List<SchemaReference> surveyReferences = ohmlet.getSurveys();
+            List<SchemaReference> streamReferences = ohmlet.getStreams();
+
+            LOGGER.log(Level.INFO, "Found " + (surveyReferences.size() + streamReferences.size()) + " surveys and streams for ohmlet ID  " + ohmlet.getId());
+
+            for(SchemaReference surveyReference : surveyReferences) {
+                surveySet.add(surveyReference);
+            }
+
+            for(SchemaReference streamReference : streamReferences) {
+                streamSet.add(streamReference);
+            }
+        }
+
+        List<Survey> surveys = new ArrayList<Survey>();
+        List<Stream> streams = new ArrayList<Stream>();
+
+        LOGGER.log(Level.INFO, "Retrieving " + surveySet.size() + " survey definitions for the ohmlets.");
+
+        for(SchemaReference surveyReference : surveySet) {
+            // Make sure to grab the latest version if the version is null
+            if(surveyReference.getVersion() == null) {
+                surveys.add(SurveyBin.getInstance().getLatestSurvey(surveyReference.getSchemaId(), false));
+            } else {
+                surveys.add(SurveyBin.getInstance()
+                    .getSurvey(surveyReference.getSchemaId(), surveyReference.getVersion(), false));
+            }
+        }
+
+        LOGGER.log(Level.INFO, "Retrieving " + streamSet.size() + "  stream definitions for the ohmlets.");
+
+        for(SchemaReference streamReference : streamSet) {
+            // Make sure to grab the latest version if the version is null
+            if(streamReference.getVersion() == null) {
+                streams.add(StreamBin.getInstance().getLatestStream(streamReference.getSchemaId(), false));
+            } else {
+                streams.add(StreamBin.getInstance()
+                        .getStream(streamReference.getSchemaId(), streamReference.getVersion(), false));
+            }
+        }
+
+        LOGGER.log(Level.INFO, "After unique-ifying Found " + (surveys.size() + streams.size()) + " surveys and streams.");
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -391,13 +466,13 @@ public class OhmletController extends OhmageController {
                         numToSkip,
                         numToReturn,
                         Collections.<String, String>emptyMap(),
-                        ids,
+                        ohmlets,
                         rootUrl + ROOT_MAPPING);
 
         LOGGER.log(Level.INFO, "Creating the response object.");
         ResponseEntity<MultiValueResult<Ohmlet>> result =
             new ResponseEntity<MultiValueResult<Ohmlet>>(
-                ids,
+                ohmlets,
                 headers,
                 HttpStatus.OK);
 

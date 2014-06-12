@@ -727,7 +727,7 @@ public class OmhController extends OhmageController {
             default:
                 throw
                     new UnknownEntityException(
-                        "The schema ID-verion pair is unknown.");
+                        "The schema ID-version pair is unknown.");
 
         }
 
