@@ -104,8 +104,8 @@ public class MetaData {
         @JsonProperty(JSON_KEY_LOCATION) final Location location)
         throws InvalidArgumentException {
 
-        if(id == null) {
-            throw new InvalidArgumentException("The ID is null.");
+        if(id == null || "".equals(id.trim())) {
+            throw new InvalidArgumentException("The ID is null or all whitespace.");
         }
 
         this.id = id;
