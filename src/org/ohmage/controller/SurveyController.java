@@ -590,6 +590,9 @@ public class SurveyController extends OhmageController {
                     duplicateSurveyResponseIds.size() +
                     " duplicates.");
 
+
+        // TODO -- handle the case where every response is a duplicate
+
         LOGGER.log(Level.INFO, "Removing the duplicate survey responses.");
         List<String> duplicateResponseMediaIds = new LinkedList<String>();
         for(String duplicateId : duplicateSurveyResponseIds) {

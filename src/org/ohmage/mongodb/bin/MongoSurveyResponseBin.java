@@ -67,26 +67,26 @@ public class MongoSurveyResponseBin extends SurveyResponseBin {
      * Default constructor.
      */
     protected MongoSurveyResponseBin() {
-        // Create the set of indexes.
-        DBObject indexes = new BasicDBObject();
+        // Create the unique index for a survey response data point
+        DBObject uniqueIndex = new BasicDBObject();
         // Index the survey ID.
-        indexes.put(DataPoint.JSON_KEY_OWNER, 1);
+        uniqueIndex.put(DataPoint.JSON_KEY_OWNER, 1);
         // Index the survey ID.
-        indexes.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
+        uniqueIndex.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
         // Index the survey version.
-        indexes.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
+        uniqueIndex.put(DataPoint.JSON_KEY_SCHEMA_VERSION, 1);
         // Index the survey response's unique ID.
-        indexes
+        uniqueIndex
             .put(
-                DataPoint.JSON_KEY_META_DATA + "." +
-                    MetaData.JSON_KEY_ID,
-                1);
+                    DataPoint.JSON_KEY_META_DATA + "." +
+                            MetaData.JSON_KEY_ID,
+                    1);
 
         // Ensure that there is a unique index on the user, survey ID, version
         // and the point's ID.
         COLLECTION
             .ensureIndex(
-                indexes,
+                uniqueIndex,
                 COLLECTION_NAME + "_" +
                     DataPoint.JSON_KEY_OWNER + "_" +
                     DataPoint.JSON_KEY_SCHEMA_ID + "_" +
