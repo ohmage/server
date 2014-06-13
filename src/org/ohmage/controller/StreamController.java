@@ -1,10 +1,6 @@
 package org.ohmage.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -473,18 +469,62 @@ public class StreamController extends OhmageController {
 		if(stream == null) {
 			throw
 				new UnknownEntityException(
-					"The stream ID-verion pair is unknown.");
+					"The stream ID-version pair is unknown.");
 		}
 
 		LOGGER.log(Level.INFO, "Validating the data.");
 		List<StreamData> data = new ArrayList<StreamData>(dataBuilders.size());
+        Set<String> streamDataPointIds = new HashSet<String>();
+
 		for(StreamData.Builder dataBuilder : dataBuilders) {
 		    dataBuilder.setOwner(user.getId());
 			data.add(dataBuilder.build(stream));
+            streamDataPointIds.add(dataBuilder.getMetaData().getId());
 		}
 
-		LOGGER.log(Level.INFO, "Storing the validated data.");
-		StreamDataBin.getInstance().addStreamData(data);
+        LOGGER.log(Level.INFO, "Retrieving the duplicate IDs.");
+        List<String> duplicateStreamDataPointIds =
+            StreamDataBin
+                .getInstance()
+                .getDuplicateIds(
+                        user.getId(),
+                        streamId,
+                        streamVersion,
+                        streamDataPointIds);
+
+        LOGGER.log(Level.INFO,
+            "There are " + duplicateStreamDataPointIds.size() + " duplicates.");
+
+        // Prune out the duplicates
+
+        List<StreamData> nonDuplicatePoints = null;
+
+        if(duplicateStreamDataPointIds.size() == data.size()) { // every point is a duplicate
+
+            nonDuplicatePoints = Collections.<StreamData>emptyList();
+            LOGGER.log(Level.INFO, "Every uploaded point was a duplicate.");
+
+        } else if(duplicateStreamDataPointIds.size() > 0) { // there are some duplicates
+
+            for(StreamData dataPoint : data) {
+                if(! duplicateStreamDataPointIds.contains(dataPoint.getId())) {
+
+                    if(nonDuplicatePoints == null) {
+                        nonDuplicatePoints = new LinkedList<StreamData>();
+                    }
+                    nonDuplicatePoints.add(dataPoint);
+                }
+            }
+
+        } else { // there are no duplicates
+
+            nonDuplicatePoints = data;
+        }
+
+        if(nonDuplicatePoints.size() > 0) {
+            LOGGER.log(Level.INFO, "Storing the validated data.");
+            StreamDataBin.getInstance().addStreamData(nonDuplicatePoints);
+        }
 	}
 
 	/**

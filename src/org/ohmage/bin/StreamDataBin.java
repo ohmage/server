@@ -50,7 +50,35 @@ public abstract class StreamDataBin {
 		final List<StreamData> streamData)
 		throws IllegalArgumentException, InvalidArgumentException;
 
-	    /**
+    /**
+     * Determines which stream data point response IDs already exist for the
+     * given owner and stream.
+     *
+     * @param owner
+     *        The owner's unique identifier.
+     *
+     * @param streamId
+     *        the survey response's unique identifier.
+     *
+     * @param streamVersion
+     *        The stream's version.
+     *
+     * @param candidateIds
+     *        The stream data point IDs to check against.
+     *
+     * @return The duplicate stream data point IDs.
+     *
+     * @throws IllegalArgumentException
+     *         A required parameter was null.
+     */
+    public abstract List<String> getDuplicateIds(
+            final String owner,
+            final String streamId,
+            final long streamVersion,
+            final Set<String> candidateIds)
+            throws IllegalArgumentException;
+
+	/**
      * Retrieves data specific to a user and a stream.
      *
      * @param streamId
@@ -128,7 +156,7 @@ public abstract class StreamDataBin {
 		final String pointId)
 		throws IllegalArgumentException;
 
-	/**
+    /**
 	 * Deletes a specific stream data point.
 	 *
 	 * @param userId

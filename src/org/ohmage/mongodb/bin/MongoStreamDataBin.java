@@ -1,5 +1,6 @@
 package org.ohmage.mongodb.bin;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ import com.mongodb.QueryBuilder;
  * @author John Jenkins
  */
 public class MongoStreamDataBin extends StreamDataBin {
-	/**
+	/**•••
 	 * The name of the collection that contains all of the stream data.
 	 */
 	public static final String COLLECTION_NAME = "stream_data_bin";
@@ -65,9 +66,18 @@ public class MongoStreamDataBin extends StreamDataBin {
 	 * Default constructor.
 	 */
 	protected MongoStreamDataBin() {
-		// Ensure that there is a unique index on the stream ID and version and
-        // the point's ID.
+		// Ensure that there is a unique index on the stream ID, version and the point's ID.
+
+        // TODO
+        // The owner cannot be included in the index if the collection was already sharded
+        // on the id-version-metadata.id key.
+        // See https://jira.mongodb.org/browse/SERVER-11324
+        // Adding the owner also depends on if it is desired to have an ohmage-wide unique key on stream data
+        // or a unique key that is local to a user for a given ohmage install.
+
 		DBObject uniqueId = new BasicDBObject();
+        // Index the owner ID
+        // uniqueId.put(DataPoint.JSON_KEY_OWNER, 1);
 		// Index the stream ID.
 		uniqueId.put(DataPoint.JSON_KEY_SCHEMA_ID, 1);
 		// Index the stream version.
@@ -80,6 +90,7 @@ public class MongoStreamDataBin extends StreamDataBin {
 			.ensureIndex(
 			    uniqueId,
 				COLLECTION_NAME + "_" +
+                    // DataPoint.JSON_KEY_OWNER + "_" +
 					DataPoint.JSON_KEY_SCHEMA_ID + "_" +
 					DataPoint.JSON_KEY_SCHEMA_VERSION + "_" +
 					DataPoint.JSON_KEY_META_DATA + "." +
@@ -166,10 +177,58 @@ public class MongoStreamDataBin extends StreamDataBin {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, long, java.util.Set, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, boolean, long, long)
-	 */
+    @Override
+    public List<String> getDuplicateIds(
+        final String owner,
+        final String streamId,
+        final long streamVersion,
+        final Set<String> candidateIds) throws IllegalArgumentException {
+
+        if(owner == null) {
+            throw new IllegalArgumentException("An owner ID is required.");
+        }
+        if(streamId == null) {
+            throw new IllegalArgumentException("A stream ID is required.");
+        }
+        if(candidateIds == null) {
+            throw
+                new IllegalArgumentException("The candidate IDs set is null.");
+        }
+        else if(candidateIds.size() == 0) {
+            return Collections.<String>emptyList();
+        }
+
+        // Build the query.
+        QueryBuilder queryBuilder = QueryBuilder.start();
+
+        // Add the owner.
+        queryBuilder.and(DataPoint.JSON_KEY_OWNER).is(owner);
+
+        // Add the stream ID.
+        queryBuilder.and(DataPoint.JSON_KEY_SCHEMA_ID).is(streamId);
+
+        // Add the stream version.
+        queryBuilder
+            .and(DataPoint.JSON_KEY_SCHEMA_VERSION)
+            .is(streamVersion);
+
+        // Add the candidate IDs.
+        queryBuilder
+            .and(DataPoint.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID)
+            .in(candidateIds);
+
+        // Get the results.
+        return
+            COLLECTION
+                .distinct(
+                    DataPoint.JSON_KEY_META_DATA + "." + MetaData.JSON_KEY_ID,
+                    queryBuilder.get());
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.StreamDataBin#getStreamData(java.lang.String, long, java.util.Set, org.joda.time.DateTime, org.joda.time.DateTime, org.ohmage.domain.ColumnList, boolean, long, long)
+     */
 	@Override
 	public MultiValueResult<MongoStreamData> getStreamData(
 		final String streamId,
