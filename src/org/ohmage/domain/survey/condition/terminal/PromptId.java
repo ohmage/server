@@ -1,15 +1,16 @@
 package org.ohmage.domain.survey.condition.terminal;
 
-import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.jackson.OhmageNumber;
 import org.ohmage.domain.survey.NoResponse;
 import org.ohmage.domain.survey.SurveyItem;
 import org.ohmage.domain.survey.condition.Fragment;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -212,6 +213,9 @@ public class PromptId extends Terminal {
         }
         else if(response instanceof OhmageNumber) {
             return response.equals(value);
+        }
+        else if(response instanceof Collection) {
+            return ((Collection) response).contains(value);
         }
         else {
             return response.equals(value);
