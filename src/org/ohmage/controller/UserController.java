@@ -315,7 +315,15 @@ public class UserController extends OhmageController {
             validatedUser
                 .getRegistration()
                 .sendUserRegistrationEmail(
-                    rootUrl + UserActivationController.ROOT_MAPPING);
+
+                    // Hack
+                    // Remove "/ohmage" from the rootUrl because the front end
+                    // is rooted at /. This will break if the front end or web
+                    // app are ever rooted somewhere else. Solution: move front
+                    // end root URL to config file? For the web app, the rootUrl
+                    // is auto-discovered by Spring.
+
+                    rootUrl.substring(0, rootUrl.indexOf("/ohmage")) + UserActivationController.ROOT_MAPPING);
         }
 
 		LOGGER.log(Level.INFO, "Echoing the user back.");

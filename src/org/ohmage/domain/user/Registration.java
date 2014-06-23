@@ -550,9 +550,7 @@ public class Registration {
                     ACTIVATION_LINK_PLACEHOLDER,
                     "<a href=\"" +
                         activationUrl +
-                        "?" +
-                        JSON_KEY_ACTIVATION_ID +
-                        "=" +
+                        "/" +
                         activationId +
                     "\">Click here to activate your account.</a>");
     }
