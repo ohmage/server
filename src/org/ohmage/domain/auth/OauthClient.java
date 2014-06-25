@@ -145,7 +145,7 @@ public class OauthClient extends OhmageDomainObject {
             return
                 new OauthClient(
                     (id == null) ? generateId() : id,
-                    (sharedSecret == null) ? generateSharedSecret() : id,
+                    (sharedSecret == null) ? generateSharedSecret() : sharedSecret,
                     owner,
                     name,
                     description,
@@ -446,5 +446,17 @@ public class OauthClient extends OhmageDomainObject {
      */
     private static String generateSharedSecret() {
         return UUID.randomUUID().toString();
+    }
+
+    @Override
+    public String toString() {
+        return "OauthClient{" +
+                "owner='" + owner + '\'' +
+                ", id='" + id + '\'' +
+                ", sharedSecret='" + sharedSecret + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", redirectUri=" + redirectUri +
+                '}';
     }
 }
