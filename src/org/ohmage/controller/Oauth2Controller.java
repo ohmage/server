@@ -61,6 +61,7 @@ public class Oauth2Controller extends OhmageController {
      * authorization page.
      */
     public static final String PATH_AUTHORIZE = "authorize";
+
     /**
      * The path element for a OAuth client to exchange an authorization code for
      * an authorization token.
@@ -71,10 +72,16 @@ public class Oauth2Controller extends OhmageController {
      * The name of the web page where a user authorizes a request.
      */
     public static final String AUTHORIZATION_PAGE = "Authorize.html";
+
     /**
      * The path element for a user to respond to an authorization request.
      */
     public static final String PATH_AUTHORIZATION = "authorization";
+
+    /**
+     * The path element for a user to respond to an authorization request.
+     */
+    public static final String PATH_AUTHORIZATION_WITH_TOKEN = "authorization_with_token";
 
     /**
      * The request parameter from a user when they are responding to an
@@ -133,9 +140,6 @@ public class Oauth2Controller extends OhmageController {
      *
      * @throws IOException
      *         There was a problem responding to the client.
-     *
-     * @throws OAuthSystemException
-     *         The OAuth library encountered an error.
      */
     @RequestMapping(
         value = PATH_AUTHORIZE,
@@ -236,7 +240,7 @@ public class Oauth2Controller extends OhmageController {
         else {
             LOGGER.log(Level.INFO, "Using the supplied redirect URI.");
 
-            LOGGER.log(Level.INFO, "Normallizing the redirct URI.");
+            LOGGER.log(Level.INFO, "Normalizing the redirect URI.");
             validatedRedirectUri = redirectUri.normalize();
 
             LOGGER
@@ -321,12 +325,9 @@ public class Oauth2Controller extends OhmageController {
         @RequestParam(value = PARAMETER_GRANTED, required = true)
             final boolean granted) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to handle a user's authorization code " +
-                    "response.");
-
+        LOGGER.log(
+            Level.INFO,
+            "Handling a user's authorization code response.");
 
         LOGGER.log(Level.INFO, "Verifying that auth information was given.");
         if(email == null) {
@@ -350,9 +351,63 @@ public class Oauth2Controller extends OhmageController {
             throw new AuthenticationException("The password was incorrect.");
         }
 
+        return authorization(codeString, user, granted);
+    }
+
+    /**
+     * <p>
+     * Handles the response from the user regarding whether or not the user
+     * granted permission to a OAuth client via OAuth. Convenience method for
+     * the case where the ohmage user is already authenticated at the time of
+     * the authorization step. If the user's token is invalid or there was a
+     * general error reading the request, an error message will be returned and
+     * displayed to the user. As long as there is not an internal error, we will
+     * redirect the user back to the OAuth client with a code, which the OAuth
+     * client can then use to call us to determine the user's response.
+     * </p>
+     *
+     * @param authToken
+     *        The user's authentication token.
+     *
+     * @param codeString
+     *        The authorization code.
+     *
+     * @param granted
+     *        Whether or not the user granted the OAuth client's request.
+     *
+     * @return A redirect back to the OAuth client with the code and state.
+     */
+    @RequestMapping(
+        value = PATH_AUTHORIZATION_WITH_TOKEN,
+        method = RequestMethod.POST)
+    public static String authorization(
+            @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+            final AuthorizationToken authToken,
+            @RequestParam(
+                value = AuthorizationCode.JSON_KEY_AUTHORIZATION_CODE,
+                required = true)
+            final String codeString,
+            @RequestParam(value = PARAMETER_GRANTED, required = true)
+            final boolean granted) {
+
+        LOGGER.log(
+            Level.INFO,
+            "Handling a user's authorization code response.");
+
+        User user = OhmageController.validateAuthorization(authToken, null);
+
+        return authorization(codeString, user, granted);
+    }
+
+    /**
+     * Handle the authorization flow for both email-password and token
+     * authenticated users.
+     */
+    private static String authorization(String codeString, User user, boolean granted) {
+
         LOGGER.log(Level.INFO, "Retrieving the code.");
         AuthorizationCode code =
-            AuthorizationCodeBin.getInstance().getCode(codeString);
+                AuthorizationCodeBin.getInstance().getCode(codeString);
 
         LOGGER.log(Level.INFO, "Verifying that the code exists.");
         if(code == null) {
@@ -367,69 +422,68 @@ public class Oauth2Controller extends OhmageController {
         LOGGER.log(Level.INFO, "Retrieving the response.");
         AuthorizationCodeResponse response = code.getResponse();
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the code has not yet been responded to.");
+        LOGGER.log(Level.INFO, "Verifying that the code has not yet been responded to.");
+
         if(response == null) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "No response exists, so a new one is being created.");
+            LOGGER.log(
+                Level.INFO,
+                "No response exists, so a new one is being created.");
+
             response =
-                new AuthorizationCodeResponse(
-                    user.getId(),
-                    granted);
+                    new AuthorizationCodeResponse(
+                            user.getId(),
+                            granted);
 
             LOGGER.log(Level.INFO, "Updating the code with the response.");
             code =
-                (new AuthorizationCode.Builder(code))
-                    .setUsedTimestamp(System.currentTimeMillis())
-                    .setResponse(response)
-                    .build();
+                    (new AuthorizationCode.Builder(code))
+                            .setUsedTimestamp(System.currentTimeMillis())
+                            .setResponse(response)
+                            .build();
 
             LOGGER.log(Level.INFO, "Storing the updated authorization code.");
             AuthorizationCodeBin.getInstance().updateCode(code);
         }
         else if(! response.getUserId().equals(user.getId())) {
             throw
-                new InvalidArgumentException(
-                    "Another user already responded to this request.");
+                    new InvalidArgumentException(
+                            "Another user already responded to this request.");
         }
         else if(response.getGranted() != granted) {
             throw
-                new InvalidArgumentException(
-                    "The user has already responded to this request, " +
-                        "however they gave a different answer last time.");
+                    new InvalidArgumentException(
+                            "The user has already responded to this request, " +
+                                    "however they gave a different answer last time.");
         }
         // Otherwise, they are simply replaying the same request, and we don't
         // care.
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Building the specific redirect request for the user back " +
+        LOGGER.log(
+            Level.INFO,
+            "Building the specific redirect request for the user back " +
                     "to the origin.");
+
         URIBuilder redirectBuilder = new URIBuilder(code.getRedirectUri());
         redirectBuilder
-            .addParameter(
-                AuthorizationCode.JSON_KEY_AUTHORIZATION_CODE,
-                code.getCode());
+                .addParameter(
+                        AuthorizationCode.JSON_KEY_AUTHORIZATION_CODE,
+                        code.getCode());
         redirectBuilder
-            .addParameter(
-                AuthorizationCode.JSON_KEY_STATE,
-                code.getState());
+                .addParameter(
+                        AuthorizationCode.JSON_KEY_STATE,
+                        code.getState());
 
         LOGGER
             .log(Level.INFO, "Redirecting the user back to the OAuth client.");
+
         try {
             return "redirect:" + redirectBuilder.build().toString();
         }
         catch(URISyntaxException e) {
             throw
                 new IllegalStateException(
-                    "There was a problem building the redirect URI.",
-                    e);
+                        "There was a problem building the redirect URI.",
+                        e);
         }
     }
 
@@ -1035,6 +1089,7 @@ public class Oauth2Controller extends OhmageController {
                     Level.INFO,
                     "Verifying that the requesting user is responder for " +
                         "the code.");
+
             if(! user.getId().equals(code.getResponse().getUserId())) {
                 throw
                     new InsufficientPermissionsException(
