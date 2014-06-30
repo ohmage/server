@@ -1,6 +1,7 @@
 package org.ohmage.mongodb.domain;
 
 import java.util.List;
+import java.util.Map;
 
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
@@ -81,7 +82,7 @@ public class MongoOhmlet extends Ohmlet implements MongoDbObject {
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_STREAMS) final List<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final List<SchemaReference> surveys,
-		@JsonProperty(JSON_KEY_REMINDERS) final List<String> reminders,
+		@JsonProperty(JSON_KEY_REMINDERS) final List<Map> reminders,
 		@JsonProperty(JSON_KEY_MEMBERS) final List<Member> members,
 		@JsonProperty(JSON_KEY_PRIVACY_STATE) final PrivacyState privacyState,
 		@JsonProperty(JSON_KEY_INVITE_ROLE) final Role inviteRole,

@@ -65,7 +65,7 @@ public class Ohmlet extends OhmageDomainObject {
 		 * The reminders for this ohmlet that define when certain surveys
 		 * should be prompted for the user.
 		 */
-		private List<String> reminders;
+		private List<Map> reminders;
 		/**
 		 * The members that are part of this ohmlet.
 		 */
@@ -129,7 +129,7 @@ public class Ohmlet extends OhmageDomainObject {
 				final List<SchemaReference> streams,
 			@JsonProperty(JSON_KEY_SURVEYS)
 				final List<SchemaReference> surveys,
-			@JsonProperty(JSON_KEY_REMINDERS) final List<String> reminders,
+			@JsonProperty(JSON_KEY_REMINDERS) final List<Map> reminders,
 			@JsonProperty(JSON_KEY_PRIVACY_STATE)
 				final PrivacyState privacyState,
 			@JsonProperty(JSON_KEY_INVITE_ROLE) final Role inviteRole,
@@ -806,7 +806,7 @@ public class Ohmlet extends OhmageDomainObject {
 	 * be prompted for the user.
 	 */
 	@JsonProperty(JSON_KEY_REMINDERS)
-	private final List<String> reminders;
+	private final List<Map> reminders;
 	/**
 	 * The members that are part of this ohmlet.
 	 */
@@ -880,7 +880,7 @@ public class Ohmlet extends OhmageDomainObject {
 		final String description,
 		final List<SchemaReference> streams,
 		final List<SchemaReference> surveys,
-		final List<String> reminders,
+		final List<Map> reminders,
 		final List<Member> members,
 		final PrivacyState privacyState,
 		final Role inviteRole,
@@ -958,7 +958,7 @@ public class Ohmlet extends OhmageDomainObject {
 		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
 		@JsonProperty(JSON_KEY_STREAMS) final List<SchemaReference> streams,
 		@JsonProperty(JSON_KEY_SURVEYS) final List<SchemaReference> surveys,
-		@JsonProperty(JSON_KEY_REMINDERS) final List<String> reminders,
+		@JsonProperty(JSON_KEY_REMINDERS) final List<Map> reminders,
 		@JsonProperty(JSON_KEY_MEMBERS) final List<Member> members,
 		@JsonProperty(JSON_KEY_PRIVACY_STATE) final PrivacyState privacyState,
 		@JsonProperty(JSON_KEY_INVITE_ROLE) final Role inviteRole,
@@ -1043,7 +1043,7 @@ public class Ohmlet extends OhmageDomainObject {
 		final String description,
 		final List<SchemaReference> streams,
 		final List<SchemaReference> surveys,
-		final List<String> reminders,
+		final List<Map> reminders,
 		final Collection<Member> members,
 		final PrivacyState privacyState,
 		final Role inviteRole,
@@ -1109,7 +1109,7 @@ public class Ohmlet extends OhmageDomainObject {
 		this.description = description;
 		this.reminders =
 			((reminders == null) ?
-				Collections.<String>emptyList() :
+				Collections.<Map>emptyList() :
 				Collections.unmodifiableList(reminders));
 		this.privacyState = privacyState;
 		this.inviteRole = inviteRole;
