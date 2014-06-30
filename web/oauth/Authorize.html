@@ -197,7 +197,7 @@
                     .always(checkError);
             }
             
-            // Begin the initialization flow by retreiving the information
+            // Begin the initialization flow by retrieving the information
             // about the code.
             $.get("/ohmage/oauth/codes/" + QueryParameters['code'][0])
                 .done(parseCode)
@@ -243,41 +243,43 @@
                     </table>
                     
                     <hr>
-            
-                    <!-- Get the user's credentials. -->
+
                     <div id="credentialsDiv">
-	                    <div class="form-group">
-	                        <label id="emailHeader" for="email">Email address</label>
-	                        <input id="email" type="email" class="form-control" placeholder="Enter email">
-	                    </div>
-	                    <div class="form-group">
-	                        <label id="passwordHeader" for="password">Password</label>
-	                        <input id="password" type="password" class="form-control" placeholder="Password">
-	                    </div>
-	                    
-	                    <div class="row">
-	                        <div class="col-lg-5">
-	                            <input type="button" class="btn btn-danger" value="Deny" onclick="handleDeny();" style="width:100%">
-	                        </div>
-	                        <div class="col-lg-2"></div>
-	                        <div class="col-lg-5">
-	                            <input type="button" class="btn btn-success" value="Allow" onclick="handleAllow();" style="width:100%">
-	                        </div>
-	                    </div>
-	                    <br />
+
+                    <form name="authForm" class=form-group" method="POST" action="/ohmage/oauth/authorization" onsubmit="return postOrFail();">
+                        <label id="emailHeader" for="email">Email address</label>
+                        <input name="email" id="email" type="email" class="form-control" placeholder="Enter email" required>
+
+                        <label id="passwordHeader" for="password">Password</label>
+                        <input name="password" id="password" type="password" class="form-control" placeholder="Password" required>
+
+                        <input type="hidden" id="granted" name="granted" />
+                        <input type="hidden" id="code" name="code" />
+
+                        <div class="row">
+                            <div class="col-lg-5">
+                                <input type="submit" class="btn btn-danger" value="Deny" style="width:100%">
+                            </div>
+                            <div class="col-lg-2"></div>
+                            <div class="col-lg-5">
+                                <input type="submit" class="btn btn-success" value="Allow" style="width:100%">
+                            </div>
+                        </div>
+
+                    </form>
+
                     </div>
+
                     <div id="errorDiv" class="alert alert-danger"></div>
                 </div>
             </div>
         </div>
         <script type="text/javascript">
             /**
-             * Verifies that a user has supplied some credenti
-             *
-             * @return True if both a username and password are supplied;
-             *         otherwise, false.
+             * Verifies that a user has supplied some credentials and sets hidden form fields
+             * for the authorization post.
              */
-            function checkCredentials() {
+            function postOrFail() {
                 $("#emailHeader").css("color", "black");
                 $("#passwordHeader").css("color", "black");
                 
@@ -292,56 +294,11 @@
                     $("#password").focus();
                     return false;
                 }
-                
-                return true;
-            }
-        
-            /**
-             * Sets the grant value to false and then validates and submits the
-             * request.
-             */
-            function handleDeny() {
-                if(checkCredentials()) {
-                    makeRequest(buildParameters(false));
-                }
-            }
-            
-            /**
-             * Sets the grant value to true and then validates and submits the
-             * request.
-             */
-            function handleAllow() {
-                if(checkCredentials()) {
-                    makeRequest(buildParameters(true));
-                }
-            }
-        
-            /**
-             * Validates the parameters and builds and returns the parameter
-             * object.
-             *
-             * @return The parameters object read to be serialized.
-             */
-            function buildParameters(granted) {
-                var result = new Object();
 
-                result['email'] = $("#email").val();
-                result['password'] = $("#password").val();
-                result['granted'] = granted;
-                result['code'] = code['code'];
-                
-                return result;
-            }
-        
-            /**
-             * Makes the request to the server and, if it fails, updates the
-             * error message.
-             */
-            function makeRequest(parameters) {
-                // Send the response to the server.
-                $.post("/ohmage/oauth/authorization", parameters)
-                    .fail(handleError)
-                    .always(checkError);
+                $("#granted").val($("#authForm").context.activeElement.value != "Deny");
+                $("#code").val(code['code']);
+
+                return true;
             }
         </script>
     </body>
