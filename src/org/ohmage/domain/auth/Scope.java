@@ -67,7 +67,7 @@ public class Scope {
                 throw
                     new InvalidArgumentException(
                         "The scope must be of the form: " +
-                            "/<stream | schema>" +
+                            "/<streams | surveys>" +
                             "/{id}" +
                             "/<{version} | *>" +
                             "/<read | write | delete>");
