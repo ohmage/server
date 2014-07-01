@@ -312,7 +312,7 @@ public class Oauth2Controller extends OhmageController {
      */
     @RequestMapping(
         value = PATH_AUTHORIZATION,
-        method = RequestMethod.POST)
+        method = { RequestMethod.GET, RequestMethod.POST } )
     public static String authorization(
         @RequestParam(value = User.JSON_KEY_EMAIL, required = true)
             final String email,
@@ -379,7 +379,7 @@ public class Oauth2Controller extends OhmageController {
      */
     @RequestMapping(
         value = PATH_AUTHORIZATION_WITH_TOKEN,
-        method = RequestMethod.POST)
+        method = { RequestMethod.GET, RequestMethod.POST } )
     public static String authorization(
             @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
