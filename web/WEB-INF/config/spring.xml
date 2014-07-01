@@ -16,7 +16,7 @@
             http://www.springframework.org/schema/util/spring-util-3.2.xsd">
 
     <!-- Use annotations. -->
-    <mvc:annotation-driven>
+    <mvc:annotation-driven ignoreDefaultModelOnRedirect="true" >
         <mvc:message-converters>
             <bean
                 class="org.springframework.http.converter.ResourceHttpMessageConverter" />
