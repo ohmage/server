@@ -49,8 +49,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * @author John Jenkins
  */
 @Controller
-@RequestMapping(Oauth2Controller.ROOT_MAPPING)
-public class Oauth2Controller extends OhmageController {
+@RequestMapping(OAuth2Controller.ROOT_MAPPING)
+public class OAuth2Controller extends OhmageController {
     /**
      * The root API mapping for this Servlet.
      */
@@ -94,7 +94,7 @@ public class Oauth2Controller extends OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(Oauth2Controller.class.getName());
+        Logger.getLogger(OAuth2Controller.class.getName());
 
     /**
      * <p>

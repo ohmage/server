@@ -322,7 +322,7 @@ public class OmhController extends OhmageController {
      *         The OAuth library encountered an error.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Controller.PATH_AUTHORIZE,
+        value = "/auth/oauth" + OAuth2Controller.PATH_AUTHORIZE,
         method = RequestMethod.GET,
         params = "response_type" + "=" + "code")
     public static String authorize(
@@ -338,7 +338,7 @@ public class OmhController extends OhmageController {
             final String state) {
 
         return
-            Oauth2Controller
+            OAuth2Controller
                 .authorize(rootUrl, clientId, scopeString, redirectUri, state);
     }
 
@@ -368,7 +368,7 @@ public class OmhController extends OhmageController {
      * @return A redirect back to the OAuth client with the code and state.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Controller.PATH_AUTHORIZATION,
+        value = "/auth/oauth" + OAuth2Controller.PATH_AUTHORIZATION,
         method = RequestMethod.POST)
     public static String authorization(
         @RequestParam(value = User.JSON_KEY_EMAIL, required = true)
@@ -383,7 +383,7 @@ public class OmhController extends OhmageController {
             final boolean granted) {
 
         return
-            Oauth2Controller.authorization(email, password, codeString, granted);
+            OAuth2Controller.authorization(email, password, codeString, granted);
     }
 
     /**
@@ -415,7 +415,7 @@ public class OmhController extends OhmageController {
      * @return A new authorization token.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Controller.PATH_TOKEN,
+        value = "/auth/oauth" + OAuth2Controller.PATH_TOKEN,
         method = RequestMethod.POST,
         params = "grant_type" + "=" + "authorization_code")
     public static @ResponseBody AuthorizationToken tokenFromCode(
@@ -428,7 +428,7 @@ public class OmhController extends OhmageController {
             final URI redirectUri) {
 
         return
-            Oauth2Controller
+            OAuth2Controller
                 .tokenFromCode(
                     oauthClientId,
                     oauthClientSecret,
@@ -460,7 +460,7 @@ public class OmhController extends OhmageController {
      * @return A new authorization token.
      */
     @RequestMapping(
-        value = "/auth/oauth" + Oauth2Controller.PATH_TOKEN,
+        value = "/auth/oauth" + OAuth2Controller.PATH_TOKEN,
         method = RequestMethod.POST,
         params = "grant_type" + "=" + "refresh_token")
     public static @ResponseBody AuthorizationToken tokenFromRefresh(
@@ -472,7 +472,7 @@ public class OmhController extends OhmageController {
             final String refreshToken) {
 
         return
-            Oauth2Controller
+            OAuth2Controller
                 .tokenFromRefresh(
                     oauthClientId,
                     oauthClientSecret,
