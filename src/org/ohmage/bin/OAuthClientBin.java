@@ -1,6 +1,6 @@
 package org.ohmage.bin;
 
-import org.ohmage.domain.auth.OauthClient;
+import org.ohmage.domain.auth.OAuthClient;
 import org.ohmage.domain.exception.InvalidArgumentException;
 
 /**
@@ -10,16 +10,16 @@ import org.ohmage.domain.exception.InvalidArgumentException;
  *
  * @author John Jenkins
  */
-public abstract class OauthClientBin {
+public abstract class OAuthClientBin {
     /**
      * The singular instance of this class.
      */
-    private static OauthClientBin instance;
+    private static OAuthClientBin instance;
 
     /**
      * Initializes the singleton instance to this.
      */
-    protected OauthClientBin() {
+    protected OAuthClientBin() {
         instance = this;
     }
 
@@ -28,14 +28,14 @@ public abstract class OauthClientBin {
      *
      * @return The singleton instance of this class.
      */
-    public static final OauthClientBin getInstance() {
+    public static final OAuthClientBin getInstance() {
         return instance;
     }
 
     /**
      * Adds a new OAuth client to the repository.
      *
-     * @param oauthClient
+     * @param oAuthClient
      *        The OAuth client to add.
      *
      * @throws IllegalArgumentException
@@ -44,7 +44,7 @@ public abstract class OauthClientBin {
      * @throws InvalidArgumentException
      *         A OAuth client with the same ID already exists.
      */
-    public abstract void addOauthClient(final OauthClient oauthClient)
+    public abstract void addOAuthClient(final OAuthClient oAuthClient)
         throws IllegalArgumentException, InvalidArgumentException;
 
     /**
@@ -64,9 +64,9 @@ public abstract class OauthClientBin {
         throws IllegalArgumentException;
 
     /**
-     * Returns a OauthClient object based on the given ID.
+     * Returns a OAuthClient object based on the given ID.
      *
-     * @param oauthClientId
+     * @param oAuthClientId
      *        The unique identifier for the OAuth client.
      *
      * @return A OauthClient object that represents this OAuth client.
@@ -74,6 +74,6 @@ public abstract class OauthClientBin {
      * @throws IllegalArgumentException
      *         The OAuth client ID is null.
      */
-    public abstract OauthClient getOauthClient(final String oauthClientId)
+    public abstract OAuthClient getOAuthClient(final String oAuthClientId)
         throws IllegalArgumentException;
 }

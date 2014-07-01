@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.mongojack.JacksonDBCollection;
 import org.ohmage.bin.MultiValueResult;
-import org.ohmage.bin.OauthClientBin;
-import org.ohmage.domain.auth.OauthClient;
+import org.ohmage.bin.OAuthClientBin;
+import org.ohmage.domain.auth.OAuthClient;
 import org.ohmage.domain.exception.InvalidArgumentException;
-import org.ohmage.mongodb.domain.MongoOauthClient;
+import org.ohmage.mongodb.domain.MongoOAuthClient;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
@@ -20,7 +20,7 @@ import com.mongodb.QueryBuilder;
  *
  * @author John Jenkins
  */
-public class MongoOauthClientBin extends OauthClientBin {
+public class MongoOAuthClientBin extends OAuthClientBin {
     /**
      * The name of the collection that contains all of the third-parties.
      */
@@ -29,60 +29,60 @@ public class MongoOauthClientBin extends OauthClientBin {
     /**
      * Get the connection to the OAuth client bin with the Jackson wrapper.
      */
-    private static final JacksonDBCollection<OauthClient, String> COLLECTION =
+    private static final JacksonDBCollection<OAuthClient, String> COLLECTION =
         JacksonDBCollection
             .wrap(
                 MongoBinController
                     .getInstance()
                     .getDb()
                     .getCollection(COLLECTION_NAME),
-                OauthClient.class,
+                OAuthClient.class,
                 String.class,
                 MongoBinController.getObjectMapper());
 
     /**
      * Get the connection to the OAuth client bin with the Jackson wrapper,
-     * specifically for {@link MongoOauthClient} objects.
+     * specifically for {@link org.ohmage.mongodb.domain.MongoOAuthClient} objects.
      */
-    private static final JacksonDBCollection<MongoOauthClient, Object> MONGO_COLLECTION =
+    private static final JacksonDBCollection<MongoOAuthClient, Object> MONGO_COLLECTION =
         JacksonDBCollection
             .wrap(
                 MongoBinController
                     .getInstance()
                     .getDb()
                     .getCollection(COLLECTION_NAME),
-                MongoOauthClient.class,
+                MongoOAuthClient.class,
                 Object.class,
                 MongoBinController.getObjectMapper());
 
     /**
      * Default constructor.
      */
-    protected MongoOauthClientBin() {
+    protected MongoOAuthClientBin() {
         // Ensure that there is an index on the OAuth client's ID.
         COLLECTION
             .ensureIndex(
-                new BasicDBObject(OauthClient.JSON_KEY_ID, 1),
-                COLLECTION_NAME + "_" + OauthClient.JSON_KEY_ID + "_unique",
+                new BasicDBObject(OAuthClient.JSON_KEY_ID, 1),
+                COLLECTION_NAME + "_" + OAuthClient.JSON_KEY_ID + "_unique",
                 true);
     }
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.OauthClientBin#addOauthClient(org.ohmage.domain.OauthClient)
+     * @see org.ohmage.bin.OAuthClientBin#addOAuthClient(org.ohmage.domain.OAuthClient)
      */
     @Override
-    public void addOauthClient(final OauthClient oauthClient)
+    public void addOAuthClient(final OAuthClient oAuthClient)
         throws IllegalArgumentException, InvalidArgumentException {
 
         // Validate the parameter.
-        if(oauthClient == null) {
+        if(oAuthClient == null) {
             throw new IllegalArgumentException("The OAuth client is null.");
         }
 
         // Save it.
         try {
-            COLLECTION.insert(oauthClient);
+            COLLECTION.insert(oAuthClient);
         }
         catch(MongoException.DuplicateKey e) {
             throw
@@ -93,7 +93,7 @@ public class MongoOauthClientBin extends OauthClientBin {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.OauthClientBin#getClientIds(java.lang.String)
+     * @see org.ohmage.bin.OAuthClientBin#getClientIds(java.lang.String)
      */
     @Override
     public MultiValueResult<String> getClientIds(final String userId)
@@ -103,13 +103,13 @@ public class MongoOauthClientBin extends OauthClientBin {
         QueryBuilder queryBuilder = QueryBuilder.start();
 
         // Add the user's ID.
-        queryBuilder.and(OauthClient.JSON_KEY_OWNER).is(userId);
+        queryBuilder.and(OAuthClient.JSON_KEY_OWNER).is(userId);
 
         // Get the list of results.
         @SuppressWarnings("unchecked")
         List<String> results =
             MONGO_COLLECTION
-                .distinct(OauthClient.JSON_KEY_ID, queryBuilder.get());
+                .distinct(OAuthClient.JSON_KEY_ID, queryBuilder.get());
 
         // Create and return a MultiValueResult.
         return
@@ -118,14 +118,14 @@ public class MongoOauthClientBin extends OauthClientBin {
 
     /*
      * (non-Javadoc)
-     * @see org.ohmage.bin.OauthClientBin#getOauthClient(java.lang.String)
+     * @see org.ohmage.bin.OAuthClientBin#getOauthClient(java.lang.String)
      */
     @Override
-    public OauthClient getOauthClient(final String oauthClientId)
+    public OAuthClient getOAuthClient(final String oAuthClientId)
         throws IllegalArgumentException {
 
         // Validate the parameter.
-        if(oauthClientId == null) {
+        if(oAuthClientId == null) {
             throw new IllegalArgumentException("The OAuth client ID is null.");
         }
 
@@ -134,8 +134,8 @@ public class MongoOauthClientBin extends OauthClientBin {
 
         // Add the OAuth client ID to the query.
         queryBuilder
-            .and(OauthClient.JSON_KEY_ID)
-            .is(oauthClientId);
+            .and(OAuthClient.JSON_KEY_ID)
+            .is(oAuthClientId);
 
         // Execute query.
         return MONGO_COLLECTION.findOne(queryBuilder.get());

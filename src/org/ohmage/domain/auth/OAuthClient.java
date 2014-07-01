@@ -20,17 +20,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author John Jenkins
  */
-@JsonFilter(OauthClient.JACKSON_FILTER_GROUP_ID)
-public class OauthClient extends OhmageDomainObject {
+@JsonFilter(OAuthClient.JACKSON_FILTER_GROUP_ID)
+public class OAuthClient extends OhmageDomainObject {
     /**
      * <p>
-     * A builder for {@link OauthClient}
+     * A builder for {@link OAuthClient}
      * </p>
      *
      * @author John Jenkins
      */
     public static class Builder
-        extends OhmageDomainObject.Builder<OauthClient> {
+        extends OhmageDomainObject.Builder<OAuthClient> {
 
         /**
          * The unique identifier for this OAuth client.
@@ -89,7 +89,7 @@ public class OauthClient extends OhmageDomainObject {
          * @param original
          *        The OauthClient object on which this builder should be based.
          */
-        public Builder(final OauthClient original) {
+        public Builder(final OAuthClient original) {
             super(original);
 
             id = original.id;
@@ -141,9 +141,9 @@ public class OauthClient extends OhmageDomainObject {
          * @see org.ohmage.domain.OhmageDomainObject.Builder#build()
          */
         @Override
-        public OauthClient build() {
+        public OAuthClient build() {
             return
-                new OauthClient(
+                new OAuthClient(
                     (id == null) ? generateId() : id,
                     (sharedSecret == null) ? generateSharedSecret() : sharedSecret,
                     owner,
@@ -189,7 +189,7 @@ public class OauthClient extends OhmageDomainObject {
         "org.ohmage.domain.auth.OauthClient";
     // Register this class with the ohmage object mapper.
     static {
-        OhmageObjectMapper.register(OauthClient.class);
+        OhmageObjectMapper.register(OAuthClient.class);
     }
 
 	/**
@@ -247,11 +247,11 @@ public class OauthClient extends OhmageDomainObject {
      * @throws InvalidArgumentException
      *         Any of the server-generated parameters is invalid.
 	 */
-	public OauthClient(
-		final String owner,
-		final String name,
-		final String description,
-		final URI redirectUri)
+	public OAuthClient(
+            final String owner,
+            final String name,
+            final String description,
+            final URI redirectUri)
 		throws InvalidArgumentException, IllegalArgumentException {
 
 	    this(
@@ -290,14 +290,14 @@ public class OauthClient extends OhmageDomainObject {
 	 *         Any of the parameters is null or empty.
 	 */
 	@JsonCreator
-	protected OauthClient(
-        @JsonProperty(JSON_KEY_ID) final String id,
-        @JsonProperty(JSON_KEY_SHARED_SECRET) final String sharedSecret,
-		@JsonProperty(JSON_KEY_OWNER) final String owner,
-		@JsonProperty(JSON_KEY_NAME) final String name,
-		@JsonProperty(JSON_KEY_DESCRIPTION) final String description,
-		@JsonProperty(JSON_KEY_REDIRECT_URI) final URI redirectUri,
-        @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
+	protected OAuthClient(
+            @JsonProperty(JSON_KEY_ID) final String id,
+            @JsonProperty(JSON_KEY_SHARED_SECRET) final String sharedSecret,
+            @JsonProperty(JSON_KEY_OWNER) final String owner,
+            @JsonProperty(JSON_KEY_NAME) final String name,
+            @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
+            @JsonProperty(JSON_KEY_REDIRECT_URI) final URI redirectUri,
+            @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion)
 		throws InvalidArgumentException, IllegalArgumentException {
 
 	    this(
@@ -336,15 +336,15 @@ public class OauthClient extends OhmageDomainObject {
      * @throws OmhException
      *         Any of the parameters is null or empty.
      */
-    private OauthClient(
-        final String id,
-        final String sharedSecret,
-        final String owner,
-        final String name,
-        final String description,
-        final URI redirectUri,
-        final Long internalReadVersion,
-        final Long internalWriteVersion) {
+    private OAuthClient(
+            final String id,
+            final String sharedSecret,
+            final String owner,
+            final String name,
+            final String description,
+            final URI redirectUri,
+            final Long internalReadVersion,
+            final Long internalWriteVersion) {
 
         super(internalReadVersion, internalWriteVersion);
 

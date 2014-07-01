@@ -10,17 +10,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.http.client.utils.URIBuilder;
-import org.ohmage.bin.AuthorizationCodeBin;
-import org.ohmage.bin.AuthorizationTokenBin;
-import org.ohmage.bin.MultiValueResult;
-import org.ohmage.bin.OauthClientBin;
-import org.ohmage.bin.StreamBin;
-import org.ohmage.bin.SurveyBin;
-import org.ohmage.bin.UserBin;
+import org.ohmage.bin.*;
+import org.ohmage.bin.OAuthClientBin;
 import org.ohmage.domain.auth.AuthorizationCode;
 import org.ohmage.domain.auth.AuthorizationCodeResponse;
 import org.ohmage.domain.auth.AuthorizationToken;
-import org.ohmage.domain.auth.OauthClient;
+import org.ohmage.domain.auth.OAuthClient;
 import org.ohmage.domain.auth.Scope;
 import org.ohmage.domain.auth.Scope.Type;
 import org.ohmage.domain.exception.AuthenticationException;
@@ -163,11 +158,11 @@ public class OAuth2Controller extends OhmageController {
                 "Creating a request to get a user's authorization.");
 
         LOGGER.log(Level.INFO, "Retrieving the OAuth client.");
-        OauthClient oauthClient =
-            OauthClientBin.getInstance().getOauthClient(clientId);
+        OAuthClient oAuthClient =
+            OAuthClientBin.getInstance().getOAuthClient(clientId);
 
         LOGGER.log(Level.INFO, "Verifying that the OAuth client exists.");
-        if(oauthClient == null) {
+        if(oAuthClient == null) {
             throw new InvalidArgumentException("The OAuth client is unknown.");
         }
 
@@ -235,7 +230,7 @@ public class OAuth2Controller extends OhmageController {
                 .log(
                     Level.INFO,
                     "Using the OAuth client's default redirect URI.");
-            validatedRedirectUri = oauthClient.getRedirectUri();
+            validatedRedirectUri = oAuthClient.getRedirectUri();
         }
         else {
             LOGGER.log(Level.INFO, "Using the supplied redirect URI.");
@@ -248,13 +243,13 @@ public class OAuth2Controller extends OhmageController {
                     Level.INFO,
                     "Verifying that the normalized redirect URI is a " +
                         "sub-URI of the default redirect URI.");
-            supersedes(oauthClient.getRedirectUri(), validatedRedirectUri);
+            supersedes(oAuthClient.getRedirectUri(), validatedRedirectUri);
         }
 
         LOGGER.log(Level.INFO, "Generating a new authorization code.");
         AuthorizationCode authorizationCode =
             new AuthorizationCode(
-                oauthClient.getId(),
+                oAuthClient.getId(),
                 scopes,
                 validatedRedirectUri,
                 state);
@@ -497,11 +492,11 @@ public class OAuth2Controller extends OhmageController {
      * the request.
      * </p>
      *
-     * @param oauthClientId
+     * @param oAuthClientId
      *        The unique identifier for the OAuth client that is exchanging the
      *        code for a token.
      *
-     * @param oauthClientSecret
+     * @param oAuthClientSecret
      *        The OAuth client's secret.
      *
      * @param codeString
@@ -521,9 +516,9 @@ public class OAuth2Controller extends OhmageController {
         params = "grant_type" + "=" + "authorization_code")
     public static @ResponseBody AuthorizationToken tokenFromCode(
         @RequestParam(value = "client_id", required = true)
-            final String oauthClientId,
+            final String oAuthClientId,
         @RequestParam(value = "client_secret", required = true)
-            final String oauthClientSecret,
+            final String oAuthClientSecret,
         @RequestParam(value = "code", required = true) final String codeString,
         @RequestParam(value = "redirect_uri", required = false)
             final URI redirectUri) {
@@ -535,17 +530,17 @@ public class OAuth2Controller extends OhmageController {
                     "request response.");
 
         LOGGER.log(Level.INFO, "Verifying that the OAuth client ID was given.");
-        if(oauthClientId == null) {
+        if(oAuthClientId == null) {
             throw
                 new AuthenticationException("The OAuth client ID is missing.");
         }
 
         LOGGER.log(Level.INFO, "Retrieving the OAuth client.");
-        OauthClient oauthClient =
-            OauthClientBin.getInstance().getOauthClient(oauthClientId);
+        OAuthClient oAuthClient =
+            OAuthClientBin.getInstance().getOAuthClient(oAuthClientId);
 
         LOGGER.log(Level.INFO, "Verifying the OAuth client exists.");
-        if(oauthClient == null) {
+        if(oAuthClient == null) {
             throw new AuthenticationException("The OAuth client is unknown.");
         }
 
@@ -553,14 +548,14 @@ public class OAuth2Controller extends OhmageController {
             .log(
                 Level.INFO,
                 "Verifying that the OAuth client secret was given.");
-        if(oauthClientSecret == null) {
+        if(oAuthClientSecret == null) {
             throw
                 new AuthenticationException(
                      "The OAuth client secret is missing.");
         }
 
         LOGGER.log(Level.INFO, "Verifying the OAuth client's secret.");
-        if(! oauthClient.getSecret().equals(oauthClientSecret)) {
+        if(! oAuthClient.getSecret().equals(oAuthClientSecret)) {
             throw
                 new AuthenticationException(
                     "The OAuth client secret is incorrect.");
@@ -579,7 +574,7 @@ public class OAuth2Controller extends OhmageController {
             .log(
                 Level.INFO,
                 "Verifying that the code corresponds to this OAuth client.");
-        if(! code.getOauthClientId().equals(oauthClientId)) {
+        if(! code.getOAuthClientId().equals(oAuthClientId)) {
             throw
                 new InvalidArgumentException(
                     "This code belongs to a different OAuth client.");
@@ -592,7 +587,7 @@ public class OAuth2Controller extends OhmageController {
 
         LOGGER.log(Level.INFO, "Validating the redirect URI.");
         if(redirectUri == null) {
-            if(! oauthClient.getRedirectUri().equals(code.getRedirectUri())) {
+            if(! oAuthClient.getRedirectUri().equals(code.getRedirectUri())) {
                 throw
                     new InvalidArgumentException(
                         "The code request provided a non-default redirect " +
@@ -676,11 +671,11 @@ public class OAuth2Controller extends OhmageController {
      * the request.
      * </p>
      *
-     * @param oauthClientId
+     * @param oAuthClientId
      *        The unique identifier for the OAuth client that is exchanging the
      *        code for a token.
      *
-     * @param oauthClientSecret
+     * @param oAuthClientSecret
      *        The OAuth client's secret.
      *
      * @param refreshToken
@@ -695,9 +690,9 @@ public class OAuth2Controller extends OhmageController {
         params = "grant_type" + "=" + "refresh_token")
     public static @ResponseBody AuthorizationToken tokenFromRefresh(
         @RequestParam(value = "client_id", required = true)
-            final String oauthClientId,
+            final String oAuthClientId,
         @RequestParam(value = "client_secret", required = true)
-            final String oauthClientSecret,
+            final String oAuthClientSecret,
         @RequestParam(value = "refresh_token", required = true)
             final String refreshToken
         /* FIXME: Scope? */) {
@@ -709,17 +704,17 @@ public class OAuth2Controller extends OhmageController {
                     "request response.");
 
         LOGGER.log(Level.INFO, "Verifying that the OAuth client ID was given.");
-        if(oauthClientId == null) {
+        if(oAuthClientId == null) {
             throw
                 new AuthenticationException("The OAuth client ID is missing.");
         }
 
         LOGGER.log(Level.INFO, "Retrieving the OAuth client.");
-        OauthClient oauthClient =
-            OauthClientBin.getInstance().getOauthClient(oauthClientId);
+        OAuthClient oAuthClient =
+            OAuthClientBin.getInstance().getOAuthClient(oAuthClientId);
 
         LOGGER.log(Level.INFO, "Verifying the OAuth client exists.");
-        if(oauthClient == null) {
+        if(oAuthClient == null) {
             throw new AuthenticationException("The OAuth client is unknown.");
         }
 
@@ -727,14 +722,14 @@ public class OAuth2Controller extends OhmageController {
             .log(
                 Level.INFO,
                 "Verifying that the OAuth client secret was given.");
-        if(oauthClientSecret == null) {
+        if(oAuthClientSecret == null) {
             throw
                 new AuthenticationException(
                      "The OAuth client secret is missing.");
         }
 
         LOGGER.log(Level.INFO, "Verifying the OAuth client's secret.");
-        if(! oauthClient.getSecret().equals(oauthClientSecret)) {
+        if(! oAuthClient.getSecret().equals(oAuthClientSecret)) {
             throw
                 new AuthenticationException(
                     "The OAuth client secret is incorrect.");
@@ -778,7 +773,7 @@ public class OAuth2Controller extends OhmageController {
             .log(
                 Level.INFO,
                 "Verifying that the code corresponds to this OAuth client.");
-        if(! code.getOauthClientId().equals(oauthClientId)) {
+        if(! code.getOAuthClientId().equals(oAuthClientId)) {
             throw
                 new InvalidArgumentException(
                     "This code belongs to a different OAuth client.");
@@ -843,7 +838,7 @@ public class OAuth2Controller extends OhmageController {
      *        The authorization information corresponding to the user that is
      *        making this call.
      *
-     * @param oauthClientBuilder
+     * @param oAuthClientBuilder
      *        A builder to use to this new OAuth client.
      *
      * @return The constructed OAuth client.
@@ -851,10 +846,10 @@ public class OAuth2Controller extends OhmageController {
     @RequestMapping(
         value = "/clients",
         method = RequestMethod.POST)
-    public static @ResponseBody ResponseEntity<OauthClient> createClient(
+    public static @ResponseBody ResponseEntity<OAuthClient> createClient(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken,
-        @RequestBody final OauthClient.Builder oauthClientBuilder) {
+        @RequestBody final OAuthClient.Builder oAuthClientBuilder) {
 
         LOGGER.log(Level.INFO, "Creating a new OAuth client.");
 
@@ -862,32 +857,32 @@ public class OAuth2Controller extends OhmageController {
         User user = OhmageController.validateAuthorization(authToken, null);
 
         LOGGER.log(Level.FINE, "Setting the owner of the OAuth client.");
-        oauthClientBuilder.setOwner(user.getId());
+        oAuthClientBuilder.setOwner(user.getId());
 
-        if(oauthClientBuilder.getRedirectUri() != null) {
+        if(oAuthClientBuilder.getRedirectUri() != null) {
             LOGGER.log(Level.INFO, "Normalizing the redirect URI.");
-            oauthClientBuilder
+            oAuthClientBuilder
                 .setRedirectUri(
-                    oauthClientBuilder.getRedirectUri().normalize());
+                    oAuthClientBuilder.getRedirectUri().normalize());
         }
 
         LOGGER.log(Level.FINE, "Building the OAuth client.");
-        OauthClient oauthClient = oauthClientBuilder.build();
+        OAuthClient oAuthClient = oAuthClientBuilder.build();
 
         LOGGER.log(Level.INFO, "Saving the new OAuth client.");
-        OauthClientBin.getInstance().addOauthClient(oauthClient);
+        OAuthClientBin.getInstance().addOAuthClient(oAuthClient);
 
         LOGGER.log(Level.INFO, "Building the headers.");
         HttpHeaders headers = new HttpHeaders();
 
         LOGGER.log(Level.INFO, "Extracting the OAuth client's shared secret.");
         headers
-            .add(OauthClient.JSON_KEY_SHARED_SECRET, oauthClient.getSecret());
+            .add(OAuthClient.JSON_KEY_SHARED_SECRET, oAuthClient.getSecret());
 
         LOGGER.log(Level.INFO, "Returning the OAuth client.");
         return
-            new ResponseEntity<OauthClient>(
-                oauthClient,
+            new ResponseEntity<OAuthClient>(
+                    oAuthClient,
                 headers,
                 HttpStatus.OK);
     }
@@ -928,7 +923,7 @@ public class OAuth2Controller extends OhmageController {
                 Level.INFO,
                 "Retrieving the visible client IDs.");
         MultiValueResult<String> clientIds =
-            OauthClientBin.getInstance().getClientIds(user.getId());
+            OAuthClientBin.getInstance().getClientIds(user.getId());
 
         LOGGER.log(Level.INFO, "Building the paging headers.");
         HttpHeaders headers =
@@ -960,10 +955,11 @@ public class OAuth2Controller extends OhmageController {
      * @return The information about the client.
      */
     @RequestMapping(
-        value = "/clients/{" + OauthClient.JSON_KEY_ID + "}",
+        value = "/clients/{" + OAuthClient.JSON_KEY_ID + "}",
         method = RequestMethod.GET)
-    public static @ResponseBody OauthClient getClients(
-        @PathVariable(OauthClient.JSON_KEY_ID) final String clientId) {
+    public static @ResponseBody
+    OAuthClient getClients(
+        @PathVariable(OAuthClient.JSON_KEY_ID) final String clientId) {
 
         LOGGER
             .log(
@@ -971,8 +967,8 @@ public class OAuth2Controller extends OhmageController {
                 "Creating a request to retrieve the client's information.");
 
         LOGGER.log(Level.INFO, "Retrieving the client information.");
-        OauthClient client =
-            OauthClientBin.getInstance().getOauthClient(clientId);
+        OAuthClient client =
+            OAuthClientBin.getInstance().getOAuthClient(clientId);
 
         LOGGER.log(Level.INFO, "Verifying that the client is known.");
         if(client == null) {

@@ -5,21 +5,21 @@ import java.net.URI;
 import org.mongojack.Id;
 import org.mongojack.MongoCollection;
 import org.mongojack.ObjectId;
-import org.ohmage.domain.auth.OauthClient;
-import org.ohmage.mongodb.bin.MongoOauthClientBin;
+import org.ohmage.domain.auth.OAuthClient;
+import org.ohmage.mongodb.bin.MongoOAuthClientBin;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A MongoDB extension of the {@link OauthClient} type.
+ * A MongoDB extension of the {@link org.ohmage.domain.auth.OAuthClient} type.
  * </p>
  *
  * @author John Jenkins
  */
-@MongoCollection(name = MongoOauthClientBin.COLLECTION_NAME)
-public class MongoOauthClient extends OauthClient implements MongoDbObject {
+@MongoCollection(name = MongoOAuthClientBin.COLLECTION_NAME)
+public class MongoOAuthClient extends OAuthClient implements MongoDbObject {
     /**
      * The database ID for this object.
      */
@@ -27,7 +27,7 @@ public class MongoOauthClient extends OauthClient implements MongoDbObject {
     private final String dbId;
 
     /**
-     * Creates a {@link OauthClient} object via Jackson from the data layer.
+     * Creates a {@link org.ohmage.domain.auth.OAuthClient} object via Jackson from the data layer.
      *
      * @param dbId
      *        The database ID for this authentication token.
@@ -55,15 +55,15 @@ public class MongoOauthClient extends OauthClient implements MongoDbObject {
      *         Any of the parameters is null or empty.
      */
     @JsonCreator
-    protected MongoOauthClient(
-        @Id @ObjectId final String dbId,
-        @JsonProperty(JSON_KEY_ID) final String oauthClientId,
-        @JsonProperty(JSON_KEY_SHARED_SECRET) final String sharedSecret,
-        @JsonProperty(JSON_KEY_OWNER) final String owner,
-        @JsonProperty(JSON_KEY_NAME) final String name,
-        @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
-        @JsonProperty(JSON_KEY_REDIRECT_URI) final URI redirectUri,
-        @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion) {
+    protected MongoOAuthClient(
+            @Id @ObjectId final String dbId,
+            @JsonProperty(JSON_KEY_ID) final String oauthClientId,
+            @JsonProperty(JSON_KEY_SHARED_SECRET) final String sharedSecret,
+            @JsonProperty(JSON_KEY_OWNER) final String owner,
+            @JsonProperty(JSON_KEY_NAME) final String name,
+            @JsonProperty(JSON_KEY_DESCRIPTION) final String description,
+            @JsonProperty(JSON_KEY_REDIRECT_URI) final URI redirectUri,
+            @JsonProperty(JSON_KEY_INTERNAL_VERSION) final Long internalVersion) {
 
         super(
             oauthClientId,

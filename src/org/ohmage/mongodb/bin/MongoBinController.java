@@ -185,7 +185,7 @@ public class MongoBinController extends BinController {
 		new MongoStreamDataBin();
 		new MongoSurveyBin();
 		new MongoSurveyResponseBin();
-		new MongoOauthClientBin();
+		new MongoOAuthClientBin();
         new MongoUserBin();
 		new MongoUserInvitationBin();
 	}

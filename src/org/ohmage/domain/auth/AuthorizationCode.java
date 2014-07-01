@@ -39,7 +39,7 @@ public class AuthorizationCode extends OhmageDomainObject {
         /**
          * The unique identifier for the OAuth client that requested this code.
          */
-        private final String oauthClientId;
+        private final String oAuthClientId;
         /**
          * The set of scopes that are being requested.
          */
@@ -83,7 +83,7 @@ public class AuthorizationCode extends OhmageDomainObject {
             super(code);
 
             this.code = code.code;
-            oauthClientId = code.oauthClientId;
+            oAuthClientId = code.oAuthClientId;
             scopes = new HashSet<Scope>(code.scopes);
             redirectUri = code.redirectUri;
             state = code.state;
@@ -130,7 +130,7 @@ public class AuthorizationCode extends OhmageDomainObject {
             return
                 new AuthorizationCode(
                     code,
-                    oauthClientId,
+                    oAuthClientId,
                     scopes,
                     redirectUri,
                     state,
@@ -197,7 +197,7 @@ public class AuthorizationCode extends OhmageDomainObject {
      * The OAuth client's unique identifier.
      */
     @JsonProperty(JSON_KEY_OAUTH_CLIENT_ID)
-    private final String oauthClientId;
+    private final String oAuthClientId;
     /**
      * The set of scopes that are being requested by this OAuth client.
      */
@@ -241,7 +241,7 @@ public class AuthorizationCode extends OhmageDomainObject {
     /**
      * Creates a new code.
      *
-     * @param oauthClientId
+     * @param oAuthClientId
      *        The unique identifier for the OAuth client that is requesting the
      *        code.
      *
@@ -260,7 +260,7 @@ public class AuthorizationCode extends OhmageDomainObject {
      *         One of the parameters was invalid.
      */
     public AuthorizationCode(
-        final String oauthClientId,
+        final String oAuthClientId,
         final Set<Scope> scopes,
         final URI redirectUri,
         final String state)
@@ -268,7 +268,7 @@ public class AuthorizationCode extends OhmageDomainObject {
 
         this(
             generateCode(),
-            oauthClientId,
+                oAuthClientId,
             scopes,
             redirectUri,
             state,
@@ -285,7 +285,7 @@ public class AuthorizationCode extends OhmageDomainObject {
      * @param code
      *        The unique code value for this authorization code.
      *
-     * @param oauthClientId
+     * @param oAuthClientId
      *        The unique identifier for the OAuth client that is requesting the
      *        code.
      *
@@ -325,7 +325,7 @@ public class AuthorizationCode extends OhmageDomainObject {
     @JsonCreator
     protected AuthorizationCode(
         @JsonProperty(JSON_KEY_AUTHORIZATION_CODE) final String code,
-        @JsonProperty(JSON_KEY_OAUTH_CLIENT_ID) final String oauthClientId,
+        @JsonProperty(JSON_KEY_OAUTH_CLIENT_ID) final String oAuthClientId,
         @JsonProperty(JSON_KEY_SCOPES) final Set<Scope> scopes,
         @JsonProperty(JSON_KEY_REDIRECT_URI) final URI redirectUri,
         @JsonProperty(JSON_KEY_STATE) final String state,
@@ -341,7 +341,7 @@ public class AuthorizationCode extends OhmageDomainObject {
 
         this(
             code,
-            oauthClientId,
+                oAuthClientId,
             scopes,
             redirectUri,
             state,
@@ -359,7 +359,7 @@ public class AuthorizationCode extends OhmageDomainObject {
      * @param code
      *        The unique code value for this authorization code.
      *
-     * @param oauthClientId
+     * @param oAuthClientId
      *        The unique identifier for the OAuth client that is requesting the
      *        code.
      *
@@ -386,7 +386,7 @@ public class AuthorizationCode extends OhmageDomainObject {
      *        The number of milliseconds since the Unix epoch when
      *        authorization code was used.
      *
-     * @param authorizationCodeResponse
+     * @param response
      *        The response to this authorization code, or null if no response
      *        has been made.
      *
@@ -403,7 +403,7 @@ public class AuthorizationCode extends OhmageDomainObject {
      */
     private AuthorizationCode(
         final String code,
-        final String oauthClientId,
+        final String oAuthClientId,
         final Set<Scope> scopes,
         final URI redirectUri,
         final String state,
@@ -421,7 +421,7 @@ public class AuthorizationCode extends OhmageDomainObject {
         if(code == null) {
             throw new IllegalArgumentException("The code is null.");
         }
-        if(oauthClientId == null) {
+        if(oAuthClientId == null) {
             throw new InvalidArgumentException("The OAuth client ID is null.");
         }
         if(scopes == null) {
@@ -450,7 +450,7 @@ public class AuthorizationCode extends OhmageDomainObject {
         }
 
         this.code = code;
-        this.oauthClientId = oauthClientId;
+        this.oAuthClientId = oAuthClientId;
         this.scopes = Collections.unmodifiableSet(new HashSet<Scope>(scopes));
         this.redirectUri = redirectUri;
         this.state = state;
@@ -474,8 +474,8 @@ public class AuthorizationCode extends OhmageDomainObject {
      *
      * @return The OAuth client's unique identifier.
      */
-    public String getOauthClientId() {
-        return oauthClientId;
+    public String getOAuthClientId() {
+        return oAuthClientId;
     }
 
     /**
