@@ -285,9 +285,6 @@ public class OAuthClient extends OhmageDomainObject {
 	 * @param redirectUri
 	 *        The URI to redirect the user back to after they have granted or
 	 *        rejected this OAuth client's authorization request.
-	 *
-	 * @throws OmhException
-	 *         Any of the parameters is null or empty.
 	 */
 	@JsonCreator
 	protected OAuthClient(
@@ -333,8 +330,6 @@ public class OAuthClient extends OhmageDomainObject {
      *        The URI to redirect the user back to after they have granted or
      *        rejected this OAuth client's authorization request.
      *
-     * @throws OmhException
-     *         Any of the parameters is null or empty.
      */
     private OAuthClient(
             final String id,
