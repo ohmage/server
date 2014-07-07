@@ -233,17 +233,14 @@ public class OAuth2Controller extends OhmageController {
             validatedRedirectUri = oAuthClient.getRedirectUri();
         }
         else {
-            LOGGER.log(Level.INFO, "Using the supplied redirect URI.");
+            LOGGER.log(Level.INFO, "Using the supplied redirect URI: " + redirectUri);
+
+            if(! isValidRedirectURIForOAuth(redirectUri)) {
+                throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
+            }
 
             LOGGER.log(Level.INFO, "Normalizing the redirect URI.");
             validatedRedirectUri = redirectUri.normalize();
-
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that the normalized redirect URI is a " +
-                        "sub-URI of the default redirect URI.");
-            supersedes(oAuthClient.getRedirectUri(), validatedRedirectUri);
         }
 
         LOGGER.log(Level.INFO, "Generating a new authorization code.");
@@ -860,6 +857,10 @@ public class OAuth2Controller extends OhmageController {
         oAuthClientBuilder.setOwner(user.getId());
 
         if(oAuthClientBuilder.getRedirectUri() != null) {
+            if(! isValidRedirectURIForOAuth(oAuthClientBuilder.getRedirectUri())) {
+                throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
+            }
+
             LOGGER.log(Level.INFO, "Normalizing the redirect URI.");
             oAuthClientBuilder
                 .setRedirectUri(
@@ -1159,75 +1160,13 @@ public class OAuth2Controller extends OhmageController {
     }
 
     /**
-     * Validates that some child URI resolves to some child of the base URI.
+     * OAuth2 redirect URIs must be absolute and cannot contain fragments.
      *
-     * @param base
-     *        The base URI.
-     *
-     * @param child
-     *        The child URI.
+     * @param redirectURI
+     * @return
      */
-    private static void supersedes(final URI base, final URI child) {
-        if(
-            ((base.getScheme() == null) && (child.getScheme() == null)) ||
-            (! base.getScheme().equals(child.getScheme()))) {
-
-            throw
-                new InvalidArgumentException(
-                    "The default scheme, '" +
-                        base.getScheme() +
-                        "', doesn't match the given scheme: " +
-                        child.getScheme());
-        }
-
-        if(
-            ((base.getHost() == null) && (child.getHost() == null)) ||
-            (! base.getHost().equals(child.getHost()))) {
-
-            throw
-                new InvalidArgumentException(
-                    "The default host, '" +
-                        base.getHost() +
-                        "', doesn't match the given host: " +
-                        child.getHost());
-        }
-
-        if(
-            ((base.getPort() == -1) && (child.getPort() == -1)) ||
-            (base.getPort() != child.getPort())) {
-
-            throw
-                new InvalidArgumentException(
-                    "The default port, '" +
-                        base.getPort() +
-                        "', doesn't match the given port: " +
-                        child.getPort());
-        }
-
-        if((base.getPath() != null) && (child.getPath() != null)) {
-            String[] basePathElements = base.getPath().split("/");
-            String[] childPathElements = child.getPath().split("/");
-
-            if(basePathElements.length > childPathElements.length) {
-                throw
-                    new InvalidArgumentException(
-                        "The given path is not as long as the default path.");
-            }
-
-            int i = 0;
-            for(String basePathElement : basePathElements) {
-                if(! basePathElement.equals(childPathElements[i++])) {
-                    throw
-                        new InvalidArgumentException(
-                            "The given path diverges from the default path.");
-                }
-            }
-        }
-        else if(child.getPath() == null) {
-            throw
-                new InvalidArgumentException(
-                    "The given path is not a sub-path of the default path: " +
-                        base.getPath());
-        }
+    private static boolean isValidRedirectURIForOAuth(URI redirectURI) {
+        return (redirectURI == null) ? true :
+            redirectURI.isAbsolute() && redirectURI.getRawFragment() == null;
     }
 }
