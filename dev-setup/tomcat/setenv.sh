@@ -34,6 +34,9 @@
 # Set up the ohmage log4j2 config 
 export JAVA_OPTS="-Dlog4j.configurationFile=/etc/ohmage/log4j2.xml"
 
+export CATALINA_OPTS="$CATALINA_OPTS -Xdebug"
+export CATALINA_OPTS="$CATALINA_OPTS -Xrunjdwp:transport=dt_socket,address=8000,server=y,suspend=n"
+
 # discourage address map swapping by setting Xms and Xmx to the same value
 # http://confluence.atlassian.com/display/DOC/Garbage+Collector+Performance+Issues
 export CATALINA_OPTS="$CATALINA_OPTS -Xms1g"
