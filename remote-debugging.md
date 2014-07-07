@@ -9,7 +9,8 @@ To remote-debug with IntelliJ
   5. Accept the defaults, for localhost port 5005
   6. Click OK
   
-  Make sure Virtualbox is installed:  https://www.virtualbox.org/
+  Make sure Vagrant is installed:  http://www.vagrantup.com
+  Make sure Virtualbox is installed:  https://www.virtualbox.org
 
   Install Vagrant IntelliJ Plugin:  
   Preferences -> Plugins -> Install JetBrains plugin -> Type Vagrant
