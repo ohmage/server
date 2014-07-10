@@ -1,8 +1,8 @@
 package org.ohmage.controller;
 
 import java.util.Collections;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.MultiValueResultAggregation;
@@ -61,7 +61,7 @@ public class SchemaController extends OhmageController {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(SchemaController.class.getName());
+		LoggerFactory.getLogger(SchemaController.class.getName());
 
     /**
      * Returns a list of visible schema IDs.
@@ -89,28 +89,28 @@ public class SchemaController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-		LOGGER.log(Level.INFO, "Creating a schema ID read request.");
+		LOGGER.info("Creating a schema ID read request.");
 
-        LOGGER.log(Level.INFO, "Retrieving the stream IDs.");
+        LOGGER.info("Retrieving the stream IDs.");
         MultiValueResult<String> streamIds =
             StreamBin
                 .getInstance()
                 .getStreamIds(query, false, 0, numToSkip + numToReturn);
 
-        LOGGER.log(Level.INFO, "Retrieving the survey IDs.");
+        LOGGER.info("Retrieving the survey IDs.");
         MultiValueResult<String> surveyIds =
             SurveyBin
                 .getInstance()
                 .getSurveyIds(query, false, 0, numToSkip + numToReturn);
 
-        LOGGER.log(Level.FINE, "Building the result.");
+        LOGGER.debug("Building the result.");
         MultiValueResultAggregation.Aggregator<String> aggregator =
             new MultiValueResultAggregation.Aggregator<String>(streamIds);
         aggregator.add(surveyIds);
         MultiValueResultAggregation<String> ids =
             aggregator.build(numToSkip, numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -120,14 +120,14 @@ public class SchemaController extends OhmageController {
                         ids,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<String>> result =
             new ResponseEntity<MultiValueResult<String>>(
                 ids,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the schema IDs.");
+        LOGGER.info("Returning the schema IDs.");
         return result;
 	}
 
@@ -160,28 +160,22 @@ public class SchemaController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to read the versions of a schema: " +
+		LOGGER.info("Creating a request to read the versions of a schema: " +
 					schemaId);
 
-        LOGGER.log(Level.INFO, "Validating the number to skip.");
+        LOGGER.info("Validating the number to skip.");
         if(numToSkip < 0) {
             throw
                 new InvalidArgumentException(
                     "The number to skip must be greater than or equal to 0.");
         }
-        LOGGER.log(Level.INFO, "Validating the number to return.");
+        LOGGER.info("Validating the number to return.");
         if(numToReturn <= 0) {
             throw
                 new InvalidArgumentException(
                     "The number to return must be greater than 0.");
         }
-        LOGGER
-            .log(
-                Level.INFO,
-                "Validating the upper bound of the number to return.");
+        LOGGER.info("Validating the upper bound of the number to return.");
         if(numToReturn > MAX_NUM_TO_RETURN) {
             throw
                 new InvalidArgumentException(
@@ -191,10 +185,10 @@ public class SchemaController extends OhmageController {
                         ".");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the versions.");
+        LOGGER.info("Retrieving the versions.");
         ResponseEntity<MultiValueResult<Long>> result;
         if(StreamBin.getInstance().exists(schemaId, null, false)) {
-            LOGGER.log(Level.INFO, "The schema is a stream.");
+            LOGGER.info("The schema is a stream.");
             result =
                 StreamController
                     .getStreamVersions(
@@ -205,7 +199,7 @@ public class SchemaController extends OhmageController {
                         rootUrl);
         }
         else if(SurveyBin.getInstance().exists(schemaId, null, false)) {
-            LOGGER.log(Level.INFO, "The schema is a survey.");
+            LOGGER.info("The schema is a survey.");
             result =
                 SurveyController
                     .getSurveyVersions(
@@ -221,7 +215,7 @@ public class SchemaController extends OhmageController {
                     "The schema ID is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the versions.");
+        LOGGER.info("Returning the versions.");
         return result;
 	}
 
@@ -231,9 +225,6 @@ public class SchemaController extends OhmageController {
      * @param schemaId
      *        The schema's unique identifier.
      *
-     * @param schemaVersion
-     *        The version of the schema.
-     *
      * @return The schema definition.
      */
     @RequestMapping(
@@ -242,10 +233,7 @@ public class SchemaController extends OhmageController {
     public static @ResponseBody Schema getSchemaDefinition(
         @PathVariable(KEY_SCHEMA_ID) final String schemaId) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request for the latest schema definition.");
+        LOGGER.info("Creating a request for the latest schema definition.");
 
         return getSchemaDefinition(schemaId, null);
     }
@@ -268,19 +256,19 @@ public class SchemaController extends OhmageController {
         @PathVariable(KEY_SCHEMA_ID) final String schemaId,
         @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion) {
 
-        LOGGER.log(Level.INFO, "Creating a request for a schema definition.");
+        LOGGER.info("Creating a request for a schema definition.");
 
-        LOGGER.log(Level.INFO, "Retrieving the definition.");
+        LOGGER.info("Retrieving the definition.");
         Schema result;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
-            LOGGER.log(Level.INFO, "The schema is a stream.");
+            LOGGER.info("The schema is a stream.");
             result =
                 StreamController.getStreamDefinition(schemaId, schemaVersion);
         }
         else if(
             SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
 
-            LOGGER.log(Level.INFO, "The schema is a survey.");
+            LOGGER.info("The schema is a survey.");
             result =
                 SurveyController.getSurveyDefinition(schemaId, schemaVersion);
         }
@@ -290,7 +278,7 @@ public class SchemaController extends OhmageController {
                     "The schema ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the schema.");
+        LOGGER.info("Returning the schema.");
         return result;
     }
 
@@ -351,18 +339,15 @@ public class SchemaController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request for schema data: " +
+        LOGGER.info("Creating a request for schema data: " +
                     schemaId + ", " +
                     schemaVersion);
 
-        LOGGER.log(Level.INFO, "Delegating the request.");
+        LOGGER.info("Delegating the request.");
         ResponseEntity<? extends MultiValueResult<? extends DataPoint<?>>>
             result;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
-            LOGGER.log(Level.INFO, "The schema is a stream.");
+            LOGGER.info("The schema is a stream.");
             result =
                 StreamController
                     .getData(
@@ -378,7 +363,7 @@ public class SchemaController extends OhmageController {
         }
         else if(
             SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
-            LOGGER.log(Level.INFO, "The schema is a survey.");
+            LOGGER.info("The schema is a survey.");
             result =
                 SurveyController
                     .getData(
@@ -398,7 +383,7 @@ public class SchemaController extends OhmageController {
                     "The schema ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the data.");
+        LOGGER.info("Returning the data.");
         return result;
     }
 
@@ -439,17 +424,14 @@ public class SchemaController extends OhmageController {
         @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion,
         @PathVariable(KEY_POINT_ID) final String pointId) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request for a specific schema data point: " +
+        LOGGER.info("Creating a request for a specific schema data point: " +
                     schemaId + ", " +
                     schemaVersion);
 
-        LOGGER.log(Level.INFO, "Retrieving the data.");
+        LOGGER.info("Retrieving the data.");
         DataPoint<?> result;
         if(StreamBin.getInstance().exists(schemaId, schemaVersion, false)) {
-            LOGGER.log(Level.INFO, "The schema is a stream.");
+            LOGGER.info("The schema is a stream.");
             result =
                 StreamController
                     .getPoint(authToken, schemaId, schemaVersion, pointId);
@@ -457,7 +439,7 @@ public class SchemaController extends OhmageController {
         else if(
             SurveyBin.getInstance().exists(schemaId, schemaVersion, false)) {
 
-            LOGGER.log(Level.INFO, "The schema is a survey.");
+            LOGGER.info("The schema is a survey.");
             result =
                 SurveyController
                     .getPoint(authToken, schemaId, schemaVersion, pointId);
@@ -468,7 +450,7 @@ public class SchemaController extends OhmageController {
                     "The schema ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the data point.");
+        LOGGER.info("Returning the data point.");
         return result;
     }
 }

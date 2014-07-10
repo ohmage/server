@@ -16,8 +16,8 @@
 package org.ohmage.javax.servlet.filter;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import uk.org.lidalia.slf4jext.Logger;
+import uk.org.lidalia.slf4jext.LoggerFactory;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -58,8 +58,7 @@ public class ExceptionFilter implements Filter {
 	/**
 	 * The logger for this class.
 	 */
-	private static final Logger LOGGER = Logger
-		.getLogger(ExceptionFilter.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionFilter.class.getName());
 
 	/**
 	 * Does nothing.
@@ -114,10 +113,7 @@ public class ExceptionFilter implements Filter {
         // Spring will throw this exception when the authentication and/or
         // authorization stuff is missing.
 		catch(HttpSessionRequiredException e) {
-		    LOGGER
-		        .log(
-		            Level.INFO,
-		            "Wrapping the HttpSessionRequiredException in an " +
+		    LOGGER.info("Wrapping the HttpSessionRequiredException in an " +
 		                "AuthenticationException.");
 		    exception = new AuthenticationException(e.getMessage(), e);
 		}
@@ -131,18 +127,13 @@ public class ExceptionFilter implements Filter {
 			// Echo the exception to the logs.
 			// For an OhmageException defer to its own level reporting.
 			if(exception instanceof OhmageException) {
-				LOGGER
-					.log(
-						((OhmageException) exception).getLevel(),
+				LOGGER.log(((OhmageException) exception).getLevel(),
 						exception.getMessage(),
 						exception);
 			}
 			// Otherwise, report this exception at the highest level.
 			else {
-				LOGGER
-					.log(
-						Level.SEVERE,
-						"An unknown exception was thrown.",
+				LOGGER.error("An unknown exception was thrown.",
 						exception);
 			}
 

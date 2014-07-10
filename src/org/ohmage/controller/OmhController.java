@@ -8,8 +8,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import name.jenkins.paul.john.concordia.Concordia;
 
@@ -271,7 +271,7 @@ public class OmhController extends OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(OmhController.class.getName());
+        LoggerFactory.getLogger(OmhController.class.getName());
 
     /**
      * <p>
@@ -317,9 +317,6 @@ public class OmhController extends OhmageController {
      *
      * @throws IOException
      *         There was a problem responding to the client.
-     *
-     * @throws OAuthSystemException
-     *         The OAuth library encountered an error.
      */
     @RequestMapping(
         value = "/auth/oauth" + OAuth2Controller.PATH_AUTHORIZE,
@@ -513,13 +510,13 @@ public class OmhController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER.log(Level.INFO, "Creating an OmH registry read request.");
+        LOGGER.info("Creating an OmH registry read request.");
 
-        LOGGER.log(Level.INFO, "Building the result aggregator.");
+        LOGGER.info("Building the result aggregator.");
         MultiValueResultAggregation.Aggregator<String> aggregator =
             new MultiValueResultAggregation.Aggregator<String>();
 
-        LOGGER.log(Level.INFO, "Retrieving the stream IDs.");
+        LOGGER.info("Retrieving the stream IDs.");
         MultiValueResult<String> streamIds =
             StreamBin
                 .getInstance()
@@ -532,7 +529,7 @@ public class OmhController extends OhmageController {
         }
         aggregator.add(omhStreamIds, streamIds.count());
 
-        LOGGER.log(Level.INFO, "Retrieving the survey IDs.");
+        LOGGER.info("Retrieving the survey IDs.");
         MultiValueResult<String> surveyIds =
             SurveyBin
                 .getInstance()
@@ -545,11 +542,11 @@ public class OmhController extends OhmageController {
         }
         aggregator.add(omhSurveyIds, surveyIds.count());
 
-        LOGGER.log(Level.FINE, "Compiling the result list.");
+        LOGGER.debug("Compiling the result list.");
         MultiValueResult<String> aggregation =
             aggregator.build(numToSkip, numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -559,14 +556,14 @@ public class OmhController extends OhmageController {
                         aggregation,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<String>> resultEntity =
             new ResponseEntity<MultiValueResult<String>>(
                 aggregation,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the schema IDs.");
+        LOGGER.info("Returning the schema IDs.");
         return resultEntity;
     }
 
@@ -607,22 +604,19 @@ public class OmhController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating an OmH request to read the versions of a schema: " +
+        LOGGER.info("Creating an OmH request to read the versions of a schema: " +
                     schemaId);
 
-        LOGGER.log(Level.INFO, "Parsing the schema ID.");
+        LOGGER.info("Parsing the schema ID.");
         OmhSchemaId omhSchemaId = new OmhSchemaId(schemaId);
 
-        LOGGER.log(Level.FINE, "Creating the collection of versions.");
+        LOGGER.debug("Creating the collection of versions.");
         MultiValueResult<Long> versions;
 
-        LOGGER.log(Level.INFO, "Retrieving the versions.");
+        LOGGER.info("Retrieving the versions.");
         switch(omhSchemaId.type) {
             case STREAM:
-                LOGGER.log(Level.INFO, "The schema is a stream.");
+                LOGGER.info("The schema is a stream.");
                 versions =
                     StreamBin
                         .getInstance()
@@ -635,7 +629,7 @@ public class OmhController extends OhmageController {
                 break;
 
             case SURVEY:
-                LOGGER.log(Level.INFO, "The schema is a survey.");
+                LOGGER.info("The schema is a survey.");
                 versions =
                     StreamBin
                         .getInstance()
@@ -651,7 +645,7 @@ public class OmhController extends OhmageController {
                 throw new UnknownEntityException("The schema is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -661,14 +655,14 @@ public class OmhController extends OhmageController {
                         versions,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<Long>> result =
             new ResponseEntity<MultiValueResult<Long>>(
                 versions,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the schema IDs.");
+        LOGGER.info("Returning the schema IDs.");
         return result;
     }
 
@@ -690,21 +684,18 @@ public class OmhController extends OhmageController {
         @PathVariable(KEY_SCHEMA_ID) final String schemaId,
         @PathVariable(KEY_SCHEMA_VERSION) final Long schemaVersion) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating an OmH request for a schema definition: " +
+        LOGGER.info("Creating an OmH request for a schema definition: " +
                     schemaId + ", " +
                     schemaVersion);
 
-        LOGGER.log(Level.INFO, "Parsing the schema ID.");
+        LOGGER.info("Parsing the schema ID.");
         OmhSchemaId omhSchemaId = new OmhSchemaId(schemaId);
 
-        LOGGER.log(Level.INFO, "Retrieving the definition.");
+        LOGGER.info("Retrieving the definition.");
         Schema result;
         switch(omhSchemaId.type) {
             case STREAM:
-                LOGGER.log(Level.INFO, "The schema is a stream.");
+                LOGGER.info("The schema is a stream.");
                 result =
                     StreamBin
                         .getInstance()
@@ -715,7 +706,7 @@ public class OmhController extends OhmageController {
                 break;
 
             case SURVEY:
-                LOGGER.log(Level.INFO, "The schema is a survey.");
+                LOGGER.info("The schema is a survey.");
                 result =
                     SurveyBin
                         .getInstance()
@@ -731,7 +722,7 @@ public class OmhController extends OhmageController {
 
         }
 
-        LOGGER.log(Level.INFO, "Returning the schema.");
+        LOGGER.info("Returning the schema.");
         return result.getDefinition();
     }
 
@@ -805,26 +796,23 @@ public class OmhController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating an OmH request for schema data: " +
+        LOGGER.info("Creating an OmH request for schema data: " +
                     schemaId + ", " +
                     schemaVersion);
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        LOGGER.info("Verifying that auth information was given.");
         if(authToken == null) {
             throw
                 new AuthenticationException("No auth information was given.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the auth information.");
+        LOGGER.info("Retrieving the auth information.");
         AuthorizationToken authTokenObject =
             AuthorizationTokenBin
                 .getInstance()
                 .getTokenFromAccessToken(authToken);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -835,17 +823,17 @@ public class OmhController extends OhmageController {
                                 schemaVersion,
                                 Scope.Permission.READ));
 
-        LOGGER.log(Level.INFO, "Verifying the auth token is valid.");
+        LOGGER.info("Verifying the auth token is valid.");
         if(! authTokenObject.isValid()) {
             throw
                 new AuthenticationException(
                     "No auth token is no longer valid.");
         }
 
-        LOGGER.log(Level.INFO, "Parsing the schema ID.");
+        LOGGER.info("Parsing the schema ID.");
         OmhSchemaId omhSchemaId = new OmhSchemaId(schemaId);
 
-        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        LOGGER.debug("Parsing the start and end dates, if given.");
         DateTime startDateObject =
             (startDate == null) ?
                 null :
@@ -855,12 +843,12 @@ public class OmhController extends OhmageController {
                 null :
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
-        LOGGER.log(Level.INFO, "Validating the column list, if given.");
+        LOGGER.info("Validating the column list, if given.");
         ColumnList columnListObject = null;
         if(columnList != null) {
             columnListObject = new ColumnList(columnList);
 
-            LOGGER.log(Level.INFO, "Validating the column list.");
+            LOGGER.info("Validating the column list.");
             Set<String> columnListRoots =
                 new HashSet<String>(columnListObject.getChildren());
             columnListRoots.removeAll(ALLOWED_COLUMN_LIST_ROOTS);
@@ -873,19 +861,16 @@ public class OmhController extends OhmageController {
             }
         }
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Generating the list of user IDs, which is only the " +
+        LOGGER.debug("Generating the list of user IDs, which is only the " +
                     "requester.");
         Set<String> userIds = new HashSet<String>();
         userIds.add(user.getId());
 
-        LOGGER.log(Level.INFO, "Retrieving the definition.");
+        LOGGER.info("Retrieving the definition.");
         MultiValueResult<?> data;
         switch(omhSchemaId.type) {
             case STREAM:
-                LOGGER.log(Level.INFO, "The schema is a stream.");
+                LOGGER.info("The schema is a stream.");
                 data =
                     StreamDataBin
                         .getInstance()
@@ -902,7 +887,7 @@ public class OmhController extends OhmageController {
                 break;
 
             case SURVEY:
-                LOGGER.log(Level.INFO, "The schema is a survey.");
+                LOGGER.info("The schema is a survey.");
                 data =
                     SurveyResponseBin
                         .getInstance()
@@ -925,7 +910,7 @@ public class OmhController extends OhmageController {
                         "The schema ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -935,14 +920,14 @@ public class OmhController extends OhmageController {
                         data,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<?>> result =
             new ResponseEntity<MultiValueResult<?>>(
                 data,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the data.");
+        LOGGER.info("Returning the data.");
         return result;
     }
 }

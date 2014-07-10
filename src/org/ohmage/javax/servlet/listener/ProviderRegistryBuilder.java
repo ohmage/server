@@ -1,7 +1,7 @@
 package org.ohmage.javax.servlet.listener;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -21,7 +21,7 @@ public class ProviderRegistryBuilder implements ServletContextListener {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(ProviderRegistryBuilder.class.getName());
+		LoggerFactory.getLogger(ProviderRegistryBuilder.class.getName());
 	
 	/*
 	 * (non-Javadoc)
@@ -29,9 +29,9 @@ public class ProviderRegistryBuilder implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(final ServletContextEvent event) {
-		LOGGER.log(Level.INFO, "Building the entries for the registry.");
+		LOGGER.info("Building the entries for the registry.");
 		
-		LOGGER.log(Level.FINE, "Adding the Google provider.");
+		LOGGER.debug("Adding the Google provider.");
 		ProviderRegistry.register(new GoogleProvider());
 	}
 

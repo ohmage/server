@@ -1,8 +1,8 @@
 package org.ohmage.controller;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
@@ -78,7 +78,7 @@ public class StreamController extends OhmageController {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(StreamController.class.getName());
+		LoggerFactory.getLogger(StreamController.class.getName());
 
 	/**
 	 * The usage in this class is entirely static, so there is no need to
@@ -137,15 +137,15 @@ public class StreamController extends OhmageController {
         @RequestPart(value = KEY_ICON, required = false)
             final MultipartFile iconFile) {
 
-        LOGGER.log(Level.INFO, "Creating a stream creation request.");
+        LOGGER.info("Creating a stream creation request.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.FINE, "Setting the owner of the stream.");
+        LOGGER.debug("Setting the owner of the stream.");
         streamBuilder.setOwner(user.getId());
 
-        LOGGER.log(Level.FINE, "Checking if an icon was given.");
+        LOGGER.debug("Checking if an icon was given.");
         Media icon = null;
         // If given, verify that it was attached as well.
         if(streamBuilder.getIconId() != null) {
@@ -164,18 +164,18 @@ public class StreamController extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.FINE, "Building the updated stream.");
+        LOGGER.debug("Building the updated stream.");
         Stream result = streamBuilder.build();
 
         if(icon != null) {
-            LOGGER.log(Level.INFO, "Storing the icon.");
+            LOGGER.info("Storing the icon.");
             MediaBin.getInstance().addMedia(icon);
         }
 
-        LOGGER.log(Level.INFO, "Saving the new stream.");
+        LOGGER.info("Saving the new stream.");
         StreamBin.getInstance().addStream(result);
 
-        LOGGER.log(Level.INFO, "Returning the updated stream.");
+        LOGGER.info("Returning the updated stream.");
         return result;
     }
 
@@ -205,15 +205,15 @@ public class StreamController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
 		    final String rootUrl) {
 
-		LOGGER.log(Level.INFO, "Creating a stream ID read request.");
+		LOGGER.info("Creating a stream ID read request.");
 
-		LOGGER.log(Level.INFO, "Retrieving the stream IDs");
+		LOGGER.info("Retrieving the stream IDs");
 		MultiValueResult<Stream> ids =
 		    StreamBin
 		        .getInstance()
 		        .getStreams(query, false, numToSkip, numToReturn);
 
-		LOGGER.log(Level.INFO, "Building the paging headers.");
+		LOGGER.info("Building the paging headers.");
 		HttpHeaders headers =
 		    OhmageController
 		        .buildPagingHeaders(
@@ -223,14 +223,14 @@ public class StreamController extends OhmageController {
                         ids,
                         rootUrl + ROOT_MAPPING);
 
-		LOGGER.log(Level.INFO, "Creating the response object.");
+		LOGGER.info("Creating the response object.");
 		ResponseEntity<MultiValueResult<Stream>> result =
 		    new ResponseEntity<MultiValueResult<Stream>>(
 		        ids,
 		        headers,
 		        HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the stream IDs.");
+        LOGGER.info("Returning the stream IDs.");
 		return result;
 	}
 
@@ -267,13 +267,10 @@ public class StreamController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to read the versions of a stream: " +
+		LOGGER.info("Creating a request to read the versions of a stream: " +
 					streamId);
 
-		LOGGER.log(Level.INFO, "Retreiving the stream versions.");
+		LOGGER.info("Retreiving the stream versions.");
 		MultiValueResult<Long> versions =
 		    StreamBin
                 .getInstance()
@@ -284,7 +281,7 @@ public class StreamController extends OhmageController {
                     numToSkip,
                     numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -294,14 +291,14 @@ public class StreamController extends OhmageController {
                         versions,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<Long>> result =
             new ResponseEntity<MultiValueResult<Long>>(
                 versions,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the stream versions.");
+        LOGGER.info("Returning the stream versions.");
 		return result;
 	}
 
@@ -323,27 +320,24 @@ public class StreamController extends OhmageController {
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a stream definition: " +
+		LOGGER.info("Creating a request for a stream definition: " +
 					streamId + ", " +
 					streamVersion);
 
-		LOGGER.log(Level.INFO, "Retrieving the stream.");
+		LOGGER.info("Retrieving the stream.");
 		Stream result =
 			StreamBin
 				.getInstance()
 				.getStream(streamId, streamVersion, false);
 
-		LOGGER.log(Level.FINE, "Ensuring that a stream was found.");
+		LOGGER.debug("Ensuring that a stream was found.");
 		if(result == null) {
 			throw
 				new UnknownEntityException(
 					"The stream ID-verion pair is unknown.");
 		}
 
-		LOGGER.log(Level.INFO, "Returning the stream.");
+		LOGGER.info("Returning the stream.");
 		return result;
 	}
 
@@ -370,26 +364,20 @@ public class StreamController extends OhmageController {
 		@PathVariable(KEY_STREAM_ID) final String streamId,
 		@RequestBody final Stream.Builder streamBuilder) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to update a stream with a new version: " +
+		LOGGER.info("Creating a request to update a stream with a new version: " +
 					streamId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
+		LOGGER.info("Retrieving the latest version of the stream.");
 		Stream latestSchema =
 			StreamBin.getInstance().getLatestStream(streamId, false);
 
     // Increase survey version by 1
     streamBuilder.setVersion(latestSchema.getVersion()+1);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user updating the stream is the owner " +
+		LOGGER.info("Verifying that the user updating the stream is the owner " +
 					"of the original stream.");
 		if(! latestSchema.getOwner().equals(user.getId())) {
 			throw
@@ -397,26 +385,20 @@ public class StreamController extends OhmageController {
 					"Only the owner of this schema may update it.");
 		}
 
-		LOGGER
-		    .log(
-		        Level.FINE,
-		        "Setting the ID of the new stream to the ID of the old " +
+		LOGGER.debug("Setting the ID of the new stream to the ID of the old " +
 		            "stream.");
 		streamBuilder.setSchemaId(streamId);
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Setting the request user as the owner of this new stream.");
+		LOGGER.debug("Setting the request user as the owner of this new stream.");
 		streamBuilder.setOwner(user.getId());
 
-		LOGGER.log(Level.FINE, "Building the updated stream.");
+		LOGGER.debug("Building the updated stream.");
 		Stream result = streamBuilder.build();
 
-		LOGGER.log(Level.INFO, "Saving the updated stream.");
+		LOGGER.info("Saving the updated stream.");
 		StreamBin.getInstance().addStream(result);
 
-		LOGGER.log(Level.INFO, "Returning the updated stream.");
+		LOGGER.info("Returning the updated stream.");
 		return result;
 	}
 
@@ -446,9 +428,9 @@ public class StreamController extends OhmageController {
 		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
 		@RequestBody final List<StreamData.Builder> dataBuilders) {
 
-		LOGGER.log(Level.INFO, "Storing some new stream data.");
+		LOGGER.info("Storing some new stream data.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -459,20 +441,20 @@ public class StreamController extends OhmageController {
                                 streamVersion,
                                 Scope.Permission.WRITE));
 
-		LOGGER.log(Level.INFO, "Retrieving the stream.");
+		LOGGER.info("Retrieving the stream.");
 		Stream stream =
 			StreamBin
 				.getInstance()
 				.getStream(streamId, streamVersion, false);
 
-		LOGGER.log(Level.FINE, "Ensuring that a stream was found.");
+		LOGGER.debug("Ensuring that a stream was found.");
 		if(stream == null) {
 			throw
 				new UnknownEntityException(
 					"The stream ID-version pair is unknown.");
 		}
 
-		LOGGER.log(Level.INFO, "Validating the data.");
+		LOGGER.info("Validating the data.");
 		List<StreamData> data = new ArrayList<StreamData>(dataBuilders.size());
         Set<String> streamDataPointIds = new HashSet<String>();
 
@@ -482,7 +464,7 @@ public class StreamController extends OhmageController {
             streamDataPointIds.add(dataBuilder.getMetaData().getId());
 		}
 
-        LOGGER.log(Level.INFO, "Retrieving the duplicate IDs.");
+        LOGGER.info("Retrieving the duplicate IDs.");
         List<String> duplicateStreamDataPointIds =
             StreamDataBin
                 .getInstance()
@@ -492,8 +474,7 @@ public class StreamController extends OhmageController {
                         streamVersion,
                         streamDataPointIds);
 
-        LOGGER.log(Level.INFO,
-            "There are " + duplicateStreamDataPointIds.size() + " duplicates.");
+        LOGGER.info("There are " + duplicateStreamDataPointIds.size() + " duplicates.");
 
         // Prune out the duplicates
 
@@ -502,7 +483,7 @@ public class StreamController extends OhmageController {
         if(duplicateStreamDataPointIds.size() == data.size()) { // every point is a duplicate
 
             nonDuplicatePoints = Collections.<StreamData>emptyList();
-            LOGGER.log(Level.INFO, "Every uploaded point was a duplicate.");
+            LOGGER.info("Every uploaded point was a duplicate.");
 
         } else if(duplicateStreamDataPointIds.size() > 0) { // there are some duplicates
 
@@ -522,7 +503,7 @@ public class StreamController extends OhmageController {
         }
 
         if(nonDuplicatePoints.size() > 0) {
-            LOGGER.log(Level.INFO, "Storing the validated data.");
+            LOGGER.info("Storing the validated data.");
             StreamDataBin.getInstance().addStreamData(nonDuplicatePoints);
         }
 	}
@@ -585,9 +566,9 @@ public class StreamController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-		LOGGER.log(Level.INFO, "Retrieving some stream data.");
+		LOGGER.info("Retrieving some stream data.");
 
-		LOGGER.log(Level.INFO, "Validating the user from the token");
+		LOGGER.info("Validating the user from the token");
 		User user =
 		    OhmageController
 		        .validateAuthorization(
@@ -598,7 +579,7 @@ public class StreamController extends OhmageController {
                                 streamVersion,
                                 Scope.Permission.READ));
 
-        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        LOGGER.debug("Parsing the start and end dates, if given.");
         DateTime startDateObject, endDateObject;
         try {
             startDateObject =
@@ -619,21 +600,18 @@ public class StreamController extends OhmageController {
             throw new InvalidArgumentException("The end date is invalid.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the latest version of the stream.");
+        LOGGER.info("Retrieving the latest version of the stream.");
         Stream latestStream =
             StreamBin.getInstance().getLatestStream(streamId, false);
         if(latestStream == null) {
             throw new UnknownEntityException("The stream is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Determining if the user is asking about the latest version " +
+        LOGGER.debug("Determining if the user is asking about the latest version " +
                     "of the stream.");
         boolean allowNull = latestStream.getVersion() == streamVersion;
 
-        LOGGER.log(Level.INFO, "Gathering the applicable ohmlets.");
+        LOGGER.info("Gathering the applicable ohmlets.");
         Set<String> ohmletIds =
             OhmletBin
                 .getInstance()
@@ -643,33 +621,24 @@ public class StreamController extends OhmageController {
                     streamVersion,
                     allowNull);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Determining which users are visible to the requesting user.");
+        LOGGER.info("Determining which users are visible to the requesting user.");
         Set<String> userIds;
         if(authToken.getAuthorizationCode() == null) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The auth token was granted directly to the requesting " +
+            LOGGER.info("The auth token was granted directly to the requesting " +
                         "user; retrieving the list of user IDs that are " +
                         "visible to the requesting user.");
             userIds = OhmletBin.getInstance().getMemberIds(ohmletIds);
         }
         else {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The auth token was granted via OAuth, so only the user " +
+            LOGGER.info("The auth token was granted via OAuth, so only the user " +
                         "reference by the token may be searched.");
             userIds = new HashSet<String>();
         }
 
-        LOGGER.log(Level.INFO, "Adding the user's own user ID.");
+        LOGGER.info("Adding the user's own user ID.");
         userIds.add(user.getId());
 
-		LOGGER.log(Level.INFO, "Finding the requested data.");
+		LOGGER.info("Finding the requested data.");
 		MultiValueResult<? extends StreamData> data =
     		StreamDataBin
                 .getInstance()
@@ -684,7 +653,7 @@ public class StreamController extends OhmageController {
                     numToSkip,
                     numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -694,14 +663,14 @@ public class StreamController extends OhmageController {
                         data,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<? extends StreamData>> result =
             new ResponseEntity<MultiValueResult<? extends StreamData>>(
                 data,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the stream data.");
+        LOGGER.info("Returning the stream data.");
         return result;
 	}
 
@@ -740,9 +709,9 @@ public class StreamController extends OhmageController {
         @PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
         @PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
 
-        LOGGER.log(Level.INFO, "Retrieving a specific stream data point.");
+        LOGGER.info("Retrieving a specific stream data point.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -753,7 +722,7 @@ public class StreamController extends OhmageController {
                                 streamVersion,
                                 Scope.Permission.READ));
 
-        LOGGER.log(Level.INFO, "Returning the stream data.");
+        LOGGER.info("Returning the stream data.");
         return
             StreamDataBin
                 .getInstance()
@@ -797,9 +766,9 @@ public class StreamController extends OhmageController {
         @PathVariable(KEY_STREAM_VERSION) final Long streamVersion,
         @PathVariable(KEY_STREAM_POINT_ID) final String pointId) {
 
-        LOGGER.log(Level.INFO, "Deleting a specific stream data point.");
+        LOGGER.info("Deleting a specific stream data point.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -810,7 +779,7 @@ public class StreamController extends OhmageController {
                                 streamVersion,
                                 Scope.Permission.DELETE));
 
-        LOGGER.log(Level.INFO, "Deleting the stream data.");
+        LOGGER.info("Deleting the stream data.");
         StreamDataBin
             .getInstance()
             .deleteStreamData(

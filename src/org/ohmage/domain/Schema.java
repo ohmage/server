@@ -2,8 +2,8 @@ package org.ohmage.domain;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import name.jenkins.paul.john.concordia.Concordia;
 import name.jenkins.paul.john.concordia.exception.ConcordiaException;
@@ -78,9 +78,6 @@ public abstract class Schema extends OhmageDomainObject {
          *
          * @param description
          *        The description of this schema.
-         *
-         * @param definition
-         *        The definition of this schema.
          *
          * @param iconId
          *        The media ID for the icon image.
@@ -203,10 +200,6 @@ public abstract class Schema extends OhmageDomainObject {
         /**
          * Sets whether or not this schema is visible to the Open mHealth APIs.
          *
-         * @param iconId
-         *        Whether or not this schema is visible to the Open mHealth
-         *        APIs.
-         *
          * @return This builder to facilitate chaining.
          */
         public Builder setOmhVisible(final Boolean omhVisible) {
@@ -266,7 +259,7 @@ public abstract class Schema extends OhmageDomainObject {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(Schema.class.getName());
+		LoggerFactory.getLogger(Schema.class.getName());
 
 	/**
 	 * The default value of whether or not a schema should be visible to Open
@@ -615,10 +608,7 @@ public abstract class Schema extends OhmageDomainObject {
 				definitionInput.close();
 			}
 			catch(IOException e) {
-				LOGGER
-					.log(
-						Level.WARNING,
-						"Could not close our own input stream.",
+				LOGGER.warn("Could not close our own input stream.",
 						e);
 			}
 		}

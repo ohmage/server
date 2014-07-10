@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
@@ -92,7 +94,7 @@ public class UserController extends OhmageController {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(UserController.class.getName());
+		LoggerFactory.getLogger(UserController.class.getName());
 
     /**
      * Creates a new user.
@@ -100,12 +102,6 @@ public class UserController extends OhmageController {
      * @param rootUrl
      *        The root URL of the request that can be used to formulate an
      *        activation link in the validation email.
-     *
-     * @param captchaChallenge
-     *        The reCaptcha challenge key.
-     *
-     * @param captchaResponse
-     *        The user's reCaptcha response.
      *
      * @param password
      *        The new user's plain-text password.
@@ -145,20 +141,20 @@ public class UserController extends OhmageController {
 		@RequestBody
 			final User.Builder userBuilder) {
 
-		LOGGER.log(Level.INFO, "Creating a new user.");
+		LOGGER.info("Creating a new user.");
 
 		/*
-		LOGGER.log(Level.INFO, "Validating the captcha information.");
-		LOGGER.log(Level.FINE, "Building the ReCaptcha validator.");
+		LOGGER.info("Validating the captcha information.");
+		LOGGER.debug("Building the ReCaptcha validator.");
 		ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
 
-		LOGGER.log(Level.FINE, "Setting out private key.");
+		LOGGER.debug("Setting out private key.");
 		reCaptcha.setPrivateKey(
 			ConfigurationFileImport
 				.getCustomProperties()
 				.getProperty(PREFERENCE_KEY_CAPTCHA_PRIVATE_KEY));
 
-		LOGGER.log(Level.FINE, "Comparing the user's response.");
+		LOGGER.debug("Comparing the user's response.");
 		ReCaptchaResponse reCaptchaResponse =
 			reCaptcha
 				.checkAnswer(
@@ -166,7 +162,7 @@ public class UserController extends OhmageController {
 					captchaChallenge,
 					captchaResponse);
 
-		LOGGER.log(Level.INFO, "Ensuring the response was valid.");
+		LOGGER.info("Ensuring the response was valid.");
 		if(! reCaptchaResponse.isValid()) {
 			throw
 				new InvalidArgumentException(
@@ -174,37 +170,30 @@ public class UserController extends OhmageController {
 		}
 		*/
 
-		LOGGER.log(Level.INFO, "Verifying that the root URL was given.");
+		LOGGER.info("Verifying that the root URL was given.");
 		if(rootUrl == null) {
 		    throw new IllegalStateException("The root URL was not given.");
 		}
 
-		LOGGER.log(Level.INFO, "Verifying that a user supplied a password.");
+		LOGGER.info("Verifying that a user supplied a password.");
 		if(password == null) {
 			throw new InvalidArgumentException("A password was not given.");
 		}
 
-		LOGGER
-		    .log(
-		        Level.INFO,
-		        "Verifying that the user supplied the necessary information.");
+		LOGGER.info("Verifying that the user supplied the necessary information.");
 		if(userBuilder == null) {
 		    throw
 		        new InvalidArgumentException(
 		            "The user information is missing.");
 		}
 
-		LOGGER.log(Level.INFO, "Hashing the user's password.");
+		LOGGER.info("Hashing the user's password.");
 		userBuilder.setPassword(password, true);
 
-		LOGGER
-		    .log(
-		        Level.FINE,
-		        "Determining how to validate the user's email address.");
+		LOGGER.debug("Determining how to validate the user's email address.");
 		UserInvitation invitation = null;
 		if(userInvitationId == null) {
-	        LOGGER
-	            .log(Level.INFO, "Adding the self-registration information.");
+	        LOGGER.info("Adding the self-registration information.");
     		userBuilder
     		    .setRegistration(
     		        new Registration.Builder(
@@ -213,22 +202,19 @@ public class UserController extends OhmageController {
     		        .build());
 		}
 		else {
-	        LOGGER.log(Level.INFO, "Checking the invitation ID.");
+	        LOGGER.info("Checking the invitation ID.");
 	        invitation =
 	            UserInvitationBin
 	                .getInstance()
 	                .getInvitation(userInvitationId);
 
-	        LOGGER.log(Level.INFO, "Verifying that the invitation exists.");
+	        LOGGER.info("Verifying that the invitation exists.");
 	        if(invitation == null) {
 	            throw
 	                new InvalidArgumentException("The invitation is unknown.");
 	        }
 
-	        LOGGER
-	            .log(
-	                Level.INFO,
-	                "Verifying that the invitation belongs to the same " +
+	        LOGGER.info("Verifying that the invitation belongs to the same " +
 	                    "email address.");
 	        if(! invitation.getEmail().equals(userBuilder.getEmail())) {
 	            throw
@@ -237,26 +223,20 @@ public class UserController extends OhmageController {
 	                        "address.");
 	        }
 
-	        LOGGER
-	            .log(
-	                Level.INFO,
-	                "Verifying that the invitation is still valid.");
+	        LOGGER.info("Verifying that the invitation is still valid.");
 	        if(! invitation.isValid()) {
 	            throw
 	                new InvalidArgumentException(
 	                    "The invitation is no longer valid.");
 	        }
 
-            LOGGER.log(Level.FINE, "Setting the invitation ID.");
+            LOGGER.debug("Setting the invitation ID.");
             userBuilder.setInvitationId(userInvitationId);
 
             // Get the other user invitations for this email address, get the
             // corresponding ohmlet invitations, and add those invitations to
             // the pending invitations for this user object.
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Finding other user invitations and adding their ohmlet " +
+            LOGGER.info("Finding other user invitations and adding their ohmlet " +
                         "invitations.");
             for(UserInvitation userInvitation :
                     UserInvitationBin
@@ -296,10 +276,10 @@ public class UserController extends OhmageController {
             }
 		}
 
-		LOGGER.log(Level.FINE, "Building the user.");
+		LOGGER.debug("Building the user.");
 		User validatedUser = userBuilder.build();
 
-        LOGGER.log(Level.INFO, "Storing the user.");
+        LOGGER.info("Storing the user.");
         try {
             UserBin.getInstance().addUser(validatedUser);
         }
@@ -311,7 +291,7 @@ public class UserController extends OhmageController {
         }
 
         if(invitation == null) {
-            LOGGER.log(Level.INFO, "Sending the registration email.");
+            LOGGER.info("Sending the registration email.");
             validatedUser
                 .getRegistration()
                 .sendUserRegistrationEmail(
@@ -326,7 +306,7 @@ public class UserController extends OhmageController {
                     rootUrl.substring(0, rootUrl.indexOf("/ohmage")) + UserActivationController.ROOT_MAPPING);
         }
 
-		LOGGER.log(Level.INFO, "Echoing the user back.");
+		LOGGER.info("Echoing the user back.");
 		return validatedUser;
 	}
 
@@ -364,54 +344,44 @@ public class UserController extends OhmageController {
 		@RequestBody
 			final User.Builder userBuilder) {
 
-		LOGGER.log(Level.INFO, "Creating a new user.");
+		LOGGER.info("Creating a new user.");
 
-        LOGGER.log(Level.INFO, "Verifying that a provider was given.");
+        LOGGER.info("Verifying that a provider was given.");
         if(provider == null) {
             throw new InvalidArgumentException("The provider is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying that an access token was given.");
+        LOGGER.info("Verifying that an access token was given.");
         if(accessToken == null) {
             throw new InvalidArgumentException("The access token is missing.");
         }
 
-        LOGGER
-            .log(Level.INFO, "Verifying that the user information was given.");
+        LOGGER.info("Verifying that the user information was given.");
         if(userBuilder == null) {
             throw
                 new InvalidArgumentException(
                     "The user information is missing.");
         }
 
-		LOGGER.log(Level.FINE, "Retrieving the provider implementation.");
+		LOGGER.debug("Retrieving the provider implementation.");
 		Provider providerObject = ProviderRegistry.get(provider);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Building the user's information based on the provider.");
+		LOGGER.info("Building the user's information based on the provider.");
 		ProviderUserInformation userInformation =
 			providerObject.getUserInformation(accessToken);
 
-		LOGGER
-			.log(
-				Level.FINER,
-				"Attaching the provider information to the user.");
+		LOGGER.trace("Attaching the provider information to the user.");
 		userBuilder
 			.addProvider(userInformation.getProviderId(), userInformation);
 
-		LOGGER
-			.log(
-				Level.FINER,
-				"Adding the provider-based information's email address to " +
+		LOGGER.trace("Adding the provider-based information's email address to " +
 					"the user object.");
 		userBuilder.setEmail(userInformation.getEmail());
 
-		LOGGER.log(Level.FINE, "Building the user.");
+		LOGGER.debug("Building the user.");
 		User user = userBuilder.build();
 
-		LOGGER.log(Level.INFO, "Storing the user.");
+		LOGGER.info("Storing the user.");
 		try {
 		    UserBin.getInstance().addUser(user);
 		}
@@ -422,7 +392,7 @@ public class UserController extends OhmageController {
                         "provider-based user.");
 		}
 
-		LOGGER.log(Level.INFO, "Echoing back the user object.");
+		LOGGER.info("Echoing back the user object.");
 		return user;
 	}
 
@@ -440,17 +410,14 @@ public class UserController extends OhmageController {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken) {
 
-		LOGGER.log(Level.INFO, "Requesting a list of visible users.");
+		LOGGER.info("Requesting a list of visible users.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.log(Level.FINE, "Create the result list.");
+		LOGGER.debug("Create the result list.");
 		Set<String> result = new HashSet<String>(1);
-		LOGGER
-			.log(
-				Level.INFO,
-				"If the calling user authenticated themselves, adding them " +
+		LOGGER.info("If the calling user authenticated themselves, adding them " +
 					"to the result list.");
 		result.add(user.getId());
 
@@ -477,15 +444,12 @@ public class UserController extends OhmageController {
             final AuthorizationToken authToken,
         @PathVariable(KEY_USER_ID) final String userId) {
 
-        LOGGER.log(Level.INFO, "Requesting information about a user.");
+        LOGGER.info("Requesting information about a user.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user's unique identifier was given.");
+        LOGGER.info("Verifying that the user's unique identifier was given.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -493,10 +457,7 @@ public class UserController extends OhmageController {
         }
 
         // Users are only visible to read their own data at this time.
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user is requesting information about " +
+        LOGGER.info("Verifying that the user is requesting information about " +
                     "themselves.");
         if(! user.getId().equals(userId)) {
             throw
@@ -505,7 +466,7 @@ public class UserController extends OhmageController {
         }
 
         // Pull the user object from the token.
-        LOGGER.log(Level.INFO, "Retrieving the user object.");
+        LOGGER.info("Retrieving the user object.");
         return user;
     }
 
@@ -530,15 +491,12 @@ public class UserController extends OhmageController {
             final AuthorizationToken authToken,
         @PathVariable(KEY_USER_ID) final String userId) {
 
-        LOGGER.log(Level.INFO, "Requesting information about a user.");
+        LOGGER.info("Requesting information about a user.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user's unique identifier was given.");
+        LOGGER.info("Verifying that the user's unique identifier was given.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -546,10 +504,7 @@ public class UserController extends OhmageController {
         }
 
         // Users are only visible to read their own data at this time.
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user is requesting information about " +
+        LOGGER.info("Verifying that the user is requesting information about " +
                     "themselves.");
         if(! user.getId().equals(userId)) {
             throw
@@ -557,13 +512,10 @@ public class UserController extends OhmageController {
                     "A user may only view their own information.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a user builder to use to update the fields.");
+        LOGGER.info("Creating a user builder to use to update the fields.");
         User.Builder userBuilder = new User.Builder(user);
 
-        LOGGER.log(Level.INFO, "Updating the stream references.");
+        LOGGER.info("Updating the stream references.");
         Map<String, Stream> streamLookup = new HashMap<String, Stream>();
         for(SchemaReference streamRef : user.getStreams()) {
             if(streamRef.getVersion() == null) {
@@ -602,7 +554,7 @@ public class UserController extends OhmageController {
              userBuilder.addStream(new SchemaReference(stream));
         }
 
-        LOGGER.log(Level.INFO, "Updating the survey references.");
+        LOGGER.info("Updating the survey references.");
         Map<String, Survey> surveyLookup = new HashMap<String, Survey>();
         for(SchemaReference surveyRef : user.getSurveys()) {
             if(surveyRef.getVersion() == null) {
@@ -641,7 +593,7 @@ public class UserController extends OhmageController {
              userBuilder.addSurvey(new SchemaReference(survey));
         }
 
-        LOGGER.log(Level.INFO, "Updating the ohmlet references.");
+        LOGGER.info("Updating the ohmlet references.");
         for(OhmletReference ohmletRef : user.getOhmlets()) {
 
             // Get the original ohmlet.
@@ -774,7 +726,7 @@ public class UserController extends OhmageController {
                 .addOhmlet(refBuilder.build());
         }
 
-        LOGGER.log(Level.INFO, "Returning the updated user object.");
+        LOGGER.info("Returning the updated user object.");
         return userBuilder.build();
     }
 
@@ -803,41 +755,40 @@ public class UserController extends OhmageController {
 			final String oldPassword,
 		@RequestBody final String newPassword) {
 
-		LOGGER.log(Level.INFO, "Updating a user's password.");
+		LOGGER.info("Updating a user's password.");
 
-		LOGGER.log(Level.INFO, "Verifying that a user ID was given.");
+		LOGGER.info("Verifying that a user ID was given.");
 		if(userId == null) {
 		    throw new InvalidArgumentException("The user ID is missing.");
 		}
 
-		LOGGER.log(Level.INFO, "Verifying that the old password was given.");
+		LOGGER.info("Verifying that the old password was given.");
 		if(oldPassword == null) {
 		    throw new InvalidArgumentException("The old password is missing.");
 		}
 
-		LOGGER
-			.log(Level.FINE, "Verifying that the new password is not empty.");
+		LOGGER.debug("Verifying that the new password is not empty.");
 		if((newPassword == null) || (newPassword.length() == 0)) {
 			throw new InvalidArgumentException("The new password is missing.");
 		}
 
-		LOGGER.log(Level.FINE, "Retrieving the user.");
+		LOGGER.debug("Retrieving the user.");
 		User user = UserBin.getInstance().getUser(userId);
 
-		LOGGER.log(Level.INFO, "Verifying that the user exists.");
+		LOGGER.info("Verifying that the user exists.");
 		if(user == null) {
 			throw new UnknownEntityException("The user is unknown.");
 		}
 
-		LOGGER.log(Level.INFO, "Verifying that the old password is correct.");
+		LOGGER.info("Verifying that the old password is correct.");
 		if(! user.verifyPassword(oldPassword)) {
 			throw new AuthenticationException("The password is incorrect.");
 		}
 
-		LOGGER.log(Level.INFO, "Updating the user's password.");
+		LOGGER.info("Updating the user's password.");
 		user = user.updatePassword(User.hashPassword(newPassword));
 
-		LOGGER.log(Level.INFO, "Storing the updated user.");
+		LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(user);
 
 		// Should we also invalidate all authentication tokens?
@@ -865,35 +816,26 @@ public class UserController extends OhmageController {
             final AuthorizationToken authToken,
 		@PathVariable(KEY_USER_ID) final String userId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to track a stream.");
+		LOGGER.info("Creating a request for a user to track a stream.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user's unique identifier was given.");
+        LOGGER.info("Verifying that the user's unique identifier was given.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
                     "The user's unique identifier is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is querying their own profile.");
+		LOGGER.info("Verifying that the user is querying their own profile.");
 		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only query their own accounts.");
 		}
 
-		LOGGER.log(Level.INFO, "Returning the set of stream references.");
+		LOGGER.info("Returning the set of stream references.");
 		return user.getOhmlets();
 	}
 
@@ -927,40 +869,31 @@ public class UserController extends OhmageController {
 		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to track a stream.");
+		LOGGER.info("Creating a request for a user to track a stream.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user's unique identifier was given.");
+        LOGGER.info("Verifying that the user's unique identifier was given.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
                     "The user's unique identifier is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying that an ohmlet ID was given.");
+        LOGGER.info("Verifying that an ohmlet ID was given.");
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is reading their own profile.");
+		LOGGER.info("Verifying that the user is reading their own profile.");
 		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only read their own accounts.");
 		}
 
-		LOGGER.log(Level.INFO, "Retreiving the ohmlet reference.");
+		LOGGER.info("Retreiving the ohmlet reference.");
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 		if(ohmletReference == null) {
 		    throw
@@ -970,7 +903,7 @@ public class UserController extends OhmageController {
 		                ".");
 		}
 
-		LOGGER.log(Level.INFO, "Returning the set of ohmlet references.");
+		LOGGER.info("Returning the set of ohmlet references.");
 		return ohmletReference;
 	}
 
@@ -1001,69 +934,54 @@ public class UserController extends OhmageController {
 		@PathVariable(KEY_USER_ID) final String userId,
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to disassociate a user with a ohmlet.");
+		LOGGER.info("Creating a request to disassociate a user with a ohmlet.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user's unique identifier was given.");
+        LOGGER.info("Verifying that the user's unique identifier was given.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
                     "The user's unique identifier is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying that an ohmlet ID was given.");
+        LOGGER.info("Verifying that an ohmlet ID was given.");
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
 		if(! user.getId().equals(userId)) {
 			throw
 				new InsufficientPermissionsException(
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		LOGGER.info("Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
 
-		LOGGER.log(Level.INFO, "Checking if the ohmlet exists.");
+		LOGGER.info("Checking if the ohmlet exists.");
 		if(ohmlet != null) {
-			LOGGER
-				.log(
-					Level.INFO,
-					"The " +
+			LOGGER.info("The " +
 						Ohmlet.OHMLET_SKIN +
 						" exists, so the user is being removed.");
 
-			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
+			LOGGER.info("Removing the user from the ohmlet.");
 			Ohmlet updatedOhmlet = ohmlet.removeMember(user.getId());
 
-			LOGGER.log(Level.INFO, "Removing the user from the ohmlet.");
+			LOGGER.info("Removing the user from the ohmlet.");
 			OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
 		}
 		else {
-			LOGGER.log(Level.INFO, "The ohmlet does not exist.");
+			LOGGER.info("The ohmlet does not exist.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Removing the ohmlet from the user's profile.");
+		LOGGER.info("Removing the ohmlet from the user's profile.");
 		User updatedUser = user.leaveOhmlet(ohmletId);
 
-		LOGGER.log(Level.INFO, "Storing the updated user.");
+		LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
@@ -1103,26 +1021,20 @@ public class UserController extends OhmageController {
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to ignore a stream reference " +
+		LOGGER.info("Creating a request for a user to ignore a stream reference " +
 					"in a ohmlet.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
+		LOGGER.info("Verifying that a stream reference was given.");
 		if(streamReference == null) {
 		    throw
 		        new InvalidArgumentException(
 		            "The stream reference is missing.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is reading their own profile.");
+		LOGGER.info("Verifying that the user is reading their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1134,17 +1046,13 @@ public class UserController extends OhmageController {
 					"Users may only read their own accounts.");
 		}
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Retrieving the ohmlet reference for the user.");
+		LOGGER.debug("Retrieving the ohmlet reference for the user.");
 		if(ohmletId == null) {
 		    throw new InvalidArgumentException("The ohmlet ID is missing.");
 		}
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
-		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		LOGGER.info("Checking if the user is part of the ohmlet.");
 		if(ohmletReference == null) {
 			throw
 				new InvalidArgumentException(
@@ -1153,14 +1061,14 @@ public class UserController extends OhmageController {
 						".");
 		}
 
-		LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+		LOGGER.debug("Updating the ohmlet reference.");
 		OhmletReference newOhmletReference =
 		    ohmletReference.ignoreStream(streamReference);
 
-		LOGGER.log(Level.FINE, "Updating the user.");
+		LOGGER.debug("Updating the user.");
 		User newUser = user.upsertOhmlet(newOhmletReference);
 
-		LOGGER.log(Level.INFO, "Saving the updated user object.");
+		LOGGER.info("Saving the updated user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
@@ -1201,28 +1109,22 @@ public class UserController extends OhmageController {
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference streamReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to stop ignoring a stream " +
+		LOGGER.info("Creating a request for a user to stop ignoring a stream " +
 					"reference in a " +
 					Ohmlet.OHMLET_SKIN +
 					".");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.INFO, "Verifying that a stream reference was given.");
+        LOGGER.info("Verifying that a stream reference was given.");
         if(streamReference == null) {
             throw
                 new InvalidArgumentException(
                     "The stream reference is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is reading their own profile.");
+		LOGGER.info("Verifying that the user is reading their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1234,17 +1136,13 @@ public class UserController extends OhmageController {
 					"Users may only read their own accounts.");
 		}
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Retrieving the ohmlet reference for the user.");
+		LOGGER.debug("Retrieving the ohmlet reference for the user.");
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is missing.");
         }
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
-		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		LOGGER.info("Checking if the user is part of the ohmlet.");
 		if(ohmletReference == null) {
 			throw
 				new InvalidArgumentException(
@@ -1253,14 +1151,14 @@ public class UserController extends OhmageController {
 						".");
 		}
 
-        LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+        LOGGER.debug("Updating the ohmlet reference.");
         OhmletReference newOhmletReference =
             ohmletReference.stopIgnoringStream(streamReference);
 
-        LOGGER.log(Level.FINE, "Updating the user.");
+        LOGGER.debug("Updating the user.");
         User newUser = user.upsertOhmlet(newOhmletReference);
 
-		LOGGER.log(Level.INFO, "Updating the user object.");
+		LOGGER.info("Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
@@ -1300,26 +1198,20 @@ public class UserController extends OhmageController {
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to ignore a survey reference " +
+		LOGGER.info("Creating a request for a user to ignore a survey reference " +
 					"in a ohmlet.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
+        LOGGER.info("Verifying that a survey reference was given.");
         if(surveyReference == null) {
             throw
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is reading their own profile.");
+		LOGGER.info("Verifying that the user is reading their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1331,17 +1223,13 @@ public class UserController extends OhmageController {
 					"Users may only read their own accounts.");
 		}
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Retrieving the ohmlet reference for the user.");
+		LOGGER.debug("Retrieving the ohmlet reference for the user.");
         if(ohmletId == null) {
             throw new InvalidArgumentException("The ohmlet ID is null.");
         }
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
-		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		LOGGER.info("Checking if the user is part of the ohmlet.");
 		if(ohmletReference == null) {
 			throw
 				new InvalidArgumentException(
@@ -1350,14 +1238,14 @@ public class UserController extends OhmageController {
 						".");
 		}
 
-        LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+        LOGGER.debug("Updating the ohmlet reference.");
         OhmletReference newOhmletReference =
             ohmletReference.ignoreSurvey(surveyReference);
 
-        LOGGER.log(Level.FINE, "Updating the user.");
+        LOGGER.debug("Updating the user.");
         User newUser = user.upsertOhmlet(newOhmletReference);
 
-		LOGGER.log(Level.INFO, "Updating the user object.");
+		LOGGER.info("Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
@@ -1398,26 +1286,20 @@ public class UserController extends OhmageController {
 		@PathVariable(Ohmlet.JSON_KEY_ID) final String ohmletId,
 		@RequestBody final SchemaReference surveyReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to stop ignoring a survey " +
+		LOGGER.info("Creating a request for a user to stop ignoring a survey " +
 					"reference in a ohmlet.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.INFO, "Verifying that a survey reference was given.");
+        LOGGER.info("Verifying that a survey reference was given.");
         if(surveyReference == null) {
             throw
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is reading their own profile.");
+		LOGGER.info("Verifying that the user is reading their own profile.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1429,17 +1311,13 @@ public class UserController extends OhmageController {
 					"Users may only read their own accounts.");
 		}
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Retrieving the ohmlet reference for the user.");
+		LOGGER.debug("Retrieving the ohmlet reference for the user.");
 		if(ohmletId == null) {
 		    throw new InvalidArgumentException("The ohmlet ID is null.");
 		}
 		OhmletReference ohmletReference = user.getOhmlet(ohmletId);
 
-		LOGGER
-			.log(Level.INFO, "Checking if the user is part of the ohmlet.");
+		LOGGER.info("Checking if the user is part of the ohmlet.");
 		if(ohmletReference == null) {
 			throw
 				new InvalidArgumentException(
@@ -1448,14 +1326,14 @@ public class UserController extends OhmageController {
 						".");
 		}
 
-        LOGGER.log(Level.FINE, "Updating the ohmlet reference.");
+        LOGGER.debug("Updating the ohmlet reference.");
         OhmletReference newOhmletReference =
             ohmletReference.stopIgnoringSurvey(surveyReference);
 
-        LOGGER.log(Level.FINE, "Updating the user.");
+        LOGGER.debug("Updating the user.");
         User newUser = user.upsertOhmlet(newOhmletReference);
 
-		LOGGER.log(Level.INFO, "Updating the user object.");
+		LOGGER.info("Updating the user object.");
 		UserBin.getInstance().updateUser(newUser);
 	}
 
@@ -1488,26 +1366,19 @@ public class UserController extends OhmageController {
 		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference streamReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to track a stream.");
+		LOGGER.info("Creating a request for a user to track a stream.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER
-		    .log(Level.INFO, "Verifying that the stream reference was given.");
+		LOGGER.info("Verifying that the stream reference was given.");
 		if(streamReference == null) {
 		    throw
 		        new InvalidArgumentException(
 		            "The stream reference is missing.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1519,7 +1390,7 @@ public class UserController extends OhmageController {
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER.log(Level.FINE, "Retrieving the stream.");
+		LOGGER.debug("Retrieving the stream.");
 		Stream stream;
 		if(streamReference.getVersion() == null) {
 			stream =
@@ -1537,19 +1408,16 @@ public class UserController extends OhmageController {
 						false);
 		}
 
-		LOGGER.log(Level.INFO, "Verifying that the stream exists.");
+		LOGGER.info("Verifying that the stream exists.");
 		if(stream == null) {
 			throw
 				new InvalidArgumentException("The stream does not exist.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Adding the stream to the list of streams being followed.");
+		LOGGER.info("Adding the stream to the list of streams being followed.");
 		User updatedUser = user.followStream(streamReference);
 
-		LOGGER.log(Level.INFO, "Storing the updated user.");
+		LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
@@ -1575,19 +1443,13 @@ public class UserController extends OhmageController {
             final AuthorizationToken authToken,
 		@PathVariable(KEY_USER_ID) final String userId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to view streams they are " +
+		LOGGER.info("Creating a request for a user to view streams they are " +
 					"following.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1599,7 +1461,7 @@ public class UserController extends OhmageController {
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER.log(Level.INFO, "Returning the set of stream references.");
+		LOGGER.info("Returning the set of stream references.");
 		return user.getStreams();
 	}
 
@@ -1629,26 +1491,19 @@ public class UserController extends OhmageController {
 		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference streamReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to stop tracking a stream.");
+		LOGGER.info("Creating a request for a user to stop tracking a stream.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(Level.INFO, "Verifying that the stream reference was given.");
+        LOGGER.info("Verifying that the stream reference was given.");
         if(streamReference == null) {
             throw
                 new InvalidArgumentException(
                     "The stream reference is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1660,13 +1515,10 @@ public class UserController extends OhmageController {
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Adding the stream to the list of streams being followed.");
+		LOGGER.info("Adding the stream to the list of streams being followed.");
 		User updatedUser = user.ignoreStream(streamReference);
 
-		LOGGER.log(Level.INFO, "Storing the updated user.");
+		LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
@@ -1699,26 +1551,19 @@ public class UserController extends OhmageController {
 		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference surveyReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to track a survey.");
+		LOGGER.info("Creating a request for a user to track a survey.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(Level.INFO, "Verifying that the survey reference was given.");
+        LOGGER.info("Verifying that the survey reference was given.");
         if(surveyReference == null) {
             throw
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
 		if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1730,7 +1575,7 @@ public class UserController extends OhmageController {
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER.log(Level.FINE, "Retrieving the survey.");
+		LOGGER.debug("Retrieving the survey.");
 		Survey survey;
 		if(surveyReference.getVersion() == null) {
 			survey =
@@ -1748,19 +1593,16 @@ public class UserController extends OhmageController {
 						false);
 		}
 
-		LOGGER.log(Level.INFO, "Verifying that the survey exists.");
+		LOGGER.info("Verifying that the survey exists.");
 		if(survey == null) {
 			throw
 				new InvalidArgumentException("The survey does not exist.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Adding the stream to the list of surveys being followed.");
+		LOGGER.info("Adding the stream to the list of surveys being followed.");
 		User updatedUser = user.followSurvey(surveyReference);
 
-		LOGGER.log(Level.INFO, "Storing the updated user.");
+		LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
@@ -1786,19 +1628,13 @@ public class UserController extends OhmageController {
             final AuthorizationToken authToken,
 		@PathVariable(KEY_USER_ID) final String userId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to view surveys they are " +
+		LOGGER.info("Creating a request for a user to view surveys they are " +
 					"following.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1810,7 +1646,7 @@ public class UserController extends OhmageController {
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER.log(Level.INFO, "Returning the set of survey references.");
+		LOGGER.info("Returning the set of survey references.");
 		return user.getSurveys();
 	}
 
@@ -1840,26 +1676,19 @@ public class UserController extends OhmageController {
 		@PathVariable(KEY_USER_ID) final String userId,
 		@RequestBody final SchemaReference surveyReference) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request for a user to stop tracking a survey.");
+		LOGGER.info("Creating a request for a user to stop tracking a survey.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(Level.INFO, "Verifying that the survey reference was given.");
+        LOGGER.info("Verifying that the survey reference was given.");
         if(surveyReference == null) {
             throw
                 new InvalidArgumentException(
                     "The survey reference is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the user is updating their own profile.");
+		LOGGER.info("Verifying that the user is updating their own profile.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
@@ -1871,13 +1700,10 @@ public class UserController extends OhmageController {
 					"Users may only modify their own accounts.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Adding the stream to the list of surveys being followed.");
+		LOGGER.info("Adding the stream to the list of surveys being followed.");
 		User updatedUser = user.ignoreSurvey(surveyReference);
 
-		LOGGER.log(Level.INFO, "Storing the updated user.");
+		LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 	}
 
@@ -1903,37 +1729,34 @@ public class UserController extends OhmageController {
 			required = true)
 			final String password) {
 
-		LOGGER.log(Level.INFO, "Creating a request to delete a user.");
+		LOGGER.info("Creating a request to delete a user.");
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user's unique identifier was given.");
+        LOGGER.info("Verifying that the user's unique identifier was given.");
         if(userId == null) {
             throw
                 new InvalidArgumentException(
                     "The user's unique identifier is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying that a password was given.");
+        LOGGER.info("Verifying that a password was given.");
         if(password == null) {
             throw new InvalidArgumentException("The password is missing.");
         }
 
-		LOGGER.log(Level.FINE, "Retreiving the user.");
+		LOGGER.debug("Retreiving the user.");
 		User user = UserBin.getInstance().getUser(userId);
 
-		LOGGER.log(Level.INFO, "Verifying that the user exists.");
+		LOGGER.info("Verifying that the user exists.");
 		if(user == null) {
 		    throw new InvalidArgumentException("The user is unknown.");
 		}
 
-		LOGGER.log(Level.INFO, "Verifying the user's password.");
+		LOGGER.info("Verifying the user's password.");
 		if(! user.verifyPassword(password)) {
 		    throw new AuthenticationException("The password was incorrect.");
 		}
 
-		LOGGER.log(Level.INFO, "Disabling the user's account.");
+		LOGGER.info("Disabling the user's account.");
 		UserBin.getInstance().disableUser(userId);
 	}
 
@@ -1966,35 +1789,26 @@ public class UserController extends OhmageController {
 			required = true)
 			final String accessToken) {
 
-		LOGGER.log(Level.INFO, "Deleting a user.");
+		LOGGER.info("Deleting a user.");
 
-		LOGGER.log(Level.FINE, "Verifying that a provider ID was given.");
+		LOGGER.debug("Verifying that a provider ID was given.");
 		if(providerId == null) {
 		    throw new InvalidArgumentException("The provider ID is missing.");
 		}
 
-        LOGGER.log(Level.FINE, "Verifying that an access token was given.");
+        LOGGER.debug("Verifying that an access token was given.");
         if(accessToken == null) {
             throw new InvalidArgumentException("The access token is missing.");
         }
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Retrieving the implementation for this provider.");
+		LOGGER.debug("Retrieving the implementation for this provider.");
 		Provider provider = ProviderRegistry.get(providerId);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Retrieving the user based on the access token.");
+		LOGGER.info("Retrieving the user based on the access token.");
 		ProviderUserInformation userInformation =
 			provider.getUserInformation(accessToken);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Retrieving the ohmage account linked with the " +
+		LOGGER.info("Retrieving the ohmage account linked with the " +
 					"provider-given ID.");
 		User user =
 			UserBin
@@ -2003,20 +1817,14 @@ public class UserController extends OhmageController {
 					userInformation.getProviderId(),
 					userInformation.getUserId());
 		if(user == null) {
-			LOGGER
-				.log(
-					Level.INFO,
-					"No ohmage account has linked itself with these " +
+			LOGGER.info("No ohmage account has linked itself with these " +
 						"credentials.");
 			throw
 				new InsufficientPermissionsException(
 					"The user has not yet created an ohmage account.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the requesting user is the same as the user " +
+		LOGGER.info("Verifying that the requesting user is the same as the user " +
 					"that is attempting to be deleted.");
 		if(userId == null) {
             throw
@@ -2029,7 +1837,7 @@ public class UserController extends OhmageController {
 					"No user can delete another user's account.");
 		}
 
-		LOGGER.log(Level.INFO, "Disabling the user's account.");
+		LOGGER.info("Disabling the user's account.");
 		UserBin.getInstance().disableUser(user.getId());
 	}
 }

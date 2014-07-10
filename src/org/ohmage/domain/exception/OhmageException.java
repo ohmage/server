@@ -1,6 +1,6 @@
 package org.ohmage.domain.exception;
 
-import java.util.logging.Level;
+import uk.org.lidalia.slf4jext.Level;
 
 /**
  * <p>

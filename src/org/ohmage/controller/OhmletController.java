@@ -57,8 +57,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -101,7 +101,7 @@ public class OhmletController extends OhmageController {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(OhmletController.class.getName());
+		LoggerFactory.getLogger(OhmletController.class.getName());
 
     /**
      * The mail protocol to use when sending mail.
@@ -224,18 +224,15 @@ public class OhmletController extends OhmageController {
         @RequestPart(value = KEY_ICON, required = false)
             final MultipartFile iconFile) {
 
-		LOGGER.log(Level.INFO, "Creating a ohmlet creation request.");
+		LOGGER.info("Creating a ohmlet creation request.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Setting the token's owner as the creator of this ohmlet.");
+		LOGGER.debug("Setting the token's owner as the creator of this ohmlet.");
 		ohmletBuilder.addMember(user.getId(), Ohmlet.Role.OWNER);
 
-        LOGGER.log(Level.FINE, "Checking if an icon was given.");
+        LOGGER.debug("Checking if an icon was given.");
         Media icon = null;
         // If given, verify that it was attached as well.
         if(ohmletBuilder.getIconId() != null) {
@@ -254,11 +251,11 @@ public class OhmletController extends OhmageController {
             }
         }
 
-		LOGGER.log(Level.FINE, "Building the ohmlet.");
+		LOGGER.debug("Building the ohmlet.");
 		Ohmlet ohmlet = ohmletBuilder.build();
 
 		// Validate that the streams exist.
-		LOGGER.log(Level.INFO, "Validating that the given streams exist.");
+		LOGGER.info("Validating that the given streams exist.");
 		List<SchemaReference> streams = ohmlet.getStreams();
 		for(SchemaReference stream : streams) {
 			// Get the schema ID.
@@ -266,8 +263,7 @@ public class OhmletController extends OhmageController {
 			// Get the schema version.
 			Long version = stream.getVersion();
 
-			LOGGER
-				.log(Level.INFO, "Checking if the stream is a known stream.");
+			LOGGER.info("Checking if the stream is a known stream.");
 			if(! StreamBin.getInstance().exists(id, version, false)) {
 				throw
 					new InvalidArgumentException(
@@ -282,7 +278,7 @@ public class OhmletController extends OhmageController {
 		}
 
 		// Validate that the surveys exist.
-        LOGGER.log(Level.INFO, "Validating that the given surveys exist.");
+        LOGGER.info("Validating that the given surveys exist.");
         List<SchemaReference> surveys = ohmlet.getSurveys();
         for(SchemaReference survey : surveys) {
             // Get the schema ID.
@@ -290,8 +286,7 @@ public class OhmletController extends OhmageController {
             // Get the schema version.
             Long version = survey.getVersion();
 
-            LOGGER
-                .log(Level.INFO, "Checking if the survey is a known survey.");
+            LOGGER.info("Checking if the survey is a known survey.");
             if(! SurveyBin.getInstance().exists(id, version, false)) {
                 throw
                     new InvalidArgumentException(
@@ -305,30 +300,30 @@ public class OhmletController extends OhmageController {
             }
         }
 
-		LOGGER.log(Level.INFO, "Updating the user.");
+		LOGGER.info("Updating the user.");
 		User.Builder updatedUserBuilder = new User.Builder(user);
 
-		LOGGER.log(Level.FINE, "Building the ohmlet reference.");
+		LOGGER.debug("Building the ohmlet reference.");
 		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId(), ohmlet.getName());
 
-		LOGGER.log(Level.FINE, "Adding the ohmlet reference to the user.");
+		LOGGER.debug("Adding the ohmlet reference to the user.");
 		updatedUserBuilder.addOhmlet(ohmletReference);
 
-		LOGGER.log(Level.FINE, "Building the user.");
+		LOGGER.debug("Building the user.");
 		User updatedUser = updatedUserBuilder.build();
 
         // Attempt to store the updated user first because if it fails, the subsequent inserts should not occur.
         // The most likely cause of a user update failing is if some other process updated the user as this
         // particular request was being handled.
-        LOGGER.log(Level.INFO, "Storing the updated user.");
+        LOGGER.info("Storing the updated user.");
 		UserBin.getInstance().updateUser(updatedUser);
 
         if(icon != null) {
-            LOGGER.log(Level.INFO, "Storing the icon.");
+            LOGGER.info("Storing the icon.");
             MediaBin.getInstance().addMedia(icon);
         }
 
-        LOGGER.log(Level.INFO, "Adding the ohmlet to the database.");
+        LOGGER.info("Adding the ohmlet to the database.");
         OhmletBin.getInstance().addOhmlet(ohmlet);
 
         return ohmlet;
@@ -374,27 +369,27 @@ public class OhmletController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-		LOGGER.log(Level.INFO, "Creating a ohmlet ID read request.");
+		LOGGER.info("Creating a ohmlet ID read request.");
 
-		LOGGER.log(Level.FINE, "Determining the user making the request.");
+		LOGGER.debug("Determining the user making the request.");
 		String userId = null;
 
 		if(authToken == null) {
-		    LOGGER.log(Level.INFO, "The request is being made anonymously.");
+		    LOGGER.info("The request is being made anonymously.");
 		}
 		else {
-            LOGGER.log(Level.INFO, "Validating the user from the token.");
+            LOGGER.info("Validating the user from the token.");
             userId =
                 OhmageController.validateAuthorization(authToken, null).getId();
 		}
 
-        LOGGER.log(Level.INFO, "Retrieving the ohmlets.");
+        LOGGER.info("Retrieving the ohmlets.");
         MultiValueResult<Ohmlet> ohmlets =
             OhmletBin
                 .getInstance()
                 .getOhmlets(userId, query, numToSkip, numToReturn);
 
-        LOGGER.log(Level.INFO, "Found " + ohmlets.size() + " ohmlets.");
+        LOGGER.info("Found " + ohmlets.size() + " ohmlets.");
 
         // Find all of the unique schema ID-version pairs in order to avoid retrieving the same survey or stream
         // multiple times (i.e., the Mongo n + 1 selects problem -- each ohmlet can have p surveys and q streams where
@@ -419,7 +414,7 @@ public class OhmletController extends OhmageController {
             List<SchemaReference> surveyReferences = ohmlet.getSurveys();
             List<SchemaReference> streamReferences = ohmlet.getStreams();
 
-            LOGGER.log(Level.INFO, "Found " + (surveyReferences.size() + streamReferences.size()) + " surveys and streams for ohmlet ID  " + ohmlet.getId());
+            LOGGER.info("Found " + (surveyReferences.size() + streamReferences.size()) + " surveys and streams for ohmlet ID  " + ohmlet.getId());
 
             for(SchemaReference surveyReference : surveyReferences) {
                 surveySet.add(surveyReference);
@@ -433,7 +428,7 @@ public class OhmletController extends OhmageController {
         List<Survey> surveys = new ArrayList<Survey>();
         List<Stream> streams = new ArrayList<Stream>();
 
-        LOGGER.log(Level.INFO, "Retrieving " + surveySet.size() + " survey definitions for the ohmlets.");
+        LOGGER.info("Retrieving " + surveySet.size() + " survey definitions for the ohmlets.");
 
         for(SchemaReference surveyReference : surveySet) {
             // Make sure to grab the latest version if the version is null
@@ -445,7 +440,7 @@ public class OhmletController extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.INFO, "Retrieving " + streamSet.size() + "  stream definitions for the ohmlets.");
+        LOGGER.info("Retrieving " + streamSet.size() + "  stream definitions for the ohmlets.");
 
         for(SchemaReference streamReference : streamSet) {
             // Make sure to grab the latest version if the version is null
@@ -457,9 +452,9 @@ public class OhmletController extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.INFO, "After unique-ifying Found " + (surveys.size() + streams.size()) + " surveys and streams.");
+        LOGGER.info("After unique-ifying Found " + (surveys.size() + streams.size()) + " surveys and streams.");
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -469,14 +464,14 @@ public class OhmletController extends OhmageController {
                         ohmlets,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<Ohmlet>> result =
             new ResponseEntity<MultiValueResult<Ohmlet>>(
                 ohmlets,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the stream IDs.");
+        LOGGER.info("Returning the stream IDs.");
         return result;
 	}
 
@@ -500,39 +495,29 @@ public class OhmletController extends OhmageController {
             final AuthorizationToken authToken,
 		@PathVariable(KEY_OHMLET_ID) final String ohmletId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to read a ohmlet: " + ohmletId);
+		LOGGER.info("Creating a request to read a ohmlet: " + ohmletId);
 
-        LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+        LOGGER.info("Retrieving the ohmlet.");
         Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
 
-        LOGGER.log(Level.INFO, "Ensuring the ohmlet exists.");
+        LOGGER.info("Ensuring the ohmlet exists.");
         if(ohmlet == null) {
             throw
                 new UnknownEntityException(
                     "The " + Ohmlet.OHMLET_SKIN + " is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the requesting user is allowed to query the " +
+        LOGGER.info("Verifying that the requesting user is allowed to query the " +
                     "ohmlet.");
-        LOGGER.log(Level.FINE, "Checking if the ohmlet is private.");
+        LOGGER.debug("Checking if the ohmlet is private.");
         if(Ohmlet
             .PrivacyState
             .PRIVATE
             .equals(ohmlet.getPrivacyState())) {
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The ohmlet is private. Checking credentials.");
+            LOGGER.info("The ohmlet is private. Checking credentials.");
 
-            LOGGER
-                .log(Level.INFO, "Verifying that auth information was given.");
+            LOGGER.info("Verifying that auth information was given.");
             if(authToken == null) {
                 throw
                     new AuthenticationException(
@@ -542,7 +527,7 @@ public class OhmletController extends OhmageController {
                             "given.");
             }
 
-            LOGGER.log(Level.INFO, "Verifying the user may view the ohmlet.");
+            LOGGER.info("Verifying the user may view the ohmlet.");
             if(! ohmlet.canViewOhmlet(authToken.getUserId())) {
                 throw
                     new InsufficientPermissionsException(
@@ -577,29 +562,23 @@ public class OhmletController extends OhmageController {
 		@RequestBody
 			final Ohmlet.Builder ohmletBuilder) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to update a ohmlet: " + ohmletId);
+		LOGGER.info("Creating a request to update a ohmlet: " + ohmletId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		LOGGER.info("Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
 
-		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
+		LOGGER.info("Verifying that the ohmlet exists.");
 		if(ohmlet == null) {
 			throw
 				new UnknownEntityException(
 					"The " + Ohmlet.OHMLET_SKIN + " is unknown.");
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the requesting user is allowed to modify " +
+		LOGGER.info("Verifying that the requesting user is allowed to modify " +
 					"the ohmlet.");
 		if(! ohmlet.canModifyOhmlet(user.getId())) {
 			throw
@@ -608,21 +587,18 @@ public class OhmletController extends OhmageController {
 						"update the " + Ohmlet.OHMLET_SKIN + ".");
 		}
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Creating a new builder based on the existing ohmlet.");
+		LOGGER.debug("Creating a new builder based on the existing ohmlet.");
 		Ohmlet.Builder newOhmletBuilder =
 			new Ohmlet.Builder(ohmlet);
 
-		LOGGER.log(Level.FINE, "Merging the changes into the old ohmlet.");
+		LOGGER.debug("Merging the changes into the old ohmlet.");
 		newOhmletBuilder.merge(ohmletBuilder);
 
-		LOGGER.log(Level.FINE, "Building a new ohmlet.");
+		LOGGER.debug("Building a new ohmlet.");
 		Ohmlet newOhmlet = newOhmletBuilder.build();
 
         // Validate that the streams exist.
-        LOGGER.log(Level.INFO, "Validating that the given streams exist.");
+        LOGGER.info("Validating that the given streams exist.");
         List<SchemaReference> streams = newOhmlet.getStreams();
         for(SchemaReference stream : streams) {
             // Get the schema ID.
@@ -630,8 +606,7 @@ public class OhmletController extends OhmageController {
             // Get the schema version.
             Long version = stream.getVersion();
 
-            LOGGER
-                .log(Level.INFO, "Checking if the stream is a known stream.");
+            LOGGER.info("Checking if the stream is a known stream.");
             if(! StreamBin.getInstance().exists(id, version, false)) {
                 throw
                     new InvalidArgumentException(
@@ -646,7 +621,7 @@ public class OhmletController extends OhmageController {
         }
 
         // Validate that the surveys exist.
-        LOGGER.log(Level.INFO, "Validating that the given surveys exist.");
+        LOGGER.info("Validating that the given surveys exist.");
         List<SchemaReference> surveys = newOhmlet.getSurveys();
         for(SchemaReference survey : surveys) {
             // Get the schema ID.
@@ -654,8 +629,7 @@ public class OhmletController extends OhmageController {
             // Get the schema version.
             Long version = survey.getVersion();
 
-            LOGGER
-                .log(Level.INFO, "Checking if the survey is a known survey.");
+            LOGGER.info("Checking if the survey is a known survey.");
             if(! SurveyBin.getInstance().exists(id, version, false)) {
                 throw
                     new InvalidArgumentException(
@@ -669,7 +643,7 @@ public class OhmletController extends OhmageController {
             }
         }
 
-		LOGGER.log(Level.INFO, "Storing the updated ohmlet.");
+		LOGGER.info("Storing the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(newOhmlet);
 	}
 
@@ -706,28 +680,22 @@ public class OhmletController extends OhmageController {
         @PathVariable(KEY_OHMLET_ID) final String ohmletId,
         @RequestBody final List<String> emails) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to invite users to an ohmlet: " +
+        LOGGER.info("Creating a request to invite users to an ohmlet: " +
                     ohmletId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+        LOGGER.info("Retrieving the ohmlet.");
         Ohmlet ohmlet =
             OhmletBin.getInstance().getOhmlet(ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
+        LOGGER.info("Verifying that the ohmlet exists.");
         if(ohmlet == null) {
             throw new UnknownEntityException("The ohmlet is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user is allowed to invite other users.");
+        LOGGER.info("Verifying that the user is allowed to invite other users.");
         if(ohmlet.getInviteRole().supersedes(ohmlet.getRole(user.getId()))) {
             throw
                 new InsufficientPermissionsException(
@@ -899,20 +867,17 @@ public class OhmletController extends OhmageController {
             final String ohmletInvitationId,
 		@RequestBody final Ohmlet.Member member) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to modify a user's privileges in a " +
+		LOGGER.info("Creating a request to modify a user's privileges in a " +
 					"ohmlet: " +
 					ohmletId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		LOGGER.info("Retrieving the ohmlet.");
 		Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
 
-		LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
+		LOGGER.info("Verifying that the ohmlet exists.");
 		if(ohmlet == null) {
 			throw
 				new UnknownEntityException(
@@ -921,19 +886,16 @@ public class OhmletController extends OhmageController {
 
 		OhmletInvitation invitation = null;
 		if(ohmletInvitationId != null) {
-		    LOGGER.log(Level.INFO, "Validating the ohmlet invitation ID.");
+		    LOGGER.info("Validating the ohmlet invitation ID.");
 		    invitation = user.getOhmletInvitation(ohmletInvitationId);
 
-            LOGGER.log(Level.INFO, "Verifying that the invitation exists.");
+            LOGGER.info("Verifying that the invitation exists.");
             if(invitation == null) {
                 throw
                     new InvalidArgumentException("The invitation is unknown.");
             }
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that the invitation belongs to this ohmlet.");
+            LOGGER.info("Verifying that the invitation belongs to this ohmlet.");
             if(! invitation.getOhmletId().equals(ohmletId)) {
                 throw
                     new InvalidArgumentException(
@@ -941,10 +903,7 @@ public class OhmletController extends OhmageController {
                             "address.");
             }
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that the invitation is still valid.");
+            LOGGER.info("Verifying that the invitation is still valid.");
             if(! invitation.isValid()) {
                 throw
                     new InvalidArgumentException(
@@ -952,15 +911,12 @@ public class OhmletController extends OhmageController {
             }
 		}
 
-		LOGGER.log(Level.FINE, "Retrieving the requesting user's role.");
+		LOGGER.debug("Retrieving the requesting user's role.");
 		Ohmlet.Role requesterRole = ohmlet.getRole(user.getId());
 
-		LOGGER.log(Level.INFO, "Validating the request.");
+		LOGGER.info("Validating the request.");
 		if(user.getId().equals(member.getMemberId())) {
-			LOGGER
-				.log(
-					Level.FINE,
-					"The user is attempting to update their own role.");
+			LOGGER.debug("The user is attempting to update their own role.");
 			switch(member.getRole()) {
 			case REQUESTED:
 				if(requesterRole != null) {
@@ -1033,12 +989,9 @@ public class OhmletController extends OhmageController {
 			}
 		}
 		else {
-			LOGGER
-				.log(
-					Level.FINE,
-					"A user is attempting to modify another user's role.");
+			LOGGER.debug("A user is attempting to modify another user's role.");
 
-			LOGGER.log(Level.INFO, "Verifying that the other user exists.");
+			LOGGER.info("Verifying that the other user exists.");
 			if(UserBin.getInstance().getUser(member.getMemberId()) == null) {
 				throw
 					new InvalidArgumentException(
@@ -1046,10 +999,7 @@ public class OhmletController extends OhmageController {
 							member.getMemberId());
 			}
 
-			LOGGER
-				.log(
-					Level.FINE,
-					"Retreving the requestee's role in the ohmlet.");
+			LOGGER.debug("Retreving the requestee's role in the ohmlet.");
 			Ohmlet.Role requesteeRole =
 				ohmlet.getRole(member.getMemberId());
 
@@ -1098,43 +1048,31 @@ public class OhmletController extends OhmageController {
 			}
 		}
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Updating the ohmlet to reflect the role change.");
+		LOGGER.info("Updating the ohmlet to reflect the role change.");
 		Ohmlet updatedOhmlet =
 			(new Ohmlet.Builder(ohmlet))
 				.addMember(member.getMemberId(), member.getRole())
 				.build();
 
-		LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
+		LOGGER.info("Saving the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
 
 		User.Builder userBuilder = null;
 		if(invitation != null) {
-            LOGGER.log(Level.INFO, "Invalidating the invitation.");
+            LOGGER.info("Invalidating the invitation.");
             OhmletInvitation expiredInvitation =
                 (new OhmletInvitation.Builder(invitation))
                     .setUsedTimestamp(System.currentTimeMillis())
                     .build();
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Updating the user with the expired invitation.");
+            LOGGER.info("Updating the user with the expired invitation.");
             userBuilder = new User.Builder(user);
             userBuilder.addOhlmetInvitation(expiredInvitation);
         }
 
-		LOGGER
-		    .log(
-		        Level.FINE,
-		        "Checking if the user's account already tracks this ohmlet.");
+		LOGGER.debug("Checking if the user's account already tracks this ohmlet.");
 		if(user.getOhmlet(ohmletId) == null) {
-		    LOGGER
-		        .log(
-		            Level.INFO,
-		            "Updating the user to be part of the new ohmlet.");
+		    LOGGER.info("Updating the user to be part of the new ohmlet.");
 		    if(userBuilder == null) {
 		        userBuilder = new User.Builder(user);
 		    }
@@ -1142,7 +1080,7 @@ public class OhmletController extends OhmageController {
 		}
 
 		if(userBuilder != null) {
-            LOGGER.log(Level.INFO, "Storing the updated user.");
+            LOGGER.info("Storing the updated user.");
             UserBin.getInstance().updateUser(userBuilder.build());
 		}
 	}
@@ -1172,54 +1110,42 @@ public class OhmletController extends OhmageController {
         @PathVariable(KEY_OHMLET_ID) final String ohmletId,
         @PathVariable(User.JSON_KEY_ID) final String userId) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to remove a user from an ohmlet: " +
+        LOGGER.info("Creating a request to remove a user from an ohmlet: " +
                     ohmletId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User requester = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.FINE, "Setting the requestee.");
+        LOGGER.debug("Setting the requestee.");
         User requestee = requester;
         if(! requester.getId().equals(userId)) {
-            LOGGER.log(Level.INFO, "Retrieving the requestee.");
+            LOGGER.info("Retrieving the requestee.");
             requestee = UserBin.getInstance().getUser(userId);
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+        LOGGER.info("Retrieving the ohmlet.");
         Ohmlet ohmlet = OhmletBin.getInstance().getOhmlet(ohmletId);
 
-        LOGGER.log(Level.INFO, "Verifying that the ohmlet exists.");
+        LOGGER.info("Verifying that the ohmlet exists.");
         if(ohmlet == null) {
             throw
                 new UnknownEntityException(
                     "The " + Ohmlet.OHMLET_SKIN + " is unknown.");
         }
 
-        LOGGER.log(Level.FINE, "Retrieving the requesting user's role.");
+        LOGGER.debug("Retrieving the requesting user's role.");
         Ohmlet.Role requesterRole = ohmlet.getRole(requester.getId());
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Checking if the user is removing someone else or " +
+        LOGGER.debug("Checking if the user is removing someone else or " +
                     "themselves from the ohmlet.");
         if(requester != requestee) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The user is attempting to remove a different user from " +
+            LOGGER.info("The user is attempting to remove a different user from " +
                         "the ohmlet.");
 
-            LOGGER.log(Level.FINE, "Retrieving the requestee user's role.");
+            LOGGER.debug("Retrieving the requestee user's role.");
             Ohmlet.Role requesteeRole = ohmlet.getRole(userId);
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that the user is allowed to remove the other " +
+            LOGGER.info("Verifying that the user is allowed to remove the other " +
                         "user.");
             if(ohmlet.getInviteRole().supersedes(requesterRole)) {
                 throw
@@ -1235,20 +1161,14 @@ public class OhmletController extends OhmageController {
             }
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Updating the ohmlet to reflect the role change.");
+        LOGGER.info("Updating the ohmlet to reflect the role change.");
         Ohmlet updatedOhmlet =
             (new Ohmlet.Builder(ohmlet)).removeMember(userId).build();
 
-        LOGGER.log(Level.INFO, "Saving the updated ohmlet.");
+        LOGGER.info("Saving the updated ohmlet.");
         OhmletBin.getInstance().updateOhmlet(updatedOhmlet);
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Removing the reference to the ohmlet from the user's " +
+        LOGGER.debug("Removing the reference to the ohmlet from the user's " +
                     "account.");
         User updatedRequestee = requestee.leaveOhmlet(ohmletId);
         UserBin.getInstance().updateUser(updatedRequestee);
@@ -1272,22 +1192,16 @@ public class OhmletController extends OhmageController {
             final AuthorizationToken authToken,
 		@PathVariable(KEY_OHMLET_ID) final String ohmletId) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating a request to delete a ohmlet: " + ohmletId);
+		LOGGER.info("Creating a request to delete a ohmlet: " + ohmletId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.log(Level.INFO, "Retrieving the ohmlet.");
+		LOGGER.info("Retrieving the ohmlet.");
 		Ohmlet ohmlet =
 			OhmletBin.getInstance().getOhmlet(ohmletId);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Verifying that the requesting user can delete the " +
+		LOGGER.info("Verifying that the requesting user can delete the " +
 					"ohmlet.");
 		if(! ohmlet.hasRole(user.getId(), Ohmlet.Role.OWNER)) {
 			throw
@@ -1297,7 +1211,7 @@ public class OhmletController extends OhmageController {
 						Ohmlet.OHMLET_SKIN + ".");
 		}
 
-		LOGGER.log(Level.INFO, "Deleting the ohmlet.");
+		LOGGER.info("Deleting the ohmlet.");
 		OhmletBin.getInstance().deleteOhmlet(ohmletId);
 	}
 
@@ -1433,10 +1347,7 @@ public class OhmletController extends OhmageController {
                 transport.close();
             }
             catch(MessagingException e) {
-                LOGGER
-                    .log(
-                        Level.WARNING,
-                        "After sending the message there was an error " +
+                LOGGER.warn("After sending the message there was an error " +
                             "closing the connection.",
                             e);
             }

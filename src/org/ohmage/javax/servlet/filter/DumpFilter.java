@@ -3,8 +3,10 @@ package org.ohmage.javax.servlet.filter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -30,7 +32,7 @@ public class DumpFilter implements Filter {
      * The logger to use to dump the information.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(DumpFilter.class.toString());
+        LoggerFactory.getLogger(DumpFilter.class.toString());
 
     /*
      * (non-Javadoc)
@@ -61,7 +63,7 @@ public class DumpFilter implements Filter {
             out.write(buffer, 0, numRead);
         }
 
-        LOGGER.log(Level.INFO, "Contents: " + out.toString());
+        LOGGER.info("Contents: " + out.toString());
 
         filterChain.doFilter(request, response);
     }

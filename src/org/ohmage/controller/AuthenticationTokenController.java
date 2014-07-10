@@ -1,7 +1,9 @@
 package org.ohmage.controller;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -64,7 +66,7 @@ public class AuthenticationTokenController extends OhmageController {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(AuthenticationTokenController.class.getName());
+		LoggerFactory.getLogger(AuthenticationTokenController.class.getName());
 
 	/**
 	 * <p>
@@ -137,32 +139,23 @@ public class AuthenticationTokenController extends OhmageController {
 		@RequestParam(value = PARAMETER_PASSWORD, required = true)
 			final String password) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating an authentication token from an email address and " +
+		LOGGER.info("Creating an authentication token from an email address and " +
 					"password.");
 
 		// Create a universal response to make it less obvious as to why we are
 		// rejecting the request.
 		final String errorResponse = "Unknown user or incorrect password.";
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Retrieveing the user based on the email address: " + email);
+		LOGGER.info("Retrieveing the user based on the email address: " + email);
 		User user = UserBin.getInstance().getUserFromEmail(email);
 		if(user == null) {
-			LOGGER.log(Level.INFO, "The user is unknown: " + email);
+			LOGGER.info("The user is unknown: " + email);
 			throw new AuthenticationException(errorResponse);
 		}
 
-		LOGGER.log(Level.INFO, "Validating the user's password.");
+		LOGGER.info("Validating the user's password.");
 		if(user.getPassword() == null) {
-			LOGGER
-				.log(
-					Level.INFO,
-					"The user's account does not have a password.");
+			LOGGER.info("The user's account does not have a password.");
 			throw
 				new AuthenticationException(
 					"The account uses a provider's access token for " +
@@ -172,23 +165,23 @@ public class AuthenticationTokenController extends OhmageController {
 		    (user.getRegistration() != null) &&
 		    (user.getRegistration().getActivationTimestamp() == null)) {
 
-		    LOGGER.log(Level.INFO, "The account was never activated.");
+		    LOGGER.info("The account was never activated.");
 		    throw
 		        new AccountNotSetupException(
 		            "The accout has not yet been activated.");
 		}
 		else if(! user.verifyPassword(password)) {
-			LOGGER.log(Level.INFO, "The given password is incorrect.");
+			LOGGER.info("The given password is incorrect.");
 			throw new AuthenticationException(errorResponse);
 		}
 
-		LOGGER.log(Level.INFO, "Creating a new authentication token.");
+		LOGGER.info("Creating a new authentication token.");
 		AuthorizationToken token = new AuthorizationToken(user);
 
-		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
+		LOGGER.info("Adding the authentication token to the bin.");
 		AuthorizationTokenBin.getInstance().addToken(token);
 
-		LOGGER.log(Level.INFO, "Returning the token to the user.");
+		LOGGER.info("Returning the token to the user.");
 		return token;
 	}
 
@@ -215,27 +208,17 @@ public class AuthenticationTokenController extends OhmageController {
 		@RequestParam(value = PARAMETER_ACCESS_TOKEN, required = true)
 			final String accessToken) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating an authentication token from a provider's access " +
+		LOGGER.info("Creating an authentication token from a provider's access " +
 					"token.");
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Retrieving the implementation for this provider.");
+		LOGGER.debug("Retrieving the implementation for this provider.");
 		Provider provider = ProviderRegistry.get(providerId);
 
-		LOGGER
-			.log(Level.INFO, "Retrieving the user based on the access token.");
+		LOGGER.info("Retrieving the user based on the access token.");
 		ProviderUserInformation newUserInformation =
 			provider.getUserInformation(accessToken);
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Retrieving the ohmage account linked with the " +
+		LOGGER.info("Retrieving the ohmage account linked with the " +
 					"provider-given ID.");
 		User user =
 			UserBin
@@ -244,36 +227,24 @@ public class AuthenticationTokenController extends OhmageController {
 					newUserInformation.getProviderId(),
 					newUserInformation.getUserId());
 		if(user == null) {
-			LOGGER
-				.log(
-					Level.INFO,
-					"The user has not yet linked this provider's " +
+			LOGGER.info("The user has not yet linked this provider's " +
 						"information to their ohmage account.");
 			throw
 				new AccountNotSetupException(
 					"The user has not yet created an ohmage account.");
 		}
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Pulling out the saved information from the provider.");
+		LOGGER.debug("Pulling out the saved information from the provider.");
 		ProviderUserInformation savedUserInformation =
 			user.getProvider(newUserInformation.getProviderId());
 
-		LOGGER
-			.log(
-				Level.FINE,
-				"Determining if the user's information has been updated.");
+		LOGGER.debug("Determining if the user's information has been updated.");
 
 		if(! newUserInformation.equals(savedUserInformation)) {
-			LOGGER.log(Level.INFO, "Updating the user's information.");
+			LOGGER.info("Updating the user's information.");
 			user = user.updateProvider(newUserInformation);
 
-			LOGGER
-				.log(
-					Level.INFO,
-					"Updating the user with the new information from the " +
+			LOGGER.info("Updating the user with the new information from the " +
 						"provider.");
 
             // TODO if this fails then what?
@@ -281,13 +252,13 @@ public class AuthenticationTokenController extends OhmageController {
 			UserBin.getInstance().updateUser(user);
 		}
 
-		LOGGER.log(Level.INFO, "Creating a new authentication token.");
+		LOGGER.info("Creating a new authentication token.");
 		AuthorizationToken token = new AuthorizationToken(user);
 
-		LOGGER.log(Level.INFO, "Adding the authentication token to the bin.");
+		LOGGER.info("Adding the authentication token to the bin.");
 		AuthorizationTokenBin.getInstance().addToken(token);
 
-		LOGGER.log(Level.INFO, "Returning the token to the user.");
+		LOGGER.info("Returning the token to the user.");
 		return token;
 	}
 
@@ -309,15 +280,9 @@ public class AuthenticationTokenController extends OhmageController {
 		@RequestParam(value = PARAMETER_REFRESH_TOKEN, required = true)
 			final String refreshToken) {
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Creating an authentication token from a refresh token.");
+		LOGGER.info("Creating an authentication token from a refresh token.");
 
-		LOGGER
-			.log(
-				Level.INFO,
-				"Retrieving the authentication token based on the refresh " +
+		LOGGER.info("Retrieving the authentication token based on the refresh " +
 					"token.");
 
 		AuthorizationToken oldToken =
@@ -325,40 +290,39 @@ public class AuthenticationTokenController extends OhmageController {
 				.getInstance()
 				.getTokenFromRefreshToken(refreshToken);
 
-		LOGGER.log(Level.FINE, "Ensuring that the refresh token is valid.");
+		LOGGER.debug("Ensuring that the refresh token is valid.");
 		if(oldToken == null) {
 			throw
 				new AuthenticationException(
 					"The given refresh token is unknown.");
 		}
 
-		LOGGER
-		    .log(Level.INFO, "Checking if this token was granted via OAuth.");
+		LOGGER.info("Checking if this token was granted via OAuth.");
 		if(oldToken.getAuthorizationCode() != null) {
 		    throw
 		        new InvalidArgumentException(
 		            "This API may not be used to refresh OAuth-based tokens.");
 		}
 
-		LOGGER.log(Level.FINER, "Checking if the token was invalidated.");
+		LOGGER.trace("Checking if the token was invalidated.");
 		if(oldToken.wasInvalidated()) {
 			throw
 				new AuthenticationException(
 					"This token has been invalidated.");
 		}
 
-		LOGGER.log(Level.FINER, "Checking if the token was refreshed.");
+		LOGGER.trace("Checking if the token was refreshed.");
 		AuthorizationToken token;
 		if(oldToken.wasRefreshed()) {
-		    LOGGER.log(Level.INFO, "The token has already been refreshed.");
+		    LOGGER.info("The token has already been refreshed.");
 
-		    LOGGER.log(Level.INFO, "Retrieving the next token in the chain.");
+		    LOGGER.info("Retrieving the next token in the chain.");
 		    token =
 		        AuthorizationTokenBin
 		            .getInstance()
 		            .getTokenFromAccessToken(oldToken.getNextToken());
 
-		    LOGGER.log(Level.FINE, "Verifying the next token was retrieved.");
+		    LOGGER.debug("Verifying the next token was retrieved.");
 		    if(token == null) {
 		        throw
 		            new IllegalStateException(
@@ -369,10 +333,7 @@ public class AuthenticationTokenController extends OhmageController {
 		                    "' which is unknown.");
 		    }
 
-		    LOGGER
-		        .log(
-		            Level.INFO,
-		            "Checking if the next token had already been refreshed.");
+		    LOGGER.info("Checking if the next token had already been refreshed.");
 		    if(token.wasRefreshed()) {
     			throw
     				new AuthenticationException(
@@ -380,28 +341,25 @@ public class AuthenticationTokenController extends OhmageController {
 		    }
 		}
 		else {
-    		LOGGER.log(Level.INFO, "Creating a new authentication token.");
+    		LOGGER.info("Creating a new authentication token.");
     		token = new AuthorizationToken(oldToken);
 
-    		LOGGER
-    		    .log(
-    		        Level.INFO,
-    		        "Adding the authentication token to the bin.");
+    		LOGGER.info("Adding the authentication token to the bin.");
     		AuthorizationTokenBin.getInstance().addToken(token);
 
-            LOGGER.log(Level.INFO, "Invalidating the old token.");
+            LOGGER.info("Invalidating the old token.");
             AuthorizationToken invalidatedOldToken =
                 (new AuthorizationToken.Builder(oldToken))
                     .setNextToken(token.getAccessToken())
                     .build();
 
-            LOGGER.log(Level.INFO, "Updating the invalidated old token.");
+            LOGGER.info("Updating the invalidated old token.");
             AuthorizationTokenBin
                 .getInstance()
                 .updateToken(invalidatedOldToken);
 		}
 
-		LOGGER.log(Level.INFO, "Returning the token to the user.");
+		LOGGER.info("Returning the token to the user.");
 		return token;
 	}
 
@@ -422,21 +380,21 @@ public class AuthenticationTokenController extends OhmageController {
             final AuthorizationToken authToken)
 		throws IllegalArgumentException {
 
-	    LOGGER.log(Level.INFO, "Creating a request to invalidate a token.");
+	    LOGGER.info("Creating a request to invalidate a token.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        LOGGER.info("Verifying that auth information was given.");
         if(authToken == null) {
             throw
                 new AuthenticationException("No auth information was given.");
         }
 
-        LOGGER.log(Level.INFO, "Invalidating the token.");
+        LOGGER.info("Invalidating the token.");
         AuthorizationToken updatedToken =
             (new AuthorizationToken.Builder(authToken))
                 .setValid(false)
                 .build();
 
-		LOGGER.log(Level.INFO, "Updating the token.");
+		LOGGER.info("Updating the token.");
 		AuthorizationTokenBin.getInstance().updateToken(updatedToken);
 	}
 }

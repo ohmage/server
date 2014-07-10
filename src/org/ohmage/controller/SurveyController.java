@@ -8,8 +8,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.joda.time.DateTime;
 import org.ohmage.bin.MediaBin;
@@ -89,7 +89,7 @@ public class SurveyController extends OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(SurveyController.class.getName());
+        LoggerFactory.getLogger(SurveyController.class.getName());
 
     /**
      * The usage in this class is entirely static, so there is no need to
@@ -145,15 +145,15 @@ public class SurveyController extends OhmageController {
         @RequestPart(value = KEY_ICON, required = false)
             final MultipartFile iconFile) {
 
-        LOGGER.log(Level.INFO, "Creating a survey creation request.");
+        LOGGER.info("Creating a survey creation request.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.FINE, "Setting the owner of the survey.");
+        LOGGER.debug("Setting the owner of the survey.");
         surveyBuilder.setOwner(user.getId());
 
-        LOGGER.log(Level.FINE, "Checking if an icon was given.");
+        LOGGER.debug("Checking if an icon was given.");
         Media icon = null;
         // If given, verify that it was attached as well.
         if(surveyBuilder.getIconId() != null) {
@@ -172,18 +172,18 @@ public class SurveyController extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.FINE, "Building the updated survey.");
+        LOGGER.debug("Building the updated survey.");
         Survey result = surveyBuilder.build();
 
         if(icon != null) {
-            LOGGER.log(Level.INFO, "Storing the icon.");
+            LOGGER.info("Storing the icon.");
             MediaBin.getInstance().addMedia(icon);
         }
 
-        LOGGER.log(Level.INFO, "Saving the new survey.");
+        LOGGER.info("Saving the new survey.");
         SurveyBin.getInstance().addSurvey(result);
 
-        LOGGER.log(Level.INFO, "Returning the updated survey.");
+        LOGGER.info("Returning the updated survey.");
         return result;
     }
 
@@ -213,15 +213,15 @@ public class SurveyController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER.log(Level.INFO, "Creating a survey ID read request.");
+        LOGGER.info("Creating a survey ID read request.");
 
-        LOGGER.log(Level.INFO, "Retrieving the stream IDs");
+        LOGGER.info("Retrieving the stream IDs");
         MultiValueResult<Survey> ids =
             SurveyBin
                 .getInstance()
                 .getSurveys(query, false, numToSkip, numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -231,14 +231,14 @@ public class SurveyController extends OhmageController {
                         ids,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<Survey>> result =
             new ResponseEntity<MultiValueResult<Survey>>(
                 ids,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the stream IDs.");
+        LOGGER.info("Returning the stream IDs.");
         return result;
     }
 
@@ -274,28 +274,22 @@ public class SurveyController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to read the versions of a survey: " +
+        LOGGER.info("Creating a request to read the versions of a survey: " +
                     surveyId);
 
-        LOGGER.log(Level.INFO, "Validating the number to skip.");
+        LOGGER.info("Validating the number to skip.");
         if(numToSkip < 0) {
             throw
                 new InvalidArgumentException(
                     "The number to skip must be greater than or equal to 0.");
         }
-        LOGGER.log(Level.INFO, "Validating the number to return.");
+        LOGGER.info("Validating the number to return.");
         if(numToReturn <= 0) {
             throw
                 new InvalidArgumentException(
                     "The number to return must be greater than 0.");
         }
-        LOGGER
-            .log(
-                Level.INFO,
-                "Validating the upper bound of the number to return.");
+        LOGGER.info("Validating the upper bound of the number to return.");
         if(numToReturn > MAX_NUM_TO_RETURN) {
             throw
                 new InvalidArgumentException(
@@ -305,7 +299,7 @@ public class SurveyController extends OhmageController {
                         ".");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the survey versions.");
+        LOGGER.info("Retrieving the survey versions.");
         MultiValueResult<Long> versions =
             SurveyBin
                 .getInstance()
@@ -316,7 +310,7 @@ public class SurveyController extends OhmageController {
                     numToSkip,
                     numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -326,14 +320,14 @@ public class SurveyController extends OhmageController {
                         versions,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<Long>> result =
             new ResponseEntity<MultiValueResult<Long>>(
                 versions,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the survey versions.");
+        LOGGER.info("Returning the survey versions.");
         return result;
     }
 
@@ -355,27 +349,24 @@ public class SurveyController extends OhmageController {
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request for a survey definition: " +
+        LOGGER.info("Creating a request for a survey definition: " +
                     surveyId + ", " +
                     surveyVersion);
 
-        LOGGER.log(Level.INFO, "Retrieving the survey.");
+        LOGGER.info("Retrieving the survey.");
         Survey result =
             SurveyBin
                 .getInstance()
                 .getSurvey(surveyId, surveyVersion, false);
 
-        LOGGER.log(Level.FINE, "Ensuring that a survey was found.");
+        LOGGER.debug("Ensuring that a survey was found.");
         if(result == null) {
             throw
                 new UnknownEntityException(
                     "The survey ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the survey.");
+        LOGGER.info("Returning the survey.");
         return result;
     }
 
@@ -402,26 +393,20 @@ public class SurveyController extends OhmageController {
         @PathVariable(KEY_SURVEY_ID) final String surveyId,
         @RequestBody final Survey.Builder surveyBuilder) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to update a survey with a new version: " +
+        LOGGER.info("Creating a request to update a survey with a new version: " +
                     surveyId);
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.INFO, "Retrieving the latest version of the survey.");
+        LOGGER.info("Retrieving the latest version of the survey.");
         Survey latestSchema =
             SurveyBin.getInstance().getLatestSurvey(surveyId, false);
 
         // Increase survey version by 1
         surveyBuilder.setVersion(latestSchema.getVersion()+1);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the user updating the survey is the owner " +
+        LOGGER.info("Verifying that the user updating the survey is the owner " +
                     "of the original survey.");
         if(! latestSchema.getOwner().equals(user.getId())) {
             throw
@@ -429,26 +414,20 @@ public class SurveyController extends OhmageController {
                     "Only the owner of this survey may update it.");
         }
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Setting the ID of the new survey to the ID of the old " +
+        LOGGER.debug("Setting the ID of the new survey to the ID of the old " +
                     "survey.");
         surveyBuilder.setSchemaId(surveyId);
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Setting the request user as the owner of this new survey.");
+        LOGGER.debug("Setting the request user as the owner of this new survey.");
         surveyBuilder.setOwner(user.getId());
 
-        LOGGER.log(Level.FINE, "Building the updated survey.");
+        LOGGER.debug("Building the updated survey.");
         Survey result = surveyBuilder.build();
 
-        LOGGER.log(Level.INFO, "Saving the updated survey.");
+        LOGGER.info("Saving the updated survey.");
         SurveyBin.getInstance().addSurvey(result);
 
-        LOGGER.log(Level.INFO, "Returning the updated survey.");
+        LOGGER.info("Returning the updated survey.");
         return result;
     }
 
@@ -521,9 +500,9 @@ public class SurveyController extends OhmageController {
         @RequestPart(value = KEY_MEDIA, required = false)
             final List<MultipartFile> media) {
 
-        LOGGER.log(Level.INFO, "Storing some new survey data.");
+        LOGGER.info("Storing some new survey data.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -534,20 +513,20 @@ public class SurveyController extends OhmageController {
                                 surveyVersion,
                                 Scope.Permission.WRITE));
 
-        LOGGER.log(Level.INFO, "Retrieving the survey.");
+        LOGGER.info("Retrieving the survey.");
         Survey survey =
             SurveyBin
                 .getInstance()
                 .getSurvey(surveyId, surveyVersion, false);
 
-        LOGGER.log(Level.FINE, "Ensuring that a survey was found.");
+        LOGGER.debug("Ensuring that a survey was found.");
         if(survey == null) {
             throw
                 new UnknownEntityException(
                     "The survey ID-verion pair is unknown.");
         }
 
-        LOGGER.log(Level.FINE, "Building the media map.");
+        LOGGER.debug("Building the media map.");
         Map<String, Media> mediaMap = new HashMap<String, Media>();
         for(MultipartFile part : media) {
             mediaMap
@@ -556,7 +535,7 @@ public class SurveyController extends OhmageController {
                     new Media(Media.generateUuid(), part));
         }
 
-        LOGGER.log(Level.INFO, "Validating the survey responses.");
+        LOGGER.info("Validating the survey responses.");
         Map<String, SurveyResponse> surveyResponseMap =
             new HashMap<String, SurveyResponse>(surveyResponses.length);
         for(SurveyResponse.Builder surveyResponseBuilder : surveyResponses) {
@@ -574,7 +553,7 @@ public class SurveyController extends OhmageController {
         Set<String> surveyResponseIds =
             new HashSet<String>(surveyResponseMap.keySet());
 
-        LOGGER.log(Level.INFO, "Retrieving the duplicate IDs.");
+        LOGGER.info("Retrieving the duplicate IDs.");
         MultiValueResult<String> duplicateSurveyResponseIds =
             SurveyResponseBin
                 .getInstance()
@@ -583,17 +562,14 @@ public class SurveyController extends OhmageController {
                     surveyId,
                     surveyVersion,
                     surveyResponseIds);
-        LOGGER
-            .log(
-                Level.INFO,
-                "There are " +
+        LOGGER.info("There are " +
                     duplicateSurveyResponseIds.size() +
                     " duplicates.");
 
 
         // TODO -- handle the case where every response is a duplicate
 
-        LOGGER.log(Level.INFO, "Removing the duplicate survey responses.");
+        LOGGER.info("Removing the duplicate survey responses.");
         List<String> duplicateResponseMediaIds = new LinkedList<String>();
         for(String duplicateId : duplicateSurveyResponseIds) {
             SurveyResponse duplicate = surveyResponseMap.remove(duplicateId);
@@ -602,28 +578,22 @@ public class SurveyController extends OhmageController {
         List<SurveyResponse> surveyResponseList =
             new ArrayList<SurveyResponse>(surveyResponseMap.values());
 
-        LOGGER.log(Level.INFO, "Storing the media files.");
+        LOGGER.info("Storing the media files.");
         for(Media currMedia : mediaMap.values()) {
             if(! duplicateResponseMediaIds.contains(currMedia.getId())) {
                 MediaBin.getInstance().addMedia(currMedia);
             }
         }
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Adding the user's unqiue identifier to the list of " +
+        LOGGER.debug("Adding the user's unqiue identifier to the list of " +
                     "identifiers to query.");
         Set<String> userIds = new HashSet<String>();
         userIds.add(user.getId());
 
-        LOGGER.log(Level.INFO, "Storing the validated survey responses.");
+        LOGGER.info("Storing the validated survey responses.");
         SurveyResponseBin.getInstance().addSurveyResponses(surveyResponseList);
 
-        LOGGER
-            .log(
-                Level.FINER,
-                "Returning the list of saved survey responses.");
+        LOGGER.trace("Returning the list of saved survey responses.");
         return
             SurveyResponseBin
                 .getInstance()
@@ -698,9 +668,9 @@ public class SurveyController extends OhmageController {
         @ModelAttribute(OhmageController.ATTRIBUTE_REQUEST_URL_ROOT)
             final String rootUrl) {
 
-        LOGGER.log(Level.INFO, "Retrieving some survey responses.");
+        LOGGER.info("Retrieving some survey responses.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token.");
+        LOGGER.info("Validating the user from the token.");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -711,7 +681,7 @@ public class SurveyController extends OhmageController {
                                 surveyVersion,
                                 Scope.Permission.READ));
 
-        LOGGER.log(Level.FINE, "Parsing the start and end dates, if given.");
+        LOGGER.debug("Parsing the start and end dates, if given.");
         DateTime startDateObject =
             (startDate == null) ?
                 null :
@@ -721,21 +691,18 @@ public class SurveyController extends OhmageController {
                 null :
                 OHMAGE_DATE_TIME_FORMATTER.parseDateTime(endDate);
 
-        LOGGER.log(Level.INFO, "Retrieving the latest versino of the survey.");
+        LOGGER.info("Retrieving the latest versino of the survey.");
         Survey latestSurvey =
             SurveyBin.getInstance().getLatestSurvey(surveyId, false);
         if(latestSurvey == null) {
             throw new UnknownEntityException("The survey is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.FINE,
-                "Determining if the user is asking about the latest version " +
+        LOGGER.debug("Determining if the user is asking about the latest version " +
                     "of the stream.");
         boolean allowNull = latestSurvey.getVersion() == surveyVersion;
 
-        LOGGER.log(Level.INFO, "Gathering the applicable ohmlets.");
+        LOGGER.info("Gathering the applicable ohmlets.");
         Set<String> ohmletIds =
             OhmletBin
                 .getInstance()
@@ -745,31 +712,22 @@ public class SurveyController extends OhmageController {
                     surveyVersion,
                     allowNull);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Determining which users are visible to the requesting user.");
+        LOGGER.info("Determining which users are visible to the requesting user.");
         Set<String> userIds;
         if(authToken.getAuthorizationCode() == null) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The auth token was granted directly to the requesting " +
+            LOGGER.info("The auth token was granted directly to the requesting " +
                         "user; retrieving the list of user IDs that are " +
                         "visible to the requesting user.");
             userIds = OhmletBin.getInstance().getMemberIds(ohmletIds);
         }
         else {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The auth token was granted via OAuth, so only the user " +
+            LOGGER.info("The auth token was granted via OAuth, so only the user " +
                         "reference by the token may be searched.");
             userIds = new HashSet<String>();
             userIds.add(user.getId());
         }
 
-        LOGGER.log(Level.INFO, "Finding the requested data.");
+        LOGGER.info("Finding the requested data.");
         MultiValueResult<? extends SurveyResponse> data =
             SurveyResponseBin
                 .getInstance()
@@ -785,7 +743,7 @@ public class SurveyController extends OhmageController {
                     numToSkip,
                     numToReturn);
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -795,14 +753,14 @@ public class SurveyController extends OhmageController {
                         data,
                         rootUrl + ROOT_MAPPING);
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<? extends SurveyResponse>> result =
             new ResponseEntity<MultiValueResult<? extends SurveyResponse>>(
                 data,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Finding and returning the requested data.");
+        LOGGER.info("Finding and returning the requested data.");
         return result;
     }
 
@@ -841,9 +799,9 @@ public class SurveyController extends OhmageController {
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
         @PathVariable(KEY_SURVEY_RESPONSE_ID) final String pointId) {
 
-        LOGGER.log(Level.INFO, "Retrieving a specific survey data point.");
+        LOGGER.info("Retrieving a specific survey data point.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token.");
+        LOGGER.info("Validating the user from the token.");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -854,7 +812,7 @@ public class SurveyController extends OhmageController {
                                 surveyVersion,
                                 Scope.Permission.READ));
 
-        LOGGER.log(Level.INFO, "Returning the survey data.");
+        LOGGER.info("Returning the survey data.");
         return
             SurveyResponseBin
                 .getInstance()
@@ -898,9 +856,9 @@ public class SurveyController extends OhmageController {
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion,
         @PathVariable(KEY_SURVEY_RESPONSE_ID) final String pointId) {
 
-        LOGGER.log(Level.INFO, "Deleting a specific survey data point.");
+        LOGGER.info("Deleting a specific survey data point.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token.");
+        LOGGER.info("Validating the user from the token.");
         User user =
             OhmageController
                 .validateAuthorization(
@@ -911,7 +869,7 @@ public class SurveyController extends OhmageController {
                                 surveyVersion,
                                 Scope.Permission.DELETE));
 
-        LOGGER.log(Level.INFO, "Deleting the survey data.");
+        LOGGER.info("Deleting the survey data.");
         SurveyResponseBin
             .getInstance()
             .deleteSurveyResponse(

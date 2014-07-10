@@ -1,7 +1,7 @@
 package org.ohmage.controller;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.ohmage.bin.MediaBin;
 import org.ohmage.bin.SurveyResponseBin;
@@ -48,7 +48,7 @@ public class MediaController extends OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(MediaController.class.getName());
+        LoggerFactory.getLogger(MediaController.class.getName());
 
     /**
      * Retrieves the data for the requesting user.
@@ -70,30 +70,24 @@ public class MediaController extends OhmageController {
             final AuthorizationToken authToken,
         @PathVariable(KEY_MEDIA_ID) final String mediaId) {
 
-        LOGGER.log(Level.INFO, "Retrieving some media data.");
+        LOGGER.info("Retrieving some media data.");
 
-        LOGGER.log(Level.INFO, "Retrieving the requested media.");
+        LOGGER.info("Retrieving the requested media.");
         final Media mediaFile = MediaBin.getInstance().getMedia(mediaId);
         if(mediaFile == null) {
             throw new UnknownEntityException("The media file is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Checking if a survey response is associated with the media.");
+        LOGGER.info("Checking if a survey response is associated with the media.");
         SurveyResponse surveyResponse =
             SurveyResponseBin
                 .getInstance()
                 .getSurveyResponseForMedia(mediaId);
         if(surveyResponse != null) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "The media file is associated with a survey response, " +
+            LOGGER.info("The media file is associated with a survey response, " +
                         "so permissions must be checked.");
 
-            LOGGER.log(Level.INFO, "Validating the user from the token");
+            LOGGER.info("Validating the user from the token");
             User user =
                 OhmageController
                     .validateAuthorization(
@@ -104,10 +98,7 @@ public class MediaController extends OhmageController {
                                     surveyResponse.getSchemaVersion(),
                                     Scope.Permission.READ));
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that the requester has given a sufficient " +
+            LOGGER.info("Verifying that the requester has given a sufficient " +
                         "token to view the response and its corresponding " +
                         "media.");
             if(! surveyResponse.getOwner().equals(user.getId())) {
@@ -118,13 +109,13 @@ public class MediaController extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.FINE, "Building the headers.");
+        LOGGER.debug("Building the headers.");
         HttpHeaders responseHeaders = new HttpHeaders();
         responseHeaders.add("Content-Type", mediaFile.getContentType());
         responseHeaders
             .add("Content-Length", Long.toString(mediaFile.getSize()));
 
-        LOGGER.log(Level.FINE, "Returning the media as a resource.");
+        LOGGER.debug("Returning the media as a resource.");
         return
             new ResponseEntity<Resource>(
                 new InputStreamResource(mediaFile.getStream()),

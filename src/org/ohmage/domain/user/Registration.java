@@ -4,8 +4,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -59,10 +59,6 @@ public class Registration {
          *
          * @param emailAddress
          *        The user's email address.
-         *
-         * @param activationId
-         *        The unique identifier for the user to use to activate their
-         *        account.
          */
         public Builder(
             final String userId,
@@ -169,7 +165,7 @@ public class Registration {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(Registration.class.getName());
+        LoggerFactory.getLogger(Registration.class.getName());
 
     /**
      * The hashing function to use to generate the activation ID.
@@ -484,10 +480,7 @@ public class Registration {
                 transport.close();
             }
             catch(MessagingException e) {
-                LOGGER
-                    .log(
-                        Level.WARNING,
-                        "After sending the message there was an error " +
+                LOGGER.warn("After sending the message there was an error " +
                             "closing the connection.",
                             e);
             }

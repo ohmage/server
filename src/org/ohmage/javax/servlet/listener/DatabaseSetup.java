@@ -17,8 +17,8 @@ package org.ohmage.javax.servlet.listener;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -42,7 +42,7 @@ public class DatabaseSetup implements ServletContextListener {
 	 * A {@link Logger} for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(DatabaseSetup.class.getName());
+		LoggerFactory.getLogger(DatabaseSetup.class.getName());
 
 	/**
 	 * The key that denotes which BinController class to use.
@@ -68,20 +68,16 @@ public class DatabaseSetup implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(final ServletContextEvent event) {
-		LOGGER.log(Level.INFO, "Setting up the bin controller.");
+		LOGGER.info("Setting up the bin controller.");
 
 		// Get the properties.
-		LOGGER.log(Level.FINE, "Retreiving the ohmage properties.");
+		LOGGER.debug("Retreiving the ohmage properties.");
 		Properties properties = ConfigurationFileImport.getCustomProperties();
 
 		// If the database class property is missing, this is a critical error.
-		LOGGER
-			.log(Level.FINER, "Verifying that the database class is present.");
+		LOGGER.trace("Verifying that the database class is present.");
 		if(! properties.containsKey(PROPERTY_KEY_DATABASE_CLASS)) {
-			LOGGER
-				.log(
-					Level.SEVERE,
-					"The database class is missing from the properties: " +
+			LOGGER.error("The database class is missing from the properties: " +
 						PROPERTY_KEY_DATABASE_CLASS);
 			throw
 				new IllegalStateException(
@@ -92,23 +88,17 @@ public class DatabaseSetup implements ServletContextListener {
 		// Get the class string.
 		String binControllerClassString =
 			properties.getProperty(PROPERTY_KEY_DATABASE_CLASS);
-		LOGGER
-			.log(
-				Level.FINER,
-				"Retrieved the database class: " + binControllerClassString);
+		LOGGER.trace("Retrieved the database class: " + binControllerClassString);
 
 		// Create and store the bin controller.
 		try {
-			LOGGER.log(Level.FINE, "Initializing the bin controller.");
+			LOGGER.debug("Initializing the bin controller.");
 			binController =
 				(BinController) Class
 					.forName(binControllerClassString)
 					.getConstructor(Properties.class)
 					.newInstance(properties);
-			LOGGER
-				.log(
-					Level.INFO,
-					"Successfully initialized the bin controller: " +
+			LOGGER.info("Successfully initialized the bin controller: " +
 					binControllerClassString);
 		}
 		catch(
@@ -121,10 +111,7 @@ public class DatabaseSetup implements ServletContextListener {
 			InvocationTargetException
 			e) {
 
-			LOGGER
-				.log(
-					Level.SEVERE,
-					"The bin controller could not be created: " +
+			LOGGER.error("The bin controller could not be created: " +
 						binControllerClassString,
 					e);
 			throw

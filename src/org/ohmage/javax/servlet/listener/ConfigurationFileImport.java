@@ -20,8 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -61,7 +61,7 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 * The logger for this class.
 	 */
 	private static final Logger LOGGER =
-		Logger.getLogger(ConfigurationFileImport.class.getName());
+		LoggerFactory.getLogger(ConfigurationFileImport.class.getName());
 
 	/**
 	 * The custom properties.
@@ -81,41 +81,32 @@ public class ConfigurationFileImport implements ServletContextListener {
 	 */
 	@Override
 	public void contextInitialized(final ServletContextEvent event) {
-		LOGGER.log(Level.INFO, "Initializing the ohmage configuration.");
+		LOGGER.info("Initializing the ohmage configuration.");
 
 		// An empty Properties object that will first be populated with the
 		// default configuration.
 		Properties properties = new Properties();
-		LOGGER.log(Level.FINE, "Retrieving the default configuration file.");
+		LOGGER.debug("Retrieving the default configuration file.");
 		File defaultConfiguration =
 			new File(
 				event.getServletContext().getRealPath("/") +
 					CONFIG_FILE_DEFAULT);
 		try {
-			LOGGER.log(Level.FINER, "Loading the default configuration file.");
+			LOGGER.trace("Loading the default configuration file.");
 
 			properties.load(new FileReader(defaultConfiguration));
 
-			LOGGER
-				.log(
-					Level.FINER,
-					"Successfully loaded the default configuration file.");
+			LOGGER.trace("Successfully loaded the default configuration file.");
 		}
 		// The default properties file didn't exist, which is alarming.
 		catch(FileNotFoundException e) {
-			LOGGER
-				.log(
-					Level.WARNING,
-					"The default properties file is missing: " +
+			LOGGER.warn("The default properties file is missing: " +
 						defaultConfiguration.getAbsolutePath(),
 					e);
 		}
 		// There was an error reading the default properties file.
 		catch(IOException e) {
-			LOGGER
-				.log(
-					Level.WARNING,
-					"There was an error reading the default properties " +
+			LOGGER.warn("There was an error reading the default properties " +
 						"file: " +
 						defaultConfiguration.getAbsolutePath(),
 					e);
@@ -123,49 +114,37 @@ public class ConfigurationFileImport implements ServletContextListener {
 
 		// Get a handler for the properties file based on the operating system.
 		File propertiesFile;
-		LOGGER.log(Level.FINE, "Determining the OS.");
+		LOGGER.debug("Determining the OS.");
 		if(System.getProperty("os.name").contains("Windows")) {
-			LOGGER.log(Level.FINER, "The OS is Windows.");
+			LOGGER.trace("The OS is Windows.");
 			propertiesFile = new File(CONFIG_FILE_DEFAULT_WINDOWS);
 		}
 		else {
-			LOGGER.log(Level.FINER, "The OS is POSIX-compliant.");
+			LOGGER.trace("The OS is POSIX-compliant.");
 			propertiesFile = new File(CONFIG_FILE_DEFAULT_POSIX);
 		}
 
 		// Attempts to retrieve the custom configuration file and store it.
-		LOGGER
-			.log(
-				Level.FINE,
-				"Attempting to load the custom configuration file.");
+		LOGGER.debug("Attempting to load the custom configuration file.");
 		try {
 			properties.load(new FileReader(propertiesFile));
-			LOGGER
-				.log(
-					Level.INFO,
-					"Successfully loaded the custom configuration file: " +
+			LOGGER.info("Successfully loaded the custom configuration file: " +
 						propertiesFile.getAbsolutePath());
 		}
 		// The properties file didn't exist, which is fine.
 		catch(FileNotFoundException e) {
-			LOGGER
-				.log(
-					Level.INFO,
-					"The properties file does not exist: " +
+			LOGGER.info("The properties file does not exist: " +
 						propertiesFile.getAbsolutePath());
 		}
 		// There was a problem reading the properties.
 		catch(IOException e) {
-			LOGGER
-				.log(
-					Level.WARNING,
-					"There was an error reading the properties file: " +
+			LOGGER.warn("There was an error reading the properties file: " +
 						propertiesFile.getAbsolutePath(),
 					e);
 		}
 
 		// Store the properties as a sub-object to the system properties.
-		LOGGER.log(Level.INFO, "Saving the configuration settings.");
+		LOGGER.info("Saving the configuration settings.");
 		customProperties = properties;
 	}
 

@@ -59,6 +59,12 @@
         <include name="spring-tx-3.2.4.RELEASE.jar" />
         <include name="spring-web-3.2.4.RELEASE.jar" />
         <include name="spring-webmvc-3.2.4.RELEASE.jar" />
+        <include name="slf4j-api-1.7.5.jar" />
+        <include name="log4j-api-2.0-beta9.jar" />
+        <include name="log4j-core-2.0-beta9.jar" />
+        <include name="log4j-jcl-2.0-beta9.jar" />
+        <include name="log4j-slf4j-impl-2.0-beta9.jar" />
+        <include name="lidalia-slf4j-ext-1.0.0.jar" />
     </fileset>
     <path id="classpath.compile">
         <fileset refid="dependencies.compile"/>
@@ -101,7 +107,8 @@
         <include name="oltu-common-0.31.jar" />
         <include name="persistence-api-1.0.2.jar" />
         <include name="recaptcha4j-0.0.7.jar" />
-        <!-- <include name="slf4j-api-1.7.5.jar" /> -->
+        <include name="slf4j-api-1.7.5.jar" />
+        <include name="lidalia-slf4j-ext-1.0.0.jar" />
         <include name="spring-aop-3.2.4.RELEASE.jar" />
         <include name="spring-beans-3.2.4.RELEASE.jar" />
         <include name="spring-context-3.2.4.RELEASE.jar" />

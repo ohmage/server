@@ -4,8 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -127,7 +127,7 @@ public abstract class OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(OhmageController.class.getName());
+        LoggerFactory.getLogger(OhmageController.class.getName());
 
     /**
      * Retrieves the user from the authorization token. Also, if the token was
@@ -161,20 +161,17 @@ public abstract class OhmageController {
             InsufficientPermissionsException,
             IllegalStateException {
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        LOGGER.info("Verifying that auth information was given.");
         if(token == null) {
             throw
                 new AuthenticationException("No auth information was given.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Checking if this token was generated via OAuth.");
+        LOGGER.info("Checking if this token was generated via OAuth.");
         if(token.getAuthorizationCode() != null) {
-            LOGGER.log(Level.INFO, "This code was generated via OAuth.");
+            LOGGER.info("This code was generated via OAuth.");
 
-            LOGGER.log(Level.FINE, "Verifying that a scope was given.");
+            LOGGER.debug("Verifying that a scope was given.");
             if(scope == null) {
                 throw
                     new InsufficientPermissionsException(
@@ -182,17 +179,13 @@ public abstract class OhmageController {
                             "access to the requested data.");
             }
 
-            LOGGER
-                .log(Level.INFO, "Retrieving the code that backs this token.");
+            LOGGER.info("Retrieving the code that backs this token.");
             AuthorizationCode code =
                 AuthorizationCodeBin
                     .getInstance()
                     .getCode(token.getAuthorizationCode());
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that this OAuth code grants the necessary " +
+            LOGGER.info("Verifying that this OAuth code grants the necessary " +
                         "permissions.");
             Set<Scope> scopes = code.getScopes();
             boolean found = false;
@@ -211,11 +204,10 @@ public abstract class OhmageController {
             }
         }
 
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
+        LOGGER.info("Retrieving the user associated with the token.");
         User user = UserBin.getInstance().getUser(token.getUserId());
 
-        LOGGER.log(Level.INFO, "Verifying that the user still exists.");
+        LOGGER.info("Verifying that the user still exists.");
         if(user == null) {
             throw
                 new IllegalStateException(
@@ -223,7 +215,7 @@ public abstract class OhmageController {
                         "exists.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the user.");
+        LOGGER.info("Returning the user.");
         return user;
     }
 
@@ -291,10 +283,7 @@ public abstract class OhmageController {
             }
         }
         catch(UnsupportedEncodingException e) {
-            LOGGER
-                .log(
-                    Level.SEVERE,
-                    "The encoding is unknown so the parameters could not be " +
+            LOGGER.error("The encoding is unknown so the parameters could not be " +
                         "added to the previous or next headers.",
                     e);
             return result;
@@ -348,10 +337,7 @@ public abstract class OhmageController {
                             URL_ENCODING_UTF_8));
             }
             catch(UnsupportedEncodingException e) {
-                LOGGER
-                    .log(
-                        Level.SEVERE,
-                        "The encoding is unknown so the " +
+                LOGGER.error("The encoding is unknown so the " +
                             HEADER_PREVIOUS +
                             " header could not be built.",
                         e);
@@ -404,10 +390,7 @@ public abstract class OhmageController {
                             URL_ENCODING_UTF_8));
             }
             catch(UnsupportedEncodingException e) {
-                LOGGER
-                    .log(
-                        Level.SEVERE,
-                        "The encoding is unknown so the " +
+                LOGGER.error("The encoding is unknown so the " +
                             HEADER_NEXT +
                             " header could not be built.",
                         e);
@@ -506,7 +489,7 @@ public abstract class OhmageController {
             defaultValue = DEFAULT_NUM_TO_SKIP_STRING)
             final long numToSkip) {
 
-        LOGGER.log(Level.INFO, "Validating the number to skip.");
+        LOGGER.info("Validating the number to skip.");
         if(numToSkip < 0) {
             throw
                 new InvalidArgumentException(
@@ -532,16 +515,13 @@ public abstract class OhmageController {
             defaultValue = DEFAULT_NUM_TO_RETURN_STRING)
             final long numToReturn) {
 
-        LOGGER.log(Level.INFO, "Validating the number to return.");
+        LOGGER.info("Validating the number to return.");
         if(numToReturn <= 0) {
             throw
                 new InvalidArgumentException(
                     "The number to return must be greater than 0.");
         }
-        LOGGER
-            .log(
-                Level.INFO,
-                "Validating the upper bound of the number to return.");
+        LOGGER.info("Validating the upper bound of the number to return.");
         if(numToReturn > MAX_NUM_TO_RETURN) {
             throw
                 new InvalidArgumentException(

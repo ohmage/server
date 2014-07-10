@@ -6,8 +6,8 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.apache.http.client.utils.URIBuilder;
 import org.ohmage.bin.*;
@@ -89,7 +89,7 @@ public class OAuth2Controller extends OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(OAuth2Controller.class.getName());
+        LoggerFactory.getLogger(OAuth2Controller.class.getName());
 
     /**
      * <p>
@@ -152,21 +152,18 @@ public class OAuth2Controller extends OhmageController {
         @RequestParam(value = "state", required = false)
             final String state) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to get a user's authorization.");
+        LOGGER.info("Creating a request to get a user's authorization.");
 
-        LOGGER.log(Level.INFO, "Retrieving the OAuth client.");
+        LOGGER.info("Retrieving the OAuth client.");
         OAuthClient oAuthClient =
             OAuthClientBin.getInstance().getOAuthClient(clientId);
 
-        LOGGER.log(Level.INFO, "Verifying that the OAuth client exists.");
+        LOGGER.info("Verifying that the OAuth client exists.");
         if(oAuthClient == null) {
             throw new InvalidArgumentException("The OAuth client is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Validating the scopes.");
+        LOGGER.info("Validating the scopes.");
         if(scopeString == null) {
             throw new InvalidArgumentException("The scope is missing.");
         }
@@ -223,27 +220,24 @@ public class OAuth2Controller extends OhmageController {
             scopes.add(scope);
         }
 
-        LOGGER.log(Level.INFO, "Validating the redirect URI.");
+        LOGGER.info("Validating the redirect URI.");
         URI validatedRedirectUri;
         if(redirectUri == null) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Using the OAuth client's default redirect URI.");
+            LOGGER.info("Using the OAuth client's default redirect URI.");
             validatedRedirectUri = oAuthClient.getRedirectUri();
         }
         else {
-            LOGGER.log(Level.INFO, "Using the supplied redirect URI: " + redirectUri);
+            LOGGER.info("Using the supplied redirect URI: " + redirectUri);
 
             if(! isValidRedirectURIForOAuth(redirectUri)) {
                 throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
             }
 
-            LOGGER.log(Level.INFO, "Normalizing the redirect URI.");
+            LOGGER.info("Normalizing the redirect URI.");
             validatedRedirectUri = redirectUri.normalize();
         }
 
-        LOGGER.log(Level.INFO, "Generating a new authorization code.");
+        LOGGER.info("Generating a new authorization code.");
         AuthorizationCode authorizationCode =
             new AuthorizationCode(
                 oAuthClient.getId(),
@@ -251,11 +245,11 @@ public class OAuth2Controller extends OhmageController {
                 validatedRedirectUri,
                 state);
 
-        LOGGER.log(Level.INFO, "Storing the authorization code.");
+        LOGGER.info("Storing the authorization code.");
         AuthorizationCodeBin.getInstance().addCode(authorizationCode);
 
         try {
-            LOGGER.log(Level.INFO, "Building the redirect URI.");
+            LOGGER.info("Building the redirect URI.");
             URIBuilder authorizationUriBuilder =
                 new URIBuilder(
                     rootUrl +
@@ -317,11 +311,9 @@ public class OAuth2Controller extends OhmageController {
         @RequestParam(value = PARAMETER_GRANTED, required = true)
             final boolean granted) {
 
-        LOGGER.log(
-            Level.INFO,
-            "Handling a user's authorization code response.");
+        LOGGER.info("Handling a user's authorization code response.");
 
-        LOGGER.log(Level.INFO, "Verifying that auth information was given.");
+        LOGGER.info("Verifying that auth information was given.");
         if(email == null) {
             throw new AuthenticationException("No email address was given.");
         }
@@ -329,16 +321,15 @@ public class OAuth2Controller extends OhmageController {
             throw new AuthenticationException("No password was given.");
         }
 
-        LOGGER
-            .log(Level.INFO, "Retrieving the user associated with the token.");
+        LOGGER.info("Retrieving the user associated with the token.");
         User user = UserBin.getInstance().getUserFromEmail(email);
 
-        LOGGER.log(Level.INFO, "Verifying that the user exists.");
+        LOGGER.info("Verifying that the user exists.");
         if(user == null) {
             throw new AuthenticationException("The user is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying the user's password.");
+        LOGGER.info("Verifying the user's password.");
         if(! user.verifyPassword(password)) {
             throw new AuthenticationException("The password was incorrect.");
         }
@@ -382,9 +373,7 @@ public class OAuth2Controller extends OhmageController {
             @RequestParam(value = PARAMETER_GRANTED, required = true)
             final boolean granted) {
 
-        LOGGER.log(
-            Level.INFO,
-            "Handling a user's authorization code response.");
+        LOGGER.info("Handling a user's authorization code response.");
 
         User user = OhmageController.validateAuthorization(authToken, null);
 
@@ -397,43 +386,41 @@ public class OAuth2Controller extends OhmageController {
      */
     private static String authorization(String codeString, User user, boolean granted) {
 
-        LOGGER.log(Level.INFO, "Retrieving the code.");
+        LOGGER.info("Retrieving the code.");
         AuthorizationCode code =
                 AuthorizationCodeBin.getInstance().getCode(codeString);
 
-        LOGGER.log(Level.INFO, "Verifying that the code exists.");
+        LOGGER.info("Verifying that the code exists.");
         if(code == null) {
             throw new InvalidArgumentException("The code is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying that the code has not expired.");
+        LOGGER.info("Verifying that the code has not expired.");
         if(code.getExpirationTimestamp() < System.currentTimeMillis()) {
             throw new InvalidArgumentException("The code has expired.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the response.");
+        LOGGER.info("Retrieving the response.");
         AuthorizationCodeResponse response = code.getResponse();
 
-        LOGGER.log(Level.INFO, "Verifying that the code has not yet been responded to.");
+        LOGGER.info("Verifying that the code has not yet been responded to.");
 
         if(response == null) {
-            LOGGER.log(
-                Level.INFO,
-                "No response exists, so a new one is being created.");
+            LOGGER.info("No response exists, so a new one is being created.");
 
             response =
                     new AuthorizationCodeResponse(
                             user.getId(),
                             granted);
 
-            LOGGER.log(Level.INFO, "Updating the code with the response.");
+            LOGGER.info("Updating the code with the response.");
             code =
                     (new AuthorizationCode.Builder(code))
                             .setUsedTimestamp(System.currentTimeMillis())
                             .setResponse(response)
                             .build();
 
-            LOGGER.log(Level.INFO, "Storing the updated authorization code.");
+            LOGGER.info("Storing the updated authorization code.");
             AuthorizationCodeBin.getInstance().updateCode(code);
         }
         else if(! response.getUserId().equals(user.getId())) {
@@ -450,9 +437,7 @@ public class OAuth2Controller extends OhmageController {
         // Otherwise, they are simply replaying the same request, and we don't
         // care.
 
-        LOGGER.log(
-            Level.INFO,
-            "Building the specific redirect request for the user back " +
+        LOGGER.info("Building the specific redirect request for the user back " +
                     "to the origin.");
 
         URIBuilder redirectBuilder = new URIBuilder(code.getRedirectUri());
@@ -465,8 +450,7 @@ public class OAuth2Controller extends OhmageController {
                         AuthorizationCode.JSON_KEY_STATE,
                         code.getState());
 
-        LOGGER
-            .log(Level.INFO, "Redirecting the user back to the OAuth client.");
+        LOGGER.info("Redirecting the user back to the OAuth client.");
 
         try {
             return "redirect:" + redirectBuilder.build().toString();
@@ -520,69 +504,60 @@ public class OAuth2Controller extends OhmageController {
         @RequestParam(value = "redirect_uri", required = false)
             final URI redirectUri) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to handle a user's authorization " +
+        LOGGER.info("Creating a request to handle a user's authorization " +
                     "request response.");
 
-        LOGGER.log(Level.INFO, "Verifying that the OAuth client ID was given.");
+        LOGGER.info("Verifying that the OAuth client ID was given.");
         if(oAuthClientId == null) {
             throw
                 new AuthenticationException("The OAuth client ID is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the OAuth client.");
+        LOGGER.info("Retrieving the OAuth client.");
         OAuthClient oAuthClient =
             OAuthClientBin.getInstance().getOAuthClient(oAuthClientId);
 
-        LOGGER.log(Level.INFO, "Verifying the OAuth client exists.");
+        LOGGER.info("Verifying the OAuth client exists.");
         if(oAuthClient == null) {
             throw new AuthenticationException("The OAuth client is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the OAuth client secret was given.");
+        LOGGER.info("Verifying that the OAuth client secret was given.");
         if(oAuthClientSecret == null) {
             throw
                 new AuthenticationException(
                      "The OAuth client secret is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying the OAuth client's secret.");
+        LOGGER.info("Verifying the OAuth client's secret.");
         if(! oAuthClient.getSecret().equals(oAuthClientSecret)) {
             throw
                 new AuthenticationException(
                     "The OAuth client secret is incorrect.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the code.");
+        LOGGER.info("Retrieving the code.");
         AuthorizationCode code =
             AuthorizationCodeBin.getInstance().getCode(codeString);
 
-        LOGGER.log(Level.INFO, "Verifying that the code exists.");
+        LOGGER.info("Verifying that the code exists.");
         if(code == null) {
             throw new InvalidArgumentException("The code is uknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the code corresponds to this OAuth client.");
+        LOGGER.info("Verifying that the code corresponds to this OAuth client.");
         if(! code.getOAuthClientId().equals(oAuthClientId)) {
             throw
                 new InvalidArgumentException(
                     "This code belongs to a different OAuth client.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying that the code has not expired.");
+        LOGGER.info("Verifying that the code has not expired.");
         if(code.getExpirationTimestamp() < System.currentTimeMillis()) {
             throw new InvalidArgumentException("The code has expired.");
         }
 
-        LOGGER.log(Level.INFO, "Validating the redirect URI.");
+        LOGGER.info("Validating the redirect URI.");
         if(redirectUri == null) {
             if(! oAuthClient.getRedirectUri().equals(code.getRedirectUri())) {
                 throw
@@ -601,29 +576,23 @@ public class OAuth2Controller extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the code response.");
+        LOGGER.info("Retrieving the code response.");
         AuthorizationCodeResponse response = code.getResponse();
 
-        LOGGER.log(Level.INFO, "Verifying that the user has responded.");
+        LOGGER.info("Verifying that the user has responded.");
         if(response == null) {
             throw
                 new InvalidArgumentException(
                     "The user has not yet responded.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Checking if the user accepted or declined the request.");
+        LOGGER.info("Checking if the user accepted or declined the request.");
         if(! response.getGranted()) {
             throw
                 new InvalidArgumentException("The user declined the request.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Retrieving the first token that was created from this code " +
+        LOGGER.info("Retrieving the first token that was created from this code " +
                     "response.");
         AuthorizationToken token =
             AuthorizationTokenBin
@@ -631,20 +600,14 @@ public class OAuth2Controller extends OhmageController {
                 .getTokenFromAuthorizationCode(code.getCode());
 
         if(token == null) {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "No such token exists, so we are creating a new one.");
+            LOGGER.info("No such token exists, so we are creating a new one.");
             token = new AuthorizationToken(code);
 
-            LOGGER.log(Level.INFO, "Storing the newly created token.");
+            LOGGER.info("Storing the newly created token.");
             AuthorizationTokenBin.getInstance().addToken(token);
         }
         else {
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "A token was already issued for this response. Checking " +
+            LOGGER.info("A token was already issued for this response. Checking " +
                         "if it has also been refreshed.");
             if(token.wasRefreshed()) {
                 throw
@@ -654,7 +617,7 @@ public class OAuth2Controller extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.INFO, "Returning the token to the user.");
+        LOGGER.info("Returning the token to the user.");
         return token;
     }
 
@@ -694,59 +657,50 @@ public class OAuth2Controller extends OhmageController {
             final String refreshToken
         /* FIXME: Scope? */) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to handle a user's authorization " +
+        LOGGER.info("Creating a request to handle a user's authorization " +
                     "request response.");
 
-        LOGGER.log(Level.INFO, "Verifying that the OAuth client ID was given.");
+        LOGGER.info("Verifying that the OAuth client ID was given.");
         if(oAuthClientId == null) {
             throw
                 new AuthenticationException("The OAuth client ID is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the OAuth client.");
+        LOGGER.info("Retrieving the OAuth client.");
         OAuthClient oAuthClient =
             OAuthClientBin.getInstance().getOAuthClient(oAuthClientId);
 
-        LOGGER.log(Level.INFO, "Verifying the OAuth client exists.");
+        LOGGER.info("Verifying the OAuth client exists.");
         if(oAuthClient == null) {
             throw new AuthenticationException("The OAuth client is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the OAuth client secret was given.");
+        LOGGER.info("Verifying that the OAuth client secret was given.");
         if(oAuthClientSecret == null) {
             throw
                 new AuthenticationException(
                      "The OAuth client secret is missing.");
         }
 
-        LOGGER.log(Level.INFO, "Verifying the OAuth client's secret.");
+        LOGGER.info("Verifying the OAuth client's secret.");
         if(! oAuthClient.getSecret().equals(oAuthClientSecret)) {
             throw
                 new AuthenticationException(
                     "The OAuth client secret is incorrect.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the original token.");
+        LOGGER.info("Retrieving the original token.");
         AuthorizationToken originalToken =
             AuthorizationTokenBin
                 .getInstance()
                 .getTokenFromRefreshToken(refreshToken);
 
-        LOGGER.log(Level.INFO, "Verifying that this token exists.");
+        LOGGER.info("Verifying that this token exists.");
         if(originalToken == null) {
             throw new InvalidArgumentException("The token is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that this refresh token was issued via an " +
+        LOGGER.info("Verifying that this refresh token was issued via an " +
                     "authorization code.");
         if(originalToken.getAuthorizationCode() == null) {
             throw
@@ -755,42 +709,36 @@ public class OAuth2Controller extends OhmageController {
                         "flow, so it cannot be refreshed via this call.");
         }
 
-        LOGGER.log(Level.INFO, "Retrieving the code.");
+        LOGGER.info("Retrieving the code.");
         AuthorizationCode code =
             AuthorizationCodeBin
                 .getInstance()
                 .getCode(originalToken.getAuthorizationCode());
 
-        LOGGER.log(Level.INFO, "Verifying that the code exists.");
+        LOGGER.info("Verifying that the code exists.");
         if(code == null) {
             throw new IllegalStateException("The code is uknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the code corresponds to this OAuth client.");
+        LOGGER.info("Verifying that the code corresponds to this OAuth client.");
         if(! code.getOAuthClientId().equals(oAuthClientId)) {
             throw
                 new InvalidArgumentException(
                     "This code belongs to a different OAuth client.");
         }
 
-        LOGGER.log(Level.INFO, "Checking if the token has been refreshed.");
+        LOGGER.info("Checking if the token has been refreshed.");
         AuthorizationToken newToken;
         if(originalToken.wasRefreshed()) {
-            LOGGER.log(Level.INFO, "The token has been refreshed.");
+            LOGGER.info("The token has been refreshed.");
 
-            LOGGER.log(Level.INFO, "Retrieving the refreshed token.");
+            LOGGER.info("Retrieving the refreshed token.");
             newToken =
                 AuthorizationTokenBin
                     .getInstance()
                     .getTokenFromAccessToken(originalToken.getNextToken());
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifing that the refreshed token has not also been " +
+            LOGGER.info("Verifing that the refreshed token has not also been " +
                         "refreshed.");
             if(newToken.wasRefreshed()) {
                 throw
@@ -800,31 +748,28 @@ public class OAuth2Controller extends OhmageController {
             }
         }
         else {
-            LOGGER.log(Level.INFO, "The token has not been refreshed.");
+            LOGGER.info("The token has not been refreshed.");
 
-            LOGGER.log(Level.INFO, "Creating a new token.");
+            LOGGER.info("Creating a new token.");
             newToken = new AuthorizationToken(originalToken);
 
-            LOGGER.log(Level.INFO, "Storing the new token.");
+            LOGGER.info("Storing the new token.");
             AuthorizationTokenBin.getInstance().addToken(newToken);
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Updating the original token to reference this new " +
+            LOGGER.info("Updating the original token to reference this new " +
                         "token.");
             AuthorizationToken invalidatedOldToken =
                 (new AuthorizationToken.Builder(originalToken))
                     .setNextToken(newToken.getAccessToken())
                     .build();
 
-            LOGGER.log(Level.INFO, "Updating the original token.");
+            LOGGER.info("Updating the original token.");
             AuthorizationTokenBin
                 .getInstance()
                 .updateToken(invalidatedOldToken);
         }
 
-        LOGGER.log(Level.INFO, "Returning the new token.");
+        LOGGER.info("Returning the new token.");
         return newToken;
     }
 
@@ -848,12 +793,12 @@ public class OAuth2Controller extends OhmageController {
             final AuthorizationToken authToken,
         @RequestBody final OAuthClient.Builder oAuthClientBuilder) {
 
-        LOGGER.log(Level.INFO, "Creating a new OAuth client.");
+        LOGGER.info("Creating a new OAuth client.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.FINE, "Setting the owner of the OAuth client.");
+        LOGGER.debug("Setting the owner of the OAuth client.");
         oAuthClientBuilder.setOwner(user.getId());
 
         if(oAuthClientBuilder.getRedirectUri() != null) {
@@ -861,26 +806,26 @@ public class OAuth2Controller extends OhmageController {
                 throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
             }
 
-            LOGGER.log(Level.INFO, "Normalizing the redirect URI.");
+            LOGGER.info("Normalizing the redirect URI.");
             oAuthClientBuilder
                 .setRedirectUri(
                     oAuthClientBuilder.getRedirectUri().normalize());
         }
 
-        LOGGER.log(Level.FINE, "Building the OAuth client.");
+        LOGGER.debug("Building the OAuth client.");
         OAuthClient oAuthClient = oAuthClientBuilder.build();
 
-        LOGGER.log(Level.INFO, "Saving the new OAuth client.");
+        LOGGER.info("Saving the new OAuth client.");
         OAuthClientBin.getInstance().addOAuthClient(oAuthClient);
 
-        LOGGER.log(Level.INFO, "Building the headers.");
+        LOGGER.info("Building the headers.");
         HttpHeaders headers = new HttpHeaders();
 
-        LOGGER.log(Level.INFO, "Extracting the OAuth client's shared secret.");
+        LOGGER.info("Extracting the OAuth client's shared secret.");
         headers
             .add(OAuthClient.JSON_KEY_SHARED_SECRET, oAuthClient.getSecret());
 
-        LOGGER.log(Level.INFO, "Returning the OAuth client.");
+        LOGGER.info("Returning the OAuth client.");
         return
             new ResponseEntity<OAuthClient>(
                     oAuthClient,
@@ -911,22 +856,16 @@ public class OAuth2Controller extends OhmageController {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to retrieve the user-owned client IDs.");
+        LOGGER.info("Creating a request to retrieve the user-owned client IDs.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Retrieving the visible client IDs.");
+        LOGGER.info("Retrieving the visible client IDs.");
         MultiValueResult<String> clientIds =
             OAuthClientBin.getInstance().getClientIds(user.getId());
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -936,14 +875,14 @@ public class OAuth2Controller extends OhmageController {
                         clientIds,
                         rootUrl + ROOT_MAPPING + "/clients");
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<String>> result =
             new ResponseEntity<MultiValueResult<String>>(
                 clientIds,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the codes.");
+        LOGGER.info("Returning the codes.");
         return result;
     }
 
@@ -962,21 +901,18 @@ public class OAuth2Controller extends OhmageController {
     OAuthClient getClients(
         @PathVariable(OAuthClient.JSON_KEY_ID) final String clientId) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to retrieve the client's information.");
+        LOGGER.info("Creating a request to retrieve the client's information.");
 
-        LOGGER.log(Level.INFO, "Retrieving the client information.");
+        LOGGER.info("Retrieving the client information.");
         OAuthClient client =
             OAuthClientBin.getInstance().getOAuthClient(clientId);
 
-        LOGGER.log(Level.INFO, "Verifying that the client is known.");
+        LOGGER.info("Verifying that the client is known.");
         if(client == null) {
             throw new UnknownEntityException("The client is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Returning the client's information.");
+        LOGGER.info("Returning the client's information.");
         return client;
     }
 
@@ -1000,23 +936,17 @@ public class OAuth2Controller extends OhmageController {
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
             final AuthorizationToken authToken) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to retrieve the codes that a user has " +
+        LOGGER.info("Creating a request to retrieve the codes that a user has " +
                     "approved.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Retrieving the set of codes that the user has approved.");
+        LOGGER.info("Retrieving the set of codes that the user has approved.");
         MultiValueResult<String> codes =
             AuthorizationCodeBin.getInstance().getCodes(user.getId());
 
-        LOGGER.log(Level.INFO, "Building the paging headers.");
+        LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
             OhmageController
                 .buildPagingHeaders(
@@ -1026,14 +956,14 @@ public class OAuth2Controller extends OhmageController {
                         codes,
                         rootUrl + ROOT_MAPPING + "/codes");
 
-        LOGGER.log(Level.INFO, "Creating the response object.");
+        LOGGER.info("Creating the response object.");
         ResponseEntity<MultiValueResult<String>> result =
             new ResponseEntity<MultiValueResult<String>>(
                 codes,
                 headers,
                 HttpStatus.OK);
 
-        LOGGER.log(Level.INFO, "Returning the codes.");
+        LOGGER.info("Returning the codes.");
         return result;
     }
 
@@ -1059,32 +989,26 @@ public class OAuth2Controller extends OhmageController {
         @PathVariable(AuthorizationCode.JSON_KEY_AUTHORIZATION_CODE)
             final String codeString) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to retrieve the information about an " +
+        LOGGER.info("Creating a request to retrieve the information about an " +
                     "authorization code.");
 
-        LOGGER.log(Level.INFO, "Retrieving the code.");
+        LOGGER.info("Retrieving the code.");
         AuthorizationCode code =
             AuthorizationCodeBin.getInstance().getCode(codeString);
 
-        LOGGER.log(Level.INFO, "Verifying that the code exists.");
+        LOGGER.info("Verifying that the code exists.");
         if(code == null) {
             throw new UnknownEntityException("The code is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Checking if the code has been responded to.");
+        LOGGER.info("Checking if the code has been responded to.");
         if(code.getResponse() != null) {
-            LOGGER.log(Level.INFO, "The code has been responded to.");
+            LOGGER.info("The code has been responded to.");
 
-            LOGGER.log(Level.INFO, "Validating the user from the token");
+            LOGGER.info("Validating the user from the token");
             User user = OhmageController.validateAuthorization(authToken, null);
 
-            LOGGER
-                .log(
-                    Level.INFO,
-                    "Verifying that the requesting user is responder for " +
+            LOGGER.info("Verifying that the requesting user is responder for " +
                         "the code.");
 
             if(! user.getId().equals(code.getResponse().getUserId())) {
@@ -1095,7 +1019,7 @@ public class OAuth2Controller extends OhmageController {
             }
         }
 
-        LOGGER.log(Level.INFO, "Returning the code.");
+        LOGGER.info("Returning the code.");
         return code;
     }
 
@@ -1118,27 +1042,21 @@ public class OAuth2Controller extends OhmageController {
         @RequestParam(AuthorizationCode.JSON_KEY_AUTHORIZATION_CODE)
             final String codeString) {
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Creating a request to invalidate an authorization code.");
+        LOGGER.info("Creating a request to invalidate an authorization code.");
 
-        LOGGER.log(Level.INFO, "Validating the user from the token");
+        LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-        LOGGER.log(Level.INFO, "Retrieving the code.");
+        LOGGER.info("Retrieving the code.");
         AuthorizationCode code =
             AuthorizationCodeBin.getInstance().getCode(codeString);
 
-        LOGGER.log(Level.INFO, "Verifying that the code exists.");
+        LOGGER.info("Verifying that the code exists.");
         if(code == null) {
             throw new UnknownEntityException("The code is unknown.");
         }
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Verifying that the requesting user is responder for the " +
+        LOGGER.info("Verifying that the requesting user is responder for the " +
                     "code.");
         if(! user.getId().equals(code.getResponse().getUserId())) {
             throw
@@ -1146,7 +1064,7 @@ public class OAuth2Controller extends OhmageController {
                     "The requesting user is not the responder for this code.");
         }
 
-        LOGGER.log(Level.INFO, "Invalidating the code response.");
+        LOGGER.info("Invalidating the code response.");
         AuthorizationCode updatedCode =
             (new AuthorizationCode.Builder(code))
                 .setResponse(
@@ -1155,7 +1073,7 @@ public class OAuth2Controller extends OhmageController {
                         .build())
                 .build();
 
-        LOGGER.log(Level.INFO, "Storing the updated code.");
+        LOGGER.info("Storing the updated code.");
         AuthorizationCodeBin.getInstance().updateCode(updatedCode);
     }
 

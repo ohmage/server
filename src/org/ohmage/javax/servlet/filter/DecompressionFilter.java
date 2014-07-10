@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.zip.GZIPInputStream;
 
 import javax.servlet.Filter;
@@ -375,10 +375,7 @@ public class DecompressionFilter implements Filter {
                     if(CONTENT_ENCODING_GZIP
                         .equals(partHeaderPart.trim())) {
 
-                        LOGGER
-                            .log(
-                                Level.INFO,
-                                "A part was encoded using GZIP.");
+                        LOGGER.info("A part was encoded using GZIP.");
                         result = new GZIPPart(result);
                     }
                     // Otherwise, we don't understand it and cannot satisfy
@@ -410,7 +407,7 @@ public class DecompressionFilter implements Filter {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(DecompressionFilter.class.getName());
+        LoggerFactory.getLogger(DecompressionFilter.class.getName());
 
     /**
      * Does nothing.
@@ -431,7 +428,7 @@ public class DecompressionFilter implements Filter {
         final FilterChain chain)
         throws IOException, ServletException {
 
-        LOGGER.log(Level.INFO, "Executing the decompression filter.");
+        LOGGER.info("Executing the decompression filter.");
 
         // Prepare a wrapper for the request.
         ServletRequest wrappedRequest = request;
@@ -440,10 +437,7 @@ public class DecompressionFilter implements Filter {
         // use a complimentary "else if" statement and custom ServletRequest
         // wrapper.
         if(request instanceof HttpServletRequest) {
-            LOGGER
-                .log(
-                    Level.FINE,
-                    "This is a HTTP request. Checking the headers.");
+            LOGGER.debug("This is a HTTP request. Checking the headers.");
 
             // Cast the request.
             HttpServletRequest httpRequest = (HttpServletRequest) request;
@@ -465,10 +459,7 @@ public class DecompressionFilter implements Filter {
                 for(String elementPart : elements) {
                     // Check if it is GZIP.
                     if(CONTENT_ENCODING_GZIP.equals(elementPart.trim())) {
-                        LOGGER
-                            .log(
-                                Level.INFO,
-                                "The content was encoded using GZIP.");
+                        LOGGER.info("The content was encoded using GZIP.");
 
                         wrappedRequest =
                             new DecompressionAwareHttpServletRequest(

@@ -3,8 +3,10 @@ package org.ohmage.javax.servlet.filter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Enumeration;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -42,7 +44,7 @@ public class AuthFilter implements Filter {
 	 * The logger for this filter.
 	 */
 	private static final Logger LOGGER =
-	    Logger.getLogger(AuthFilter.class.getName());
+	    LoggerFactory.getLogger(AuthFilter.class.getName());
 
 	/*
 	 * (non-Javadoc)
@@ -145,7 +147,7 @@ public class AuthFilter implements Filter {
 			}
 
 			// Log that we found a valid token.
-            LOGGER.log(Level.INFO, "A valid auth token was found.");
+            LOGGER.info("A valid auth token was found.");
 		}
 		// Associate the authentication token with the request.
 		request.setAttribute(ATTRIBUTE_AUTH_TOKEN, authTokenObject);

@@ -1,7 +1,7 @@
 package org.ohmage.controller;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.ohmage.bin.UserBin;
 import org.ohmage.domain.exception.UnknownEntityException;
@@ -32,7 +32,7 @@ public class UserActivationController extends OhmageController {
      * The logger for this class.
      */
     private static final Logger LOGGER =
-        Logger.getLogger(UserActivationController.class.getName());
+        LoggerFactory.getLogger(UserActivationController.class.getName());
 
     /**
      * Activates a user's account.
@@ -47,25 +47,22 @@ public class UserActivationController extends OhmageController {
             required = true)
             final String activationId) {
 
-        LOGGER.log(Level.INFO, "Activating a new user.");
+        LOGGER.info("Activating a new user.");
 
-        LOGGER
-            .log(
-                Level.INFO,
-                "Retrieving the user based on the activation ID.");
+        LOGGER.info("Retrieving the user based on the activation ID.");
         User user =
             UserBin.getInstance().getUserFromActivationId(activationId);
 
-        LOGGER.log(Level.INFO, "Verifying that the user exists.");
+        LOGGER.info("Verifying that the user exists.");
         if(user == null) {
             throw
                 new UnknownEntityException("The activation ID is unknown.");
         }
 
-        LOGGER.log(Level.INFO, "Activating the user's account.");
+        LOGGER.info("Activating the user's account.");
         user = user.activate();
 
-        LOGGER.log(Level.INFO, "Storing the updated user.");
+        LOGGER.info("Storing the updated user.");
         UserBin.getInstance().updateUser(user);
     }
 }
