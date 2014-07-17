@@ -1,21 +1,7 @@
 package org.ohmage.controller;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.ServletContext;
-import javax.servlet.ServletContextEvent;
-
 import org.easymock.EasyMock;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.ohmage.auth.provider.Provider;
 import org.ohmage.auth.provider.ProviderRegistry;
@@ -39,8 +25,12 @@ import org.ohmage.domain.user.Registration;
 import org.ohmage.domain.user.User;
 import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 import org.powermock.api.easymock.PowerMock;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.*;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletContextEvent;
+import java.util.*;
 
 /**
  * <p>
@@ -59,6 +49,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
         User.class,
         UserBin.class
     })
+@PowerMockIgnore("javax.management.*")
 public class UserControllerTest {
     private static final String ROOT_URL = "http://localhost:8080/ohmage";
 
