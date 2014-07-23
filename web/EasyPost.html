@@ -4212,7 +4212,7 @@
              */
             var KEY_AUTHORIZATION_TOKEN = "authorization_token";
             var auth =
-                JSON.parse(sessionStorage.getItem(KEY_AUTHORIZATION_TOKEN));
+                JSON.parse(localStorage.getItem(KEY_AUTHORIZATION_TOKEN));
                 
             /**
              * Handles the user's login attempt and stores the authorization
@@ -4230,7 +4230,7 @@
                     .then(function(data) {
                         if(Object.prototype.toString.call(data) === "[object Object]") {
                             auth = data;
-                            sessionStorage
+                            localStorage
                                 .setItem(
                                     KEY_AUTHORIZATION_TOKEN, 
                                     JSON.stringify(auth));
@@ -4257,7 +4257,7 @@
                     .then(function(data) {
                         if(Object.prototype.toString.call(data) === "[object Object]") {
                             auth = data;
-                            sessionStorage
+                            localStorage
                                 .setItem(
                                     KEY_AUTHORIZATION_TOKEN, 
                                     JSON.stringify(auth));
@@ -4286,7 +4286,7 @@
                     .fail(genericFailure);
                 
                 auth = null;
-                sessionStorage.setItem(KEY_AUTHORIZATION_TOKEN, null);
+                localStorage.setItem(KEY_AUTHORIZATION_TOKEN, null);
             }
             
             /**
