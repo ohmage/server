@@ -866,29 +866,29 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Stream IDs API accordion. -->
+                                    <!-- Stream definitions API accordion. -->
                                     <div class="panel panel-default">
-                                        <!-- Stream IDs API header. -->
+                                        <!-- Stream definitions API header. -->
                                         <div class="panel-heading">
                                             <h3 class="panel-title">
                                                 <a
                                                     data-toggle="collapse" 
                                                     data-parent="#accordionStream" 
-                                                    href="#collapseStreamIds">
+                                                    href="#collapseStreamDefinitions">
                                                     
                                                     <i class="glyphicon glyphicon-plus"></i>
-                                                    Stream IDs
+                                                    Stream Definitions
                                                 </a>
                                             </h3>
                                         </div>
-                                        <!-- Stream IDs body. -->
+                                        <!-- Stream definitions body. -->
                                         <div
-                                            id="collapseStreamIds"
+                                            id="collapseStreamDefinitions"
                                             class="panel-collapse collapse">
                                             
                                             <div class="panel-body">
                                                 <form 
-                                                    id="streamIds" 
+                                                    id="streamDefinitions"
                                                     class="well">
                                                     
                                                     <!-- Param: Number to skip -->
@@ -906,7 +906,7 @@
                                                             </button>
                                                         </span>
                                                         <input 
-                                                            id="streamIdsNumToSkip" 
+                                                            id="streamDefinitionsNumToSkip"
                                                             type="number"
                                                             class="form-control" 
                                                             placeholder="Number to skip">
@@ -927,7 +927,7 @@
                                                             </button>
                                                         </span>
                                                         <input 
-                                                            id="streamIdsNumToReturn" 
+                                                            id="streamDefinitionsNumToReturn"
                                                             type="number"
                                                             class="form-control" 
                                                             placeholder="Number to return">
@@ -938,7 +938,7 @@
                                                         type="button" 
                                                         class="btn btn-success" 
                                                         value="Submit"
-                                                        onclick="getStreamIds();">
+                                                        onclick="getStreamDefinitions();">
                                                 </form>
                                             </div>
                                         </div>
@@ -1739,29 +1739,29 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Survey IDs API accordion. -->
+                                    <!-- Survey definitions API accordion. -->
                                     <div class="panel panel-default">
-                                        <!-- Survey IDs API header. -->
+                                        <!-- Survey definitions API header. -->
                                         <div class="panel-heading">
                                             <h3 class="panel-title">
                                                 <a
                                                     data-toggle="collapse" 
                                                     data-parent="#accordionSurvey" 
-                                                    href="#collapseSurveyIds">
+                                                    href="#collapseSurveyDefinitions">
                                                     
                                                     <i class="glyphicon glyphicon-plus"></i>
-                                                    Survey IDs
+                                                    Survey Definitions
                                                 </a>
                                             </h3>
                                         </div>
-                                        <!-- Survey IDs body. -->
+                                        <!-- Survey definitions body. -->
                                         <div
-                                            id="collapseSurveyIds"
+                                            id="collapseSurveyDefinitions"
                                             class="panel-collapse collapse">
                                             
                                             <div class="panel-body">
                                                 <form 
-                                                    id="surveyIds" 
+                                                    id="surveyDefinitions"
                                                     class="well">
                                                     
                                                     <!-- Param: Number to skip -->
@@ -1779,7 +1779,7 @@
                                                             </button>
                                                         </span>
                                                         <input 
-                                                            id="surveyIdsNumToSkip" 
+                                                            id="surveyDefinitionsNumToSkip"
                                                             type="number"
                                                             class="form-control" 
                                                             placeholder="Number to skip">
@@ -1800,7 +1800,7 @@
                                                             </button>
                                                         </span>
                                                         <input 
-                                                            id="surveyIdsNumToReturn" 
+                                                            id="surveyDefinitionsNumToReturn"
                                                             type="number"
                                                             class="form-control" 
                                                             placeholder="Number to return">
@@ -1811,7 +1811,7 @@
                                                         type="button" 
                                                         class="btn btn-success" 
                                                         value="Submit"
-                                                        onclick="getSurveyIds();">
+                                                        onclick="getSurveyDefinitions();">
                                                 </form>
                                             </div>
                                         </div>
@@ -2612,29 +2612,29 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- ohmlet IDs API accordion. -->
+                                    <!-- ohmlet definitions API accordion. -->
                                     <div class="panel panel-default">
-                                        <!-- ohmlet IDs API header. -->
+                                        <!-- ohmlet definitions API header. -->
                                         <div class="panel-heading">
                                             <h3 class="panel-title">
                                                 <a
                                                     data-toggle="collapse" 
                                                     data-parent="#accordionOhmlet" 
-                                                    href="#collapseOhmletIds">
+                                                    href="#collapseOhmletDefinitions">
                                                     
                                                     <i class="glyphicon glyphicon-plus"></i>
-                                                    ohmlet IDs
+                                                    ohmlet Definitions
                                                 </a>
                                             </h3>
                                         </div>
-                                        <!-- ohmlet IDs body. -->
+                                        <!-- ohmlet definitions body. -->
                                         <div
-                                            id="collapseOhmletIds"
+                                            id="collapseOhmletDefinitions"
                                             class="panel-collapse collapse">
                                             
                                             <div class="panel-body">
                                                 <form 
-                                                    id="ohmletIds" 
+                                                    id="ohmletDefinitions"
                                                     class="well">
                                                     
                                                     <!-- Button: Submit -->
@@ -2642,7 +2642,7 @@
                                                         type="button" 
                                                         class="btn btn-success" 
                                                         value="Submit"
-                                                        onclick="getOhlmetIds();">
+                                                        onclick="getOhmletDefinitions();">
                                                 </form>
                                             </div>
                                         </div>
@@ -4439,16 +4439,16 @@
             }
             
             /**
-             * Retrieves the stream IDs.
+             * Retrieves the stream definitions.
              */
-            function getStreamIds() {
+            function getStreamDefinitions() {
                 var parameters = new Object();
                 
-                var numToSkip = $("#streamIdsNumToSkip").val();
+                var numToSkip = $("#streamDefinitionsNumToSkip").val();
                 if(numToSkip !== "") {
                     parameters['num_to_skip'] = numToSkip;
                 }
-                var numToReturn = $("#streamIdsNumToReturn").val();
+                var numToReturn = $("#streamDefinitionsNumToReturn").val();
                 if(numToReturn !== "") {
                     parameters['num_to_return'] = numToReturn;
                 }
@@ -4662,16 +4662,16 @@
             }
             
             /**
-             * Retrieves the survey IDs.
+             * Retrieves the survey definitions.
              */
-            function getSurveyIds() {
+            function getSurveyDefinitions() {
                 var parameters = new Object();
                 
-                var numToSkip = $("#surveyIdsNumToSkip").val();
+                var numToSkip = $("#surveyDefinitionsNumToSkip").val();
                 if(numToSkip !== "") {
                     parameters['num_to_skip'] = numToSkip;
                 }
-                var numToReturn = $("#surveyIdsNumToReturn").val();
+                var numToReturn = $("#surveyDefinitionsNumToReturn").val();
                 if(numToReturn !== "") {
                     parameters['num_to_return'] = numToReturn;
                 }
@@ -4885,9 +4885,9 @@
             }
             
             /**
-             * Retrieves the ohmlet IDs.
+             * Retrieves the ohmlet definitions.
              */
-            function getOhlmetIds() {
+            function getOhmletDefinitions() {
                 $.get("ohmlets").done(genericSuccess).fail(genericFailure);
             }
             
