@@ -121,6 +121,7 @@
         <include name="spring-tx-3.2.4.RELEASE.jar" />
         <include name="spring-web-3.2.4.RELEASE.jar" />
         <include name="spring-webmvc-3.2.4.RELEASE.jar" />
+        <include name="guava-17.0.jar" />
     </fileset>
     
     <!-- Cleans up all of the temporary files generated during building. -->
