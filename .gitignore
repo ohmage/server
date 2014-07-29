@@ -9,3 +9,4 @@
 /web/WEB-INF/properties/system.properties
 .vagrant/
 .idea/
+.DS_Store
