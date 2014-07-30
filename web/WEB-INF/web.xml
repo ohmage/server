@@ -148,6 +148,19 @@
     </filter-mapping>
      -->
 
+    <!--
+      Pushes the session id into the Log4J MDC for each request thread. The MDC is a map that can be dumped to the log
+      for all Log4J messages.
+    -->
+    <filter>
+        <filter-name>Log4jMdcFilter</filter-name>
+        <filter-class>org.ohmage.javax.servlet.filter.MdcFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>Log4jMdcFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <!-- Exception Filter -->
     <filter>
         <description>Catches any exceptions that are thrown and converts them into their appropriate HTTP status codes.</description>
@@ -186,18 +199,6 @@
     </filter>
     <filter-mapping>
         <filter-name>decompressionFilter</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-
-    <!--  Pushes the session id into the Log4J MDC for each request thread. The MDC is a map that can be dumped to the log
-          for all Log4J messages.
-    -->
-    <filter>
-        <filter-name>Log4jMdcFilter</filter-name>
-        <filter-class>org.ohmage.javax.servlet.filter.MdcFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>Log4jMdcFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
