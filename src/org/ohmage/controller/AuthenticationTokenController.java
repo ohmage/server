@@ -146,7 +146,7 @@ public class AuthenticationTokenController extends OhmageController {
 		// rejecting the request.
 		final String errorResponse = "Unknown user or incorrect password.";
 
-		LOGGER.info("Retrieveing the user based on the email address: " + email);
+		LOGGER.info("Retrieving the user based on the email address: " + email);
 		User user = UserBin.getInstance().getUserFromEmail(email);
 		if(user == null) {
 			LOGGER.info("The user is unknown: " + email);
@@ -168,7 +168,7 @@ public class AuthenticationTokenController extends OhmageController {
 		    LOGGER.info("The account was never activated.");
 		    throw
 		        new AccountNotSetupException(
-		            "The accout has not yet been activated.");
+		            "The account has not yet been activated.");
 		}
 		else if(! user.verifyPassword(password)) {
 			LOGGER.info("The given password is incorrect.");
