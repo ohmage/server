@@ -2,20 +2,18 @@
 <Configuration>
   <Appenders>
       <RollingFile name="OhmageLogRollingFile" fileName="/var/log/ohmage/ohmage.log"
-                   filePattern="logs/$${date:yyyy-MM}/ohmage-%d{yyyy-MM-dd-HH}-%i.log.gz">
+                   filePattern="/var/log/ohmage/ohmage-%d{yyyy-MM-dd}.log.gz">
           <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %p %c{1.} %X{request_id} [%t] %m%n"/>
           <Policies>
               <TimeBasedTriggeringPolicy/>
           </Policies>
-          <DefaultRolloverStrategy max="10"/>
       </RollingFile>
       <RollingFile name="SpringLogRollingFile" fileName="/var/log/ohmage/spring.log"
-                   filePattern="logs/$${date:yyyy-MM}/ohmage-%d{yyyy-MM-dd-HH}-%i.log.gz">
+                   filePattern="/var/log/ohmage/spring-%d{yyyy-MM-dd}.log.gz">
           <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %p %c{1.} %X{request_id} [%t] %m%n"/>
           <Policies>
               <TimeBasedTriggeringPolicy/>
           </Policies>
-          <DefaultRolloverStrategy max="10"/>
       </RollingFile>
   </Appenders>
   <Loggers>
