@@ -156,35 +156,49 @@ public class SurveyController extends OhmageController {
         LOGGER.debug("Checking if an icon was given.");
         Media icon = null;
         // If given, verify that it was attached as well.
-        if(surveyBuilder.getIconId() != null) {
-            if(iconFile
-                .getOriginalFilename()
-                .equals(surveyBuilder.getIconId())) {
+        String suppliedIconId = surveyBuilder.getIconId();
+        if(suppliedIconId != null) {
+            if(iconFile != null) {
+                String origFileName = iconFile.getOriginalFilename();
+                if(origFileName != null) {
+                    if(origFileName.equals(suppliedIconId)) {
+                        String newIconId = Media.generateUuid();
+                        surveyBuilder.setIconId(newIconId);
+                        icon = new Media(newIconId, iconFile);
 
-                String newIconId = Media.generateUuid();
-                surveyBuilder.setIconId(newIconId);
-                icon = new Media(newIconId, iconFile);
-            }
-            else {
+                        LOGGER.debug("Building the updated survey.");
+                        Survey result = surveyBuilder.build();
+
+                        if(icon != null) {
+                            LOGGER.info("Storing the icon.");
+                            MediaBin.getInstance().addMedia(icon);
+                        }
+
+                        LOGGER.info("Saving the new survey.");
+                        SurveyBin.getInstance().addSurvey(result);
+
+                        LOGGER.info("Returning the updated survey.");
+                        return result;
+                    } else {
+                        throw
+                            new InvalidArgumentException(
+                                "Icon file's original name does not match supplied icon id.");
+                    }
+                } else {
+                    throw
+                        new InvalidArgumentException(
+                            "Icon file has no original filename specified.");
+                }
+            } else {
                 throw
                     new InvalidArgumentException(
-                        "An icon file was referenced but not uploaded.");
+                        "Icon ID provided but no icon file referenced.");
             }
+        } else {
+            throw
+                new InvalidArgumentException(
+                    "An icon file was referenced but not uploaded.");
         }
-
-        LOGGER.debug("Building the updated survey.");
-        Survey result = surveyBuilder.build();
-
-        if(icon != null) {
-            LOGGER.info("Storing the icon.");
-            MediaBin.getInstance().addMedia(icon);
-        }
-
-        LOGGER.info("Saving the new survey.");
-        SurveyBin.getInstance().addSurvey(result);
-
-        LOGGER.info("Returning the updated survey.");
-        return result;
     }
 
     /**
