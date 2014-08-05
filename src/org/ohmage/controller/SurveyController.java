@@ -165,20 +165,6 @@ public class SurveyController extends OhmageController {
                         String newIconId = Media.generateUuid();
                         surveyBuilder.setIconId(newIconId);
                         icon = new Media(newIconId, iconFile);
-
-                        LOGGER.debug("Building the updated survey.");
-                        Survey result = surveyBuilder.build();
-
-                        if(icon != null) {
-                            LOGGER.info("Storing the icon.");
-                            MediaBin.getInstance().addMedia(icon);
-                        }
-
-                        LOGGER.info("Saving the new survey.");
-                        SurveyBin.getInstance().addSurvey(result);
-
-                        LOGGER.info("Returning the updated survey.");
-                        return result;
                     } else {
                         throw
                             new InvalidArgumentException(
@@ -194,11 +180,20 @@ public class SurveyController extends OhmageController {
                     new InvalidArgumentException(
                         "Icon ID provided but no icon file referenced.");
             }
-        } else {
-            throw
-                new InvalidArgumentException(
-                    "An icon file was referenced but not uploaded.");
         }
+        LOGGER.debug("Building the updated survey.");
+        Survey result = surveyBuilder.build();
+
+        if(icon != null) {
+            LOGGER.info("Storing the icon.");
+            MediaBin.getInstance().addMedia(icon);
+        }
+
+        LOGGER.info("Saving the new survey.");
+        SurveyBin.getInstance().addSurvey(result);
+
+        LOGGER.info("Returning the updated survey.");
+        return result;
     }
 
     /**
