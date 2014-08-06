@@ -2,14 +2,14 @@
 <Configuration>
   <Appenders>
       <RollingFile name="OhmageLogRollingFile" fileName="/var/log/ohmage/ohmage.log"
-                   filePattern="/var/log/ohmage/ohmage-%d{yyyy-MM-dd}.log.gz">
+                   filePattern="/var/log/ohmage/ohmage.log.%d{yyyy-MM-dd}">
           <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %p %c{1.} %X{request_id} [%t] %m%n"/>
           <Policies>
               <TimeBasedTriggeringPolicy/>
           </Policies>
       </RollingFile>
       <RollingFile name="SpringLogRollingFile" fileName="/var/log/ohmage/spring.log"
-                   filePattern="/var/log/ohmage/spring-%d{yyyy-MM-dd}.log.gz">
+                   filePattern="/var/log/ohmage/spring.log.%d{yyyy-MM-dd}">
           <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} %p %c{1.} %X{request_id} [%t] %m%n"/>
           <Policies>
               <TimeBasedTriggeringPolicy/>
