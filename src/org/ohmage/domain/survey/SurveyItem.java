@@ -120,7 +120,7 @@ public abstract class SurveyItem {
 
         if(surveyItemId == null) {
             throw new InvalidArgumentException("The survey item ID is null.");
-        } else if surveyItemId.contains(" ") {
+        } else if(surveyItemId.contains(" ")) {
             throw new InvalidArgumentException("The survey item ID cannot contain spaces.");
         }
 
