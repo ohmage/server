@@ -4895,9 +4895,23 @@
              * Retrieves the ohmlet definition.
              */
             function getOhmletDefinition() {
-                $.get("ohmlets/" + $("#ohmletDefinitionOhmletId").val())
-                    .done(genericSuccess)
-                    .fail(genericFailure);
+                // An unauthenticated user can query for a public ohmlet definition
+                if(auth === null) {
+                    $.get("ohmlets/" + $("#ohmletDefinitionOhmletId").val())
+                        .done(genericSuccess)
+                        .fail(genericFailure);
+                } else {
+                    $.ajax(
+                        "ohmlets/" + $("#ohmletDefinitionOhmletId").val(),
+                        {
+                            type: "GET",
+                            headers: {
+                                "Authorization" : "ohmage " + auth['access_token']
+                            }
+                        })
+                        .done(genericSuccess)
+                        .fail(genericFailure);
+                }
             }
 
             /**
