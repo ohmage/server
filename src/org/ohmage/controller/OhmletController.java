@@ -875,9 +875,9 @@ public class OhmletController extends OhmageController {
         LOGGER.info("A user is accepting an invite to join an ohmlet: " + ohmletId);
 
         if(userAgent != null) {
-            if(userAgent.contains("Apple-iPhone")
-                || userAgent.contains("Apple-iPod")
-                || userAgent.contains("Apple-iPad")) {
+            if(userAgent.contains("iPhone")
+                || userAgent.contains("iPod")
+                || userAgent.contains("iPad")) {
 
                 int schemeLength = 4; // http
                 if(httpRequest.isSecure()) {
