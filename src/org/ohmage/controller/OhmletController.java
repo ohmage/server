@@ -32,6 +32,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -47,6 +48,8 @@ import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -59,6 +62,7 @@ import java.util.Properties;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.servlet.HandlerMapping;
 
 /**
  * <p>
@@ -96,6 +100,11 @@ public class OhmletController extends OhmageController {
 	 * The path to the invitations.
 	 */
 	public static final String PATH_INVITATIONS = "invitations";
+
+    /**
+     * The path to a single invitation.
+     */
+    public static final String PATH_INVITATION = "invitation";
 
 	/**
 	 * The logger for this class.
@@ -407,7 +416,7 @@ public class OhmletController extends OhmageController {
         // this call will only return the ohmlets that are visible to the logged-in user. For production environments,
         // most ohmlets will be private and invite-only whereas for testing everything is public.
 
-        Set<SchemaReference> surveySet = new HashSet<SchemaReference>(); // Using HashSet because
+        Set<SchemaReference> surveySet = new HashSet<SchemaReference>();
         Set<SchemaReference> streamSet = new HashSet<SchemaReference>();
 
         for(Ohmlet ohmlet : ohmlets) {
@@ -648,7 +657,7 @@ public class OhmletController extends OhmageController {
 	}
 
     /**
-     * Invites a set of users to ohmate and to a specific ohmlet. If a user
+     * Invites a set of users to ohmage and to a specific ohmlet. If a user
      * exists with the given email address, they are immediately set to the
      * INVITED role if they are not already at INVITED+. If no such user exists
      * then an email is sent to the email address inviting them to use the
@@ -831,6 +840,68 @@ public class OhmletController extends OhmageController {
                     invitationUrlBuilder.toString());
             }
         }
+    }
+
+    /**
+     * Allow a user to respond to invitation to join an ohmlet. Currently this
+     * method is specific to iOS because the Android app intercepts this link
+     * and formulates a call to OhmletController.updateRole(). Eventually this
+     * method can also be used to formulate a redirect to the front end so
+     * users can join via their web browsers.
+     *
+     * @param rootUrl
+     *        The root URL for the incoming request.
+     *
+     * @param userAgent
+     *        The user-agent performing the request.
+     *
+     * @param ohmletId
+     *        The specific ohmlet's unique identifier.
+     *
+     * @param httpRequest
+     *        Included so the request URL and query string can be retrieved.
+     */
+    @RequestMapping(
+        value =
+            "{" + KEY_OHMLET_ID + "}" +
+            "/" + PATH_INVITATION,
+        method = RequestMethod.GET)
+    public String acceptInvitation(
+            @ModelAttribute(ATTRIBUTE_REQUEST_URL_ROOT) final String rootUrl,
+            @RequestHeader("User-Agent") final String userAgent,
+            @PathVariable(KEY_OHMLET_ID) final String ohmletId,
+            HttpServletRequest httpRequest) {
+
+        LOGGER.info("A user is accepting an invite to join an ohmlet: " + ohmletId);
+
+        if(userAgent != null) {
+            if(userAgent.contains("Apple-iPhone")
+                || userAgent.contains("Apple-iPod")
+                || userAgent.contains("Apple-iPad")) {
+
+                int schemeLength = 4; // http
+                if(httpRequest.isSecure()) {
+                    schemeLength = 5;
+                }
+
+                // Using the ohmage  scheme, rebuild the URL for the redirect.
+                // The 'redirect:' syntax is magic for Spring to interpret into
+                // the actual HTTP redirect
+                StringBuilder redirectUrl = new StringBuilder("redirect:ohmage");
+                redirectUrl.append(
+                    httpRequest.getRequestURL().substring(schemeLength)
+                    .toString());
+                redirectUrl.append("?");
+                redirectUrl.append(httpRequest.getQueryString());
+
+                return redirectUrl.toString();
+            }
+        }
+
+        LOGGER.info("Throwing an exception because an ohmlet join invitation " +
+            "redirect is only supported for iOS. The user-agent is " + userAgent);
+
+        throw new InvalidArgumentException("User-Agent not supported.");
     }
 
     /**
