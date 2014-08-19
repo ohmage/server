@@ -328,6 +328,12 @@ public class Survey extends Schema {
                     "The list of survey items is null.");
         }
 
+        if(surveyItems.isEmpty()) {
+            throw
+                new InvalidArgumentException(
+                    "The survey needs at least one survey item.");
+        }
+
         this.surveyItems = surveyItems;
     }
 
