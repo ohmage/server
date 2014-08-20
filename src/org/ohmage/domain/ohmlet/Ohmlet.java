@@ -1103,7 +1103,15 @@ public class Ohmlet extends OhmageDomainObject {
 						"'.");
 		}
 
-		// Save the state.
+        boolean streamsExist = streams != null && !streams.isEmpty();
+        boolean surveysExist = surveys != null && !surveys.isEmpty();
+
+        if(!streamsExist && !surveysExist) {
+            throw
+                new InvalidArgumentException(
+                    "Ohmlets must have at least one stream or survey.");
+        }
+        // Save the state.
 		ohmletId = id;
 		this.name = name;
 		this.description = description;
@@ -1117,32 +1125,12 @@ public class Ohmlet extends OhmageDomainObject {
         this.iconId = iconId;
 
         this.streams = new HashMap<String, List<SchemaReference>>();
-        if(streams != null) {
-            for(SchemaReference stream : streams) {
-                List<SchemaReference> streamReferences =
-                    this.streams.get(stream.getSchemaId());
-
-                if(streamReferences == null) {
-                    streamReferences = new LinkedList<SchemaReference>();
-                    this.streams.put(stream.getSchemaId(), streamReferences);
-                }
-
-                streamReferences.add(stream);
-            }
+        if(streamsExist) {
+            addSchemaReferencesToMap(streams, this.streams);
         }
         this.surveys = new HashMap<String, List<SchemaReference>>();
-        if(surveys != null) {
-            for(SchemaReference survey : surveys) {
-                List<SchemaReference> surveyReferences =
-                    this.surveys.get(survey.getSchemaId());
-
-                if(surveyReferences == null) {
-                    surveyReferences = new LinkedList<SchemaReference>();
-                    this.surveys.put(survey.getSchemaId(), surveyReferences);
-                }
-
-                surveyReferences.add(survey);
-            }
+        if(surveysExist) {
+            addSchemaReferencesToMap(surveys, this.surveys);
         }
 
 		this.members = new HashMap<String, Member>();
@@ -1151,7 +1139,24 @@ public class Ohmlet extends OhmageDomainObject {
 		}
 	}
 
-	/**
+    private void addSchemaReferencesToMap(List<SchemaReference> schemaRefs, Map<String, List<SchemaReference>> schemaMap) {
+        for(SchemaReference schemaRef : schemaRefs) {
+            List<SchemaReference> schemaReferences = retrieveExistingSchemaRefsOrAddNewListIfNoneYet(schemaMap, schemaRef.getSchemaId());
+            schemaReferences.add(schemaRef);
+        }
+    }
+
+    private List<SchemaReference> retrieveExistingSchemaRefsOrAddNewListIfNoneYet(Map<String, List<SchemaReference>> schemaMap, String schemaId) {
+        List<SchemaReference> schemaReferences =
+                schemaMap.get(schemaId);
+        if(schemaReferences == null) {
+            schemaReferences = new LinkedList<SchemaReference>();
+            schemaMap.put(schemaId, schemaReferences);
+        }
+        return schemaReferences;
+    }
+
+    /**
 	 * Returns the unique identifier for this ohmlet.
 	 *
 	 * @return The unique identifier for this ohmlet.
