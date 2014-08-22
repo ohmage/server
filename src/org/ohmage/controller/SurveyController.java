@@ -150,6 +150,9 @@ public class SurveyController extends OhmageController {
         LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
+        LOGGER.debug("Setting the version of the survey to 1.");
+        surveyBuilder.setVersion(1);
+
         LOGGER.debug("Setting the owner of the survey.");
         surveyBuilder.setOwner(user.getId());
 
