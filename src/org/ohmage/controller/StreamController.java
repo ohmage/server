@@ -145,6 +145,9 @@ public class StreamController extends OhmageController {
         LOGGER.debug("Setting the owner of the stream.");
         streamBuilder.setOwner(user.getId());
 
+        LOGGER.debug("Setting the version of the stream to 1.");
+        streamBuilder.setVersion(1);
+
         LOGGER.debug("Checking if an icon was given.");
         Media icon = null;
         // If given, verify that it was attached as well.
