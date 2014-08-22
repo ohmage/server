@@ -963,7 +963,8 @@ public class OhmletController extends OhmageController {
             LOGGER.info("Verifying that the invitation exists.");
             if(invitation == null) {
                 throw
-                    new InvalidArgumentException("The invitation is unknown.");
+                    new InvalidArgumentException("The ohmlet invitation is " +
+                        "unknown: " + ohmletInvitationId);
             }
 
             LOGGER.info("Verifying that the invitation belongs to this ohmlet.");

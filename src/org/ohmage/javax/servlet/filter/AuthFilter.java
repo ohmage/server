@@ -147,7 +147,7 @@ public class AuthFilter implements Filter {
 			}
 
 			// Log that we found a valid token.
-            LOGGER.info("A valid auth token was found.");
+            LOGGER.info("A valid auth token was found for user " + authTokenObject.getUserId());
 		}
 		// Associate the authentication token with the request.
 		request.setAttribute(ATTRIBUTE_AUTH_TOKEN, authTokenObject);
