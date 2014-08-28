@@ -474,8 +474,8 @@ public class User extends OhmageDomainObject {
          * @return The unique identifier for the user invitation that this user
          *         used to create their account.
          */
-        public Registration getInvitationId() {
-            return registration;
+        public String getInvitationId() {
+            return invitationId;
         }
 
         /**
