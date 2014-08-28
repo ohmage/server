@@ -328,10 +328,7 @@ public class UserController extends OhmageController {
 	@RequestMapping(
 		value = { "", "/" },
 		method = RequestMethod.POST,
-		params = { PARAMETER_PROVIDER })
-	
-	// TODO Is PARAMETER_ACCESS_TOKEN missing in the params array above?
-	
+        params = { PARAMETER_PROVIDER })
 	public static @ResponseBody User createUser(
 		@RequestParam(
 			value = PARAMETER_PROVIDER,
@@ -344,7 +341,7 @@ public class UserController extends OhmageController {
 		@RequestBody
 			final User.Builder userBuilder) {
 
-		LOGGER.info("Creating a new user.");
+		LOGGER.info("Creating a new provider user.");
 
         LOGGER.info("Verifying that a provider was given.");
         if(provider == null) {
@@ -377,6 +374,48 @@ public class UserController extends OhmageController {
 		LOGGER.trace("Adding the provider-based information's email address to " +
 					"the user object.");
 		userBuilder.setEmail(userInformation.getEmail());
+
+        // Get the other user invitations for this email address, get the
+        // corresponding ohmlet invitations, and add those invitations to
+        // the pending invitations for this user object.
+        LOGGER.info("Adding the ohmlet invitations to the user.");
+
+        for(UserInvitation userInvitation :
+                UserInvitationBin
+                        .getInstance()
+                        .getInvitations(userBuilder.getEmail())) {
+
+            // Get the corresponding ohmlet invitation.
+            OhmletInvitation ohmletInvitation =
+                    OhmletInvitationBin
+                            .getInstance()
+                            .getInvitation(userInvitation.getOhmletInvitationId());
+
+            // Update this ohmlet invitation with a new ohmlet invitation.
+            OhmletInvitation updatedOhmletInvitation =
+                    (new OhmletInvitation.Builder(ohmletInvitation))
+                            .setUsedTimestamp(System.currentTimeMillis())
+                            .build();
+
+            // Store the updated ohmlet invitation.
+            OhmletInvitationBin
+                    .getInstance()
+                    .updateInvitation(updatedOhmletInvitation);
+
+            // Add the original ohmlet invitation to this user.
+            userBuilder.addOhlmetInvitation(ohmletInvitation);
+
+            // Update the user invitation.
+            UserInvitation updatedUserInvitation =
+                    (new UserInvitation.Builder(userInvitation))
+                            .setUsedTimestamp(System.currentTimeMillis())
+                            .build();
+
+            // Store the updated user invitation.
+            UserInvitationBin
+                    .getInstance()
+                    .updateInvitation(updatedUserInvitation);
+        }
 
 		LOGGER.debug("Building the user.");
 		User user = userBuilder.build();
