@@ -1,13 +1,6 @@
 package org.ohmage.mongodb.bin;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.mongojack.DBCursor;
@@ -19,6 +12,8 @@ import org.mongojack.ObjectId;
 import org.mongojack.WriteResult;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OhmletBin;
+import org.ohmage.bin.StreamBin;
+import org.ohmage.bin.SurveyBin;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.Schema;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
@@ -26,6 +21,8 @@ import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.ohmlet.Ohmlet;
 import org.ohmage.domain.ohmlet.Ohmlet.Member;
 import org.ohmage.domain.ohmlet.Ohmlet.SchemaReference;
+import org.ohmage.domain.stream.Stream;
+import org.ohmage.domain.survey.Survey;
 import org.ohmage.mongodb.domain.MongoDbObject;
 import org.ohmage.mongodb.domain.MongoOhmlet;
 
@@ -38,6 +35,8 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <p>
@@ -51,6 +50,12 @@ public class MongoOhmletBin extends OhmletBin {
 	 * The name of the collection that contains all of the communities.
 	 */
 	public static final String COLLECTION_NAME = "ohmlet_bin";
+
+    /**
+     * The logger for this class.
+     */
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(MongoOhmletBin.class.getName());
 
     /**
      * <p>
@@ -275,7 +280,65 @@ public class MongoOhmletBin extends OhmletBin {
         MultiValueResult<Ohmlet> result =
             new MongoMultiValueResultList<Ohmlet>(results.toArray(), results.size());
 
-		return result;
+
+        Map<String, SchemaReference> surveyMap = new HashMap<String, SchemaReference>();
+        Map<String, SchemaReference> streamMap = new HashMap<String, SchemaReference>();
+
+        LinkedList<Ohmlet> updatedOhmlets = new LinkedList<>();
+        for(Ohmlet ohmlet : result) {
+            List<SchemaReference> oldSurveyReferences = ohmlet.getSurveys();
+            List<SchemaReference> oldStreamReferences = ohmlet.getStreams();
+            LinkedList<SchemaReference> newSurveyReferences = new LinkedList<>();
+            LinkedList<SchemaReference> newStreamReferences = new LinkedList<>();
+
+            LOGGER.info("Found " + (oldSurveyReferences.size() + oldStreamReferences.size()) + " surveys and streams for ohmlet ID  " + ohmlet.getId());
+
+            for(SchemaReference surveyReference : oldSurveyReferences) {
+                String sID = surveyReference.getSchemaId();
+                SchemaReference latestSurveyRef = null;
+                if(surveyMap.containsKey(sID))
+                    latestSurveyRef = surveyMap.get(sID);
+                else {
+                    Survey latestSurvey = SurveyBin.getInstance().getLatestSurvey(sID, false);
+                    latestSurveyRef = new SchemaReference(latestSurvey);
+                    surveyMap.put(sID, latestSurveyRef);
+                }
+                newSurveyReferences.add(latestSurveyRef);
+            }
+            for(SchemaReference streamReference : oldStreamReferences) {
+                String sID = streamReference.getSchemaId();
+                SchemaReference latestStreamRef = null;
+                if(streamMap.containsKey(sID))
+                    latestStreamRef = streamMap.get(sID);
+                else {
+                    Stream latestStream = StreamBin.getInstance().getLatestStream(sID, false);
+                    latestStreamRef = new SchemaReference(latestStream);
+                    streamMap.put(sID, latestStreamRef);
+                }
+                newStreamReferences.add(latestStreamRef);
+            }
+            Ohmlet.Builder builder = new Ohmlet.Builder(ohmlet);
+            Ohmlet.Builder builderUpdate = new Ohmlet.Builder(
+                null,
+                null,
+                newStreamReferences,
+                newSurveyReferences,
+                null,
+                null,
+                null,
+                null,
+                null
+            );
+            Ohmlet.Builder updatedBuilder = builder.merge(builderUpdate);
+            Ohmlet ohmletWithLatestSchemaRefs = updatedBuilder.build();
+            updatedOhmlets.add(ohmletWithLatestSchemaRefs);
+        }
+        LOGGER.info("After unique-ifying Found " + (surveyMap.size() + streamMap.size()) + " surveys and streams.");
+
+        MultiValueResult<Ohmlet> updatedOhmletsResult = new MongoMultiValueResultList<Ohmlet>(updatedOhmlets, updatedOhmlets.size());
+
+
+		return updatedOhmletsResult;
 	}
 
     /*
@@ -529,8 +592,37 @@ public class MongoOhmletBin extends OhmletBin {
 		queryBuilder.and(Ohmlet.JSON_KEY_ID).is(ohmletId);
 
 		// Execute query.
-		return MONGO_COLLECTION.findOne(queryBuilder.get());
-	}
+		Ohmlet oldOhmlet = MONGO_COLLECTION.findOne(queryBuilder.get());
+        List<SchemaReference> oldSurveyReferences = oldOhmlet.getSurveys();
+        List<SchemaReference> oldStreamReferences = oldOhmlet.getStreams();
+        LinkedList<SchemaReference> newSurveyReferences = new LinkedList<>();
+        LinkedList<SchemaReference> newStreamReferences = new LinkedList<>();
+
+        LOGGER.info("Found " + (oldSurveyReferences.size() + oldStreamReferences.size()) + " surveys and streams for ohmlet ID  " + oldOhmlet.getId());
+
+        for(SchemaReference surveyReference : oldSurveyReferences) {
+            Survey latestSurvey = SurveyBin.getInstance().getLatestSurvey(surveyReference.getSchemaId(), false);
+            newSurveyReferences.add(new SchemaReference(latestSurvey));
+        }
+        for(SchemaReference streamReference : oldStreamReferences) {
+            Stream latestStream = StreamBin.getInstance().getLatestStream(streamReference.getSchemaId(), false);
+            newStreamReferences.add(new SchemaReference(latestStream));
+        }
+        Ohmlet.Builder builder = new Ohmlet.Builder(oldOhmlet);
+        Ohmlet.Builder builderUpdate = new Ohmlet.Builder(
+            null,
+            null,
+            newStreamReferences,
+            newSurveyReferences,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
+        Ohmlet.Builder updatedBuilder = builder.merge(builderUpdate);
+        return updatedBuilder.build();
+    }
 
 	/*
 	 * (non-Javadoc)

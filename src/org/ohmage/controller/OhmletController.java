@@ -52,14 +52,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.HandlerMapping;
@@ -74,15 +68,15 @@ import org.springframework.web.servlet.HandlerMapping;
 @Controller
 @RequestMapping(OhmletController.ROOT_MAPPING)
 public class OhmletController extends OhmageController {
-	/**
-	 * The root API mapping for this Servlet.
-	 */
-	public static final String ROOT_MAPPING = "/ohmlets";
+    /**
+     * The root API mapping for this Servlet.
+     */
+    public static final String ROOT_MAPPING = "/ohmlets";
 
-	/**
-	 * The path and parameter key for ohmlet IDs.
-	 */
-	public static final String KEY_OHMLET_ID = "id";
+    /**
+     * The path and parameter key for ohmlet IDs.
+     */
+    public static final String KEY_OHMLET_ID = "id";
     /**
      * The parameter key for an ohmlet definition.
      */
@@ -91,26 +85,26 @@ public class OhmletController extends OhmageController {
      * The parameter for the icon.
      */
     public static final String KEY_ICON = "icon";
-	/**
-	 * The name of the parameter for querying for specific values.
-	 */
-	public static final String KEY_QUERY = "query";
+    /**
+     * The name of the parameter for querying for specific values.
+     */
+    public static final String KEY_QUERY = "query";
 
-	/**
-	 * The path to the invitations.
-	 */
-	public static final String PATH_INVITATIONS = "invitations";
+    /**
+     * The path to the invitations.
+     */
+    public static final String PATH_INVITATIONS = "invitations";
 
     /**
      * The path to a single invitation.
      */
     public static final String PATH_INVITATION = "invitation";
 
-	/**
-	 * The logger for this class.
-	 */
-	private static final Logger LOGGER =
-		LoggerFactory.getLogger(OhmletController.class.getName());
+    /**
+     * The logger for this class.
+     */
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(OhmletController.class.getName());
 
     /**
      * The mail protocol to use when sending mail.
@@ -127,6 +121,7 @@ public class OhmletController extends OhmageController {
      * user.
      */
     private static final InternetAddress INVITATION_SENDER;
+
     static {
         try {
             INVITATION_SENDER =
@@ -134,14 +129,14 @@ public class OhmletController extends OhmageController {
                     ConfigurationFileImport
                         .getCustomProperties()
                         .getProperty(INVITATION_SENDER_KEY));
-        }
-        catch(AddressException e) {
+        } catch (AddressException e) {
             throw
-                    new IllegalStateException(
-                            "The sender email address is invalid.",
-                            e);
+                new IllegalStateException(
+                    "The sender email address is invalid.",
+                    e);
         }
     }
+
     /**
      * The key to use to retrieve the email registration subject.
      */
@@ -180,28 +175,27 @@ public class OhmletController extends OhmageController {
      */
     private static final String URL_ENCODING = "UTF-8";
 
-	/**
-	 * The usage in this class is entirely static, so there is no need to
-	 * instantiate it.
-	 */
-	private OhmletController() {
-		// Do nothing.
-	}
+    /**
+     * The usage in this class is entirely static, so there is no need to
+     * instantiate it.
+     */
+    private OhmletController() {
+        // Do nothing.
+    }
 
     /**
      * Creates a new ohmlet.
      *
-     * @param authToken
-     *        The authorization information corresponding to the user that is
-     *        making this call.
-     *
-     * @param ohmletBuilder
-     *        The parts of the ohmlet that are already set.
+     * @param authToken     The authorization information corresponding to the user that is
+     *                      making this call.
+     * @param ohmletBuilder The parts of the ohmlet that are already set.
      */
-    @RequestMapping(value = { "", "/" }, method = RequestMethod.POST)
-    public static @ResponseBody Ohmlet createOhmlet(
+    @RequestMapping(value = {"", "/"}, method = RequestMethod.POST)
+    public static
+    @ResponseBody
+    Ohmlet createOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
-            final AuthorizationToken authToken,
+        final AuthorizationToken authToken,
         @RequestBody final Ohmlet.Builder ohmletBuilder) {
 
         return createOhmlet(authToken, ohmletBuilder, null);
@@ -210,124 +204,76 @@ public class OhmletController extends OhmageController {
     /**
      * Creates a new ohmlet.
      *
-     * @param authToken
-     *        The authorization information corresponding to the user that is
-     *        making this call.
-     *
-     * @param ohmletBuilder
-     *        The parts of the ohmlet that are already set.
-     *
-     * @param iconFile
-     *        The file that represents the icon, which must be present if an
-     *        icon is defined in the 'stream builder'.
+     * @param authToken     The authorization information corresponding to the user that is
+     *                      making this call.
+     * @param ohmletBuilder The parts of the ohmlet that are already set.
+     * @param iconFile      The file that represents the icon, which must be present if an
+     *                      icon is defined in the 'stream builder'.
      */
     @RequestMapping(
-        value = { "", "/" },
+        value = {"", "/"},
         method = RequestMethod.POST,
         consumes = "multipart/*")
-    public static @ResponseBody Ohmlet createOhmlet(
+    public static
+    @ResponseBody
+    Ohmlet createOhmlet(
         @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
-            final AuthorizationToken authToken,
+        final AuthorizationToken authToken,
         @RequestPart(value = KEY_OHMLET_DEFINITION, required = true)
-            final Ohmlet.Builder ohmletBuilder,
+        final Ohmlet.Builder ohmletBuilder,
         @RequestPart(value = KEY_ICON, required = false)
-            final MultipartFile iconFile) {
+        final MultipartFile iconFile) {
 
-		LOGGER.info("Creating a ohmlet creation request.");
+        LOGGER.info("Creating a ohmlet creation request.");
 
         LOGGER.info("Validating the user from the token");
         User user = OhmageController.validateAuthorization(authToken, null);
 
-		LOGGER.debug("Setting the token's owner as the creator of this ohmlet.");
-		ohmletBuilder.addMember(user.getId(), Ohmlet.Role.OWNER);
+        LOGGER.debug("Setting the token's owner as the creator of this ohmlet.");
+        ohmletBuilder.addMember(user.getId(), Ohmlet.Role.OWNER);
 
         LOGGER.debug("Checking if an icon was given.");
         Media icon = null;
         // If given, verify that it was attached as well.
-        if(ohmletBuilder.getIconId() != null) {
-            if(iconFile
+        if (ohmletBuilder.getIconId() != null) {
+            if (iconFile
                 .getOriginalFilename()
                 .equals(ohmletBuilder.getIconId())) {
 
                 String newIconId = Media.generateUuid();
                 ohmletBuilder.setIconId(newIconId);
                 icon = new Media(newIconId, iconFile);
-            }
-            else {
+            } else {
                 throw
                     new InvalidArgumentException(
                         "An icon file was referenced but not uploaded.");
             }
         }
 
-		LOGGER.debug("Building the ohmlet.");
-		Ohmlet ohmlet = ohmletBuilder.build();
+        LOGGER.debug("Building the ohmlet.");
+        Ohmlet ohmlet = ohmletBuilder.build();
 
-		// Validate that the streams exist.
-		LOGGER.info("Validating that the given streams exist.");
-		List<SchemaReference> streams = ohmlet.getStreams();
-		for(SchemaReference stream : streams) {
-			// Get the schema ID.
-			String id = stream.getSchemaId();
-			// Get the schema version.
-			Long version = stream.getVersion();
+        validateStreamsAndSurveys(ohmlet);
 
-			LOGGER.info("Checking if the stream is a known stream.");
-			if(! StreamBin.getInstance().exists(id, version, false)) {
-				throw
-					new InvalidArgumentException(
-						"No such stream '" +
-							id +
-							"'" +
-							((version == null) ?
-								"" :
-								" with version '" + version + "'") +
-							".");
-			}
-		}
+        LOGGER.info("Updating the user.");
+        User.Builder updatedUserBuilder = new User.Builder(user);
 
-		// Validate that the surveys exist.
-        LOGGER.info("Validating that the given surveys exist.");
-        List<SchemaReference> surveys = ohmlet.getSurveys();
-        for(SchemaReference survey : surveys) {
-            // Get the schema ID.
-            String id = survey.getSchemaId();
-            // Get the schema version.
-            Long version = survey.getVersion();
+        LOGGER.debug("Building the ohmlet reference.");
+        OhmletReference ohmletReference = new OhmletReference(ohmlet.getId(), ohmlet.getName());
 
-            LOGGER.info("Checking if the survey is a known survey.");
-            if(! SurveyBin.getInstance().exists(id, version, false)) {
-                throw
-                    new InvalidArgumentException(
-                        "No such survey '" +
-                            id +
-                            "'" +
-                            ((version == null) ?
-                                "" :
-                                " with version '" + version + "'") +
-                            ".");
-            }
-        }
+        LOGGER.debug("Adding the ohmlet reference to the user.");
+        updatedUserBuilder.addOhmlet(ohmletReference);
 
-		LOGGER.info("Updating the user.");
-		User.Builder updatedUserBuilder = new User.Builder(user);
-
-		LOGGER.debug("Building the ohmlet reference.");
-		OhmletReference ohmletReference = new OhmletReference(ohmlet.getId(), ohmlet.getName());
-
-		LOGGER.debug("Adding the ohmlet reference to the user.");
-		updatedUserBuilder.addOhmlet(ohmletReference);
-
-		LOGGER.debug("Building the user.");
-		User updatedUser = updatedUserBuilder.build();
+        LOGGER.debug("Building the user.");
+        User updatedUser = updatedUserBuilder.build();
 
         // Attempt to store the updated user first because if it fails, the subsequent inserts should not occur.
         // The most likely cause of a user update failing is if some other process updated the user as this
         // particular request was being handled.
         LOGGER.info("Storing the updated user.");
-		UserBin.getInstance().updateUser(updatedUser);
+        UserBin.getInstance().updateUser(updatedUser);
 
-        if(icon != null) {
+        if (icon != null) {
             LOGGER.info("Storing the icon.");
             MediaBin.getInstance().addMedia(icon);
         }
@@ -336,7 +282,43 @@ public class OhmletController extends OhmageController {
         OhmletBin.getInstance().addOhmlet(ohmlet);
 
         return ohmlet;
-	}
+    }
+
+    private static void validateStreamsAndSurveys(Ohmlet ohmlet) {
+        // Validate that the streams exist.
+        LOGGER.info("Validating that the given streams exist.");
+        List<SchemaReference> streams = ohmlet.getStreams();
+        for (SchemaReference stream : streams) {
+            // Get the schema ID.
+            String id = stream.getSchemaId();
+            if (stream.getVersion() != null) {
+                throw new InvalidArgumentException(
+                    "Cannot specify version for stream '\" + id + \"'. Ohmlets will always use the latest version of a stream.");
+            }
+            LOGGER.info("Checking if the stream is a known stream.");
+            if (!StreamBin.getInstance().exists(id, 1L, false)) {
+                throw new InvalidArgumentException(
+                    "No such stream '" + id + "'.");
+            }
+        }
+
+        // Validate that the surveys exist.
+        LOGGER.info("Validating that the given surveys exist.");
+        List<SchemaReference> surveys = ohmlet.getSurveys();
+        for (SchemaReference survey : surveys) {
+            // Get the schema ID.
+            String id = survey.getSchemaId();
+            if (survey.getVersion() != null) {
+                throw new InvalidArgumentException(
+                    "Cannot specify version for survey '\" + id + \"'. Ohmlets will always use the latest version of a survey.");
+            }
+            LOGGER.info("Checking if the survey is a known survey.");
+            if (!SurveyBin.getInstance().exists(id, 1L, false)) {
+                throw new InvalidArgumentException(
+                    "No such survey '" + id + "'.");
+            }
+        }
+    }
 
 	/**
 	 * Returns a list of visible ohmlets.
@@ -415,53 +397,6 @@ public class OhmletController extends OhmageController {
         // the size it did. The same applies to pilots.ohmage.org. For 3.0 there are also other factors at play:
         // this call will only return the ohmlets that are visible to the logged-in user. For production environments,
         // most ohmlets will be private and invite-only whereas for testing everything is public.
-
-        Set<SchemaReference> surveySet = new HashSet<SchemaReference>();
-        Set<SchemaReference> streamSet = new HashSet<SchemaReference>();
-
-        for(Ohmlet ohmlet : ohmlets) {
-            List<SchemaReference> surveyReferences = ohmlet.getSurveys();
-            List<SchemaReference> streamReferences = ohmlet.getStreams();
-
-            LOGGER.info("Found " + (surveyReferences.size() + streamReferences.size()) + " surveys and streams for ohmlet ID  " + ohmlet.getId());
-
-            for(SchemaReference surveyReference : surveyReferences) {
-                surveySet.add(surveyReference);
-            }
-
-            for(SchemaReference streamReference : streamReferences) {
-                streamSet.add(streamReference);
-            }
-        }
-
-        List<Survey> surveys = new ArrayList<Survey>();
-        List<Stream> streams = new ArrayList<Stream>();
-
-        LOGGER.info("Retrieving " + surveySet.size() + " survey definitions for the ohmlets.");
-
-        for(SchemaReference surveyReference : surveySet) {
-            // Make sure to grab the latest version if the version is null
-            if(surveyReference.getVersion() == null) {
-                surveys.add(SurveyBin.getInstance().getLatestSurvey(surveyReference.getSchemaId(), false));
-            } else {
-                surveys.add(SurveyBin.getInstance()
-                    .getSurvey(surveyReference.getSchemaId(), surveyReference.getVersion(), false));
-            }
-        }
-
-        LOGGER.info("Retrieving " + streamSet.size() + "  stream definitions for the ohmlets.");
-
-        for(SchemaReference streamReference : streamSet) {
-            // Make sure to grab the latest version if the version is null
-            if(streamReference.getVersion() == null) {
-                streams.add(StreamBin.getInstance().getLatestStream(streamReference.getSchemaId(), false));
-            } else {
-                streams.add(StreamBin.getInstance()
-                        .getStream(streamReference.getSchemaId(), streamReference.getVersion(), false));
-            }
-        }
-
-        LOGGER.info("After unique-ifying Found " + (surveys.size() + streams.size()) + " surveys and streams.");
 
         LOGGER.info("Building the paging headers.");
         HttpHeaders headers =
@@ -606,51 +541,7 @@ public class OhmletController extends OhmageController {
 		LOGGER.debug("Building a new ohmlet.");
 		Ohmlet newOhmlet = newOhmletBuilder.build();
 
-        // Validate that the streams exist.
-        LOGGER.info("Validating that the given streams exist.");
-        List<SchemaReference> streams = newOhmlet.getStreams();
-        for(SchemaReference stream : streams) {
-            // Get the schema ID.
-            String id = stream.getSchemaId();
-            // Get the schema version.
-            Long version = stream.getVersion();
-
-            LOGGER.info("Checking if the stream is a known stream.");
-            if(! StreamBin.getInstance().exists(id, version, false)) {
-                throw
-                    new InvalidArgumentException(
-                        "No such stream '" +
-                            id +
-                            "'" +
-                            ((version == null) ?
-                                "" :
-                                " with version '" + version + "'") +
-                            ".");
-            }
-        }
-
-        // Validate that the surveys exist.
-        LOGGER.info("Validating that the given surveys exist.");
-        List<SchemaReference> surveys = newOhmlet.getSurveys();
-        for(SchemaReference survey : surveys) {
-            // Get the schema ID.
-            String id = survey.getSchemaId();
-            // Get the schema version.
-            Long version = survey.getVersion();
-
-            LOGGER.info("Checking if the survey is a known survey.");
-            if(! SurveyBin.getInstance().exists(id, version, false)) {
-                throw
-                    new InvalidArgumentException(
-                        "No such survey '" +
-                            id +
-                            "'" +
-                            ((version == null) ?
-                                "" :
-                                " with version '" + version + "'") +
-                            ".");
-            }
-        }
+        validateStreamsAndSurveys(newOhmlet);
 
 		LOGGER.info("Storing the updated ohmlet.");
 		OhmletBin.getInstance().updateOhmlet(newOhmlet);
