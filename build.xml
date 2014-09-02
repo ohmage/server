@@ -178,7 +178,7 @@
     </target>
 
 	<!-- Builds the WAR file. -->
-    <target name="dist" depends="javac, test" description="Builds the WAR file.">
+    <target name="-only-dist">
         <!-- Create the META-INF directory if it doesn't exist. -->
         <mkdir dir="${web}/META-INF" />
     	
@@ -228,6 +228,12 @@
             </zipfileset>
         </war>
     </target>
+
+	<!-- Builds the WAR file, with compilation and tests. -->
+    <target name="dist" depends="javac, test, -only-dist" description="Builds the WAR file after compiling and testing."/>
+
+	<!-- Builds the WAR file, with compilation but no tests. -->
+    <target name="dist-without-tests" depends="javac, -only-dist" description="Builds the WAR file after compiling but no testing."/>
 	
 	<!-- Creates a the JavaDoc for the library. -->
     <target
