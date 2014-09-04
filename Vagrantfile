@@ -9,7 +9,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     v.memory = 2048
   end
   config.vm.box = "hashicorp/precise64"
-  config.vm.synced_folder "/usr/share/vagrant-support/", "/vagrant/vagrant-support"
   config.vm.provision :shell, path: "dev-setup/bootstrap.sh"
   #config.vm.provision "ansible" do |ansible|
   #  ansible.playbook = "dev-setup/playbook.yml"
@@ -17,4 +16,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.network :forwarded_port, host: 4567, guest: 8080
   config.vm.network :forwarded_port, host: 4568, guest: 80
   config.vm.network :forwarded_port, host: 5005, guest: 8000
+  config.vm.network :forwarded_port, host: 27019, guest: 27017
 end
