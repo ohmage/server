@@ -68,7 +68,8 @@ own ohmage database dump.
 ## EasyPost
 
 EasyPost, after the web application server has fully started up, will be accessible on
-port 4567 of the host machine.  You can refer to the wiki to learn how to
-authenticate and read and write data to Ohmage using its web services API:
+port 4567 of the host machine, at http://\<host url\>:4567/ohmage/EasyPost.html
+You can refer to the wiki to learn how to authenticate and read and write data to
+Ohmage using its web services API:
 
 <https://github.com/ohmage/server/wiki/3.x-Documentation>
