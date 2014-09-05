@@ -18,11 +18,11 @@ mkdir -p /usr/share/tomcat7/bin
 cp /vagrant/dev-setup/tomcat/setenv.sh /usr/share/tomcat7/bin
 mkdir /etc/ohmage
 cp /vagrant/dev-setup/tomcat/log4j2.xml /etc/ohmage
-mkdir /var/log/ohmage
-chown tomcat7:tomcat7 /var/log/ohmage
 mkdir -p /etc/nginx/sites-enabled
 cp /vagrant/dev-setup/nginx/ohmage /etc/nginx/sites-enabled
 apt-get install -y tomcat7
+mkdir /var/log/ohmage
+chown tomcat7:tomcat7 /var/log/ohmage
 apt-get install -y mongodb-org=2.6.3 mongodb-org-server=2.6.3 mongodb-org-shell=2.6.3 mongodb-org-mongos=2.6.3 mongodb-org-tools=2.6.3
 sed -i 's/bind_ip = 127.0.0.1/bind_ip = 0.0.0.0/' /etc/mongod.conf
 service mongod restart
