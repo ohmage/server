@@ -216,7 +216,7 @@ public class UserController extends OhmageController {
 
 	        LOGGER.info("Verifying that the invitation belongs to the same " +
 	                    "email address.");
-	        if(! invitation.getEmail().equals(userBuilder.getEmail())) {
+	        if(! invitation.getEmail().equalsIgnoreCase(userBuilder.getEmail())) {
 	            throw
 	                new InvalidArgumentException(
 	                    "The invitation belongs to a different email " +

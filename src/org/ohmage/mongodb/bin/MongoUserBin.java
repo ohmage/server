@@ -37,6 +37,8 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
 
+import java.util.regex.Pattern;
+
 /**
  * <p>
  * The MongoDB implementation of the interface to the database-backed
@@ -225,8 +227,9 @@ public class MongoUserBin extends UserBin {
         // Build the query.
         QueryBuilder queryBuilder = QueryBuilder.start();
 
-        // Add the authentication token to the query
-        queryBuilder.and(User.JSON_KEY_EMAIL).is(email);
+        Pattern emailRegex = Pattern.compile("^"+email+"$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+        // Add the user's email address to the query
+        queryBuilder.and(User.JSON_KEY_EMAIL).regex(emailRegex);
 
         // Execute the query.
         return MONGO_COLLECTION.findOne(queryBuilder.get());

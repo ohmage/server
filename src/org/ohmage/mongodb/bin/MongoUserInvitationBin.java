@@ -9,12 +9,15 @@ import org.ohmage.bin.UserInvitationBin;
 import org.ohmage.domain.OhmageDomainObject;
 import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
+import org.ohmage.domain.user.User;
 import org.ohmage.domain.user.UserInvitation;
 import org.ohmage.mongodb.domain.MongoUserInvitation;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.QueryBuilder;
+
+import java.util.regex.Pattern;
 
 /**
  * <p>
@@ -151,8 +154,9 @@ public class MongoUserInvitationBin extends UserInvitationBin {
         // Build the query.
         QueryBuilder queryBuilder = QueryBuilder.start();
 
+        Pattern emailRegex = Pattern.compile("^"+email+"$", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         // Add the email address.
-        queryBuilder.and(UserInvitation.JSON_KEY_EMAIL).is(email);
+        queryBuilder.and(UserInvitation.JSON_KEY_EMAIL).regex(emailRegex);
 
         // Execute the query.
         return
