@@ -16,6 +16,7 @@ apt-get update
 apt-get install -y openjdk-7-jdk
 mkdir -p /usr/share/tomcat7/bin
 cp /vagrant/dev-setup/tomcat/setenv.sh /usr/share/tomcat7/bin
+cp /vagrant/dev-setup/config/ohmage.conf /etc
 mkdir /etc/ohmage
 cp /vagrant/dev-setup/tomcat/log4j2.xml /etc/ohmage
 mkdir -p /etc/nginx/sites-enabled
