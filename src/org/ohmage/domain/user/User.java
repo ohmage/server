@@ -1051,6 +1051,15 @@ public class User extends OhmageDomainObject {
     }
 
     /**
+     * Returns the full name of this user.
+     *
+     * @return The full name of this user.
+     */
+    public String getFullName() {
+        return fullName;
+    }
+
+    /**
      * Returns the email address of this user.
      *
      * @return The email address of this user.

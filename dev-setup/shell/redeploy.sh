@@ -1,0 +1,3 @@
+#!/bin/sh
+echo Redeploying ohmage from latest version in /vagrant/dist ...
+sudo sh -c "rm -rf /var/lib/tomcat7/webapps/ohmage*;cp /vagrant/dist/ohmage.war /var/lib/tomcat7/webapps"

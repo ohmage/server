@@ -171,6 +171,13 @@ public class OhmletController extends OhmageController {
         "{INVITATION_LINK}";
 
     /**
+     * The specialized text to use as a placeholder for the full name of the
+     * researcher within the {@link #INVITATION_TEXT}.
+     */
+    private static final String INVITER_PLACEHOLDER =
+        "{INVITER}";
+
+    /**
      * The encoding to use URL-encoding parameters.
      */
     private static final String URL_ENCODING = "UTF-8";
@@ -727,6 +734,7 @@ public class OhmletController extends OhmageController {
 
                 // Send an invitation email.
                 sendUserInvitationEmail(
+                    user,
                     email,
                     invitationUrlBuilder.toString());
             }
@@ -1189,6 +1197,7 @@ public class OhmletController extends OhmageController {
      *         There was a problem building the message.
      */
     public static void sendUserInvitationEmail(
+        final User user,
         final String emailAddress,
         final String invitationUrl)
         throws IllegalStateException {
@@ -1245,7 +1254,7 @@ public class OhmletController extends OhmageController {
         try {
             message
                 .setContent(
-                    createRegistrationText(invitationUrl),
+                    createRegistrationText(generateResearcherName(user), invitationUrl),
                     "text/html");
         }
         catch(MessagingException e) {
@@ -1317,6 +1326,10 @@ public class OhmletController extends OhmageController {
         }
     }
 
+    private static String generateResearcherName(User user) {
+        return user.getFullName() == null ? "A researcher" : user.getFullName();
+    }
+
     /**
      * Creates the registration text.
      *
@@ -1325,9 +1338,13 @@ public class OhmletController extends OhmageController {
      *
      * @return The registration text.
      */
-    private static String createRegistrationText(final String invitationUrl) {
-        return
-            INVITATION_TEXT
+    private static String createRegistrationText(final String inviterName, final String invitationUrl) {
+        String text = INVITATION_TEXT;
+        text = text
+            .replace(
+                INVITER_PLACEHOLDER,
+                inviterName);
+        text = text
                 .replace(
                     INVITATION_LINK_PLACEHOLDER,
                     "<a href=\"" +
@@ -1335,5 +1352,6 @@ public class OhmletController extends OhmageController {
                         "\">Click here to join the " +
                         Ohmlet.OHMLET_SKIN +
                         ".</a>");
+        return text;
     }
 }

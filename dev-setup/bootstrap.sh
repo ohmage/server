@@ -17,6 +17,10 @@ apt-get install -y openjdk-7-jdk
 mkdir -p /usr/share/tomcat7/bin
 cp /vagrant/dev-setup/tomcat/setenv.sh /usr/share/tomcat7/bin
 cp /vagrant/dev-setup/config/ohmage.conf /etc
+mkdir ~vagrant/scripts
+cp /vagrant/dev-setup/shell/redeploy.sh ~vagrant/scripts
+chmod +x ~vagrant/scripts/redeploy.sh
+echo export PATH=\$PATH:~vagrant/scripts >> ~vagrant/.bashrc
 mkdir /etc/ohmage
 cp /vagrant/dev-setup/tomcat/log4j2.xml /etc/ohmage
 mkdir -p /etc/nginx/sites-enabled
@@ -45,5 +49,5 @@ sudo rm /etc/nginx/sites-enabled/default
 sudo service nginx start
 echo export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-amd64 >> ~vagrant/.bashrc
 echo export CATALINA_HOME=/var/lib/tomcat7 >> ~vagrant/.bashrc
-echo export PATH=$PATH:/opt/ant/bin >> ~vagrant/.bashrc
+echo export PATH=\$PATH:/opt/ant/bin >> ~vagrant/.bashrc
 echo export ANT_HOME=/opt/ant >> ~vagrant/.bashrc
