@@ -142,6 +142,11 @@ public class Text extends Terminal {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return value;
+    }
+
     /**
      * @return Always returns false.
      */

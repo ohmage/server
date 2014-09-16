@@ -93,6 +93,11 @@ public class NotDisplayed extends Terminal {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "<NOT DISPLAYED>";
+    }
+
     /**
      * @return Always returns false.
      */

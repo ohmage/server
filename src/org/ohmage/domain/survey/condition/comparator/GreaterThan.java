@@ -216,4 +216,9 @@ public class GreaterThan extends Comparator {
     public boolean evaluate(final Map<String, Object> responses) {
         return left.greaterThanValue(responses, right.getValue(responses));
     }
+
+    @Override
+    public String toString() {
+        return left.toString() + " > " + right.toString();
+    }
 }

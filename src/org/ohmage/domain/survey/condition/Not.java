@@ -112,4 +112,9 @@ public class Not extends Fragment {
     public boolean evaluate(final Map<String, Object> responses) {
         return ! fragment.evaluate(responses);
     }
+
+    @Override
+    public String toString() {
+        return "NOT "+fragment.toString();
+    }
 }

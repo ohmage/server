@@ -119,4 +119,6 @@ public abstract class Fragment {
 
         return result;
     }
+
+    public abstract String toString();
 }

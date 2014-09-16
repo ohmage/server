@@ -162,6 +162,11 @@ public class PromptId extends Terminal {
         return ! (response instanceof NoResponse);
     }
 
+    @Override
+    public String toString() {
+        return value;
+    }
+
     /*
      * (non-Javadoc)
      * @see org.ohmage.domain.survey.condition.terminal.Terminal#lessThanValue(java.util.Map, java.lang.Object)

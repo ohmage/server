@@ -150,4 +150,9 @@ public class And extends Conjunction {
     public boolean evaluate(final Map<String, Object> responses) {
         return left.evaluate(responses) && right.evaluate(responses);
     }
+
+    @Override
+    public String toString() {
+        return left.toString() + " AND " + right.toString();
+    }
 }

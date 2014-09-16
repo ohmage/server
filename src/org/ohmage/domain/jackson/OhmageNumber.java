@@ -24,6 +24,11 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  * @author John Jenkins
  */
 public class OhmageNumber {
+    @Override
+    public String toString() {
+        return internal.toString();
+    }
+
     /**
      * <p>
      * Deserializes anything that can be translated into a {@link Number}

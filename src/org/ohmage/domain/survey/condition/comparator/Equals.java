@@ -12,8 +12,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * <p>
- * A {@link Comparator} that returns true when two {@link Terminals}
- * evaluate to the same value.
+ * A {@link Comparator} that returns true when two {@link Terminal}
+ * objects evaluate to the same value.
  * </p>
  *
  * @author John Jenkins
@@ -179,5 +179,10 @@ public class Equals extends Comparator {
     @Override
     public boolean evaluate(final Map<String, Object> responses) {
         return left.equalsValue(responses, right.getValue(responses));
+    }
+
+    @Override
+    public String toString() {
+        return left.toString() + " = " + right.toString();
     }
 }

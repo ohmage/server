@@ -139,4 +139,9 @@ public class Parenthetical extends Fragment {
     public boolean evaluate(final Map<String, Object> responses) {
         return condition.evaluate(responses);
     }
+
+    @Override
+    public String toString() {
+        return "(" + condition.toString() + ")";
+    }
 }

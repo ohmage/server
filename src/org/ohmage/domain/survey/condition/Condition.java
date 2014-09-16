@@ -6,6 +6,8 @@ import java.util.Map;
 
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.domain.survey.SurveyItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,6 +21,13 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * @author John Jenkins
  */
 public class Condition {
+
+    /**
+     * The logger for this class.
+     */
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(Condition.class.getName());
+
     /**
      * The sentence string.
      */
@@ -51,6 +60,7 @@ public class Condition {
                 new InvalidArgumentException(
                     "Parenthetical missmatch: " + input);
         }
+        LOGGER.debug("Condition created, evaluating to {}", root);
     }
 
     /**
@@ -229,5 +239,10 @@ public class Condition {
      */
     public boolean evaluate(final Map<String, Object> responses) {
        return root.evaluate(responses);
+    }
+
+    @Override
+    public String toString() {
+        return root.toString();
     }
 }

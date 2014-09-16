@@ -93,6 +93,11 @@ public class Skipped extends Terminal {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "<SKIPPED>";
+    }
+
     /**
      * @return Always returns false.
      */

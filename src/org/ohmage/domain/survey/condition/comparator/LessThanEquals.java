@@ -224,4 +224,9 @@ public class LessThanEquals extends Comparator {
             left.lessThanValue(responses, rightValue) ||
             left.equalsValue(responses, rightValue);
     }
+
+    @Override
+    public String toString() {
+        return left.toString() + " <= " + right.toString();
+    }
 }

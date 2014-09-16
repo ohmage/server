@@ -130,6 +130,11 @@ public class Numeric extends Terminal {
         return getValue(responses).compareTo(0) == 0;
     }
 
+    @Override
+    public String toString() {
+        return value.toString();
+    }
+
     /*
      * (non-Javadoc)
      * @see org.ohmage.domain.survey.condition.terminal.Terminal#lessThanValue(java.util.Map, java.lang.Object)

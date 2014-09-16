@@ -226,4 +226,9 @@ public class GreaterThanEquals extends Comparator {
             left.greaterThanValue(responses, rightValue) ||
             left.equalsValue(responses, rightValue);
     }
+
+    @Override
+    public String toString() {
+        return left.toString() + " >= " + right.toString();
+    }
 }
