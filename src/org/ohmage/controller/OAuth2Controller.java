@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,6 +92,17 @@ public class OAuth2Controller extends OhmageController {
      */
     private static final Logger LOGGER =
         LoggerFactory.getLogger(OAuth2Controller.class.getName());
+
+    private static final String REQUIRE_HTTPS_KEY = "ohmage.require_https";
+
+    private static final String readRequireHttpsValue = ConfigurationFileImport
+        .getCustomProperties()
+        .getProperty(REQUIRE_HTTPS_KEY);
+    /**
+     * Configuration option that controls the https requirement. Default is true, where https is required.
+     */
+    private static final boolean REQUIRE_HTTPS =
+        readRequireHttpsValue == null ? true : Boolean.getBoolean(readRequireHttpsValue);
 
     /**
      * <p>
@@ -229,7 +242,7 @@ public class OAuth2Controller extends OhmageController {
         else {
             LOGGER.info("Using the supplied redirect URI: " + redirectUri);
 
-            if(! isValidRedirectURIForOAuth(redirectUri)) {
+            if(! isValidlyFormattedRedirectURIForOAuth(redirectUri)) {
                 throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
             }
 
@@ -802,7 +815,13 @@ public class OAuth2Controller extends OhmageController {
         oAuthClientBuilder.setOwner(user.getId());
 
         if(oAuthClientBuilder.getRedirectUri() != null) {
-            if(! isValidRedirectURIForOAuth(oAuthClientBuilder.getRedirectUri())) {
+            LOGGER.debug("Redirect URI is set to ["+oAuthClientBuilder.getRedirectUri()+"], scheme=["+oAuthClientBuilder.getRedirectUri().getScheme()+"]");
+            if(REQUIRE_HTTPS) {
+                if (!"https".equals(oAuthClientBuilder.getRedirectUri().getScheme())) {
+                    throw new InvalidArgumentException("The redirect URI is required to use https.");
+                }
+            }
+            if(! isValidlyFormattedRedirectURIForOAuth(oAuthClientBuilder.getRedirectUri())) {
                 throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
             }
 
@@ -1083,7 +1102,7 @@ public class OAuth2Controller extends OhmageController {
      * @param redirectURI
      * @return
      */
-    private static boolean isValidRedirectURIForOAuth(URI redirectURI) {
+    private static boolean isValidlyFormattedRedirectURIForOAuth(URI redirectURI) {
         return (redirectURI == null) ? true :
             redirectURI.isAbsolute() && redirectURI.getRawFragment() == null;
     }
