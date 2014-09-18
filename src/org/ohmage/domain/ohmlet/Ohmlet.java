@@ -17,6 +17,7 @@ import org.ohmage.domain.jackson.MapValuesJsonSerializer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
 
 /**
  * <p>
@@ -28,10 +29,25 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
  * @author John Jenkins
  */
 public class Ohmlet extends OhmageDomainObject {
-	/**
-	 * The publicly-facing name of the ohmlet.
-	 */
-	public static final String OHMLET_SKIN = "ohmlet";
+
+    /**
+     * The key to use to retrieve the publicly-facing name of an "ohmlet".
+     */
+    private static final String OHMLET_SKIN_KEY =
+        "ohmage.ohmlet_skin";
+
+    /**
+     * The value of the property specifying the publicly-facing name of an "ohmlet".
+     */
+    private static final String ohmletSkinProperty =
+        ConfigurationFileImport
+            .getCustomProperties()
+            .getProperty(OHMLET_SKIN_KEY);
+
+    /**
+     * The publicly-facing name of an "ohmlet".
+     */
+    public static final String OHMLET_SKIN = ohmletSkinProperty == null ? "ohmlet" : ohmletSkinProperty;
 
 	/**
 	 * <p>

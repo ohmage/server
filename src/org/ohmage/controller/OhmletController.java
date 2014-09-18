@@ -178,6 +178,31 @@ public class OhmletController extends OhmageController {
         "{INVITER}";
 
     /**
+     * The key to use to retrieve the publicly-facing name of a "group".
+     */
+    private static final String GROUP_SKIN_KEY =
+        "ohmage.group_skin";
+
+    /**
+     * The value of the property specifying the publicly-facing name of a "group".
+     */
+    private static final String groupSkinProperty =
+        ConfigurationFileImport
+            .getCustomProperties()
+            .getProperty(GROUP_SKIN_KEY);
+
+    /**
+     * The publicly-facing name of a "group".
+     */
+    private static final String GROUP_SKIN = groupSkinProperty == null ? "group" : groupSkinProperty;
+
+    /**
+     * The placeholder for the publicly facing name of a "group" within the {@link #INVITATION_TEXT}.
+     */
+    private static final String GROUP_PLACEHOLDER =
+        "{GROUP}";
+
+    /**
      * The encoding to use URL-encoding parameters.
      */
     private static final String URL_ENCODING = "UTF-8";
@@ -1344,6 +1369,10 @@ public class OhmletController extends OhmageController {
             .replace(
                 INVITER_PLACEHOLDER,
                 inviterName);
+        text = text
+            .replace(
+                GROUP_PLACEHOLDER,
+                GROUP_SKIN);
         text = text
                 .replace(
                     INVITATION_LINK_PLACEHOLDER,
