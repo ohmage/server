@@ -102,7 +102,7 @@ public class OAuth2Controller extends OhmageController {
      * Configuration option that controls the https requirement. Default is true, where https is required.
      */
     private static final boolean REQUIRE_HTTPS =
-        readRequireHttpsValue == null ? true : Boolean.getBoolean(readRequireHttpsValue);
+        readRequireHttpsValue == null ? true : Boolean.parseBoolean(readRequireHttpsValue);
 
     /**
      * <p>

@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.WebContentInterceptor;
  * @author John Jenkins
  */
 public class CacheControlWebContentInterceptor extends WebContentInterceptor {
+
     /**
      * The default duration to cache non-static, semi-volatile content in
      * seconds. This is set to 5 minutes.
@@ -36,7 +37,7 @@ public class CacheControlWebContentInterceptor extends WebContentInterceptor {
      * Configuration option that disables caching for development purposes.
      */
     private static final boolean DISABLE_CACHING =
-        Boolean.getBoolean(ConfigurationFileImport
+        Boolean.parseBoolean(ConfigurationFileImport
             .getCustomProperties()
             .getProperty(DISABLE_CACHING_KEY));
 
