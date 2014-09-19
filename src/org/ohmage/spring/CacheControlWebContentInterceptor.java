@@ -7,6 +7,8 @@ import org.ohmage.controller.SchemaController;
 import org.ohmage.controller.StreamController;
 import org.ohmage.controller.SurveyController;
 import org.ohmage.javax.servlet.listener.ConfigurationFileImport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.servlet.mvc.WebContentInterceptor;
 
 /**
@@ -18,6 +20,11 @@ import org.springframework.web.servlet.mvc.WebContentInterceptor;
  */
 public class CacheControlWebContentInterceptor extends WebContentInterceptor {
 
+    /**
+     * The logger for this class.
+     */
+    private static final Logger LOGGER =
+        LoggerFactory.getLogger(CacheControlWebContentInterceptor.class.getName());
     /**
      * The default duration to cache non-static, semi-volatile content in
      * seconds. This is set to 5 minutes.
@@ -45,9 +52,9 @@ public class CacheControlWebContentInterceptor extends WebContentInterceptor {
      * Creates and initializes the cache-control interceptor for web requests.
      */
     public CacheControlWebContentInterceptor() {
+        setCacheSeconds(0);
+        setAlwaysUseFullPath(true);
         if (!DISABLE_CACHING) {
-            setCacheSeconds(0);
-            setAlwaysUseFullPath(true);
 
             Properties cacheMappings = new Properties();
 
