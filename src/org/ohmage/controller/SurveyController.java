@@ -362,20 +362,24 @@ public class SurveyController extends OhmageController {
         @PathVariable(KEY_SURVEY_VERSION) final Long surveyVersion) {
 
         LOGGER.info("Creating a request for a survey definition: " +
-                    surveyId + ", " +
-                    surveyVersion);
+            surveyId + ", " +
+            (surveyVersion == null ? "latest" : surveyVersion.toString()));
 
         LOGGER.info("Retrieving the survey.");
         Survey result =
-            SurveyBin
-                .getInstance()
-                .getSurvey(surveyId, surveyVersion, false);
+            surveyVersion == null ?
+                SurveyBin
+                    .getInstance()
+                    .getLatestSurvey(surveyId, false) :
+                SurveyBin
+                    .getInstance()
+                    .getSurvey(surveyId, surveyVersion, false);
 
         LOGGER.debug("Ensuring that a survey was found.");
         if(result == null) {
             throw
                 new UnknownEntityException(
-                    "The survey ID-verion pair is unknown.");
+                    "The survey ID"+(surveyVersion == null?"":"-version pair")+" is unknown.");
         }
 
         LOGGER.info("Returning the survey.");

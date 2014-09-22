@@ -144,6 +144,8 @@
                 var scopesTable = $("#scopes");
 
                 var version = scope['schema_version'];
+                if(version == null)
+                    version = "latest";
                 if(typeof version === 'undefined') {
                     version = "latest";
                 }

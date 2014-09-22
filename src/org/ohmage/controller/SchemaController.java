@@ -275,7 +275,7 @@ public class SchemaController extends OhmageController {
         else {
             throw
                 new UnknownEntityException(
-                    "The schema ID-verion pair is unknown.");
+                    "The schema ID"+(schemaVersion == null?"":"-version pair")+" is unknown.");
         }
 
         LOGGER.info("Returning the schema.");

@@ -324,11 +324,15 @@ public class StreamController extends OhmageController {
 		@PathVariable(KEY_STREAM_VERSION) final Long streamVersion) {
 
 		LOGGER.info("Creating a request for a stream definition: " +
-					streamId + ", " +
-					streamVersion);
+			streamId + ", " +
+            (streamVersion == null ? "latest" : streamVersion.toString()));
 
 		LOGGER.info("Retrieving the stream.");
 		Stream result =
+            streamVersion == null ?
+            StreamBin
+                .getInstance()
+                .getLatestStream(streamId, false) :
 			StreamBin
 				.getInstance()
 				.getStream(streamId, streamVersion, false);
@@ -337,7 +341,7 @@ public class StreamController extends OhmageController {
 		if(result == null) {
 			throw
 				new UnknownEntityException(
-					"The stream ID-verion pair is unknown.");
+					"The stream ID"+(streamVersion == null?"":"-version pair")+" is unknown.");
 		}
 
 		LOGGER.info("Returning the stream.");
