@@ -88,6 +88,11 @@ public class OAuth2Controller extends OhmageController {
     public static final String PARAMETER_GRANTED = "granted";
 
     /**
+     * The path and parameter key for ohmlet IDs.
+     */
+    public static final String KEY_OAUTH_CLIENT_ID = "id";
+
+    /**
      * The logger for this class.
      */
     private static final Logger LOGGER =
@@ -853,6 +858,84 @@ public class OAuth2Controller extends OhmageController {
     }
 
     /**
+     * Creates a new OAuth client.
+     *
+     * @param authToken
+     *        The authorization information corresponding to the user that is
+     *        making this call.
+     *
+     * @param oAuthClientBuilder
+     *        A builder to use to this new OAuth client.
+     *
+     * @return The constructed OAuth client.
+     */
+    @RequestMapping(
+        value = "/clients/{" + KEY_OAUTH_CLIENT_ID + "}",
+        method = RequestMethod.POST)
+    public static @ResponseBody ResponseEntity<OAuthClient> updateClient(
+        @ModelAttribute(AuthFilter.ATTRIBUTE_AUTH_TOKEN)
+        final AuthorizationToken authToken,
+        @PathVariable(KEY_OAUTH_CLIENT_ID) final String oauthClientId,
+        @RequestBody final OAuthClient.Builder oAuthClientBuilder) {
+
+        LOGGER.info("Creating a new OAuth client.");
+
+        LOGGER.info("Validating the user from the token");
+        User user = OhmageController.validateAuthorization(authToken, null);
+
+        LOGGER.info("Retrieving the OAuth client.");
+        OAuthClient oauthClient =
+            OAuthClientBin.getInstance().getOAuthClient(oauthClientId);
+
+        LOGGER.debug("Setting the owner of the OAuth client.");
+        oAuthClientBuilder.setOwner(user.getId());
+
+        if(oAuthClientBuilder.getRedirectUri() != null) {
+            LOGGER.debug("Redirect URI is set to ["+oAuthClientBuilder.getRedirectUri()+"], scheme=["+oAuthClientBuilder.getRedirectUri().getScheme()+"]");
+            if(REQUIRE_HTTPS) {
+                if (!"https".equals(oAuthClientBuilder.getRedirectUri().getScheme())) {
+                    throw new InvalidArgumentException("The redirect URI is required to use https.");
+                }
+            }
+            if(! isValidlyFormattedRedirectURIForOAuth(oAuthClientBuilder.getRedirectUri())) {
+                throw new InvalidArgumentException("The redirect URI is invalid for OAuth.");
+            }
+
+            LOGGER.info("Normalizing the redirect URI.");
+            oAuthClientBuilder
+                .setRedirectUri(
+                    oAuthClientBuilder.getRedirectUri().normalize());
+        }
+        LOGGER.debug("Creating a new builder based on the existing OAuth client.");
+        OAuthClient.Builder newOAuthClientBuilder =
+            new OAuthClient.Builder(oauthClient);
+
+
+        LOGGER.debug("Merging the changes into the old ohmlet.");
+        newOAuthClientBuilder.merge(oAuthClientBuilder);
+
+        LOGGER.debug("Building the OAuth client.");
+        OAuthClient oAuthClient = newOAuthClientBuilder.build();
+
+        LOGGER.info("Saving the new OAuth client.");
+        OAuthClientBin.getInstance().updateOAuthClient(oAuthClient);
+
+        LOGGER.info("Building the headers.");
+        HttpHeaders headers = new HttpHeaders();
+
+        LOGGER.info("Extracting the OAuth client's shared secret.");
+        headers
+            .add(OAuthClient.JSON_KEY_SHARED_SECRET, oAuthClient.getSecret());
+
+        LOGGER.info("Returning the OAuth client.");
+        return
+            new ResponseEntity<OAuthClient>(
+                oAuthClient,
+                headers,
+                HttpStatus.OK);
+    }
+
+    /**
      * Retrieves the set of client unique identifiers that are owned by the
      * requesting user.
      *
@@ -863,7 +946,7 @@ public class OAuth2Controller extends OhmageController {
      *        The authorization information corresponding to the user that is
      *        making this call.
      *
-     * @return The set of client unique identifiers that are owned by the
+     * @return The set oSf client unique identifiers that are owned by the
      *         requesting user.
      */
     @RequestMapping(

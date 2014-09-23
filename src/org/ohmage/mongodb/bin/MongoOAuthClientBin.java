@@ -2,10 +2,13 @@ package org.ohmage.mongodb.bin;
 
 import java.util.List;
 
+import org.mongojack.DBQuery;
 import org.mongojack.JacksonDBCollection;
+import org.mongojack.WriteResult;
 import org.ohmage.bin.MultiValueResult;
 import org.ohmage.bin.OAuthClientBin;
 import org.ohmage.domain.auth.OAuthClient;
+import org.ohmage.domain.exception.InconsistentDatabaseException;
 import org.ohmage.domain.exception.InvalidArgumentException;
 import org.ohmage.mongodb.domain.MongoOAuthClient;
 
@@ -88,6 +91,35 @@ public class MongoOAuthClientBin extends OAuthClientBin {
             throw
                 new InvalidArgumentException(
                     "A OAuth client with the same ID already exists.");
+        }
+    }
+
+    /*
+     * (non-Javadoc)
+     * @see org.ohmage.bin.OAuthClientBin#addOAuthClient(org.ohmage.domain.OAuthClient)
+     */
+    @Override
+    public void updateOAuthClient(final OAuthClient oAuthClient)
+        throws IllegalArgumentException, InvalidArgumentException {
+
+        // Validate the parameter.
+        if(oAuthClient == null) {
+            throw new IllegalArgumentException("The OAuth client is null.");
+        }
+
+        // Create the query.
+        // Limit the query only to this oAuthClient.
+        DBQuery.Query query = DBQuery.is(OAuthClient.JSON_KEY_ID, oAuthClient.getId());
+
+        // Commit the update and don't return until the collection has heard
+        // the result.
+        WriteResult<OAuthClient, String> result = COLLECTION.update(query, oAuthClient);
+
+        // Be sure that at least one document was updated.
+        if(result.getN() == 0) {
+            throw
+                new InconsistentDatabaseException(
+                    "A conflict occurred. Please, try again.");
         }
     }
 

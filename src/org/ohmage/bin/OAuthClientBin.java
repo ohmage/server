@@ -48,6 +48,21 @@ public abstract class OAuthClientBin {
         throws IllegalArgumentException, InvalidArgumentException;
 
     /**
+     * Updates an OAuth client in the repository.
+     *
+     * @param oAuthClient
+     *        The OAuth client with updated information.
+     *
+     * @throws IllegalArgumentException
+     *         The OAuth client is null.
+     *
+     * @throws InvalidArgumentException
+     *         A OAuth client with the same ID already exists.
+     */
+    public abstract void updateOAuthClient(final OAuthClient oAuthClient)
+        throws IllegalArgumentException, InvalidArgumentException;
+
+    /**
      * Retrieves the set of client unique identifiers that are owned by the
      * given user.
      *

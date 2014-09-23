@@ -47,16 +47,16 @@ public class OAuthClient extends OhmageDomainObject {
         /**
          * A user-friendly name for this OAuth client.
          */
-        private final String name;
+        private String name;
         /**
          * A user-friendly description for this OAuth client.
          */
-        private final String description;
+        private String description;
         /**
          * The URI to use to redirect the user after authorization has been
          * granted or not.
          */
-        private final URI redirectUri;
+        private URI redirectUri;
 
         /**
          * Creates a new builder with the given fields.
@@ -98,6 +98,43 @@ public class OAuthClient extends OhmageDomainObject {
             name = original.name;
             description = original.description;
             redirectUri = original.redirectUri;
+        }
+
+        /**
+         * Takes the non-null contents of the parameterized builder and
+         * overwrites the corresponding value in this builder.
+         *
+         * @param builder
+         *        The builder whose values should be merged into this builder.
+         *
+         * @return This builder to facilitate chaining.
+         */
+        public Builder merge(final Builder builder) {
+            if(builder == null) {
+                return this;
+            }
+
+            if(builder.sharedSecret != null) {
+                sharedSecret = builder.sharedSecret;
+            }
+
+            if(builder.owner != null) {
+                owner = builder.owner;
+            }
+
+            if(builder.name != null) {
+                name = builder.name;
+            }
+
+            if(builder.description != null) {
+                description = builder.description;
+            }
+
+            if(builder.redirectUri != null) {
+                redirectUri = builder.redirectUri;
+            }
+
+            return this;
         }
 
         /**
