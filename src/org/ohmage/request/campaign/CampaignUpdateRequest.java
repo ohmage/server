@@ -206,7 +206,7 @@ public class CampaignUpdateRequest extends UserRequest {
 					tDescription = CampaignValidators.validateDescription(t[0]);
 				}
 	
-				byte[] bXml = getMultipartValue(httpRequest, InputKeys.XML);
+				byte[] bXml = getParameter(httpRequest, InputKeys.XML);
 				if(bXml != null) {
 					String xmlString = new String(bXml);
 					
