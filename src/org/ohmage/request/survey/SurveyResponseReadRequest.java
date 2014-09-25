@@ -690,7 +690,7 @@ public final class SurveyResponseReadRequest
 				// merged further and subsequently cleaned up, but I don't have
 				// the time to tackle it right now.
 				if(OutputFormat.JSON_ROWS.equals(outputFormat)) {
-					httpResponse.setContentType("text/html");
+					httpResponse.setContentType("application/json");
 					
 					JSONObject result = new JSONObject();
 					result.put(JSON_KEY_RESULT, RESULT_SUCCESS);
@@ -1192,7 +1192,7 @@ public final class SurveyResponseReadRequest
 					}
 					
 					if(OutputFormat.JSON_COLUMNS.equals(outputFormat)) {
-						httpResponse.setContentType("text/html");
+						httpResponse.setContentType("application/json");
 						
 						JSONObject resultJson = new JSONObject();
 						resultJson.put(JSON_KEY_RESULT, RESULT_SUCCESS);
@@ -1362,7 +1362,7 @@ public final class SurveyResponseReadRequest
 		}
 		
 		if(isFailed()) {
-			httpResponse.setContentType("text/html");
+			httpResponse.setContentType("application/json");
 			resultString = this.getFailureMessage();
 		}
 		
