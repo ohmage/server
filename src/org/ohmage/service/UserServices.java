@@ -42,6 +42,7 @@ import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
 import net.tanesha.recaptcha.ReCaptchaResponse;
 
+import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
@@ -73,6 +74,7 @@ import com.sun.mail.smtp.SMTPTransport;
  * @author John Jenkins
  */
 public final class UserServices {
+	private static final Logger LOGGER = Logger.getLogger(UserServices.class);
 	private static final String MAIL_PROTOCOL = "smtp";
 	private static final String MAIL_PROPERTY_HOST = 
 			"mail." + MAIL_PROTOCOL + ".host";
@@ -279,8 +281,8 @@ public final class UserServices {
                         }
                         catch(CacheMissException e) {
 				//Set to #activate for backwards compatability
-				activiationFunction = "#activate"
-				LOGGER.info("The mail property is not in the preference table: +
+				activationFunction = "#activate";
+				LOGGER.info("The mail property is not in the preference table:" +
                                                 PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION +
 						", setting manually");
                         }
