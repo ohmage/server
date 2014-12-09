@@ -278,10 +278,11 @@ public final class UserServices {
                                         PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION);
                         }
                         catch(CacheMissException e) {
-                                throw new ServiceException(
-                                        "The mail property is not in the preference table: " +
-                                                PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION,
-                                        e);
+				//Set to #activate for backwards compatability
+				activiationFunction = "#activate"
+				LOGGER.info("The mail property is not in the preference table: +
+                                                PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION +
+						", setting manually");
                         }
 			registrationLink.append(activationFunction);
 			registrationLink.append('?');
