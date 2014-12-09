@@ -85,8 +85,6 @@ public final class UserServices {
 	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_LINK =
 			"<_REGISTRATION_LINK_>";
 	
-	private static final String ACTIVATION_FUNCTION = "#activate";
-	
 	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 24;
 	
 	final static char[] CHARS_TEMPORARY_PASSWORD = 
@@ -273,7 +271,19 @@ public final class UserServices {
 						"Could not build the root server URL.",
 						e);
 			}
-			registrationLink.append(ACTIVATION_FUNCTION);
+			// Get the registration activation function.
+			String activationFunction;
+                        try {
+                                activationFunction = PreferenceCache.instance().lookup(
+                                        PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION);
+                        }
+                        catch(CacheMissException e) {
+                                throw new ServiceException(
+                                        "The mail property is not in the preference table: " +
+                                                PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION,
+                                        e);
+                        }
+			registrationLink.append(activationFunction);
 			registrationLink.append('?');
 			registrationLink.append(InputKeys.USER_REGISTRATION_ID);
 			registrationLink.append('=');
