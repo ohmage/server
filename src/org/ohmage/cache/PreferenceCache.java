@@ -104,6 +104,8 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_MAIL_PASSWORD = "mail_password";
 	
 	// Mail Registration
+	public static final String KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION =
+                        "mail_registration_activation_function";
 	public static final String KEY_MAIL_REGISTRATION_SENDER = 
 			"mail_registration_sender_address";
 	public static final String KEY_MAIL_REGISTRATION_SUBJECT = 
