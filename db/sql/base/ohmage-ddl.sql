@@ -6,7 +6,7 @@ USE ohmage;
 -- --------------------------------------------------------------------
 -- A lookup table for the types of HTTP requests. 
 -- --------------------------------------------------------------------
-CREATE TABLE audit_request_type (
+CREATE TABLE IF NOT EXISTS audit_request_type (
   -- A unique key to reference the different types.
   id int unsigned NOT NULL auto_increment,
   -- The value for the HTTP request types.
@@ -17,7 +17,7 @@ CREATE TABLE audit_request_type (
 -- --------------------------------------------------------------------
 -- A table to audit all of the transactions with the server.
 -- --------------------------------------------------------------------
-CREATE TABLE audit (
+CREATE TABLE IF NOT EXISTS audit (
   -- A unique key for each request.
   id int unsigned NOT NULL auto_increment,
   -- The type of request this was, GET, POST, etc.
@@ -49,7 +49,7 @@ CREATE TABLE audit (
 -- A mapping of extra keys to their values taken from the HTTP request
 -- headers.
 -- --------------------------------------------------------------------
-CREATE TABLE audit_extra (
+CREATE TABLE IF NOT EXISTS audit_extra (
   -- A unique key for this parameter mapping.
   id int unsigned NOT NULL auto_increment,
   -- A reference to the audit to which this parameter was a member.
@@ -65,7 +65,7 @@ CREATE TABLE audit_extra (
 -- --------------------------------------------------------------------
 -- A mapping of parameter keys to their values linked to a request. 
 -- --------------------------------------------------------------------
-CREATE TABLE audit_parameter (
+CREATE TABLE IF NOT EXISTS audit_parameter (
   -- A unique key for this parameter mapping.
   id int unsigned NOT NULL auto_increment,
   -- A reference to the audit to which this parameter was a member.
@@ -82,7 +82,7 @@ CREATE TABLE audit_parameter (
 -- The class concept comes from Mobilize, but it can be used for any
 -- taxonomical grouping of users. 
 -- --------------------------------------------------------------------
-CREATE TABLE class (
+CREATE TABLE IF NOT EXISTS class (
   id int unsigned NOT NULL auto_increment,
   urn varchar(255) NOT NULL,
   name varchar(255) NOT NULL,
@@ -94,7 +94,7 @@ CREATE TABLE class (
 -- --------------------------------------------------------------------
 -- Lookup table for the running states of a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE campaign_running_state (
+CREATE TABLE IF NOT EXISTS campaign_running_state (
   id int unsigned NOT NULL auto_increment,
   running_state varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -104,7 +104,7 @@ CREATE TABLE campaign_running_state (
 -- --------------------------------------------------------------------
 -- Lookup table for the privacy states of a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE campaign_privacy_state (
+CREATE TABLE IF NOT EXISTS campaign_privacy_state (
   id int unsigned NOT NULL auto_increment,
   privacy_state varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -114,7 +114,7 @@ CREATE TABLE campaign_privacy_state (
 -- --------------------------------------------------------------------
 -- A campaign and its associated XML configuration.
 -- --------------------------------------------------------------------
-CREATE TABLE campaign (
+CREATE TABLE IF NOT EXISTS campaign (
   id int unsigned NOT NULL auto_increment,
   urn varchar(255) NOT NULL,
   name varchar(255) NOT NULL,
@@ -135,7 +135,7 @@ CREATE TABLE campaign (
 -- --------------------------------------------------------------------
 -- Bind campaigns to classes.
 -- --------------------------------------------------------------------
-CREATE TABLE campaign_class (
+CREATE TABLE IF NOT EXISTS campaign_class (
   id int unsigned NOT NULL auto_increment,
   campaign_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE campaign_class (
 -- -----------------------------------------------------------------------
 -- System users.
 -- -----------------------------------------------------------------------
-CREATE TABLE user (
+CREATE TABLE IF NOT EXISTS user (
   id int unsigned NOT NULL auto_increment,
   username varchar(25) NOT NULL,
   password varchar(60) NOT NULL,
@@ -169,7 +169,7 @@ CREATE TABLE user (
 -- Due to IRB standards, we store personally identifying information
 -- separately from the user's login credentials.
 -- ---------------------------------------------------------------------
-CREATE TABLE user_personal (
+CREATE TABLE IF NOT EXISTS user_personal (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
   first_name varchar(255) NOT NULL,
@@ -186,7 +186,7 @@ CREATE TABLE user_personal (
 -- --------------------------------------------------------------------
 -- Create the table responsible for user registration.
 -- --------------------------------------------------------------------
-CREATE TABLE user_registration(
+CREATE TABLE IF NOT EXISTS user_registration(
     -- A unique key for each request.
     id int unsigned NOT NULL auto_increment,
     -- A reference to the user.
@@ -208,7 +208,7 @@ CREATE TABLE user_registration(
 -- --------------------------------------------------------------------
 -- User role lookup table.
 -- --------------------------------------------------------------------
-CREATE TABLE user_role (
+CREATE TABLE IF NOT EXISTS user_role (
   id tinyint unsigned NOT NULL auto_increment,
   role varchar(50) NOT NULL,
   PRIMARY KEY (id)
@@ -218,7 +218,7 @@ CREATE TABLE user_role (
 -- Bind users to roles and campaigns. A user can have a different role
 -- for each campaign they belong to.
 -- --------------------------------------------------------------------
-CREATE TABLE user_role_campaign (
+CREATE TABLE IF NOT EXISTS user_role_campaign (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
   campaign_id int unsigned NOT NULL,
@@ -233,7 +233,7 @@ CREATE TABLE user_role_campaign (
 -- --------------------------------------------------------------------
 -- Roles for a user within a class.
 -- --------------------------------------------------------------------
-CREATE TABLE user_class_role (
+CREATE TABLE IF NOT EXISTS user_class_role (
   id int unsigned NOT NULL auto_increment,
   role varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -243,7 +243,7 @@ CREATE TABLE user_class_role (
 -- --------------------------------------------------------------------
 -- Bind users to classes. 
 -- --------------------------------------------------------------------
-CREATE TABLE user_class (
+CREATE TABLE IF NOT EXISTS user_class (
   id int unsigned NOT NULL auto_increment,
   user_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
@@ -258,7 +258,7 @@ CREATE TABLE user_class (
 -- --------------------------------------------------------------------
 -- Add a default role to campaign class relationships.
 -- --------------------------------------------------------------------
-CREATE TABLE campaign_class_default_role (
+CREATE TABLE IF NOT EXISTS campaign_class_default_role (
   id int unsigned NOT NULL auto_increment,
   campaign_class_id int unsigned NOT NULL,
   user_class_role_id int unsigned NOT NULL,
@@ -273,7 +273,7 @@ CREATE TABLE campaign_class_default_role (
 -- --------------------------------------------------------------------
 -- Survey response privacy states.
 -- --------------------------------------------------------------------
-CREATE TABLE survey_response_privacy_state (
+CREATE TABLE IF NOT EXISTS survey_response_privacy_state (
   id int unsigned NOT NULL auto_increment,
   privacy_state varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -283,7 +283,7 @@ CREATE TABLE survey_response_privacy_state (
 -- --------------------------------------------------------------------
 -- Stores survey responses for a user in a campaign 
 -- --------------------------------------------------------------------
-CREATE TABLE survey_response (
+CREATE TABLE IF NOT EXISTS survey_response (
   id int unsigned NOT NULL auto_increment,
   uuid CHAR(36) NOT NULL UNIQUE,
   user_id int unsigned NOT NULL,
@@ -312,7 +312,7 @@ CREATE TABLE survey_response (
 -- the entire survey response and each prompt response in for a survey
 -- are stored.
 -- --------------------------------------------------------------------
-CREATE TABLE prompt_response (
+CREATE TABLE IF NOT EXISTS prompt_response (
   id int unsigned NOT NULL auto_increment,
   survey_response_id int unsigned NOT NULL,
   prompt_id varchar(250) NOT NULL,  -- a prompt id as defined in a configuration at the XPath //promptId
@@ -335,7 +335,7 @@ CREATE TABLE prompt_response (
 -- for images is handled by the link up to the survey_response via
 -- prompt_response.
 -- --------------------------------------------------------------------
-CREATE TABLE url_based_resource (
+CREATE TABLE IF NOT EXISTS url_based_resource (
     id int unsigned NOT NULL auto_increment,
     user_id int unsigned NOT NULL,
     client tinytext NOT NULL,
@@ -351,7 +351,7 @@ CREATE TABLE url_based_resource (
 -- --------------------------------------------------------------------
 -- Mobility privacy states.
 -- --------------------------------------------------------------------
-CREATE TABLE mobility_privacy_state (
+CREATE TABLE IF NOT EXISTS mobility_privacy_state (
   id int unsigned NOT NULL auto_increment,
   privacy_state varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -362,7 +362,7 @@ CREATE TABLE mobility_privacy_state (
 -- High-frequency "mode only" mobility data. Mobility data is *not*
 -- linked to a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE mobility (
+CREATE TABLE IF NOT EXISTS mobility (
   id int unsigned NOT NULL auto_increment,
   uuid CHAR(36) NOT NULL UNIQUE,
   user_id int unsigned NOT NULL,
@@ -386,7 +386,7 @@ CREATE TABLE mobility (
 -- High-frequency "mode + sensor data" mobility data. Mobility data is 
 -- *not* linked to a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE mobility_extended (
+CREATE TABLE IF NOT EXISTS mobility_extended (
   id int unsigned NOT NULL auto_increment,
   mobility_id int unsigned NOT NULL,
   sensor_data text NOT NULL,
@@ -401,7 +401,7 @@ CREATE TABLE mobility_extended (
 -- Preferences table to hold key-value pairs of items that need to be
 -- stored but we don't want to store in configuration files.
 -- --------------------------------------------------------------------
-CREATE TABLE preference (
+CREATE TABLE IF NOT EXISTS preference (
   p_key varchar(50) NOT NULL,
   p_value text NOT NULL,
   UNIQUE unique_p_key (p_key)
@@ -410,7 +410,7 @@ CREATE TABLE preference (
 -- --------------------------------------------------------------------
 -- Lookup table for the privacy states of a document.
 -- --------------------------------------------------------------------
-CREATE TABLE document_privacy_state (
+CREATE TABLE IF NOT EXISTS document_privacy_state (
   id int unsigned NOT NULL auto_increment,
   privacy_state varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -420,7 +420,7 @@ CREATE TABLE document_privacy_state (
 -- --------------------------------------------------------------------
 -- Lookup table for roles for a document.
 -- --------------------------------------------------------------------
-CREATE TABLE document_role (
+CREATE TABLE IF NOT EXISTS document_role (
   id int unsigned NOT NULL auto_increment,
   role varchar(50) NOT NULL,
   PRIMARY KEY (id),
@@ -430,7 +430,7 @@ CREATE TABLE document_role (
 -- --------------------------------------------------------------------
 -- Documents associated with a campaign.
 -- --------------------------------------------------------------------
-CREATE TABLE document (
+CREATE TABLE IF NOT EXISTS document (
   id int unsigned NOT NULL auto_increment,
   uuid char(36) NOT NULL,
   name varchar(255) NOT NULL,
@@ -449,7 +449,7 @@ CREATE TABLE document (
 -- --------------------------------------------------------------------
 -- Link of documents to classes.
 -- --------------------------------------------------------------------
-CREATE TABLE document_class_role (
+CREATE TABLE IF NOT EXISTS document_class_role (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
@@ -463,7 +463,7 @@ CREATE TABLE document_class_role (
 -- --------------------------------------------------------------------
 -- Link of documents to campaigns.
 -- --------------------------------------------------------------------
-CREATE TABLE document_campaign_role (
+CREATE TABLE IF NOT EXISTS document_campaign_role (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
   campaign_id int unsigned NOT NULL,
@@ -477,7 +477,7 @@ CREATE TABLE document_campaign_role (
 -- --------------------------------------------------------------------
 -- Link of documents to users.
 -- --------------------------------------------------------------------
-CREATE TABLE document_user_role (
+CREATE TABLE IF NOT EXISTS document_user_role (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
   user_id int unsigned NOT NULL,
@@ -491,7 +491,7 @@ CREATE TABLE document_user_role (
 -- --------------------------------------------------------------------
 -- Audit trail for who created which document
 -- --------------------------------------------------------------------
-CREATE TABLE document_user_creator (
+CREATE TABLE IF NOT EXISTS document_user_creator (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
   username varchar(25) NOT NULL,
@@ -503,7 +503,7 @@ CREATE TABLE document_user_creator (
 -- --------------------------------------------------------------------
 -- Annotations (text blobs) for different system entities.
 -- --------------------------------------------------------------------
-CREATE TABLE annotation (
+CREATE TABLE IF NOT EXISTS annotation (
   id int unsigned NOT NULL auto_increment,
   uuid CHAR(36) NOT NULL UNIQUE,
   user_id int unsigned NOT NULL,
@@ -520,7 +520,7 @@ CREATE TABLE annotation (
 -- --------------------------------------------------------------------
 -- Link survey_responses to annotations.
 -- --------------------------------------------------------------------
-CREATE TABLE survey_response_annotation (
+CREATE TABLE IF NOT EXISTS survey_response_annotation (
   id int unsigned NOT NULL auto_increment,
   survey_response_id int unsigned NOT NULL,
   annotation_id int unsigned NOT NULL,
@@ -532,7 +532,7 @@ CREATE TABLE survey_response_annotation (
 -- --------------------------------------------------------------------
 -- Link prompt_responses to annotations.
 -- --------------------------------------------------------------------
-CREATE TABLE prompt_response_annotation (
+CREATE TABLE IF NOT EXISTS prompt_response_annotation (
   id int unsigned NOT NULL auto_increment,
   prompt_response_id int unsigned NOT NULL,
   annotation_id int unsigned NOT NULL,
@@ -544,7 +544,7 @@ CREATE TABLE prompt_response_annotation (
 -- --------------------------------------------------------------------
 -- Link campaigns to annotations.
 -- --------------------------------------------------------------------
-CREATE TABLE campaign_annotation (
+CREATE TABLE IF NOT EXISTS campaign_annotation (
   id int unsigned NOT NULL auto_increment,
   campaign_id int unsigned NOT NULL,
   annotation_id int unsigned NOT NULL,
@@ -556,7 +556,7 @@ CREATE TABLE campaign_annotation (
 -- --------------------------------------------------------------------
 -- Link annotations to annotations.
 -- --------------------------------------------------------------------
-CREATE TABLE annotation_annotation (
+CREATE TABLE IF NOT EXISTS annotation_annotation (
   id int unsigned NOT NULL auto_increment,
   root_annotation_id int unsigned NOT NULL,
   annotation_id int unsigned NOT NULL,
@@ -569,7 +569,7 @@ CREATE TABLE annotation_annotation (
 -- An observer's definition.
 -- --------------------------------------------------------------------
 -- Create the observer tables.
-CREATE TABLE observer (
+CREATE TABLE IF NOT EXISTS observer (
     id int unsigned NOT NULL AUTO_INCREMENT,
     user_id int unsigned NOT NULL,
     observer_id varchar(255) NOT NULL,
@@ -591,7 +591,7 @@ CREATE TABLE observer (
 -- --------------------------------------------------------------------
 -- A single stream's definition.
 -- --------------------------------------------------------------------
-CREATE TABLE observer_stream (
+CREATE TABLE IF NOT EXISTS observer_stream (
     id int unsigned NOT NULL AUTO_INCREMENT,
     stream_id varchar(255) NOT NULL,
     version bigint NOT NULL,
@@ -612,7 +612,7 @@ CREATE TABLE observer_stream (
 -- not. Therefore, we need to allow one version of a stream to span multiple
 -- versions of its observer.
 -- --------------------------------------------------------------------
-CREATE TABLE observer_stream_link (
+CREATE TABLE IF NOT EXISTS observer_stream_link (
   id int(10) unsigned NOT NULL AUTO_INCREMENT,
   observer_id int(10) unsigned NOT NULL,
   observer_stream_id int(10) unsigned NOT NULL,
@@ -636,7 +636,7 @@ CREATE TABLE observer_stream_link (
 -- --------------------------------------------------------------------
 -- The data collected by a stream.
 -- --------------------------------------------------------------------
-CREATE TABLE observer_stream_data (
+CREATE TABLE IF NOT EXISTS observer_stream_data (
   id int unsigned NOT NULL AUTO_INCREMENT,
   user_id int unsigned NOT NULL,
   observer_stream_link_id int unsigned NOT NULL,
@@ -676,7 +676,7 @@ CREATE TABLE observer_stream_data (
 -- --------------------------------------------------------------------
 -- A lookup table for survey IDs to their respective campaigns.
 -- --------------------------------------------------------------------
-CREATE TABLE `campaign_survey_lookup` (
+CREATE TABLE IF NOT EXISTS `campaign_survey_lookup` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `survey_id` varchar(255) NOT NULL,
   `campaign_id` int(10) unsigned NOT NULL,
@@ -692,7 +692,7 @@ CREATE TABLE `campaign_survey_lookup` (
 -- --------------------------------------------------------------------
 -- A lookup table for prompt IDs to their respective campaigns.
 -- --------------------------------------------------------------------
-CREATE TABLE `campaign_prompt_lookup` (
+CREATE TABLE IF NOT EXISTS `campaign_prompt_lookup` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `prompt_id` varchar(255) NOT NULL,
   `campaign_id` int(10) unsigned NOT NULL,
@@ -708,7 +708,7 @@ CREATE TABLE `campaign_prompt_lookup` (
 -- --------------------------------------------------------------------
 -- A table to track campaign masks.
 -- --------------------------------------------------------------------
-CREATE TABLE `campaign_mask` (
+CREATE TABLE IF NOT EXISTS `campaign_mask` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `assigner_user_id` int(10) unsigned NOT NULL,
   `assignee_user_id` int(10) unsigned NOT NULL,
@@ -726,7 +726,7 @@ CREATE TABLE `campaign_mask` (
 -- --------------------------------------------------------------------
 -- A lookup table for survey IDs in a campaign mask.
 -- --------------------------------------------------------------------
-CREATE TABLE `campaign_mask_survey_id` (
+CREATE TABLE IF NOT EXISTS `campaign_mask_survey_id` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `campaign_mask_id` int(10) unsigned NOT NULL,
   `survey_id` varchar(255) NOT NULL,
@@ -738,7 +738,7 @@ CREATE TABLE `campaign_mask_survey_id` (
 -- --------------------------------------------------------------------
 -- A table to hold OmH authentication/authorization information.
 -- --------------------------------------------------------------------
-CREATE TABLE `omh_authentication` (
+CREATE TABLE IF NOT EXISTS `omh_authentication` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `domain` varchar(100) NOT NULL,
   `auth_key` varchar(100) NOT NULL,
@@ -751,7 +751,7 @@ CREATE TABLE `omh_authentication` (
 -- --------------------------------------------------------------------
 -- The campaign mask table that includes both survey and prompt IDs.
 -- --------------------------------------------------------------------
-CREATE TABLE `campaign_mask_survey_prompt_map` (
+CREATE TABLE IF NOT EXISTS `campaign_mask_survey_prompt_map` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `campaign_mask_id` int(10) unsigned NOT NULL,
     `survey_id` varchar(255) NOT NULL,
@@ -767,7 +767,7 @@ CREATE TABLE `campaign_mask_survey_prompt_map` (
 -- --------------------------------------------------------------------
 -- The table to store the invalid data.
 -- --------------------------------------------------------------------
-CREATE TABLE `observer_stream_data_invalid` (
+CREATE TABLE IF NOT EXISTS `observer_stream_data_invalid` (
     `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
     `user_id` int(10) unsigned NOT NULL,
     `observer_id` int(10) unsigned NOT NULL,

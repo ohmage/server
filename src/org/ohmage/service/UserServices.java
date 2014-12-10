@@ -42,6 +42,7 @@ import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
 import net.tanesha.recaptcha.ReCaptchaResponse;
 
+import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
@@ -73,6 +74,7 @@ import com.sun.mail.smtp.SMTPTransport;
  * @author John Jenkins
  */
 public final class UserServices {
+	private static final Logger LOGGER = Logger.getLogger(UserServices.class);
 	private static final String MAIL_PROTOCOL = "smtp";
 	private static final String MAIL_PROPERTY_HOST = 
 			"mail." + MAIL_PROTOCOL + ".host";
@@ -84,8 +86,6 @@ public final class UserServices {
 	private static final String MAIL_REGISTRATION_TEXT_TOS = "<_TOS_>";
 	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_LINK =
 			"<_REGISTRATION_LINK_>";
-	
-	private static final String ACTIVATION_FUNCTION = "#activate";
 	
 	private static final long REGISTRATION_DURATION = 1000 * 60 * 60 * 24;
 	
@@ -341,7 +341,20 @@ public final class UserServices {
 						"Could not build the root server URL.",
 						e);
 			}
-			registrationLink.append(ACTIVATION_FUNCTION);
+			// Get the registration activation function.
+			String activationFunction;
+                        try {
+                                activationFunction = PreferenceCache.instance().lookup(
+                                        PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION);
+                        }
+                        catch(CacheMissException e) {
+				//Set to #activate for backwards compatability
+				activationFunction = "#activate";
+				LOGGER.info("The mail property is not in the preference table:" +
+                                                PreferenceCache.KEY_MAIL_REGISTRATION_ACTIVATION_FUNCTION +
+						", setting manually");
+                        }
+			registrationLink.append(activationFunction);
 			registrationLink.append('?');
 			registrationLink.append(InputKeys.USER_REGISTRATION_ID);
 			registrationLink.append('=');

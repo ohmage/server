@@ -34,6 +34,7 @@ We are constantly striving to build a great software and a pleasing experience t
 2. The UCLA IRB information can be found here: http://ohrpp.research.ucla.edu/pages/about-irb
 
     '),
+    ('mail_registration_activation_function', '#activate'),
     ('mail_registration_sender_address', 'no-reply@ohmage.org'),
     ('mail_registration_subject', 'ohmage: New Account Request'),
     ('mail_registration_text', '<h3>Registration Activation</h3><p>Thank you for creating an account. Getting started instructions can be found at this link: http://demo.ohmage.org/. To activate your account, follow the link at the end of this message. By following the link you agree to our terms of service.</p><_TOS_><br /><_REGISTRATION_LINK_>'),
