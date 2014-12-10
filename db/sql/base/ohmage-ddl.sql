@@ -1,6 +1,6 @@
 -- MySQL DDL statements for the ohmage database
 
-CREATE DATABASE ohmage CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE IF NOT EXISTS ohmage CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE ohmage;
 
 -- --------------------------------------------------------------------
