@@ -197,7 +197,7 @@ public class DocumentReadContentsRequest extends UserRequest {
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
 				httpResponse.setContentType("ohmage/document");
-				httpResponse.setHeader("Content-Disposition", "attachment; filename=" + documentName);
+				httpResponse.setHeader("Content-Disposition", "attachment; filename=\"" + documentName + "\"");
 				
 				// If available, set the token.
 				if(getUser() != null) {
