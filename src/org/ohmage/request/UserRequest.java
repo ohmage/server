@@ -224,6 +224,7 @@ public abstract class UserRequest extends Request {
 		try {
 			// Validate that the username and password are valid.
 			LOGGER.info("Authenticating the user.");
+			LOGGER.info("HT: Authenticating the user: " + getUser().getUsername());
 			return
 				AuthenticationService
 					.instance()
