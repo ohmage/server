@@ -50,6 +50,7 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.SurveyResponseValidators;
@@ -110,6 +111,7 @@ import org.ohmage.validator.SurveyResponseValidators;
  * 
  * @author Joshua Selsky
  */
+// TODO: HT Do we need to add annotation for request.getParts()
 public class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER =
 		Logger.getLogger(SurveyUploadRequest.class);
@@ -197,6 +199,7 @@ public class SurveyUploadRequest extends UserRequest {
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<String, Video> tVideoContentsMap = null;
 		Map<String, Audio> tAudioContentsMap = null;
+		// TODO: HT add Map<String,Document> tDocumentContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -257,6 +260,7 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
+				// Extract images from the post body
 				tImageContentsMap = new HashMap<UUID, Image>();
 				t = getParameterValues(InputKeys.IMAGES);
 				if(t.length > 1) {
@@ -275,11 +279,23 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
+				// TODO: HT add handling for document as inline base64
+				
+				
+				// check for duplicate UUID in the tImageContentsMap 
+				if (StringUtils.hasDuplicate(tImageContentsMap.keySet()))
+					throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_RESOURCE_UUIDS, 
+							"a duplicate uuid of resource key was detected in the multi-part upload");
+				
 				// Retrieve and validate images and videos.
-				List<UUID> imageIds = new ArrayList<UUID>();
+				//List<UUID> imageIds = new ArrayList<UUID>();
+				Set<UUID> resourceIds = new HashSet<UUID>();
+				
 				tVideoContentsMap = new HashMap<String, Video>();
 				tAudioContentsMap = new HashMap<String, Audio>();
+				// TODO: HT add tDocumentContentsMap = new HashMap<String, Document>();
 				Collection<Part> parts = null;
+		
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
@@ -293,14 +309,33 @@ public class SurveyUploadRequest extends UserRequest {
 							LOGGER.info("Ignoring part: " + name);
 							continue;
 						}
-							
+						
+						//imageIds.add(id);  // add all UUID					
+						// check for duplicate
+						if (!resourceIds.add(id)){
+							throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_RESOURCE_UUIDS, 
+									"a duplicate uuid of resource key was detected in the multi-part upload");
+						}
 						String contentType = p.getContentType();
+						
 						if(contentType.startsWith("image")) {
-							imageIds.add(id);
+
+							Image image = 
+									ImageValidators
+										.validateImageContents(
+											id,
+											getMultipartValue(httpRequest, name));
+							if(image == null) {
+								throw
+									new ValidationException(
+										ErrorCode.IMAGE_INVALID_DATA, 
+										"The image data is missing: " + id);
+							}
+							tImageContentsMap.put(id, image);														
 						}
 						else if(contentType.startsWith("video/")) {
 							tVideoContentsMap.put(
-								name, 
+								name,  // put name instead of id in the map. why? 
 								new Video(
 									UUID.fromString(name),
 									contentType.split("/")[1],
@@ -323,6 +358,26 @@ public class SurveyUploadRequest extends UserRequest {
 										e);
 							}
 						}
+						else if(contentType.startsWith("application/") ||
+								contentType.startsWith("text/")){ // HT: check this
+							try {
+								tAudioContentsMap.put(
+									name,
+									new Audio(
+										UUID.fromString(name),
+										contentType.split("/")[1],
+										getMultipartValue(httpRequest, name)));
+							}
+							catch(DomainException e) {
+								throw
+									new ValidationException(
+										ErrorCode.SYSTEM_GENERAL_ERROR,
+										"Could not create the Audio object.",
+										e);
+							}	
+						}
+						if(LOGGER.isDebugEnabled()) 
+							LOGGER.debug("succesfully created a BufferedImage for key " + id);
 					}
 				}
 				catch(ServletException e) {
@@ -337,12 +392,13 @@ public class SurveyUploadRequest extends UserRequest {
 					throw new ValidationException(e);
 				}
 				
+				/*
+				// HT: the uniqueness should be checked across all types of media, not per media
 				Set<UUID> stringSet = new HashSet<UUID>(imageIds);
 				
 				if(stringSet.size() != imageIds.size()) {
-					throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
+					throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_RESOURCE_UUIDS, "a duplicate uuid of resource key was detected in the multi-part upload");
 				}
-
 				for(UUID imageId : imageIds) {
 					Image image = 
 						ImageValidators
@@ -363,11 +419,13 @@ public class SurveyUploadRequest extends UserRequest {
 						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
 					}
 				}
+				*/
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
 				e.logException(LOGGER, true);
 			}
+
 		}
 
 		this.campaignUrn = tCampaignUrn;
@@ -457,6 +515,8 @@ public class SurveyUploadRequest extends UserRequest {
 			
 			LOGGER.info("Validating that all audio prompt responses have their corresponding audio files attached.");
 			SurveyResponseServices.instance().verifyAudioFilesExistForAudioPromptResponses(surveyResponses, audioContentsMap);
+			
+			// TODO: HT add a validator for ducument type
 			
 			LOGGER.info("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 

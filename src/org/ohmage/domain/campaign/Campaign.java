@@ -59,6 +59,7 @@ import org.ohmage.domain.campaign.Prompt.Type;
 import org.ohmage.domain.campaign.prompt.AudioPrompt;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.prompt.DocumentPrompt;
 import org.ohmage.domain.campaign.prompt.HoursBeforeNowPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoicePrompt;
@@ -419,7 +420,7 @@ public class Campaign {
 		this.runningState = runningState;
 		this.privacyState = privacyState;
 		
-		this.creationTimestamp = new DateTime(creationTimestamp);
+		this.creationTimestamp = new DateTime(creationTimestamp);  
 		
 		this.xml = xml;
 		
@@ -2271,11 +2272,13 @@ public class Campaign {
 		Nodes surveyNodes = surveysNode.query(XML_SURVEY);
 		List<Survey> surveys = processSurveys(surveyNodes);
 		
+		// Need at least 1 survey
 		int numSurveys = surveys.size();
 		if(numSurveys == 0) {
 			throw new DomainException("No surveys were found.");
 		}
 		
+		// check of surveyID uniqueness
 		Map<String, Survey> result = new HashMap<String, Survey>(numSurveys);
 		for(Survey survey : surveys) {
 			if(result.put(survey.getId(), survey) != null) {
@@ -2343,8 +2346,8 @@ public class Campaign {
 			final Node survey) 
 			throws DomainException {
 		
-		Nodes ids = survey.query(XML_SURVEY_ID);
-		if(ids.size() == 0) {
+		Nodes ids = survey.query(XML_SURVEY_ID);  // required
+		if(ids.size() == 0) {  
 			throw new DomainException("The survey ID is missing.");
 		}
 		else if(ids.size() > 1) {
@@ -2353,8 +2356,8 @@ public class Campaign {
 		}
 		String id = validateSurveyId(ids.get(0).getValue());
 		
-		Nodes titles = survey.query(XML_SURVEY_TITLE);
-		if(titles.size() == 0) {
+		Nodes titles = survey.query(XML_SURVEY_TITLE);  // required
+		if(titles.size() == 0) {  
 			throw new DomainException("The survey title is missing: " + id);
 		}
 		else if(titles.size() > 1) {
@@ -2370,7 +2373,7 @@ public class Campaign {
 		}
 		
 		String description = null;
-		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);
+		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);  // optional
 		if(descriptions.size() > 1) {
 			throw new DomainException(
 					"Multiple survey descriptions were found for the same survey: " + 
@@ -2387,7 +2390,7 @@ public class Campaign {
 		}
 		
 		String introText = null;
-		Nodes introTexts = survey.query(XML_SURVEY_INTRO_TEXT);
+		Nodes introTexts = survey.query(XML_SURVEY_INTRO_TEXT);  // optional
 		if(introTexts.size() > 1) {
 			throw new DomainException(
 					"Multiple survey intro texts were found for the same survey: " + 
@@ -2403,7 +2406,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes submitTexts = survey.query(XML_SURVEY_SUBMIT_TEXT);
+		Nodes submitTexts = survey.query(XML_SURVEY_SUBMIT_TEXT);  // required
 		if(submitTexts.size() == 0) {
 			throw new DomainException("The survey submit text is missing.");
 		}
@@ -2419,7 +2422,7 @@ public class Campaign {
 						id);
 		}
 		
-		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);
+		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);  // required
 		if(anytimes.size() == 0) {
 			throw new DomainException(
 					"The survey anytime value is missing: " + id);
@@ -2435,7 +2438,7 @@ public class Campaign {
 					"The anytime value is not a valid boolean value: " + id);
 		}
 		
-		Nodes contentLists = survey.query(XML_SURVEY_CONTENT_LIST);
+		Nodes contentLists = survey.query(XML_SURVEY_CONTENT_LIST);  // required
 		if(contentLists.size() == 0) {
 			throw new DomainException(
 					"The survey content list is missing: " + id);
@@ -2447,7 +2450,8 @@ public class Campaign {
 		Node contentList = contentLists.get(0);
 		List<SurveyItem> promptsList = 
 			processContentList(id, contentList.query(XML_CONTENT_LIST_ITEMS));
-		
+	
+		// check for promptID uniqueness within each survey
 		Map<Integer, SurveyItem> prompts = 
 			new HashMap<Integer, SurveyItem>(promptsList.size());
 		Set<String> promptIds = new HashSet<String>();
@@ -2493,7 +2497,7 @@ public class Campaign {
 			throws DomainException {
 		
 		int numItems = contentListItems.size();
-		List<SurveyItem> result = new ArrayList<SurveyItem>(numItems);
+		List<SurveyItem> result = new ArrayList<SurveyItem>(numItems);  // order matters
 		
 		for(int i = 0; i < numItems; i++) {
 			SurveyItem.Type contentListItem;
@@ -2569,7 +2573,7 @@ public class Campaign {
 			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
-		Nodes ids = message.query(XML_MESSAGE_ID);
+		Nodes ids = message.query(XML_MESSAGE_ID);  //required
 		if(ids.size() == 0) {
 			throw new DomainException(
 					"The message ID is missing: " + containerId);
@@ -2590,7 +2594,7 @@ public class Campaign {
 		}
 		
 		String condition = null;
-		Nodes conditions = message.query(XML_MESSAGE_CONDITION);
+		Nodes conditions = message.query(XML_MESSAGE_CONDITION);  // optional
 		if(conditions.size() > 1) {
 			throw new DomainException(
 					"Multiple message conditions were found: " + id);
@@ -2605,7 +2609,7 @@ public class Campaign {
 					alreadyProcessedItemsInSurveyItemGroup);
 		}
 		
-		Nodes texts = message.query(XML_MESSAGE_TEXT);
+		Nodes texts = message.query(XML_MESSAGE_TEXT);  // required
 		if(texts.size() == 0) {
 			throw new DomainException(
 					"The message text is missing: " + id);
@@ -2862,7 +2866,7 @@ public class Campaign {
 			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
-		Nodes ids = prompt.query(XML_PROMPT_ID);
+		Nodes ids = prompt.query(XML_PROMPT_ID);  // required
 		if(ids.size() == 0) {
 			throw new DomainException(
 					"The prompt ID is missing: " + containerId);
@@ -2874,7 +2878,7 @@ public class Campaign {
 		String id = validatePromptId(ids.get(0).getValue(), containerId);
 		
 		String condition = null;
-		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);
+		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);  //optional
 		if(conditions.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt conditions were found: " + id);
@@ -2890,7 +2894,7 @@ public class Campaign {
 		}
 		
 		String unit = null;
-		Nodes units = prompt.query(XML_PROMPT_UNIT);
+		Nodes units = prompt.query(XML_PROMPT_UNIT);  //optional
 		if(units.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt units were found: " + id);
@@ -2905,7 +2909,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes texts = prompt.query(XML_PROMPT_TEXT);
+		Nodes texts = prompt.query(XML_PROMPT_TEXT);  // required
 		if(texts.size() == 0) {
 			throw new DomainException(
 					"The prompt text is missing: " + id);
@@ -2921,7 +2925,7 @@ public class Campaign {
 		}
 		
 		String explanationText = null;
-		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);
+		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);  // optional
 		if(explanationTexts.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt explanation texts were found: " + id);
@@ -2936,7 +2940,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);
+		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);  // required
 		if(skippables.size() == 0) {
 			throw new DomainException(
 					"The prompt skippable is missing: " + id);
@@ -2953,7 +2957,7 @@ public class Campaign {
 		}
 		
 		String skipLabel = null;
-		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);
+		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);  // reqired if skippable
 		if((skipLabels.size() == 0) && (skippable)) {
 			throw new DomainException(
 					"The skip label cannot be null if the prompt is skippable: " +
@@ -2973,7 +2977,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);
+		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);  // required
 		if(displayLabels.size() == 0) {
 			throw new DomainException(
 					"The prompt display label is missing: " + id);
@@ -2990,7 +2994,7 @@ public class Campaign {
 		}
 		
 		String defaultValue = null;
-		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);
+		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);  // optional
 		if(defaultValues.size() > 1) {
 			throw new DomainException(
 					"Multiple default values were found: " + id);
@@ -3016,7 +3020,7 @@ public class Campaign {
 		}
 		
 		Map<String, LabelValuePair> properties;
-		Nodes propertiesNodes = prompt.query(XML_PROMPT_PROPERTIES);
+		Nodes propertiesNodes = prompt.query(XML_PROMPT_PROPERTIES);  // optional
 		if(propertiesNodes.size() > 1) {
 			throw new DomainException(
 					"Multiple properties groups found: " + id);
@@ -3043,6 +3047,20 @@ public class Campaign {
 				properties,
 				index);
 			
+		case DOCUMENT:
+			return processDocument(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
 		case HOURS_BEFORE_NOW:
 			return processHoursBeforeNow(
 				id,
@@ -3315,7 +3333,7 @@ public class Campaign {
 		for(int i = 0; i < numProperties; i++) {
 			Node propertyNode = properties.get(i);
 			
-			Nodes keys = propertyNode.query(XML_PROPERTY_KEY);
+			Nodes keys = propertyNode.query(XML_PROPERTY_KEY);  // required
 			if(keys.size() == 0) {
 				throw new DomainException(
 						"The property key is missing: " + containerId);
@@ -3331,7 +3349,7 @@ public class Campaign {
 							containerId);
 			}
 			
-			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);
+			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);  // required
 			if(labels.size() == 0) {
 				throw new DomainException(
 						"The property label is missing: " + containerId);
@@ -3343,14 +3361,15 @@ public class Campaign {
 			String label = labels.get(0).getValue().trim();
 			
 			Number value = null;
-			Nodes values = propertyNode.query(XML_PROPERTY_VALUE);
+			Nodes values = propertyNode.query(XML_PROPERTY_VALUE);  // optional
 			if(values.size() > 1) {
 				throw new DomainException(
 						"Multiple property values found: " + containerId);
 			}
 			else if(values.size() == 1) {
 				String valueString = values.get(0).getValue().trim();
-				try {
+				// extract numerical value
+				try {   
 					value = Short.decode(valueString);
 				}
 				catch(NumberFormatException notShort) {
@@ -3865,7 +3884,7 @@ public class Campaign {
 		BigDecimal min;
 		try {
 			LabelValuePair minVlp = 
-				properties.get(NumberPrompt.XML_KEY_MIN);
+				properties.get(NumberPrompt.XML_KEY_MIN);  // required
 			
 			if(minVlp == null) {
 				throw new DomainException(
@@ -3889,7 +3908,7 @@ public class Campaign {
 		BigDecimal max;
 		try {
 			LabelValuePair maxVlp = 
-				properties.get(NumberPrompt.XML_KEY_MAX);
+				properties.get(NumberPrompt.XML_KEY_MAX);  // required
 			
 			if(maxVlp == null) {
 				throw new DomainException(
@@ -3924,7 +3943,7 @@ public class Campaign {
 		
 		Boolean wholeNumber = null;
 		LabelValuePair wholeNumberVlp = 
-			properties.get(NumberPrompt.XML_KEY_WHOLE_NUMBER);
+			properties.get(NumberPrompt.XML_KEY_WHOLE_NUMBER);  // optional
 		
 		if(wholeNumberVlp != null) {
 			wholeNumber =
@@ -4002,7 +4021,7 @@ public class Campaign {
 		Integer maxDimension = null;
 		try {
 			LabelValuePair maxDimensionVlp =
-				properties.get(PhotoPrompt.XML_KEY_MAXIMUM_DIMENSION);
+				properties.get(PhotoPrompt.XML_KEY_MAXIMUM_DIMENSION);  // optional
 			
 			if(maxDimensionVlp != null) {
 				maxDimension = 
@@ -4036,7 +4055,91 @@ public class Campaign {
 			maxDimension,
 			index);
 	}
+
+	/**
+	 * Processes a document prompt and returns a DocumentPrompt object.
+	 * 
+	 * @param id The prompt's unique identifier.
+	 * 
+	 * @param condition The condition value.
+	 * 
+	 * @param unit The prompt's visualization unit.
+	 * 
+	 * @param text The prompt's text value.
+	 * 
+	 * @param explanationText The prompt's explanation text value.
+	 * 
+	 * @param skippable Whether or not this prompt is skippable.
+	 * 
+	 * @param skipLabel The label to show to skip this prompt.
+	 * 
+	 * @param displayLabel The label for this display type.
+	 * 
+	 * @param defaultValue The default value given in the XML.
+	 * 
+	 * @param properties The properties defined in the XML for this prompt.
+	 * 
+	 * @param index The index of this prompt in its collection of survey items.
+	 * 
+	 * @return A DocumentPrompt object.
+	 * 
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
+	 */
+	private static DocumentPrompt processDocument(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final String displayLabel,
+			final String defaultValue,
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
+		
+		// TODO: Set default maxFilesize value. 
+		Integer maxFilesize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(DocumentPrompt.XML_KEY_MAXIMUM_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFilesize = 
+					Integer.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						DocumentPrompt.XML_KEY_MAXIMUM_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+		
+		if(defaultValue != null) {
+			throw new DomainException(
+					"Default values are not allowed for document prompts: " +
+						id);
+		}
+
+		return new DocumentPrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayLabel,
+			maxFilesize,
+			index);
+	}
 	
+
 	/**
 	 * Processes a remote activity prompt and returns a RemoteActivityPrompt
 	 * object.

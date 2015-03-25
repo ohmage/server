@@ -114,7 +114,7 @@ public class CampaignCreationRequest extends UserRequest {
 			try {
 				Campaign.RunningState runningState = null;
 				t = getParameterValues(InputKeys.RUNNING_STATE);
-				if(t.length > 1) {
+				if(t.length > 1) {  // duplicate input argument
 					throw new ValidationException(
 						ErrorCode.CAMPAIGN_INVALID_RUNNING_STATE, 
 						"Multiple running states were found: " +
@@ -161,6 +161,7 @@ public class CampaignCreationRequest extends UserRequest {
 				if(t.length == 1) {
 					description = CampaignValidators.validateDescription(t[0]);
 				}
+				// description can be null
 				
 				String id = null;
 				t = getParameterValues(InputKeys.CAMPAIGN_URN);
@@ -172,6 +173,7 @@ public class CampaignCreationRequest extends UserRequest {
 				else if(t.length == 1) {
 					id = CampaignValidators.validateCampaignId(t[0]);
 				}
+				// campaign id can be null
 				
 				String name = null;
 				t = getParameterValues(InputKeys.CAMPAIGN_NAME);
@@ -186,6 +188,7 @@ public class CampaignCreationRequest extends UserRequest {
 						name = t[0];
 					}
 				}
+				// campaign name can be null
 
 				byte[] xml = getParameter(httpRequest, InputKeys.XML);
 				if(xml == null) {
@@ -211,6 +214,7 @@ public class CampaignCreationRequest extends UserRequest {
 					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing the required class ID list.");
 					throw new ValidationException("Missing required class ID list.");
 				}
+				// disallow multiple class ID lists.
 				else if(httpRequest.getParameterValues(InputKeys.CLASS_URN_LIST).length > 1) {
 					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID lists were found.");
 					throw new ValidationException("Multiple class ID lists were found.");
@@ -233,6 +237,7 @@ public class CampaignCreationRequest extends UserRequest {
 	public void service() {
 		LOGGER.info("Servicing the campaign creation request.");
 		
+		// HT: config: disallow new account access to services
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}

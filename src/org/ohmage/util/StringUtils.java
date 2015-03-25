@@ -629,4 +629,28 @@ public final class StringUtils {
 		return builder.toString();
 	}
 
+	/**
+	 * Checks whether an iterator has any duplicate element in it. 
+	 * 
+	 * @param iterable  A collection of object. 
+	 * @return true if the iterable has a duplicate element, failse otherwise.
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> boolean hasDuplicate(Iterable<T> iterable) {
+		// Two methods: 1. check whether the sizes are the same
+		// Set<T> set = new HashSet<T>(iterable);
+		// if(set.size() < iterable.size())
+		//    return true;
+		// else return false;
+
+		// 2: // Set#add returns false if the set does not change, which
+	    // indicates that a duplicate element has been added.
+		    
+		 Set<T> set = new HashSet<T>();
+		 for (T each : iterable) {
+		   	if (!set.add(each)) 
+		   		return true;
+		 }
+		 return false;
+	}
 }

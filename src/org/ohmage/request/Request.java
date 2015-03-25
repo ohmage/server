@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -180,6 +181,12 @@ public abstract class Request {
 				}
 				else {
 					tParameters = parameters;
+				}
+				// HT iterates through the param map
+				for (Map.Entry<String,String[]> entry : tParameters.entrySet()) {
+				    String key = entry.getKey();
+				    String[] value = entry.getValue();
+				    LOGGER.debug("HT:" + key + " : " + Arrays.toString(value));
 				}
 			}
 		}
