@@ -28,9 +28,9 @@ import org.ohmage.exception.DomainException;
  */
 public class DocumentPromptResponse extends PromptResponse {
 	/**
-	 * Creates a photo prompt response.
+	 * Creates a Document prompt response.
 	 * 
-	 * @param prompt The PhotoPrompt used to generate this response.
+	 * @param prompt The DocumentPrompt used to generate this response.
 	 * 
 	 * @param repeatableSetIteration If the prompt was part of a repeatable 
 	 * 								 set, this is the iteration of that 

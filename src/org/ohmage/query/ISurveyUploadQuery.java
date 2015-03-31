@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -47,6 +48,7 @@ public interface ISurveyUploadQuery {
 	 *        The videos to persist.
 	 * @param audioContentsMap
 	 *        The audio files to persist.
+	 * @param documentContentsMap 
 	 * @return Returns a List of Integers representing the ids of duplicate
 	 *         surveys.
 	 * @throws DataAccessException
@@ -59,6 +61,7 @@ public interface ISurveyUploadQuery {
 			final List<SurveyResponse> surveyUploadList,
 			final Map<UUID, Image> bufferedImageMap,
 			final Map<String, Video> videoContentsMap,
-			final Map<String, Audio> audioContentsMap)
+			final Map<String, Audio> audioContentsMap, 
+			final Map<String, DocumentP> documentContentsMap)
 			throws DataAccessException;
 }

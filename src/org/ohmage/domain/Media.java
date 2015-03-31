@@ -21,7 +21,7 @@ public abstract class Media {
 	/**
 	 * The maximum length for a file extension.
 	 */
-	private static final int MAX_EXTENSION_LENGTH = 3;
+	private static final int MAX_EXTENSION_LENGTH = 4;
 
 	public final UUID id;
 	public final String type;

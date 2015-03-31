@@ -36,6 +36,7 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
@@ -124,6 +125,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<String, Video> videoContentsMap;
 	private final Map<String, Audio> audioContentsMap;
+	private final Map<String, DocumentP> documentContentsMap;
 	private final String owner;
 	
 	private Collection<UUID> surveyResponseIds;
@@ -174,6 +176,7 @@ public class SurveyUploadRequest extends UserRequest {
 		imageContentsMap = Collections.emptyMap();
 		videoContentsMap = Collections.emptyMap();
 		audioContentsMap = Collections.emptyMap();
+		documentContentsMap = Collections.emptyMap();
 		this.owner = owner;
 	}
 	
@@ -199,7 +202,7 @@ public class SurveyUploadRequest extends UserRequest {
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<String, Video> tVideoContentsMap = null;
 		Map<String, Audio> tAudioContentsMap = null;
-		// TODO: HT add Map<String,Document> tDocumentContentsMap = null;
+		Map<String, DocumentP> tDocumentContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -293,7 +296,7 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				tVideoContentsMap = new HashMap<String, Video>();
 				tAudioContentsMap = new HashMap<String, Audio>();
-				// TODO: HT add tDocumentContentsMap = new HashMap<String, Document>();
+				tDocumentContentsMap = new HashMap<String, DocumentP>();
 				Collection<Part> parts = null;
 		
 				try {
@@ -340,44 +343,26 @@ public class SurveyUploadRequest extends UserRequest {
 									UUID.fromString(name),
 									contentType.split("/")[1],
 									getMultipartValue(httpRequest, name)));
-						}
+						} 
 						else if(contentType.startsWith("audio/")) {
-							try {
-								tAudioContentsMap.put(
-									name,
-									new Audio(
-										UUID.fromString(name),
-										contentType.split("/")[1],
-										getMultipartValue(httpRequest, name)));
-							}
-							catch(DomainException e) {
-								throw
-									new ValidationException(
-										ErrorCode.SYSTEM_GENERAL_ERROR,
-										"Could not create the Audio object.",
-										e);
-							}
+							tAudioContentsMap.put(
+								name,
+								new Audio(
+									UUID.fromString(name),
+									contentType.split("/")[1],
+									getMultipartValue(httpRequest, name)));
 						}
 						else if(contentType.startsWith("application/") ||
 								contentType.startsWith("text/")){ // HT: check this
-							try {
-								tAudioContentsMap.put(
-									name,
-									new Audio(
-										UUID.fromString(name),
-										contentType.split("/")[1],
-										getMultipartValue(httpRequest, name)));
-							}
-							catch(DomainException e) {
-								throw
-									new ValidationException(
-										ErrorCode.SYSTEM_GENERAL_ERROR,
-										"Could not create the Audio object.",
-										e);
-							}	
+							tDocumentContentsMap.put(
+								name,
+								new DocumentP(
+									UUID.fromString(name),
+									contentType.split("/")[1],
+									getMultipartValue(httpRequest, name)));
 						}
 						if(LOGGER.isDebugEnabled()) 
-							LOGGER.debug("succesfully created a BufferedImage for key " + id);
+							LOGGER.debug("succesfully created a BufferedMedia for key " + id + "[" + contentType +"]");
 					}
 				}
 				catch(ServletException e) {
@@ -389,7 +374,10 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 				catch(DomainException e) {
 					LOGGER.info("A Media object could not be built.", e);
-					throw new ValidationException(e);
+					throw new ValidationException(
+							ErrorCode.SYSTEM_GENERAL_ERROR,
+							"Could not create the Document object.", 
+							e);
 				}
 				
 				/*
@@ -434,6 +422,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.imageContentsMap = tImageContentsMap;
 		this.videoContentsMap = tVideoContentsMap;
 		this.audioContentsMap = tAudioContentsMap;
+		this.documentContentsMap = tDocumentContentsMap;
 		this.owner = null;
 		
 		surveyResponseIds = null;
@@ -516,7 +505,10 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all audio prompt responses have their corresponding audio files attached.");
 			SurveyResponseServices.instance().verifyAudioFilesExistForAudioPromptResponses(surveyResponses, audioContentsMap);
 			
-			// TODO: HT add a validator for ducument type
+			// TODO: HT add a validator for ducument prompt type
+			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
+			SurveyResponseServices.instance().verifyDocumentFilesExistForDocumentPromptResponses(surveyResponses, documentContentsMap);
+
 			
 			LOGGER.info("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 
@@ -527,7 +519,8 @@ public class SurveyUploadRequest extends UserRequest {
 					surveyResponses, 
 					imageContentsMap,
 					videoContentsMap,
-					audioContentsMap);
+					audioContentsMap, 
+					documentContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}
