@@ -53,6 +53,9 @@ public final class PreferenceCache extends KeyValueCache {
 	// Document-specific information.
 	public static final String KEY_DOCUMENT_DIRECTORY = "document_directory";
 	
+	// Document Prompt specific information.
+	public static final String KEY_DOCUMENTP_DIRECTORY = "documentp_directory";
+	
 	// Image-specific information.
 	public static final String KEY_IMAGE_DIRECTORY = "image_directory";
 	

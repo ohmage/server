@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
@@ -32,6 +33,7 @@ import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
+import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
@@ -127,6 +129,7 @@ public final class SurveyResponseServices {
 	 * 
 	 * @param audioContentsMap The map of the audio unique identifiers to their
 	 * 						   objects.
+	 * @param documentContentsMap 
 	 * 
 	 * @return A list of the indices of the survey responses that were 
 	 * 		   duplicates.
@@ -138,7 +141,8 @@ public final class SurveyResponseServices {
             final List<SurveyResponse> surveyUploadList,
             final Map<UUID, Image> bufferedImageMap,
             final Map<String, Video> videoContentsMap,
-            final Map<String, Audio> audioContentsMap) 
+            final Map<String, Audio> audioContentsMap, 
+            final Map<String, DocumentP> documentContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -149,7 +153,8 @@ public final class SurveyResponseServices {
 				surveyUploadList, 
 				bufferedImageMap,
 				videoContentsMap,
-				audioContentsMap);
+				audioContentsMap,
+				documentContentsMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -264,6 +269,40 @@ public final class SurveyResponseServices {
 						throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"An audio file was missing for an audio prompt response: " + 
+								responseValue.toString());
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Verifies that, for all document prompt responses, a corresponding document
+	 * exists in the list of document files.
+	 * 
+	 * @param surveyResponses The survey responses.
+	 * 
+	 * @param images A map of audio IDs to audio contents.
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	// TODO: HT generalize this for all media type
+	public void verifyDocumentFilesExistForDocumentPromptResponses(
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<String, DocumentP> documentPs) 
+			throws ServiceException {
+		
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if(promptResponse instanceof DocumentPromptResponse) {
+					Object responseValue = promptResponse.getResponse();
+					if((responseValue instanceof UUID) && 
+							(! documentPs.containsKey(responseValue.toString()))) {
+						
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"A document file was missing for a document prompt response: " + 
 								responseValue.toString());
 					}
 				}

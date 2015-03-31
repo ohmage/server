@@ -41,12 +41,15 @@ import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.AudioDirectoryCache;
+import org.ohmage.cache.DocumentPDirectoryCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.VideoDirectoryCache;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
+import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
@@ -56,6 +59,7 @@ import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
+import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
@@ -166,7 +170,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final List<SurveyResponse> surveyUploadList,
 			final Map<UUID, Image> bufferedImageMap,
 			final Map<String, Video> videoContentsMap,
-			final Map<String, Audio> audioContentsMap)
+			final Map<String, Audio> audioContentsMap,
+			final Map<String, DocumentP> documentContentsMap)
 			throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
@@ -285,6 +290,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						bufferedImageMap,
 						videoContentsMap,
 						audioContentsMap,
+						documentContentsMap,
 						transactionManager,
 						status);
 					
@@ -435,6 +441,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
             final Map<UUID, Image> bufferedImageMap,
             final Map<String, Video> videoContentsMap, 
             final Map<String, Audio> audioContentsMap, 
+            final Map<String, DocumentP> documentContentsMap,
             final DataSourceTransactionManager transactionManager,
             final TransactionStatus status) 
 			throws DataAccessException {
@@ -455,6 +462,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						bufferedImageMap,
 						videoContentsMap,
 						audioContentsMap,
+						documentContentsMap,
 						transactionManager,
 						status);
 				}
@@ -557,7 +565,121 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					}
 				}
 			}
-			// Save the video.
+			// Save other media files.
+			// HT: shorten the code
+			else if( (promptResponse instanceof AudioPromptResponse) ||
+					 (promptResponse instanceof VideoPromptResponse) ||
+					 (promptResponse instanceof DocumentPromptResponse)) {
+				LOGGER.debug("HT: Processing a media response");	
+					
+				// Make sure the response contains an actual media response.
+					Object responseValue = promptResponse.getResponse();
+					if(! 
+						((responseValue instanceof NoResponse) || 
+						(responseValue instanceof NoResponseMedia) )) {		
+						
+					// Attempt to write it to the file system.
+					try {
+						// Get the media ID.
+						Media media = null;
+						String responseValueString = responseValue.toString();
+						
+						LOGGER.debug("HT: befire getting Directory");
+						// Get the current media directory.
+						File currMediaDirectory = null;
+						if (promptResponse instanceof AudioPromptResponse) {
+							currMediaDirectory = AudioDirectoryCache.getDirectory();
+							media = audioContentsMap.get(responseValueString);		
+						} else if (promptResponse instanceof VideoPromptResponse) {
+							currMediaDirectory = VideoDirectoryCache.getDirectory();
+							media = videoContentsMap.get(responseValueString);	
+						} else if (promptResponse instanceof DocumentPromptResponse) {
+							currMediaDirectory = DocumentPDirectoryCache.getDirectory();
+							media = documentContentsMap.get(responseValueString);	
+						}
+							
+						LOGGER.debug("HT: currMediaDirectory: " + currMediaDirectory);
+											
+							// Get the file.
+						File mediaFile = 
+								new File(
+									currMediaDirectory.getAbsolutePath() +
+									"/" +
+									responseValueString +
+									"." +
+									media.getType());
+						LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
+							
+							// Get the video contents.
+						InputStream content = media.getContentStream();
+						if(content == null) {
+							LOGGER.debug("HT: There is no " + media.getClass().getSimpleName() + " content");
+							transactionManager.rollback(status);
+								throw new DataAccessException(
+										"The media[" + media.getClass().getSimpleName() + "] contents did not exist in the map.");
+						}
+							
+							// Write the media contents to disk.
+						FileOutputStream fos = new FileOutputStream(mediaFile);
+							
+							// Write the content to the output stream.
+						int bytesRead;
+						byte[] buffer = new byte[4096];
+						while((bytesRead = content.read(buffer)) != -1) {
+							fos.write(buffer, 0, bytesRead);
+						}
+						fos.close();
+
+							// Store the file reference in the file list.
+						fileList.add(mediaFile);
+							
+							// Get the video's URL.
+						String url = "file://" + mediaFile.getAbsolutePath();
+						LOGGER.debug("HT: Media file: " + url);
+						LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
+							
+							// Insert the media URL into the database.
+						try {
+							getJdbcTemplate().update(
+									SQL_INSERT_IMAGE, 
+									new Object[] { 
+											username, 
+											client, 
+											responseValueString,
+											url }
+									);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							mediaFile.delete();
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+									"Error executing SQL '" + 
+										SQL_INSERT_IMAGE + 
+										"' with parameters: " +
+										username + ", " + 
+										client + ", " + 
+										responseValueString + ", " + 
+										url, 
+									e);
+						}
+					}
+						// If it fails, roll back the transaction.
+					catch(DomainException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+								"Could not get the media directory.",
+								e);
+					}
+					catch(IOException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+								"Could not write the file.",
+								e);
+					}
+				}
+			}
+			
+			/*
 			else if(promptResponse instanceof VideoPromptResponse) {
 				// Make sure the response contains an actual video response.
 				Object responseValue = promptResponse.getResponse();
@@ -737,7 +859,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					catch(DomainException e) {
 						transactionManager.rollback(status);
 						throw new DataAccessException(
-							"Could not get the video directory.",
+							"Could not get the audio directory.",
 							e);
 					}
 					catch(IOException e) {
@@ -748,9 +870,107 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					}
 				}
 			}
+			else if (promptResponse instanceof DocumentPromptResponse){				
+				// Make sure the response contains an actual audio response.
+				Object responseValue = promptResponse.getResponse();
+				if(! 
+					(	(responseValue instanceof NoResponse) || 
+						(responseValue instanceof NoResponseMedia)
+					)) {
+					
+					// Attempt to write it to the file system.
+					try {
+						// Get the current audio directory.
+						File currDocumentDirectory = 
+							DocumentPDirectoryCache.getDirectory();
+
+						// Get the audio ID.
+						String responseValueString = responseValue.toString();
+						
+						// Get the audio object.
+						DocumentP document = 
+							documentContentsMap.get(responseValueString);
+						
+						// Get the file.
+						File documentFile = 
+							new File(
+								currDocumentDirectory.getAbsolutePath() +
+								"/" +
+								responseValueString +
+								"." +
+								document.getType());
+						
+						// Get the document contents.
+						InputStream content = document.getContentStream();
+						if(content == null) {
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+								"The document contents did not exist in the map.");
+						}
+						
+						// Write the video contents to disk.
+						FileOutputStream fos = new FileOutputStream(documentFile);
+						
+						// Write the content to the output stream.
+						int bytesRead;
+						byte[] buffer = new byte[4096];
+						while((bytesRead = content.read(buffer)) != -1) {
+							fos.write(buffer, 0, bytesRead);
+						}
+						fos.close();
+
+						// Store the file reference in the video list.
+						fileList.add(documentFile);
+						
+						// Get the video's URL.
+						String url = "file://" + documentFile.getAbsolutePath();
+						
+						// Insert the video URL into the database.
+						try {
+							getJdbcTemplate().update(
+									SQL_INSERT_IMAGE, 
+									new Object[] { 
+										username, 
+										client, 
+										responseValueString,
+										url }
+								);
+						}
+						catch(org.springframework.dao.DataAccessException e) {
+							documentFile.delete();
+							transactionManager.rollback(status);
+							throw new DataAccessException(
+								"Error executing SQL '" + 
+									SQL_INSERT_IMAGE + 
+									"' with parameters: " +
+									username + ", " + 
+									client + ", " + 
+									responseValueString + ", " + 
+									url, 
+								e);
+						}
+					}
+					// If it fails, roll back the transaction.
+					catch(DomainException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Could not get the document directory.",
+							e);
+					}
+					catch(IOException e) {
+						transactionManager.rollback(status);
+						throw new DataAccessException(
+							"Could not write the file.",
+							e);
+					}
+				}
+			}
+			*/
 		}
 	}
 	
+
+
 	/**
 	 * Copied directly from ImageQueries.
 	 * 

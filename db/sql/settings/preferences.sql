@@ -11,6 +11,7 @@ INSERT INTO preference(p_key, p_value) VALUES
     ('public_class_id', 'urn:class:public'),
     ('video_directory', '/opt/ohmage/userdata/videos'),
     ('audio_directory', '/opt/ohmage/userdata/audio'),
+    ('documentp_directory', '/opt/ohmage/userdata/documentp'),
     ('audit_log_location', '/opt/ohmage/logs/audits/'),
     ('fully_qualified_domain_name', 'localhost'),
     ('ssl_enabled', 'false');
