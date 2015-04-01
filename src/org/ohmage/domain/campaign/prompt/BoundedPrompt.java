@@ -142,6 +142,11 @@ public abstract class BoundedPrompt extends Prompt {
 		}
 		this.max = max;
 		
+		// max has to be >= min
+		if (this.max.compareTo(this.min) < 0) {
+		    throw new DomainException("The max value (" +this.max + ") is less than the min value (" + this.min + ")");
+		}
+		
 		// Validate the default value.
 		if(defaultValue != null) {
 			if(mustBeWholeNumber() && (! isWholeNumber(defaultValue))) {
@@ -152,7 +157,7 @@ public abstract class BoundedPrompt extends Prompt {
 			else if(defaultValue.compareTo(min) < 0) {
 				throw
 					new DomainException(
-						"The default value is greater than the minimum " +
+						"The default value is smaller than the minimum " +
 							"value (" +
 							min +
 							"): " +
