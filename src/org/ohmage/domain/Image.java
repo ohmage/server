@@ -634,6 +634,7 @@ public class Image {
 								"The image contents are invalid.");
 					}
 				}
+				// catch IllegalArgumentException when image has error in exif data.
 				catch(IOException|IllegalArgumentException e) {
 					throw
 						new DomainException("The image could not be read.", e);
