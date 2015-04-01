@@ -634,7 +634,7 @@ public class Image {
 								"The image contents are invalid.");
 					}
 				}
-				catch(IOException e) {
+				catch(IOException|IllegalArgumentException e) {
 					throw
 						new DomainException("The image could not be read.", e);
 				}
