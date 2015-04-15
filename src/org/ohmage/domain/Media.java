@@ -17,12 +17,14 @@ import org.ohmage.exception.DomainException;
  *
  * @author John Jenkins
  */
-public abstract class Media {
+// HT: change to regular class instead of abstract class
+public class Media {
 	/**
 	 * The maximum length for a file extension.
 	 */
 	private static final int MAX_EXTENSION_LENGTH = 4;
-
+	public final String mimeTypeRoot = "application"; // is not used
+	
 	public final UUID id;
 	public final String type;
 	public final InputStream content; 
@@ -136,7 +138,7 @@ public abstract class Media {
 		catch(IOException e) {
 			throw new DomainException(
 				ErrorCode.SYSTEM_GENERAL_ERROR,
-				"The video file does not exist.",
+				"The media file does not exist.",
 				e);
 		}
 		
@@ -195,12 +197,32 @@ public abstract class Media {
 	}
 	
 	/**
-	 * Returns the MIME type for this media object.
+	 * Returns the MIME type for this media object. The type is set based on
+	 * the filename extension.
 	 * 
 	 * @return The MIME type for this object of the form "{super}/{sub}".
 	 */
 	public String getMimeType() {
-		return getMimeTypeRoot() + "/" + getType();
+		String ttype = getType();
+		
+		if (ttype == null)
+			return null;
+		switch (ttype) {
+		case "gif":
+		case "png":
+		case "jpg": 
+		case "jpeg": return ("image/" + type);
+		case "txt": 
+		case "csv": return ("text/" + type);
+		case "wav":
+		case "aiff": 
+		case "mp3": return ("audio/" + type);
+		case "mpg":
+		case "mpeg": 
+		case "mp4": return ("video/" + type);
+		default: return("application/" + type);
+		}
+		// return getMimeTypeRoot() + "/" + getType();
 	}
 	
 	/**
@@ -209,5 +231,7 @@ public abstract class Media {
 	 * 
 	 * @return The root MIME type of this media type.
 	 */
-	protected abstract String getMimeTypeRoot();
+	protected String getMimeTypeRoot() {
+		return mimeTypeRoot;
+	}
 }

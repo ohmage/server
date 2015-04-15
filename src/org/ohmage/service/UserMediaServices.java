@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -219,6 +220,33 @@ public class UserMediaServices {
 			}
 			
 			return new Video(id, result);
+		}
+		catch(DomainException e) {
+			throw new ServiceException(e);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Returns a DocumentP object representing the media.
+	 * 
+	 * @param id The media's unique identifier.
+	 * 
+	 * @return A DocumentP object.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public DocumentP getDocumentP(final UUID id) throws ServiceException {
+		try {
+			URL result = mediaQueries.getMediaUrl(id);
+			
+			if(result == null) {
+				throw new ServiceException("The media does not exist.");
+			}
+			
+			return new DocumentP(id, result);
 		}
 		catch(DomainException e) {
 			throw new ServiceException(e);

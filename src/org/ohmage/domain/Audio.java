@@ -17,6 +17,7 @@ public class Audio extends Media {
 	 * The root MIME type for any media of this type, {@value #MIME_TYPE}.
 	 */
 	public static final String MIME_TYPE = "audio";
+	public final String mimeType = "audio";
 	
 	/**
 	 * Creates a new representation of audio data.
