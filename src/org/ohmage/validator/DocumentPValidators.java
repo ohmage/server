@@ -45,7 +45,7 @@ public class DocumentPValidators {
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
-					ErrorCode.DOCUMENTP_INVALID_ID, 
+					ErrorCode.MEDIA_INVALID_ID, 
 					"The document ID is not a valid ID: " + id);
 		}
 	}

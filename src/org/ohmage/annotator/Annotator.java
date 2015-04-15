@@ -227,7 +227,7 @@ public class Annotator {
 		AUDIO_INSUFFICIENT_PERMISSIONS ("1802"),
 		AUDIO_INVALID_CONTENT ("1803"),
 		
-		DOCUMENTP_INVALID_ID ("1900");
+		MEDIA_INVALID_ID ("1900");
 		
 		private final String value;
 		

@@ -48,6 +48,7 @@ import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageBatchZipReadRequest;
 import org.ohmage.request.image.ImageReadRequest;
+import org.ohmage.request.media.MediaReadRequest;
 import org.ohmage.request.mobility.MobilityAggregateReadRequest;
 import org.ohmage.request.mobility.MobilityDatesReadRequest;
 import org.ohmage.request.mobility.MobilityReadChunkedRequest;
@@ -165,6 +166,12 @@ public final class RequestBuilder implements ServletContextAware {
 	// Image
 	private String apiImageRead;
 	private String apiImageBatchZipRead;
+	
+	//HT: Media? 
+	private String apiMediaRead;
+	private String apiMediaDocumentRead; 
+	private String apiMediaAudioRead;
+	private String apiMediaVideoRead;
 	
 	// Mobility
 	private String apiMobilityUpload;
@@ -308,6 +315,12 @@ public final class RequestBuilder implements ServletContextAware {
 		// Image
 		apiImageRead = apiRoot + "/image/read";
 		apiImageBatchZipRead = apiRoot + "/image/batch/zip/read";
+		
+		// HT: Media??
+		apiMediaRead = apiRoot + "/media/read";
+		apiMediaDocumentRead = apiRoot + "/media/document/read";
+		apiMediaAudioRead = apiRoot + "/media/audio/read";
+		apiMediaVideoRead = apiRoot + "/media/video/read";
 		
 		// Mobility
 		apiMobilityUpload = apiRoot + "/mobility/upload";
@@ -503,6 +516,10 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		else if(apiImageBatchZipRead.equals(requestUri)) {
 			return new ImageBatchZipReadRequest(httpRequest);
+		}
+		// apiMediaRead
+		else if(apiMediaRead.equals(requestUri)) {
+			return new MediaReadRequest(httpRequest);
 		}
 		// Mobility
 		else if(apiMobilityUpload.equals(requestUri)) {
