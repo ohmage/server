@@ -119,7 +119,7 @@ public final class InputKeys {
 	public static final String AUDIO_ID = "audio_id";
 	
 	// media constants
-	public static final String MEDIA_ID = "media_id";
+	public static final String MEDIA_ID = "id";
 	
 	// User Constants
 	public static final String USER = "user";
