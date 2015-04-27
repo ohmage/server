@@ -3,7 +3,7 @@
   <property file="build.properties"/>
   <property name="library" location="lib"/>
   <property name="app_name" value="ohmage"/>
-  <property name="app_version" value="2.16"/>
+  <property name="app_version" value="2.17"/>
   <property name="src" location="src"/>
   <property name="test" location="test"/>
   <property name="view" location="view"/>
