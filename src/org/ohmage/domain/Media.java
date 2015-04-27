@@ -15,15 +15,15 @@ import org.ohmage.exception.DomainException;
  * The super class for all media in ohmage.
  * </p>
  *
- * @author John Jenkins
+ * @author John Jenkins, Hongsuda T.
  */
-// HT: change to regular class instead of abstract class
+// HT: change from abstract class to regular class.
 public class Media {
 	/**
 	 * The maximum length for a file extension.
 	 */
 	private static final int MAX_EXTENSION_LENGTH = 4;
-	public final String mimeTypeRoot = "application"; // is not used
+	public final String mimeTypeRoot = "application"; // not used
 	
 	public final UUID id;
 	public final String type;
@@ -207,31 +207,38 @@ public class Media {
 		
 		if (ttype == null)
 			return null;
-		switch (ttype) {
-		case "gif":
-		case "png":
-		case "jpg": 
-		case "jpeg": return ("image/" + type);
-		case "txt": 
-		case "csv": return ("text/" + type);
-		case "wav":
-		case "aiff": 
-		case "mp3": return ("audio/" + type);
-		case "mpg":
-		case "mpeg": 
-		case "mp4": return ("video/" + type);
-		default: return("application/" + type);
-		}
-		// return getMimeTypeRoot() + "/" + getType();
+		return getMimeTypeRoot(ttype) + "/" + ttype;
 	}
 	
 	/**
-	 * Returns the root MIME type of this media type. This should really be
-	 * static, except that abstract static functions are not allowed in Java.
+	 * Returns the root MIME type of this media type. 
+	 * 
+	 * @param type
+	 * 			Media type
 	 * 
 	 * @return The root MIME type of this media type.
 	 */
-	protected String getMimeTypeRoot() {
-		return mimeTypeRoot;
+	public static String getMimeTypeRoot(String type) {
+	
+		if (type == null)
+			return null;
+		
+		switch (type) {
+		case "gif":
+		case "png":
+		case "jpg": 
+		case "jpeg": return ("image");
+		case "txt": 
+		case "csv": return ("text");
+		case "wav":
+		case "aiff": 
+		case "mp3": return ("audio");
+		case "mpg":
+		case "mpeg": 
+		case "mp4": return ("video");
+		default: return("application");	
+		}	
 	}
+	
 }
+	

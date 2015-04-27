@@ -8,6 +8,7 @@ import org.ohmage.util.StringUtils;
 
 /**
  * This class is responsible for validating information about document prompt data.
+ * It is not currently being used. 
  * 
  * @author HT
  */
@@ -36,17 +37,14 @@ public class DocumentPValidators {
 		final String id)
 		throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			return null;
-		}
-
 		try {
-			return UUID.fromString(id);
+			return MediaValidators.validateId(id);
 		}
-		catch(IllegalArgumentException e) {
+		catch(ValidationException e) {
+			// throw with a different error message
 			throw new ValidationException(
 					ErrorCode.MEDIA_INVALID_ID, 
-					"The document ID is not a valid ID: " + id);
+					"The document ID is not a valid ID: " + id);  
 		}
 	}
 }

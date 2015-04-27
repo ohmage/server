@@ -167,11 +167,8 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiImageRead;
 	private String apiImageBatchZipRead;
 	
-	//HT: Media? 
+	// Media  
 	private String apiMediaRead;
-	private String apiMediaDocumentRead; 
-	private String apiMediaAudioRead;
-	private String apiMediaVideoRead;
 	
 	// Mobility
 	private String apiMobilityUpload;
@@ -274,7 +271,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiAnnotationDelete = apiRoot + "/annotation/delete";
 		
 		// Audio
-		apiAudioRead = apiRoot + "/audio/read";
+		apiAudioRead = apiRoot + "/audio/read";  // not needed
 		
 		// Audit
 		apiAuditRead = apiRoot + "/audit/read";
@@ -316,11 +313,8 @@ public final class RequestBuilder implements ServletContextAware {
 		apiImageRead = apiRoot + "/image/read";
 		apiImageBatchZipRead = apiRoot + "/image/batch/zip/read";
 		
-		// HT: Media??
+		// HT: Media
 		apiMediaRead = apiRoot + "/media/read";
-		apiMediaDocumentRead = apiRoot + "/media/document/read";
-		apiMediaAudioRead = apiRoot + "/media/audio/read";
-		apiMediaVideoRead = apiRoot + "/media/video/read";
 		
 		// Mobility
 		apiMobilityUpload = apiRoot + "/mobility/upload";
@@ -373,7 +367,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiRegistrationRead = apiRoot + "/registration/read";
 
 		// Video
-		apiVideoRead = apiRoot + "/video/read";
+		apiVideoRead = apiRoot + "/video/read";  // not needed
 
 		// Visualization
 		apiVisualization = apiRoot + "/viz";
@@ -448,6 +442,7 @@ public final class RequestBuilder implements ServletContextAware {
 		// Audio
 		else if(apiAudioRead.equals(requestUri)) {
 			return new AudioReadRequest(httpRequest);
+			// direct to mediaReadRequest(httpRequest);
 		}
 		// Audit
 		else if(apiAuditRead.equals(requestUri)) {
@@ -643,6 +638,7 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		else if(apiVideoRead.equals(requestUri)) {
 			return new VideoReadRequest(httpRequest);
+			// direct to MediaReadRequest(httpRequest);
 		}
 		// Visualization
 		else if(apiVisualizationSurveyResponseCount.equals(requestUri)) {

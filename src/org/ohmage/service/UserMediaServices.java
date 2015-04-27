@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -184,6 +185,7 @@ public class UserMediaServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
+	// HT: No need for this method. Use getMedia().
 	public Audio getAudio(final UUID id) throws ServiceException {
 		try {
 			URL result = mediaQueries.getMediaUrl(id);
@@ -211,6 +213,7 @@ public class UserMediaServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
+	// HT: No need for this specific method. Use getMedia()
 	public Video getVideo(final UUID id) throws ServiceException {
 		try {
 			URL result = mediaQueries.getMediaUrl(id);
@@ -238,6 +241,7 @@ public class UserMediaServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
+	// HT: No need for this specific method. Use getMedia()
 	public DocumentP getDocumentP(final UUID id) throws ServiceException {
 		try {
 			URL result = mediaQueries.getMediaUrl(id);
@@ -247,6 +251,33 @@ public class UserMediaServices {
 			}
 			
 			return new DocumentP(id, result);
+		}
+		catch(DomainException e) {
+			throw new ServiceException(e);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Returns a Media object.
+	 * 
+	 * @param id The media's unique identifier.
+	 * 
+	 * @return A media object.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Media getMedia(final UUID id) throws ServiceException {
+		try {
+			URL result = mediaQueries.getMediaUrl(id);
+			
+			if(result == null) {
+				throw new ServiceException("The media does not exist.");
+			}
+			
+			return new Media(id, result);
 		}
 		catch(DomainException e) {
 			throw new ServiceException(e);

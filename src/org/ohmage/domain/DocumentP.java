@@ -16,7 +16,7 @@ public class DocumentP extends Media {
 	/**
 	 * The root MIME type for any media of this type, {@value #MIME_TYPE}.
 	 */
-	public static final String MIME_TYPE = "application";
+	public static final String MIME_TYPE_ROOT = "application";
 	
 	/**
 	 * Creates a new representation of file data.
@@ -62,6 +62,6 @@ public class DocumentP extends Media {
 	 * @return Always returns {@value #MIME_TYPE}.
 	 */
 	protected String getMimeTypeRoot() {
-		return MIME_TYPE;
+		return MIME_TYPE_ROOT;
 	}
 }

@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.Audio;
 import org.ohmage.domain.Media;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -21,7 +20,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
-import org.ohmage.validator.AudioValidators;
+import org.ohmage.validator.MediaValidators;
 
 public class MediaReadRequest extends UserRequest {
 	/**
@@ -76,7 +75,7 @@ public class MediaReadRequest extends UserRequest {
 							InputKeys.MEDIA_ID);
 				}
 				else if(t.length == 1) {
-					tMediaId = AudioValidators.validateId(t[0]);  // user AudioValidtors for now
+					tMediaId = MediaValidators.validateId(t[0]);  
 				}
 				if(tMediaId == null) {
 					throw new ValidationException(
@@ -113,7 +112,7 @@ public class MediaReadRequest extends UserRequest {
 				mediaId);
 			
 			LOGGER.info("Connecting to the media stream.");
-			media = UserMediaServices.instance().getAudio(mediaId); // use audio for now
+			media = UserMediaServices.instance().getMedia(mediaId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
