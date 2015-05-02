@@ -378,18 +378,21 @@ public class RequestServlet extends HttpServlet {
 	 */
 	@Override
 	protected final void doGet(HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
-		if(RequestBuilder.getInstance().getApiConfigRead().equals(httpRequest.getRequestURI()) ||
+		if(RequestBuilder.getInstance().getApiAudioRead().equals(httpRequest.getRequestURI()) ||
+			RequestBuilder.getInstance().getApiConfigRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiImageRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiImageBatchZipRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiDocumentReadContents().equals(httpRequest.getRequestURI()) ||
-			httpRequest.getRequestURI().startsWith(RequestBuilder.getInstance().getApiVisualization()) ||
+			RequestBuilder.getInstance().getApiVisualization().equals(httpRequest.getRequestURI()) |
 			RequestBuilder.getInstance().getApiUserActivate().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiRegistrationRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiStreamRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiUserWhoAmI().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiOmhRead().equals(httpRequest.getRequestURI()) ||
 			RequestBuilder.getInstance().getApiSurveyResponseRead().equals(httpRequest.getRequestURI()) ||
-			RequestBuilder.getInstance().getApiAudioRead().equals(httpRequest.getRequestURI())) {
+			RequestBuilder.getInstance().getApiVideoRead().equals(httpRequest.getRequestURI())
+			
+		) {
 			
 			processRequest(httpRequest, httpResponse);
 		}
