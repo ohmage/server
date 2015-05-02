@@ -1,6 +1,9 @@
 package org.ohmage.domain;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
@@ -15,7 +18,8 @@ import org.ohmage.exception.DomainException;
  * The super class for all media in ohmage.
  * </p>
  *
- * @author John Jenkins, Hongsuda T.
+ * @author John Jenkins
+ * @author Hongsuda T.
  */
 // HT: change from abstract class to regular class.
 public class Media {
@@ -29,7 +33,7 @@ public class Media {
 	public final String type;
 	public final InputStream content; 
 	/**
-	 * The size, in bytes, of the video file.
+	 * The size, in bytes, of the media file.
 	 */
 	public final int size;
 
@@ -179,20 +183,22 @@ public class Media {
 	}
 	
 	/**
-	 * Returns the video's size.
+	 * Returns the media's size.
 	 * 
-	 * @return The video's size.
+	 * @return The media's size.
 	 */
 	public int getSize() {
 		return size;
 	}
 	
 	/**
-	 * Creates a filename for this video based on its ID and type.
+	 * Creates a filename for this media based on its ID and type.
 	 * 
 	 * @return The file's filename.
 	 */
 	public String getFilename() {
+		if (type == null)
+			return id.toString();
 		return id.toString() + "." + type;
 	}
 	
@@ -238,6 +244,68 @@ public class Media {
 		case "mp4": return ("video");
 		default: return("application");	
 		}	
+	}
+	
+	/**
+	 * Writes the media data to the given file. This file *should* end with
+	 * the string given by the {@link #getExtension()} function.
+	 * 
+	 * @param imageData The image data to be written.
+	 * 
+	 * @param destination The file to write the image to.
+	 * 
+	 * @throws DomainException There was an error reading the image data
+	 * 						   or writing the file.
+	 * 
+	 * @see {@link #getExtension()}
+	 */
+	public final void writeFile(final File destination)
+		throws DomainException {
+		
+		// Get the image data.
+		InputStream contents = getContentStream();
+		
+		if(contents == null) {
+			throw new DomainException("The contents parameter is null.");
+		}
+		
+		// Connect to the file that should write it.
+		FileOutputStream fos;
+		try {
+			fos = new FileOutputStream(destination);
+		}
+		catch(SecurityException e) {
+			throw
+				new DomainException(
+					"The file is not allowed to be created.",
+					e);
+		}
+		catch(FileNotFoundException e) {
+			throw new DomainException("The file cannot be created.", e);
+		}
+		
+		// Write the image data.
+		try {
+			int bytesRead;
+			byte[] buffer = new byte[4096];
+			while((bytesRead = contents.read(buffer)) != -1) {
+				fos.write(buffer, 0, bytesRead);
+			}
+		}
+		catch(IOException e) {
+			throw
+				new DomainException(
+					"Error reading or writing the data.",
+					e);
+		}
+		finally {
+			try {
+				fos.close();
+			}
+			catch(IOException e) {
+				throw new DomainException("Could not close the file.", e);
+			}
+		}
 	}
 	
 }

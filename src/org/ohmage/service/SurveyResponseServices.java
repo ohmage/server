@@ -26,8 +26,10 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
+import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
@@ -52,6 +54,7 @@ import org.ohmage.query.ISurveyUploadQuery;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T. 
  */
 public final class SurveyResponseServices {
 	private static SurveyResponseServices instance;
@@ -226,6 +229,8 @@ public final class SurveyResponseServices {
 			final Map<String, Video> videos) 
 			throws ServiceException {
 		
+		verifyMediaFilesExistForMediaPromptResponses(VideoPromptResponse.class, surveyResponses, videos);
+		/*
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof VideoPromptResponse) {
@@ -241,6 +246,7 @@ public final class SurveyResponseServices {
 				}
 			}
 		}
+		*/
 	}
 	
 	/**
@@ -258,7 +264,9 @@ public final class SurveyResponseServices {
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<String, Audio> audios) 
 			throws ServiceException {
+		verifyMediaFilesExistForMediaPromptResponses(AudioPromptResponse.class, surveyResponses, audios);
 		
+		/*
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof AudioPromptResponse) {
@@ -274,6 +282,7 @@ public final class SurveyResponseServices {
 				}
 			}
 		}
+		*/
 	}
 	
 	/**
@@ -292,7 +301,10 @@ public final class SurveyResponseServices {
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<String, DocumentP> documentPs) 
 			throws ServiceException {
+
+		verifyMediaFilesExistForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
 		
+		/*
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof DocumentPromptResponse) {
@@ -308,7 +320,49 @@ public final class SurveyResponseServices {
 				}
 			}
 		}
+		*/
 	}
+	
+	/**
+	 * Verifies that, for each media prompt responses, a corresponding file/object
+	 * exists in the list of media files.
+	 * 
+	 * @param 	mediaClass The particular media class that we are checking against
+	 * 
+	 * @param	surveyResponses The survey responses.
+	 * 
+	 * @param	mediaMap A map of media ID to media content
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	
+	// TODO: HT: This class doesn't support PhotoPrompt since Image is not a media.
+	
+	public void verifyMediaFilesExistForMediaPromptResponses(
+			final Class<? extends Response> mediaClass,
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<String, ? extends Media> mediaMap) 
+			throws ServiceException {
+		
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if (mediaClass.isInstance(promptResponse))
+				{
+					Object responseValue = promptResponse.getResponse();
+					if((responseValue instanceof UUID) && 
+							(! mediaMap.containsKey(responseValue.toString()))) {
+						
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
+								responseValue.toString());
+					}
+				}
+			}
+		}
+	}
+
 	
 	/**
 	 * Generates a list of SurveyResponse objects where each object

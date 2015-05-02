@@ -42,6 +42,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.ohmage.cache.AudioDirectoryCache;
 import org.ohmage.cache.DocumentPDirectoryCache;
+import org.ohmage.cache.MediaDirectoryCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.VideoDirectoryCache;
 import org.ohmage.domain.Audio;
@@ -532,7 +533,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						originalFile =
 							bufferedImageMap
 								.get(UUID.fromString(imageId))
-								.saveImage(getDirectory());
+								.saveImage(MediaDirectoryCache.getImageDirectory());  //replace getDirectory()
 					}
 					catch(DomainException e) {
 						rollback(transactionManager, status);
@@ -541,6 +542,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 								"Error saving the images.",
 								e);
 					}
+					
+					// Store the file reference in the file list.
+					fileList.add(originalFile);
 					
 					// Get the image's URL.
 					String url = "file://" + originalFile.getAbsolutePath();
@@ -565,6 +569,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					}
 				}
 			}
+			
 			// Save other media files.
 			// HT: shorten the code
 			else if( (promptResponse instanceof AudioPromptResponse) ||
@@ -572,44 +577,46 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					 (promptResponse instanceof DocumentPromptResponse)) {
 				LOGGER.debug("HT: Processing a media response");	
 					
-				// Make sure the response contains an actual media response.
+				// Make sure the response contains an actual media response. 
+				// Can also check this against JsonInputKeys
 					Object responseValue = promptResponse.getResponse();
-					if(! 
-						((responseValue instanceof NoResponse) || 
-						(responseValue instanceof NoResponseMedia) )) {		
+					if(! (responseValue instanceof NoResponse)) {	
 						
 					// Attempt to write it to the file system.
 					try {
 						// Get the media ID.
 						Media media = null;
-						String responseValueString = responseValue.toString();
+						String mediaId = responseValue.toString();
 						
-						LOGGER.debug("HT: befire getting Directory");
+						LOGGER.debug("HT: before getting Directory");
 						// Get the current media directory.
 						File currMediaDirectory = null;
 						if (promptResponse instanceof AudioPromptResponse) {
-							currMediaDirectory = AudioDirectoryCache.getDirectory();
-							media = audioContentsMap.get(responseValueString);		
-						} else if (promptResponse instanceof VideoPromptResponse) {
-							currMediaDirectory = VideoDirectoryCache.getDirectory();
-							media = videoContentsMap.get(responseValueString);	
+							currMediaDirectory = MediaDirectoryCache.getAudioDirectory();
+							media = audioContentsMap.get(mediaId);		
+						} else if (promptResponse instanceof VideoPromptResponse) {							
+							currMediaDirectory = MediaDirectoryCache.getVideoDirectory();
+							media = videoContentsMap.get(mediaId);	
 						} else if (promptResponse instanceof DocumentPromptResponse) {
-							currMediaDirectory = DocumentPDirectoryCache.getDirectory();
-							media = documentContentsMap.get(responseValueString);	
+							currMediaDirectory = MediaDirectoryCache.getDocumentpDirectory();
+							media = documentContentsMap.get(mediaId);	
 						}
 							
 						LOGGER.debug("HT: currMediaDirectory: " + currMediaDirectory);
 											
-							// Get the file.
+						// Get the file.
 						File mediaFile = 
 								new File(
 									currMediaDirectory.getAbsolutePath() +
 									"/" +
-									responseValueString +
+									mediaId +
 									"." +
 									media.getType());
 						LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
-							
+						
+						media.writeFile(mediaFile);  // write the media content to mediaFile
+						
+						/*	
 							// Get the video contents.
 						InputStream content = media.getContentStream();
 						if(content == null) {
@@ -629,8 +636,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							fos.write(buffer, 0, bytesRead);
 						}
 						fos.close();
-
-							// Store the file reference in the file list.
+						 */
+						
+						// Store the file reference in the file list.
 						fileList.add(mediaFile);
 							
 							// Get the video's URL.
@@ -645,7 +653,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 									new Object[] { 
 											username, 
 											client, 
-											responseValueString,
+											mediaId,
 											url }
 									);
 						}
@@ -658,7 +666,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 										"' with parameters: " +
 										username + ", " + 
 										client + ", " + 
-										responseValueString + ", " + 
+										mediaId + ", " + 
 										url, 
 									e);
 						}
@@ -669,13 +677,13 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						throw new DataAccessException(
 								"Could not get the media directory.",
 								e);
-					}
+					} /*
 					catch(IOException e) {
 						transactionManager.rollback(status);
 						throw new DataAccessException(
 								"Could not write the file.",
 								e);
-					}
+					} */
 				}
 			}
 			
@@ -972,7 +980,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 
 
 	/**
-	 * Copied directly from ImageQueries.
+	 * Copied directly from ImageQueries. With MediaDirectoryCache, this is no
+	 * longer needed.
 	 * 
 	 * Gets the directory to which a image should be saved. This should be used
 	 * instead of accessing the class-level variable directly as it handles the

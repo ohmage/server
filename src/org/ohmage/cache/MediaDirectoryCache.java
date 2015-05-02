@@ -5,18 +5,37 @@ import java.io.FilenameFilter;
 import java.util.Arrays;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
+import org.ohmage.domain.Media;
+import org.ohmage.domain.Image;
+import org.ohmage.domain.Audio;
+import org.ohmage.domain.Video;
+import org.ohmage.domain.DocumentP;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
+import org.ohmage.query.impl.SurveyUploadQuery;
 
-public class DocumentPDirectoryCache {
-	private static File currDocumentPDirectory = null;
-	private static String KEY_DOCUMENTP_DIRECTORY = PreferenceCache.KEY_DOCUMENTP_DIRECTORY;
+// non-instantiable class
+public class MediaDirectoryCache {
+
+	private static File currImageDirectory = null;
+	private static File currAudioDirectory = null;
+	private static File currVideoDirectory = null; 
+	private static File currDocumentpDirectory = null;
 	
+	
+	private static final String KEY_IMAGE_DIRECTORY = PreferenceCache.KEY_IMAGE_DIRECTORY;
+	private static final String KEY_AUDIO_DIRECTORY = PreferenceCache.KEY_AUDIO_DIRECTORY;
+	private static final String KEY_VIDEO_DIRECTORY = PreferenceCache.KEY_VIDEO_DIRECTORY;
+	private static final String KEY_DOCUMENTP_DIRECTORY = PreferenceCache.KEY_DOCUMENTP_DIRECTORY;
+	
+	private static final Logger LOGGER = 
+			Logger.getLogger(MediaDirectoryCache.class);
 	/**
 	 * Filters the sub-directories in a directory to only return those that
 	 * match the regular expression matcher for directories.
 	 * 
-	 * @author Joshua Selsky
+	 * @author Joshua Selsky, Hongsuda T. 
 	 */
 	private static final class DirectoryFilter implements FilenameFilter {
 		private static final Pattern DIRECTORY_PATTERN = 
@@ -33,19 +52,58 @@ public class DocumentPDirectoryCache {
 	
 	/**
 	 * Default constructor, made private because this class should be 
-	 * referenced statically.
+	 * referenced statically. It is non-instantiable.
 	 */
-	private DocumentPDirectoryCache() {};
+	private MediaDirectoryCache() {
+		throw new AssertionError();
+	};
+	
+	public static File getMediaDirectory(Class<? extends Media> mediaType) throws DomainException{
+		if (mediaType.equals(Image.class))
+			return getImageDirectory();
+		else if (mediaType.equals(Audio.class)) 
+			return getAudioDirectory();
+		else if (mediaType.equals(Video.class))
+			return getVideoDirectory();
+		else if (mediaType.equals(DocumentP.class))
+			return getDocumentpDirectory();
+		else return null;
+		
+	}
+	
+	public static synchronized File getImageDirectory() throws DomainException {
+		currImageDirectory = getDirectory(currImageDirectory, KEY_IMAGE_DIRECTORY); 
+		return currImageDirectory;
+	}
+	
+	public static synchronized File getAudioDirectory() throws DomainException {
+		currAudioDirectory = getDirectory(currAudioDirectory, KEY_AUDIO_DIRECTORY); 
+		return currAudioDirectory;
+	}
+	 
+	public static synchronized File getVideoDirectory() throws DomainException {
+		currVideoDirectory = getDirectory(currVideoDirectory, KEY_VIDEO_DIRECTORY); 
+		return currVideoDirectory;
+	}
+	
+	public static synchronized File getDocumentpDirectory() throws DomainException {
+		LOGGER.debug("HT: about to call getDirectory with " + currDocumentpDirectory);
+		currDocumentpDirectory = getDirectory(currDocumentpDirectory, KEY_DOCUMENTP_DIRECTORY); 
+		LOGGER.debug("HT: getDocumentpDirectory will returns with " + currDocumentpDirectory);
+		return currDocumentpDirectory;
+	}
+	
 	
 	/**
-	 * Retrieves the file to use to store a video. Each call to this function
-	 * has the implicit expectation that a documentp file will be stored in the
+	 * Retrieves the file to use to store a media. Each call to this function
+	 * has the implicit expectation that a media file will be stored in the
 	 * resulting directory; however, this is not required and is not a 
 	 * necessity.
 	 * 
-	 * @return A File object where a documentp file should be written.
+	 * @return A File object where a media file should be written.
 	 */
-	public static File getDirectory() throws DomainException {
+	private static synchronized File getDirectory(File currMediaDirectory, String keyRootDirectory) throws DomainException {
+		LOGGER.debug("HT: Beginning of getDirectory");
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
@@ -72,18 +130,22 @@ public class DocumentPDirectoryCache {
 		// that. Note that the initialization is dumb in that it will get to
 		// the end of the structure and not check to see if the leaf node is
 		// full.
-		if(currDocumentPDirectory == null) {
-			init(numFilesPerDirectory);
+		if(currMediaDirectory == null) {
+			LOGGER.debug("HT: currMediaDirectory is null. WIll call init");
+			currMediaDirectory = init(currMediaDirectory, keyRootDirectory, numFilesPerDirectory);  
+			LOGGER.debug("HT: After int.. currMediaDirectory is set to " + currMediaDirectory);
 		}
 		
-		File[] documents = currDocumentPDirectory.listFiles();
+		File[] documents = currMediaDirectory.listFiles();
 		// If the 'imageLeafDirectory' directory is full, traverse the tree and
 		// find a new directory.
 		if(documents.length >= numFilesPerDirectory) {
-			getNewDirectory(numFilesPerDirectory);
+			LOGGER.debug("HT: About to call getNewDirectory with " + currMediaDirectory);
+			currMediaDirectory = getNewDirectory(currMediaDirectory, keyRootDirectory, numFilesPerDirectory);
 		}
 		
-		return currDocumentPDirectory;
+		LOGGER.debug("About to return from getDirectory");
+		return currMediaDirectory;
 	}
 	
 	/**
@@ -91,15 +153,15 @@ public class DocumentPDirectoryCache {
 	 * directory with each step choosing the directory with the largest
 	 * integer value.
 	 */
-	private static synchronized void init(
+	private static synchronized File init(File currMediaDirectory, String keyRootDirectory,
 			final int numFilesPerDirectory)
 			throws DomainException {
 		
 		try {
 			// If the current leaf directory has been set, we weren't the first
 			// to call init(), so we can just back out.
-			if(currDocumentPDirectory != null) {
-				return;
+			if(currMediaDirectory != null) {
+				return currMediaDirectory;
 			}
 			
 			// Get the root directory from the preference cache based on the
@@ -107,12 +169,12 @@ public class DocumentPDirectoryCache {
 			String rootFile;
 			try {
 				rootFile = 
-					PreferenceCache.instance().lookup(KEY_DOCUMENTP_DIRECTORY);
+					PreferenceCache.instance().lookup(keyRootDirectory);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-					KEY_DOCUMENTP_DIRECTORY,
+					keyRootDirectory,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -122,7 +184,7 @@ public class DocumentPDirectoryCache {
 						rootFile);
 			}
 			else if(! rootDirectory.isDirectory()) {
-				throw new DomainException("The root file isn't a directory.");
+				throw new DomainException("The root file isn't a directory: " + rootFile );
 			}
 			
 			// Get the number of folders deep that documents are stored.
@@ -208,8 +270,10 @@ public class DocumentPDirectoryCache {
 				}
 			}
 			
+			LOGGER.debug("HT: Will return from init with "+currDirectory);		
 			// After we have found a suitable directory, set it.
-			currDocumentPDirectory = currDirectory;
+			return(currDirectory); 
+	
 		}
 		catch(SecurityException e) {
 			throw new DomainException(
@@ -228,31 +292,31 @@ public class DocumentPDirectoryCache {
 	 * 							   leaf directory and the maximum allowed
 	 * 							   number of directories in the branches.
 	 */
-	private static synchronized void getNewDirectory(
+	private static synchronized File getNewDirectory(File currMediaDirectory, String keyRootDirectory,
 			final int numFilesPerDirectory)
 			throws DomainException {
 		
+		LOGGER.debug("HT: inside getNewDirectory");
 		try {
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
 			// directory.
-			File[] files = currDocumentPDirectory.listFiles();
+			File[] files = currMediaDirectory.listFiles();
 			if(files.length < numFilesPerDirectory) {
-				return;
+				LOGGER.debug("HT: return current dir");
+				return currMediaDirectory;
 			}
 			
 			// Get the root directory from the preference cache based on the
 			// key.
 			String rootFile;
 			try {
-				rootFile = 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_DOCUMENTP_DIRECTORY);
+				rootFile = PreferenceCache.instance().lookup(keyRootDirectory);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_DOCUMENTP_DIRECTORY,
+						keyRootDirectory,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -271,7 +335,7 @@ public class DocumentPDirectoryCache {
 			
 			// A local File to use while we are searching to not confuse other
 			// threads.
-			File newDirectory = currDocumentPDirectory;
+			File newDirectory = currMediaDirectory;
 			
 			// A flag to indicate when we are done looking for a directory.
 			boolean lookingForDirectory = true;
@@ -349,7 +413,7 @@ public class DocumentPDirectoryCache {
 				}
 			}
 			
-			currDocumentPDirectory = newDirectory;
+			return(newDirectory);
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(
@@ -407,4 +471,22 @@ public class DocumentPDirectoryCache {
 		
 		return directories[directories.length - 1];
 	}
+
+	/*
+	public static void main(String[] args){
+		try {
+			for (int i = 0; i< 5; i++) {
+				System.out.println("--- i = " + i + " ---");
+				System.out.println("Image dir: " + getImageDirectory().getAbsolutePath());
+				System.out.println("Audio dir: " + getAudioDirectory().getAbsolutePath());
+				System.out.println("Video dir: " + getVideoDirectory().getAbsolutePath());
+				System.out.println("Document dir: " + getDocumentDirectory().getAbsolutePath());
+			}
+			
+		} catch(DomainException e){
+			System.out.println("Something is wrong");
+		}
+	
+	}
+	*/
 }

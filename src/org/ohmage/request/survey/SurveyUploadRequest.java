@@ -41,6 +41,11 @@ import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
+import org.ohmage.domain.campaign.prompt.PhotoPrompt;
+import org.ohmage.domain.campaign.response.AudioPromptResponse;
+import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.PhotoPromptResponse;
+import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -320,9 +325,10 @@ public class SurveyUploadRequest extends UserRequest {
 									"a duplicate uuid of resource key was detected in the multi-part upload");
 						}
 						String contentType = p.getContentType();
+						String fileType = contentType.split("/")[1]; 
 						
+						// TODO: pass fileType to image creation
 						if(contentType.startsWith("image")) {
-
 							Image image = 
 									ImageValidators
 										.validateImageContents(
@@ -341,7 +347,7 @@ public class SurveyUploadRequest extends UserRequest {
 								name,  // put name instead of id in the map. why? 
 								new Video(
 									UUID.fromString(name),
-									contentType.split("/")[1],
+									fileType,
 									getMultipartValue(httpRequest, name)));
 						} 
 						else if(contentType.startsWith("audio/")) {
@@ -349,7 +355,7 @@ public class SurveyUploadRequest extends UserRequest {
 								name,
 								new Audio(
 									UUID.fromString(name),
-									contentType.split("/")[1],
+									fileType,
 									getMultipartValue(httpRequest, name)));
 						}
 						else if(contentType.startsWith("application/") ||
@@ -358,7 +364,7 @@ public class SurveyUploadRequest extends UserRequest {
 								name,
 								new DocumentP(
 									UUID.fromString(name),
-									contentType.split("/")[1],
+									fileType,
 									getMultipartValue(httpRequest, name)));
 						}
 						if(LOGGER.isDebugEnabled()) 
@@ -428,6 +434,24 @@ public class SurveyUploadRequest extends UserRequest {
 		surveyResponseIds = null;
 	}
 
+
+	/**
+	 * Get filename from Part header.
+	 *  
+	 * @return filename included in the Part header. 
+	 */
+	private String getPartFilename(final Part part){
+		if (part == null)
+			return null;
+		
+		for (String elm : part.getHeader("content-disposition").split(";")) { 
+		    if (elm.trim().startsWith("filename")) {
+		    	return elm.substring(elm.indexOf('=')+1).trim().replace("\"","");
+		    }
+		}
+		return null;
+	}
+	
 	/**
 	 * Services the request.
 	 */
@@ -508,7 +532,6 @@ public class SurveyUploadRequest extends UserRequest {
 			// TODO: HT add a validator for ducument prompt type
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
 			SurveyResponseServices.instance().verifyDocumentFilesExistForDocumentPromptResponses(surveyResponses, documentContentsMap);
-
 			
 			LOGGER.info("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 
