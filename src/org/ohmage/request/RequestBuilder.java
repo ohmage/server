@@ -719,6 +719,8 @@ public final class RequestBuilder implements ServletContextAware {
 				// Image
 				apiImageRead.equals(uri) ||
 				apiImageBatchZipRead.equals(uri) ||
+				// Media
+				apiMediaRead.equals(uri) ||			
 				// Mobility
 				apiMobilityUpload.equals(uri) ||
 				apiMobilityRead.equals(uri) ||
@@ -1094,6 +1096,15 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiImageBatchZipRead() {
 		return apiImageBatchZipRead;
+	}
+
+	/**
+	 * Returns apiMediaRead.
+	 *
+	 * @return The apiMediaRead.
+	 */
+	public String getApiMediaRead() {
+		return apiMediaRead;
 	}
 
 	/**
