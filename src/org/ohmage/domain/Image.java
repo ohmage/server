@@ -35,6 +35,7 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
+import org.apache.log4j.Logger;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -43,6 +44,10 @@ import org.ohmage.exception.DomainException;
  * @author John Jenkins
  */
 public class Image {
+	
+	private static final Logger LOGGER = 
+			Logger.getLogger(Image.class);
+	
 	/**
 	 * These are the different possible values for an image's size. It also
 	 * defines the functionality for each size including how to store and read
@@ -231,9 +236,11 @@ public class Image {
 			final ImageData original)
 			throws DomainException {
 			
+			LOGGER.debug("HT: Start the transformation process");
 			// Get the BufferedImage from the image data.
 			BufferedImage imageContents = original.getBufferedImage();
 
+			LOGGER.debug("HT: Obtaining original data");
 			// Get the percentage to scale the image.
 			Double scalePercentage;
 			if(imageContents.getWidth() > imageContents.getHeight()) {
@@ -244,6 +251,10 @@ public class Image {
 				scalePercentage =
 					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
 			}
+			LOGGER.debug("HT: original content (width,height) = " + imageContents.getWidth() + ", " + 
+					imageContents.getHeight());
+			LOGGER.debug("IAMGE_SCALED_MAX_DIMENSION: " + IMAGE_SCALED_MAX_DIMENSION);
+			LOGGER.debug("HT: calculating scalePercentage to be " + scalePercentage);
 			
 			// Calculate the scaled image's width and height.
 			int width = 
@@ -252,11 +263,15 @@ public class Image {
 			int height =
 				(new Double(
 					imageContents.getHeight() * scalePercentage)).intValue();
+		
+			LOGGER.debug("HT: width = " + width + " , height = " + height);
 			
 			// Create the new image of the same type as the original and of the
 			// scaled dimensions.
 			BufferedImage scaledContents =
 				new BufferedImage(width, height, imageContents.getType());
+			
+			LOGGER.debug("HT: Creating scaledContents");
 			
 			// Paint the original image onto the scaled canvas.
 			Graphics2D graphics2d = scaledContents.createGraphics();
@@ -268,6 +283,7 @@ public class Image {
 			
 			// Cleanup.
 			graphics2d.dispose();
+			LOGGER.debug("HT: Finished drawing images");
 			
 			// Create a buffer stream to read the result of the transformation.
 			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
@@ -278,11 +294,14 @@ public class Image {
 				imageType = IMAGE_STORE_FORMAT;
 			}
 			
+			LOGGER.debug("HT: transforming to small with type: " + imageType);
 			// Write the scaled image to the buffer.
 			try {
 				ImageIO.write(scaledContents, imageType, bufferStream);
+				LOGGER.debug("HT: Writing ImageIO");
 			}
 			catch(IOException e) {
+				LOGGER.debug("HT: ERROR Writing ImageIO");	
 				throw new DomainException("Error writing the image.", e);
 			}
 			
@@ -446,6 +465,7 @@ public class Image {
 		 * 
 		 * @throws DomainException The InputStream was null.
 		 */
+		// HT: Need a way to pass the filetype to ImageData
 		public ImageData(
 			final InputStream inputStream)
 			throws DomainException {
@@ -699,6 +719,7 @@ public class Image {
 	 * 
 	 * @throws DomainException The ID and/or data are null.
 	 */
+	// HT: Need a way to pass filetype in
 	public Image(
 		final UUID id, 
 		final InputStream contents)
@@ -783,10 +804,12 @@ public class Image {
 		// will be thrown.
 		try {
 			Size.getUrl(size, originalUrl).openStream().close();
+			LOGGER.debug("Size.getURL exists: " + Size.getUrl(size,originalUrl).toString());
 			return true;
 		}
 		// The file does not exist.
 		catch(IOException e) {
+			LOGGER.debug("Size.getURL doesn't exists: " + Size.getUrl(size,originalUrl).toString());
 			return false;
 		}
 	}
@@ -1047,12 +1070,14 @@ public class Image {
 				}
 				// If this size's image does not exist, create it.
 				catch(IOException e) {
+					LOGGER.debug("HT: Transforming data to size " + size.getName());
 					result = size.transform(originalData);
 				}
 			}
 			
 			// Save the new image data in the map.
 			imageData.put(size, result);
+			LOGGER.debug("HT: saving data to imageData " + size.getName());
 		}
 		
 		// Return the image data.
@@ -1076,7 +1101,8 @@ public class Image {
 		final ImageData imageData,
 		final File destination)
 		throws DomainException {
-		
+	
+		LOGGER.debug("HT: Writing imageData to location: " + destination.toString());
 		if(imageData == null) {
 			throw new DomainException("The contents parameter is null.");
 		}

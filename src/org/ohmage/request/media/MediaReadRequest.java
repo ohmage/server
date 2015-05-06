@@ -12,14 +12,18 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Image;
 import org.ohmage.domain.Media;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.ImageServices;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
+import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.MediaValidators;
 
 public class MediaReadRequest extends UserRequest {
@@ -38,9 +42,11 @@ public class MediaReadRequest extends UserRequest {
 	 * The ID of the media file in question from the request.
 	 */
 	private final UUID mediaId;
+	private Image.Size imageSize = null;
+	private Image image = null;
 	
 	/**
-	 * The 
+	 * The media object
 	 */
 	private Media media = null;
 
@@ -82,6 +88,18 @@ public class MediaReadRequest extends UserRequest {
 						ErrorCode.MEDIA_INVALID_ID,
 						"The media's ID was missing: " + InputKeys.MEDIA_ID);
 				}
+				
+				// add support for different image_size
+				t = getParameterValues(InputKeys.IMAGE_SIZE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.IMAGE_INVALID_SIZE,
+							"Multiple image sizes were given: " +
+								InputKeys.IMAGE_SIZE);
+				}
+				else if(t.length == 1) {
+					imageSize = ImageValidators.validateImageSize(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -112,12 +130,18 @@ public class MediaReadRequest extends UserRequest {
 				mediaId);
 			
 			LOGGER.info("Connecting to the media stream.");
-			media = UserMediaServices.instance().getMedia(mediaId);
+			if (imageSize == null)
+				media = UserMediaServices.instance().getMedia(mediaId);
+			else image = ImageServices.instance().getImage(mediaId, imageSize);
+			
+			if (media == null && image == null)
+				throw new ServiceException("Can't locate the media file");
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
 			e.logException(LOGGER);
 		}
+		
 	}
 
 	/*
@@ -136,24 +160,33 @@ public class MediaReadRequest extends UserRequest {
 				
 		// Open the connection to the media if it is not null.
 		InputStream mediaStream = null;
-		if((! isFailed()) && media != null) {
-			mediaStream = media.getContentStream();
-		}
-		
+			
 		try {
 			if(isFailed()) {
+				httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				super.respond(httpRequest, httpResponse, (JSONObject) null);
 			}
 			else {
-				// set content type
-				if (media.getMimeType() != null)
-					httpResponse.setContentType(media.getMimeType());
-				httpResponse.setHeader(
-					"Content-Disposition", 
-					"attachment; filename=" + media.getFilename());
-				httpResponse.setHeader(
-					"Content-Length", 
-					new Long(media.getSize()).toString());
+				
+				if (imageSize == null) {
+					mediaStream = media.getContentStream();
+					// set content type
+					if (media.getContentType() != null)
+						httpResponse.setContentType(media.getContentType());
+					httpResponse.setHeader(
+						"Content-Disposition", 
+						"attachment; filename=" + media.getFilename());
+					httpResponse.setHeader(
+						"Content-Length", 
+						new Long(media.getSize()).toString());
+				} else { // it is an image/read request
+					mediaStream =  image.getInputStream(imageSize);
+					httpResponse.setContentType(image.getType(imageSize));
+					httpResponse.setHeader(
+							"Content-Length", 
+							new Long(image.getSizeBytes(imageSize)).toString());
+					
+				}
 				
 				// If available, set the token.
 				if(getUser() != null) {
@@ -200,6 +233,13 @@ public class MediaReadRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
+		}
+		catch(DomainException e) {
+			LOGGER.error("Could not connect to the media file.", e);
+			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "File not found.");
+			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
+			return;
 		}
 		catch(IOException e) {
 			LOGGER.error(

@@ -28,6 +28,7 @@ import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.exception.DomainException;
+import org.ohmage.jee.servlet.RequestServlet;
 
 /**
  * This class represents a document prompt.
@@ -55,15 +56,12 @@ public class DocumentPrompt extends Prompt {
 	}
 	
 	private static final String JSON_KEY_MAXIMUM_FILESIZE = "max_filesize";
-	// TODO: find a better place to store this
-	private static final int DEFAULT_MAX_FILESIZE = 1000000000; // 1GB
-	
 	
 	/**
 	 * The campaign configuration property key for the maximum file size 
 	 * allowed for a document.
 	 */
-	public static final String XML_KEY_MAXIMUM_FILESIZE = "maxFilesize";
+	public static final String XML_KEY_MAXIMUM_FILESIZE = "maxFileSize";
 	
 	private final Integer maximumFilesize;
 	
@@ -122,14 +120,11 @@ public class DocumentPrompt extends Prompt {
 			Type.DOCUMENT,
 			index);
 		
-		if((maximumFilesize != null) && (maximumFilesize < 0)) {
-			throw new DomainException(
+		if((maximumFilesize != null) && (maximumFilesize < 0)) 
+				throw new DomainException(
 					"The maximum filesize cannot be negative.");
-		}
-		
-		if (maximumFilesize == null)
-			this.maximumFilesize = DEFAULT_MAX_FILESIZE;
-		else this.maximumFilesize = maximumFilesize;
+			
+		this.maximumFilesize = maximumFilesize;
 	}
 	
 	/**

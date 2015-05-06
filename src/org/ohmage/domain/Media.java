@@ -27,11 +27,11 @@ public class Media {
 	 * The maximum length for a file extension.
 	 */
 	private static final int MAX_EXTENSION_LENGTH = 4;
-	public final String mimeTypeRoot = "application"; // not used
-	
-	public final UUID id;
-	public final String type;
-	public final InputStream content; 
+
+	private final UUID id;
+	private String contentType = null;
+	private String type = null;
+	private final InputStream content; 
 	/**
 	 * The size, in bytes, of the media file.
 	 */
@@ -116,26 +116,30 @@ public class Media {
 			this.id = id;
 		}
 		
-		// Compute the type. If there is no extension or if it is greater than
-		// three characters long, the extension will be set to null.
-		String[] parts = url.toString().split("[\\.]");
-		if(parts.length == 0) {
-			this.type = null;
-		}
-		else {
-			String extension = parts[parts.length - 1];
-			if(extension.length() > MAX_EXTENSION_LENGTH) {
-				this.type = null;
-			}
-			else {
-				this.type = parts[parts.length - 1];
-			}
-		}
+		if (url == null)
+			throw new DomainException("[MediaID " + id.toString() + "] URL is null.");
 		
-		// Create a connection to the stream.
+		// Compute the contentType
+		// Try contentType first. If doesn't work, use file extension. 
+		// If there is no extension or if it is greater than
+		// three characters long, the extension will be set to null.
 		try {
+			this.contentType = url.openConnection().getContentType();
+			this.type = contentType.split("/")[1];
+		
+			if (this.type == null) {
+				String[] parts = url.toString().split("[\\.]");
+				if(parts.length != 0) {
+					String extension = parts[parts.length - 1];
+					if(extension.length() <= MAX_EXTENSION_LENGTH) {
+						this.type = parts[parts.length - 1];
+					}	
+				}
+			}
+			
+			// Create a connection to the stream.
 			this.content = url.openStream();
-		}
+		}	
 		catch(MalformedURLException e) {
 			throw new DomainException("The URL is invalid.", e);
 		}
@@ -208,9 +212,11 @@ public class Media {
 	 * 
 	 * @return The MIME type for this object of the form "{super}/{sub}".
 	 */
-	public String getMimeType() {
-		String ttype = getType();
+	public String getContentType() {
+		if (contentType != null)
+			return contentType;
 		
+		String ttype = getType();
 		if (ttype == null)
 			return null;
 		return getMimeTypeRoot(ttype) + "/" + ttype;
