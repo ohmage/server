@@ -292,7 +292,7 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				// check for duplicate UUID in the tImageContentsMap 
 				if (StringUtils.hasDuplicate(tImageContentsMap.keySet()))
-					throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_RESOURCE_UUIDS, 
+					throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_MEDIA_UUIDS, 
 							"a duplicate uuid of resource key was detected in the multi-part upload");
 				
 				// Retrieve and validate images and videos.
@@ -321,7 +321,7 @@ public class SurveyUploadRequest extends UserRequest {
 						//imageIds.add(id);  // add all UUID					
 						// check for duplicate
 						if (!resourceIds.add(id)){
-							throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_RESOURCE_UUIDS, 
+							throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_MEDIA_UUIDS, 
 									"a duplicate uuid of resource key was detected in the multi-part upload");
 						}
 						String contentType = p.getContentType();
@@ -533,7 +533,7 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
 			SurveyResponseServices.instance().verifyDocumentFilesExistForDocumentPromptResponses(surveyResponses, documentContentsMap);
 			
-			LOGGER.info("Inserting " + surveyResponses.size() + " survey responses into the database.");
+			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 
 				SurveyResponseServices.instance().createSurveyResponses(
 					((owner == null) ? getUser().getUsername() : owner), 

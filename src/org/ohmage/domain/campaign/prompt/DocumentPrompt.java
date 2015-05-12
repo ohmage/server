@@ -28,32 +28,13 @@ import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.exception.DomainException;
-import org.ohmage.jee.servlet.RequestServlet;
 
 /**
  * This class represents a document prompt.
  * 
- * @author HT
+ * @author Hongsuda T. 
  */
 public class DocumentPrompt extends Prompt {
-	/**
-	 * <p>
-	 * Special NoRepsonse values for images.
-	 * </p>
-	 *
-	 * @author John Jenkins
-	 */
-	public static enum NoResponseMedia {
-		/**
-		 * The image was not uploaded.
-		 */
-		MEDIA_NOT_UPLOADED;
-		
-		@Override
-		public String toString() {
-			return name();
-		}
-	}
 	
 	private static final String JSON_KEY_MAXIMUM_FILESIZE = "max_filesize";
 	
@@ -138,8 +119,7 @@ public class DocumentPrompt extends Prompt {
 	}
 	
 	/**
-	 * Conditions are not allowed for photo prompts unless they are
-	 * {@link NoResponse} values.
+	 * Conditions are not allowed within the document prompt. Use the parent's validation.
 	 * 
 	 * @param pair The pair to validate.
 	 * 
@@ -153,7 +133,7 @@ public class DocumentPrompt extends Prompt {
 		
 		throw
 			new DomainException(
-				"Conditions are not allowed for document prompts.");
+				"Conditions are not allowed in document prompts.");
 	}
 
 	/**
@@ -204,23 +184,18 @@ public class DocumentPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return NoResponseMedia.valueOf(valueString);
+					return UUID.fromString(valueString);
 				}
-				catch(IllegalArgumentException noImageNoResponse) {
-					try {
-						return UUID.fromString(valueString);
-					}
-					catch(IllegalArgumentException notUuid) {
-						throw new DomainException(
-								"The string response value was not " +
+				catch(IllegalArgumentException notUuid) {
+					throw new DomainException(
+							"The string response value was not " +
 									"decodable into a UUID for prompt '" +
 									getId() +
 									"': " +
 									valueString);
-					}
 				}
 			}
-		}
+		}	
 		else {
 			throw new DomainException(
 					"The value is not decodable as a reponse value for prompt '" +
@@ -339,12 +314,7 @@ public class DocumentPrompt extends Prompt {
 			return false;
 		}
 		DocumentPrompt other = (DocumentPrompt) obj;
-		if(maximumFilesize == null) {
-			if(other.maximumFilesize != null) {
-				return false;
-			}
-		}
-		else if(!maximumFilesize.equals(other.maximumFilesize)) {
+		if(maximumFilesize != other.maximumFilesize) {
 			return false;
 		}
 		return true;

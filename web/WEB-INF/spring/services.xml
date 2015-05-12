@@ -65,6 +65,12 @@
     </constructor-arg>
   </bean>
   
+  <bean class="org.ohmage.service.MediaServices">
+    <constructor-arg>
+      <ref bean="mediaQueries" />
+    </constructor-arg>
+  </bean>
+  
   <bean class="org.ohmage.service.MobilityServices">
     <constructor-arg>
       <ref bean="userQueries" />

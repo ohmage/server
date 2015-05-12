@@ -176,6 +176,7 @@ public class UserMediaServices {
 		}
 	}
 	
+
 	/**
 	 * Returns an Audio object representing the media.
 	 * 
@@ -203,7 +204,7 @@ public class UserMediaServices {
 			throw new ServiceException(e);
 		}
 	}
-	
+
 	/**
 	 * Returns a Video object representing the media.
 	 * 
@@ -231,6 +232,7 @@ public class UserMediaServices {
 			throw new ServiceException(e);
 		}
 	}
+
 	
 	/**
 	 * Returns a DocumentP object representing the media.
@@ -259,6 +261,7 @@ public class UserMediaServices {
 			throw new ServiceException(e);
 		}
 	}
+
 	
 	/**
 	 * Returns a Media object.

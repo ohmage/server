@@ -13,8 +13,21 @@ import org.ohmage.query.IMediaQueries;
  * The implementation for the query for media.
  *
  * @author John Jenkins
+ * @author Hongsuda T.
  */
 public class MediaQueries extends Query implements IMediaQueries {
+	
+	private static final String SQL_EXISTS_MEDIA = 
+			"SELECT EXISTS(" +
+				"SELECT ubr.uuid " +
+				"FROM url_based_resource ubr " +
+				"WHERE ubr.uuid = ? )";
+	
+	private static final String SQL_GET_MEDIA_URL = 
+			"SELECT url " +
+			"FROM url_based_resource " +
+			"WHERE uuid = ?";
+		
 	/**
 	 * Creates this object.
 	 * 
@@ -22,6 +35,18 @@ public class MediaQueries extends Query implements IMediaQueries {
 	 */
 	private MediaQueries(DataSource dataSource) {
 		super(dataSource);
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IMediaQueries#getMediaExists(java.lang.String)
+	 */
+	public Boolean getMediaExists(UUID id) throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(SQL_EXISTS_MEDIA, new Object[] { id.toString() }, Boolean.class);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_EXISTS_MEDIA + "' with parameter: " + id, e);
+		}
 	}
 	
 	/*
@@ -39,7 +64,7 @@ public class MediaQueries extends Query implements IMediaQueries {
 			return
 				new URL(
 					getJdbcTemplate().queryForObject(
-						sql, 
+						SQL_GET_MEDIA_URL, 
 						new Object[] { id.toString() },
 						String.class));
 		}

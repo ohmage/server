@@ -145,19 +145,14 @@ public class VideoPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return NoResponseMedia.valueOf(valueString);
+					return UUID.fromString(valueString);
 				}
-				catch(IllegalArgumentException noMediaNoResponse) {
-					try {
-						return UUID.fromString(valueString);
-					}
-					catch(IllegalArgumentException notUuid) {
-						throw new DomainException(
-								"The string response value was not decodable into a UUID for prompt '" +
+				catch(IllegalArgumentException notUuid) {
+					throw new DomainException(
+							"The string response value was not decodable into a UUID for prompt '" +
 									getId() +
 									"': " +
-									valueString);
-					}
+									valueString);			
 				}
 			}
 		}

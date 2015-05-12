@@ -29,7 +29,7 @@ public class Media {
 	private static final int MAX_EXTENSION_LENGTH = 4;
 
 	private final UUID id;
-	private String contentType = null;
+	private String contentType = null;  
 	private String type = null;
 	private final InputStream content; 
 	/**
@@ -230,7 +230,7 @@ public class Media {
 	 * 
 	 * @return The root MIME type of this media type.
 	 */
-	public static String getMimeTypeRoot(String type) {
+	protected String getMimeTypeRoot(String type) {
 	
 		if (type == null)
 			return null;

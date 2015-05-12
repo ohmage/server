@@ -266,23 +266,6 @@ public final class SurveyResponseServices {
 			throws ServiceException {
 		verifyMediaFilesExistForMediaPromptResponses(AudioPromptResponse.class, surveyResponses, audios);
 		
-		/*
-		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if(promptResponse instanceof AudioPromptResponse) {
-					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! audios.containsKey(responseValue.toString()))) {
-						
-						throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"An audio file was missing for an audio prompt response: " + 
-								responseValue.toString());
-					}
-				}
-			}
-		}
-		*/
 	}
 	
 	/**
@@ -304,23 +287,6 @@ public final class SurveyResponseServices {
 
 		verifyMediaFilesExistForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
 		
-		/*
-		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if(promptResponse instanceof DocumentPromptResponse) {
-					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! documentPs.containsKey(responseValue.toString()))) {
-						
-						throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"A document file was missing for a document prompt response: " + 
-								responseValue.toString());
-					}
-				}
-			}
-		}
-		*/
 	}
 	
 	/**

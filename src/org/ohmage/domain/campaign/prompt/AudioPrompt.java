@@ -11,7 +11,6 @@ import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.exception.DomainException;
 
@@ -118,8 +117,7 @@ public class AudioPrompt extends Prompt {
 	}
 	
 	/**
-	 * Conditions are not allowed for audio prompts unless they are
-	 * {@link NoResponse} values.
+	 * Conditions are not allowed for audio prompts. Use parent's method.
 	 * 
 	 * @param pair The pair to validate.
 	 * 
@@ -168,19 +166,14 @@ public class AudioPrompt extends Prompt {
 			}
 			catch(IllegalArgumentException notNoResponse) {
 				try {
-					return NoResponseMedia.valueOf(valueString);
+					return UUID.fromString(valueString);
 				}
-				catch(IllegalArgumentException noImageNoResponse) {
-					try {
-						return UUID.fromString(valueString);
-					}
-					catch(IllegalArgumentException notUuid) {
-						throw new DomainException(
-								"The string response value was not decodable into a UUID for prompt '" +
+				catch(IllegalArgumentException notUuid) {
+					throw new DomainException(
+							"The string response value was not decodable into a UUID for prompt '" +
 									getId() +
 									"': " +
 									valueString);
-					}
 				}
 			}
 		}
@@ -260,5 +253,40 @@ public class AudioPrompt extends Prompt {
 		
 		// End the object.
 		generator.writeEndObject();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result =
+			prime *
+				result +
+				((maxDuration == null) ? 0 : maxDuration.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if(this == obj) {
+			return true;
+		}
+		if(!super.equals(obj)) {
+			return false;
+		}
+		if(!(obj instanceof AudioPrompt)) {
+			return false;
+		}
+		AudioPrompt other = (AudioPrompt) obj;
+		if(maxDuration != other.maxDuration) {
+			return false;
+		}
+		return true;
 	}
 }

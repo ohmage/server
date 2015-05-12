@@ -15,6 +15,8 @@
  ******************************************************************************/
 package org.ohmage.exception;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
+
 /**
  * Simple wrapper for RuntimeExceptions that are thrown from the query package. 
  * 
@@ -44,6 +46,22 @@ public class DataAccessException extends WorkflowException {
 	 */
 	public DataAccessException(String message, Throwable cause) {
 		super(message, cause);
+	}
+
+	/**
+	 * Creates a new service exception with an errorCode and message as to why it's being 
+	 * thrown and another Throwable that may have caused this exception to be
+	 * thrown.
+	 * 
+	 * @param errorCode  The error code.
+	 * 
+	 * @param errorText  The error text.
+	 * 
+	 * @param cause A Throwable that was caught and is associated with why this
+	 * 				exception is being thrown.
+	 */
+	public DataAccessException(final ErrorCode errorCode, final String errorText, final Throwable cause) {
+		super(errorCode, errorText, cause);
 	}
 	
 	/**

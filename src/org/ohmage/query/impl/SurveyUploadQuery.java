@@ -40,6 +40,7 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.AudioDirectoryCache;
 import org.ohmage.cache.DocumentPDirectoryCache;
 import org.ohmage.cache.MediaDirectoryCache;
@@ -67,8 +68,10 @@ import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ISurveyUploadQuery;
 import org.ohmage.request.JsonInputKeys;
+import org.ohmage.service.MediaServices;
 import org.ohmage.util.DateTimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -136,7 +139,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
         "prompt_type, prompt_id, response) " +
         "VALUES (?,?,?,?,?,?)";
 	
-	// Inserts an images information into the url_based_resource table.
+	// Inserts an images/media information into the url_based_resource table.
 	private static final String SQL_INSERT_IMAGE = 
 		"INSERT INTO url_based_resource(user_id, client, uuid, url) " +
 		"VALUES (" +
@@ -183,7 +186,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		PromptResponse currentPromptResponse = null;
 		String currentSql = null;
 
-		List<File> fileList = new LinkedList<File>();
+		List<File> fileList = new LinkedList<File>();  // keep track of files created along the process
 		
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -205,6 +208,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					currentSql = SQL_INSERT_SURVEY_RESPONSE;
 			
 					KeyHolder idKeyHolder = new GeneratedKeyHolder();
+					
+					// HT: Don't need this. If one fails, all fail. Rollback completely. 
+					// savepoint = status.createSavepoint();  
 					
 					// First, insert the survey
 					getJdbcTemplate().update(
@@ -272,7 +278,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						idKeyHolder
 					);
 					
-					savepoint = status.createSavepoint();
 					
 					final Number surveyResponseId = idKeyHolder.getKey(); // the primary key on the survey_response table for the 
 					                                                      // just-inserted survey
@@ -299,10 +304,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					
 					if(isDuplicate(dive)) {
 						 
-						LOGGER.debug("Found a duplicate survey upload message for user " + username);
-						
-						duplicateIndexList.add(surveyIndex);
-						status.rollbackToSavepoint(savepoint);
+						LOGGER.debug("Found a duplicate survey upload message for user " + username);				
+						duplicateIndexList.add(surveyIndex);  // assume successful upload
+						// status.rollbackToSavepoint(savepoint);
 						
 					} 
 					else {
@@ -321,11 +325,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						throw new DataAccessException(dive);
 					}
 						
-				} catch (org.springframework.dao.DataAccessException dae) { 
-					
+				} catch (org.springframework.dao.DataAccessException|
+						DataAccessException dae) { 
 					// Some other database problem happened that prevented
-                    // the SQL from completing normally.
-					
+                    // the SQL from completing normally. 
+					// Or something is wrong with createPromptResponse e.g. duplicate UUID	
 					LOGGER.error("caught DataAccessException", dae);
 					logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
 					for(File f : fileList) {
@@ -333,9 +337,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					}
 					rollback(transactionManager, status);
 					throw new DataAccessException(dae);
-				} 
+				}
 				
-			}
+			} // for surveyIndex
 			
 			// Finally, commit the transaction
 			transactionManager.commit(status);
@@ -527,24 +531,28 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId) &&
 					! JsonInputKeys.IMAGE_NOT_UPLOADED.equals(imageId)) {
 					
-					// Get the directory to save the image and save it.
-					File originalFile;
+
 					try {
+						MediaServices.instance().verifyMediaExistance(UUID.fromString(imageId), false);	
+					} catch (ServiceException e) {
+						LOGGER.debug("HT: The image UUID already exist" + imageId);
+						throw new DataAccessException(e);
+					}
+
+					// Get the directory to save the image and save it.
+					File originalFile = null;
+					try {					
 						originalFile =
 							bufferedImageMap
 								.get(UUID.fromString(imageId))
 								.saveImage(MediaDirectoryCache.getImageDirectory());  //replace getDirectory()
+						fileList.add(originalFile); // store file reference. 
 					}
 					catch(DomainException e) {
-						rollback(transactionManager, status);
-						throw
-							new DataAccessException(
-								"Error saving the images.",
-								e);
+						throw new DataAccessException(
+									"Error saving the images.",
+									e);
 					}
-					
-					// Store the file reference in the file list.
-					fileList.add(originalFile);
 					
 					// Get the image's URL.
 					String url = "file://" + originalFile.getAbsolutePath();
@@ -556,15 +564,10 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
 						throw new DataAccessException(
-							"Error executing SQL '" + 
-								SQL_INSERT_IMAGE + 
-								"' with parameters: " +
-								username + ", " + 
-								client + ", " + 
-								imageId + ", " + 
-								url,
+									"Error executing SQL '" + SQL_INSERT_IMAGE + 
+									"' with parameters: " + username + ", " + 
+									client + ", " + imageId + ", " + url,
 							e);
 					}
 				}
@@ -585,8 +588,15 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					// Attempt to write it to the file system.
 					try {
 						// Get the media ID.
-						Media media = null;
 						String mediaId = responseValue.toString();
+						Media media = null;
+						
+						try {
+							MediaServices.instance().verifyMediaExistance(UUID.fromString(mediaId), false);	
+						} catch (ServiceException e) {
+							LOGGER.debug("HT: The media UUID already exist" + mediaId);
+							throw new DataAccessException(e);
+						}
 						
 						LOGGER.debug("HT: before getting Directory");
 						// Get the current media directory.
@@ -606,84 +616,41 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 											
 						// Get the file.
 						File mediaFile = 
-								new File(
-									currMediaDirectory.getAbsolutePath() +
-									"/" +
-									mediaId +
-									"." +
-									media.getType());
+								new File(currMediaDirectory.getAbsolutePath() +
+									"/" + mediaId + "." + media.getType());
 						LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
 						
 						media.writeFile(mediaFile);  // write the media content to mediaFile
-						
-						/*	
-							// Get the video contents.
-						InputStream content = media.getContentStream();
-						if(content == null) {
-							LOGGER.debug("HT: There is no " + media.getClass().getSimpleName() + " content");
-							transactionManager.rollback(status);
-								throw new DataAccessException(
-										"The media[" + media.getClass().getSimpleName() + "] contents did not exist in the map.");
-						}
-							
-							// Write the media contents to disk.
-						FileOutputStream fos = new FileOutputStream(mediaFile);
-							
-							// Write the content to the output stream.
-						int bytesRead;
-						byte[] buffer = new byte[4096];
-						while((bytesRead = content.read(buffer)) != -1) {
-							fos.write(buffer, 0, bytesRead);
-						}
-						fos.close();
-						 */
-						
-						// Store the file reference in the file list.
-						fileList.add(mediaFile);
-							
-							// Get the video's URL.
+						fileList.add(mediaFile);	// Store the file reference. 
+			
+						// Get the media URL.
 						String url = "file://" + mediaFile.getAbsolutePath();
 						LOGGER.debug("HT: Media file: " + url);
 						LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
 							
-							// Insert the media URL into the database.
+						// Insert the media URL into the database.
 						try {
 							getJdbcTemplate().update(
 									SQL_INSERT_IMAGE, 
-									new Object[] { 
-											username, 
-											client, 
-											mediaId,
-											url }
+									new Object[] { username, client, mediaId, url }
 									);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
-							mediaFile.delete();
-							transactionManager.rollback(status);
+							// transactionManager.rollback(status);
 							throw new DataAccessException(
-									"Error executing SQL '" + 
-										SQL_INSERT_IMAGE + 
-										"' with parameters: " +
-										username + ", " + 
-										client + ", " + 
-										mediaId + ", " + 
-										url, 
+									"Error executing SQL '" + SQL_INSERT_IMAGE + 
+									"' with parameters: " + username + ", " + 
+									client + ", " + mediaId + ", " + url,
 									e);
 						}
 					}
 						// If it fails, roll back the transaction.
 					catch(DomainException e) {
-						transactionManager.rollback(status);
+						// transactionManager.rollback(status);
 						throw new DataAccessException(
-								"Could not get the media directory.",
+								"Could not get or write to the media directory.",
 								e);
-					} /*
-					catch(IOException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException(
-								"Could not write the file.",
-								e);
-					} */
+					} 
 				}
 			}
 			
@@ -990,6 +957,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	 * 
 	 * @return A File object for where an image should be written.
 	 */
+	// TODO: clean up.. Don't really need this. 
 	private File getDirectory() throws DataAccessException {
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;

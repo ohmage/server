@@ -9,8 +9,21 @@ import org.ohmage.exception.DataAccessException;
  * The interfaces for all of the queries against media.
  *
  * @author John Jenkins
+ * @author Hongsuda T.
  */
 public interface IMediaQueries {
+	
+	/**
+	 * Checks whether the media already exists. 
+	 * 
+	 * @param id The media's unique identifier.
+	 * 
+	 * @return true if the media exists, false if the media doesn't exist.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Boolean getMediaExists(UUID id) throws DataAccessException;
+	
 	/**
 	 * Gets the URL for the media.
 	 * 

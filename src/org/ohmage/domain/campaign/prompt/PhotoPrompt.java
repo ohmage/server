@@ -42,6 +42,7 @@ public class PhotoPrompt extends Prompt {
 	 *
 	 * @author John Jenkins
 	 */
+	// TODO: This option might not be allowed anymore. 
 	public static enum NoResponseMedia {
 		/**
 		 * The image was not uploaded.

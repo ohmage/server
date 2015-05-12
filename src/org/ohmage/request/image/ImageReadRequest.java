@@ -169,7 +169,7 @@ public class ImageReadRequest extends UserRequest {
 			ImageServices.instance().verifyImageExistance(imageId, true);
 			
 			try {
-				LOGGER.info("Checking if the user is an admin.");
+				LOGGER.info("Checking if the user is an admin."); 
 				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			}
 			catch(ServiceException e) {
