@@ -44,6 +44,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.filter.GzipFilter;
+import org.ohmage.jee.servlet.RequestServlet;
 
 /**
  * Superclass for all requests. Defines the basic requirements for a request.
@@ -531,6 +532,18 @@ public abstract class Request {
 			setFailed();
 			throw new ValidationException(e);
 		}
+		// check for large request/file
+		catch(IllegalStateException e) {
+			LOGGER.info("The request body is larger than maxRequestSize:" + 
+					RequestServlet.MAX_REQUEST_SIZE + 
+					", or a part is larger than the maxFileSize:" + 
+					RequestServlet.MAX_FILE_SIZE, e);
+			setFailed(ErrorCode.SERVER_REQUEST_TOO_LARGE, 
+					"The request body is larger than maxRequestSize:" + 
+					RequestServlet.MAX_REQUEST_SIZE + 
+					", or a part is larger than the maxFileSize:" + RequestServlet.MAX_FILE_SIZE); 
+			throw new ValidationException(e); 
+		}
 	}
 		
 	/**
@@ -604,7 +617,20 @@ public abstract class Request {
 					"The zipped data was not valid zip data.",
 					e);
 		}
-	}
+		// check for large request/file
+		// MultipartConfig.maxFileSize(), MultipartConfig.maxRequestSize()
+		catch(IllegalStateException e) {
+			LOGGER.info("The request body is larger than maxRequestSize:" + 
+					RequestServlet.MAX_REQUEST_SIZE + 
+					", or a part is larger than the maxFileSize:" + 
+					RequestServlet.MAX_FILE_SIZE, e);
+			setFailed(ErrorCode.SERVER_REQUEST_TOO_LARGE, 
+					"The request body is larger than maxRequestSize:" + 
+					RequestServlet.MAX_REQUEST_SIZE + 
+					", or a part is larger than the maxFileSize:" + RequestServlet.MAX_FILE_SIZE); 
+			throw new ValidationException(e);
+		}
+	}	
 	
 	/**
 	 * Sets the response headers to disallow client caching.
