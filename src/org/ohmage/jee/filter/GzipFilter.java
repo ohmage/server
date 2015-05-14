@@ -186,6 +186,14 @@ public class GzipFilter implements Filter {
 		// Otherwise, we have successfully retrieved the parameter map, and
 		// we should save it to the request and return success.
 		else {
+			// HT: printout the result 
+			for (String key : result.keySet()){
+				String msg = "HT: key=" + key + ", value=";
+				for (String value : result.get(key))
+					msg += value + ", ";
+				LOGGER.debug(msg);
+			}
+
 			// Save the parameter map as an element of the request.
 			httpRequest.setAttribute(ATTRIBUTE_KEY_PARAMETERS, result);
 			return true;
