@@ -38,6 +38,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
+import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -117,7 +118,6 @@ import org.ohmage.validator.SurveyResponseValidators;
  * 
  * @author Joshua Selsky
  */
-// TODO: HT Do we need to add annotation for request.getParts()
 public class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER =
 		Logger.getLogger(SurveyUploadRequest.class);
@@ -324,8 +324,26 @@ public class SurveyUploadRequest extends UserRequest {
 							throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_MEDIA_UUIDS, 
 									"a duplicate uuid of resource key was detected in the multi-part upload");
 						}
+
+						// what if contentType is not supplied e.g. null
 						String contentType = p.getContentType();
-						String fileType = contentType.split("/")[1]; 
+						if (contentType == null){
+							throw new ValidationException(
+									ErrorCode.SERVER_MISSING_CONTENT_TYPE,
+									"Content-Type for the attachement is needed");
+						}
+						
+						// String fileType = contentType.split("/")[1]; // not the same as file extension 
+						String fileExt = getFileType(getPartFilename(p));
+						String fileType = "";
+						// if (fileType == null)
+						//	fileType = getFileTypeFromContentType(contentType); // a hack
+						if (fileExt == null) {
+							fileType = "__" + contentType.replace("/", ".");
+						} else {
+							fileType = fileExt + "__" + contentType.replace("/", ".");
+						}
+						LOGGER.debug("HT: id: " + name + "Ext: " + fileExt + " Content-type:" + contentType + " fileType:" + fileType);
 						
 						// TODO: pass fileType to image creation
 						if(contentType.startsWith("image")) {
@@ -369,7 +387,7 @@ public class SurveyUploadRequest extends UserRequest {
 						}
 						if(LOGGER.isDebugEnabled()) 
 							LOGGER.debug("succesfully created a BufferedMedia for key " + id + "[" + contentType +"]");
-					}
+					} // for Part p
 				}
 				catch(ServletException e) {
 					LOGGER.info("This is not a multipart/form-post.");
@@ -382,7 +400,7 @@ public class SurveyUploadRequest extends UserRequest {
 					LOGGER.info("A Media object could not be built.", e);
 					throw new ValidationException(
 							ErrorCode.SYSTEM_GENERAL_ERROR,
-							"Could not create the Document object.", 
+							"Could not create the media object.", 
 							e);
 				}
 				
@@ -450,6 +468,36 @@ public class SurveyUploadRequest extends UserRequest {
 		    }
 		}
 		return null;
+	}
+	
+	private String getFileType(String filename){
+		String type = null;
+		
+		if (filename != null) {
+			String[] parts = filename.split("[\\.]");
+			if(parts.length != 0) {
+				String extension = parts[parts.length - 1];
+				if(extension.length() <= Media.MAX_EXTENSION_LENGTH) {
+					type = parts[parts.length - 1];
+				} 
+			}
+		}
+		
+		return type;
+	}
+	
+	private String getFileTypeFromContentType(final String contentType){
+		String type = null;
+		if (contentType.contains("powerpoint"))
+			type = "ppt";
+		else if (contentType.contains("excel"))
+			type = "xls";
+		else if (contentType.contains("msword"))
+			type = "doc";
+		else if (contentType.contains("text"))
+			type = "txt";
+		
+		return type;
 	}
 	
 	/**
@@ -532,6 +580,9 @@ public class SurveyUploadRequest extends UserRequest {
 			// TODO: HT add a validator for ducument prompt type
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
 			SurveyResponseServices.instance().verifyDocumentFilesExistForDocumentPromptResponses(surveyResponses, documentContentsMap);
+			
+			// TODO: validate compliance to campaign definition 
+			
 			
 			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 

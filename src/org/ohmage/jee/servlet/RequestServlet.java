@@ -62,7 +62,7 @@ public class RequestServlet extends HttpServlet {
 	/**
 	 * The maximum allowed size for a set of survey responses.
 	 */
-	public static final int MAX_SURVEY_RESPONSE_SIZE = 1024*1024*25;
+	public static final long MAX_SURVEY_RESPONSE_SIZE = 1024*1024*25;
 	/**
 	 * The maximum allowed size for a set of stream data.
 	 */
@@ -70,7 +70,7 @@ public class RequestServlet extends HttpServlet {
 	/**
 	 * The maximum allowed size for a single file being uploaded.
 	 */
-	public static final int MAX_FILE_SIZE = 1024*1024*1024*2;
+	public static final long MAX_FILE_SIZE = 1024*1024*1024*1;
 	/**
 	 * <p>
 	 * The maximum allowed size of a single upload.
@@ -82,7 +82,7 @@ public class RequestServlet extends HttpServlet {
 	 * response.
 	 * </p>
 	 */
-	public static final int MAX_REQUEST_SIZE =
+	public static final long MAX_REQUEST_SIZE =
 		MAX_FILE_SIZE + MAX_SURVEY_RESPONSE_SIZE;
 	/**
 	 * The size of the request that must be reached before the servlet

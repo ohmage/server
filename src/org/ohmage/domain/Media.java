@@ -26,11 +26,12 @@ public class Media {
 	/**
 	 * The maximum length for a file extension.
 	 */
-	private static final int MAX_EXTENSION_LENGTH = 4;
+	public static final int MAX_EXTENSION_LENGTH = 4;
 
 	private final UUID id;
 	private String contentType = null;  
 	private String type = null;
+	private String filename = null;
 	private final InputStream content; 
 	/**
 	 * The size, in bytes, of the media file.
@@ -66,11 +67,9 @@ public class Media {
 			this.id = id;
 		}
 		
-		// Validate the type.
-		if(type == null) {
-			throw new DomainException("The type is null.");
-		}
-		else {
+		// Validate the type. Allow null at the moment. 
+		// if(type == null) throw new DomainException("The type is null.");
+		if (type != null) {
 			String trimmedType = type.trim();
 			
 			if(trimmedType.length() == 0) {
@@ -94,6 +93,22 @@ public class Media {
 		
 		// Validate the size.
 		this.size = content.length;
+	}
+	
+	private String getFileType(String filename){
+		String type = null;
+		
+		if (filename != null) {
+			String[] parts = filename.split("[\\.]");
+			if(parts.length != 0) {
+				String extension = parts[parts.length - 1];
+				if(extension.length() <= Media.MAX_EXTENSION_LENGTH) {
+					type = parts[parts.length - 1];
+				} 
+			}
+		}
+		
+		return type;
 	}
 	
 	/**
@@ -120,34 +135,56 @@ public class Media {
 			throw new DomainException("[MediaID " + id.toString() + "] URL is null.");
 		
 		// Compute the contentType
-		// Try contentType first. If doesn't work, use file extension. 
-		// If there is no extension or if it is greater than
-		// three characters long, the extension will be set to null.
+		// Create a connection to the stream.
 		try {
-			this.contentType = url.openConnection().getContentType();
-			this.type = contentType.split("/")[1];
-		
-			if (this.type == null) {
-				String[] parts = url.toString().split("[\\.]");
-				if(parts.length != 0) {
-					String extension = parts[parts.length - 1];
-					if(extension.length() <= MAX_EXTENSION_LENGTH) {
-						this.type = parts[parts.length - 1];
-					}	
-				}
-			}
-			
-			// Create a connection to the stream.
 			this.content = url.openStream();
-		}	
+		} 
 		catch(MalformedURLException e) {
 			throw new DomainException("The URL is invalid.", e);
 		}
 		catch(IOException e) {
 			throw new DomainException(
-				ErrorCode.SYSTEM_GENERAL_ERROR,
-				"The media file does not exist.",
-				e);
+					ErrorCode.SYSTEM_GENERAL_ERROR,
+					"The media file does not exist.",
+					e);
+		}
+
+		String paths[] = url.toString().split("/");
+		String simpleName = paths[paths.length-1];
+		String elms[] = simpleName.split("__");
+		String filename = elms[0];
+		String fileType = getFileType(filename);
+
+		if (elms.length > 1) {
+			this.contentType = elms[1].replaceFirst("[.]", "/");
+		} 
+		
+		if (fileType != null) {
+			this.filename = filename;
+			this.type = fileType;
+		} else {	
+			
+		// Try contentType first. If doesn't work, use file extension. 
+		// If there is no extension or if it is greater than
+		// three characters long, the extension will be set to null.
+			try {
+				this.contentType = url.openConnection().getContentType();
+				if ((this.type == null) || this.contentType.contains("unknown")) {
+					String parts[] = filename.split(".", 2);
+					if (parts.length > 1) {
+						this.contentType = "Application/" + parts[1];
+					} else 
+						this.contentType = null;
+					this.type = null;
+				} else {
+					this.type = this.contentType.split("/")[1];
+				}
+			} catch(IOException e) {
+				throw new DomainException(
+						ErrorCode.SYSTEM_GENERAL_ERROR,
+						"The media file does not exist.",
+						e);
+			}
 		}
 		
 		// Get the size of the data.
@@ -201,6 +238,9 @@ public class Media {
 	 * @return The file's filename.
 	 */
 	public String getFilename() {
+		if (filename != null)
+			return filename;
+		
 		if (type == null)
 			return id.toString();
 		return id.toString() + "." + type;
