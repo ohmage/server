@@ -45,6 +45,7 @@ import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.filter.GzipFilter;
 import org.ohmage.jee.servlet.RequestServlet;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Superclass for all requests. Defines the basic requirements for a request.
@@ -162,6 +163,7 @@ public abstract class Request {
 				
 				// Get the parameters.
 				if (parameters == null) {
+					// LOGGER.debug("HT: parameters is null");	
 					Object parametersObject = 
 						httpRequest
 							.getAttribute(GzipFilter.ATTRIBUTE_KEY_PARAMETERS);
@@ -170,8 +172,25 @@ public abstract class Request {
 						// We make the assumption that we are the only one 
 						// setting this value, so it must be a map.
 						tParameters = (Map<String, String[]>) parametersObject;
+						
+						// LOGGER.debug("HT: parametersObject is an instance of a map");
+						if (CollectionUtils.isEmpty(tParameters.entrySet())) {
+							try { // check whether the request/file is too large
+								httpRequest.getParts();	
+							} catch (IllegalStateException e) {
+								LOGGER.info("The request body is larger than maxRequestSize:" + 
+										RequestServlet.MAX_REQUEST_SIZE + 
+										", or a part is larger than the maxFileSize:" + 
+										RequestServlet.MAX_FILE_SIZE, e);
+								throw new InvalidRequestException(ErrorCode.SYSTEM_REQUEST_TOO_LARGE , 
+										"The file/request is too large. "
+											+ "Maximum file size:" + RequestServlet.MAX_FILE_SIZE
+											+ ". Maximum request size: " + RequestServlet.MAX_REQUEST_SIZE + "."); 
+							} catch (ServletException e) {}
+						}
 					}
 					else if(parametersObject == null) {
+						// LOGGER.debug("HT: parametersObject is null");	
 						throw new ValidationException(
 							"The parameter map was never set which should have been done in the GZIP filter.");
 					}
@@ -184,6 +203,7 @@ public abstract class Request {
 					tParameters = parameters;
 				}
 				// HT iterates through the param map
+				LOGGER.debug("HT: About to iterate through the param map");	
 				for (Map.Entry<String,String[]> entry : tParameters.entrySet()) {
 				    String key = entry.getKey();
 				    String[] value = entry.getValue();
@@ -194,6 +214,7 @@ public abstract class Request {
 		catch(ValidationException e) {
 			e.failRequest(this);
 			e.logException(LOGGER);
+			throw new InvalidRequestException(ErrorCode.SYSTEM_GENERAL_ERROR, "Can't extract parameters from the request");
 		}
 		
 		this.parameters = tParameters;

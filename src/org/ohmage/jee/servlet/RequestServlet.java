@@ -31,6 +31,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.jee.filter.Log4jNdcFilter;
@@ -66,7 +70,7 @@ public class RequestServlet extends HttpServlet {
 	/**
 	 * The maximum allowed size for a single file being uploaded.
 	 */
-	public static final int MAX_FILE_SIZE = 1024*1024*300;
+	public static final int MAX_FILE_SIZE = 1024*1024*1024*2;
 	/**
 	 * <p>
 	 * The maximum allowed size of a single upload.
@@ -456,27 +460,68 @@ public class RequestServlet extends HttpServlet {
 		}
 		catch(IOException e) {
 			LOGGER.info(
-				"There was an issue reading from the input stream or writing to the output stream.",
+				"There was an issue reading from the input stream or writing to the output stream.", 
 				e);
+			respondFailure(httpResponse, 200, ErrorCode.SYSTEM_GENERAL_ERROR, 
+					"There was an issue reading from the input stream or writing to the output stream");
 		}
 		catch(InvalidRequestException e) {
 			LOGGER.info("The request was invalid.", e);
-			
-			httpResponse.setStatus(e.getErrorCode());
-			String message = e.getErrorText();
-			if(message != null) {
+			respondFailure(httpResponse, e.getHttpErrorCode(), e.getErrorCode(), e.getErrorText());
+		}	 
+	}
+
+	/**
+	 * Send a failed message with the error code. 
+	 * 
+	 * @param httpResponse The HTTP response that will be sent back to the user
+	 * 					   once the request has been processed.
+	 * @param httpErrorCode The HTTP error code
+	 * @param errorCode the ohmage error code
+	 * @param errorMessage the error message that we want to include
+	 */
+	protected void respondFailure( 
+			final HttpServletResponse httpResponse,
+			final int httpErrorCode, 
+			final ErrorCode errorCode,
+			final String errorMessage) {
+
+		if (httpErrorCode <= 0)
+			httpResponse.setStatus(200);	
+		httpResponse.setStatus(httpErrorCode);
+		
+		String errorCodeString;
+		if (errorCode == null)
+			errorCodeString = ErrorCode.SYSTEM_GENERAL_ERROR.toString();
+		errorCodeString = errorCode.toString();	
+		
+		if(errorMessage != null) {
+			try {
+				// try to send error in the json format
+				Writer writer = httpResponse.getWriter();
+				httpResponse.setContentType("application/json");
+				String result;
 				try {
-					Writer writer = httpResponse.getWriter();
-					writer.write(message);
-					writer.flush();
-					writer.close();
+					JSONObject resultJson = new JSONObject();
+					resultJson.put(Request.JSON_KEY_RESULT, Request.RESULT_FAILURE);
+					JSONArray jsonArray = new JSONArray();
+					// add an error code
+					jsonArray.put(new JSONObject().put(errorCodeString, errorMessage)); 
+					resultJson.put(Request.JSON_KEY_ERRORS, jsonArray);
+					result = resultJson.toString();
+				} catch(JSONException je) {
+					LOGGER.error("An error occurred while building the failure JSON response.", je);
+					result = Request.RESPONSE_ERROR_JSON_TEXT;
 				}
-				catch(IOException errorResponding) {
-					LOGGER.error(
-						"Could not respond with an error.", 
-						errorResponding);
-				}
+				writer.write(result);
+				writer.flush();
+				writer.close();
+			}
+			catch(IOException errorResponding) {
+				LOGGER.error("Could not respond with an error.", 
+					errorResponding);
 			}
 		}
 	}
+	
 }

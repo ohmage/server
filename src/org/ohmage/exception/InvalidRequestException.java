@@ -1,10 +1,15 @@
 package org.ohmage.exception;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
+
 /**
  * This is basically a wrapper class for requests to throw that will be throw
- * directly to the request handler and will simply return an HTTP error code.
+ * directly to the request handler. The class was originally designed to 
+ * return an HTTP error code. For consistency with the rest of the API, 
+ * it also supports ohmage internal error code. 
  *
  * @author John Jenkins
+ * @author Hongsuda T. 
  */
 public class InvalidRequestException extends Exception {
 	/**
@@ -14,7 +19,7 @@ public class InvalidRequestException extends Exception {
 	
 	private final int httpErrorCode;
 	private final String errorText;
-	
+	private final ErrorCode errorCode; // ohmage error code
 	/**
 	 * Creates a request with a default error code.
 	 * 
@@ -29,6 +34,16 @@ public class InvalidRequestException extends Exception {
 		
 		this.httpErrorCode = httpErrorCode;
 		this.errorText = errorText;
+		this.errorCode = ErrorCode.SYSTEM_GENERAL_ERROR;
+	}
+	
+	public InvalidRequestException(
+			final ErrorCode errorCode,
+			final String errorText) {
+		
+		this.errorCode = errorCode;
+		this.errorText = errorText;
+		this.httpErrorCode = 200;
 	}
 	
 	/**
@@ -36,8 +51,17 @@ public class InvalidRequestException extends Exception {
 	 * 
 	 * @return The HTTP error code to return to the user.
 	 */
-	public int getErrorCode() {
+	public int getHttpErrorCode() {
 		return httpErrorCode;
+	}
+	
+	/**
+	 * The ohmage error code to return to the user.
+	 * 
+	 * @return The HTTP error code to return to the user.
+	 */
+	public ErrorCode getErrorCode() {
+		return errorCode;
 	}
 	
 	/**
