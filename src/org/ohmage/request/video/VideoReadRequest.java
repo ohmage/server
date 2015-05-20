@@ -18,10 +18,12 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.MediaServices;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.VideoValidators;
 
+// HT: Deprecated
 public class VideoReadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(VideoReadRequest.class);
@@ -99,7 +101,7 @@ public class VideoReadRequest extends UserRequest {
 				videoId);
 			
 			LOGGER.info("Connecting to the video stream.");
-			video = UserMediaServices.instance().getVideo(videoId);
+			video = MediaServices.instance().getVideo(videoId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -134,7 +136,7 @@ public class VideoReadRequest extends UserRequest {
 			else {
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + video.getFilename());
+					"attachment; filename=" + video.getFileName());
 				httpResponse.setHeader(
 					"Content-Length", 
 					new Long(video.getSize()).toString());

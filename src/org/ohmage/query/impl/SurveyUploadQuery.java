@@ -153,6 +153,21 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			"?" +	// url
 		")";
 	
+	// Inserts an images/media information into the url_based_resource table.
+	private static final String SQL_INSERT_MEDIA = 
+		"INSERT INTO url_based_resource(user_id, client, uuid, url, metadata) " +
+		"VALUES (" +
+			"(" +	// user_id
+				"SELECT id " +
+				"FROM user " +
+				"WHERE username = ?" +
+			"), " +
+			"?, " +	// client
+			"?, " +	// uuid
+			"?, " +	// url
+			"?" +   // metadata
+		")";
+
 	/**
 	 * Creates this object.
 	 * 
@@ -615,9 +630,13 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						LOGGER.debug("HT: currMediaDirectory: " + currMediaDirectory);
 											
 						// Get the file.
-						File mediaFile = 
-								new File(currMediaDirectory.getAbsolutePath() +
-									"/" + mediaId + "." + media.getType());
+						File mediaFile;
+						if (media.getType() != null)
+							mediaFile = new File(currMediaDirectory.getAbsolutePath() +
+										"/" + mediaId + "." + media.getType());
+						else 
+							mediaFile = new File(currMediaDirectory.getAbsolutePath() +	"/" + mediaId);
+
 						LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
 						
 						media.writeFile(mediaFile);  // write the media content to mediaFile
@@ -628,19 +647,22 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						LOGGER.debug("HT: Media file: " + url);
 						LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
 							
+						// Get the contentInfo
+						String metadata = media.getContentInfo().toMetadata();
+						
 						// Insert the media URL into the database.
 						try {
 							getJdbcTemplate().update(
-									SQL_INSERT_IMAGE, 
-									new Object[] { username, client, mediaId, url }
+									SQL_INSERT_MEDIA, 
+									new Object[] { username, client, mediaId, url, metadata }
 									);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
 							// transactionManager.rollback(status);
 							throw new DataAccessException(
-									"Error executing SQL '" + SQL_INSERT_IMAGE + 
+									"Error executing SQL '" + SQL_INSERT_MEDIA + 
 									"' with parameters: " + username + ", " + 
-									client + ", " + mediaId + ", " + url,
+									client + ", " + mediaId + ", " + url + ", " + metadata,
 									e);
 						}
 					}

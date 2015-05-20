@@ -39,6 +39,12 @@ public class Video extends Media {
 		super(id, type, content);
 	}
 	
+	public Video(UUID id, String contentType, String fileName,
+			byte[] content) throws DomainException {
+		// TODO Auto-generated constructor stub
+		super(id, contentType, fileName, content);
+	}
+	
 	/**
 	 * Creates a video file with an ID from the given URL.
 	 * 
@@ -55,6 +61,8 @@ public class Video extends Media {
 		super(id, url);
 	}
 	
+	
+
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
 	 */

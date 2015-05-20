@@ -21,6 +21,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ImageServices;
+import org.ohmage.service.MediaServices;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.ImageValidators;
@@ -131,7 +132,7 @@ public class MediaReadRequest extends UserRequest {
 			
 			LOGGER.info("Connecting to the media stream.");
 			if (imageSize == null)
-				media = UserMediaServices.instance().getMedia(mediaId);
+				media = MediaServices.instance().getMedia(mediaId);
 			else image = ImageServices.instance().getImage(mediaId, imageSize);
 			
 			if (media == null && image == null)
@@ -173,9 +174,12 @@ public class MediaReadRequest extends UserRequest {
 					// set content type
 					if (media.getContentType() != null)
 						httpResponse.setContentType(media.getContentType());
-					httpResponse.setHeader(
-						"Content-Disposition", 
-						"attachment; filename=" + media.getFilename());
+					if (media.getFileName() != null)
+						httpResponse.setHeader(
+						"Content-Disposition", "attachment; filename=" + media.getFileName());
+					else 
+						httpResponse.setHeader("Content-Disposition", "attachment;");
+
 					httpResponse.setHeader(
 						"Content-Length", 
 						new Long(media.getSize()).toString());

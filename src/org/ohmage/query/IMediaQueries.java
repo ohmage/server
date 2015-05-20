@@ -2,6 +2,7 @@ package org.ohmage.query;
 
 import java.net.URL;
 import java.util.UUID;
+import java.util.Map;
 
 import org.ohmage.exception.DataAccessException;
 
@@ -34,4 +35,17 @@ public interface IMediaQueries {
 	 * @throws DataAccessException There was an error.
 	 */
 	URL getMediaUrl(final UUID id) throws DataAccessException;
+
+
+	/**
+	 * Gets the URL reference and metadata for the media.
+	 * 
+	 * @param id The media's unique identifier.
+	 * 
+	 * @return The media's URL or null if no such media exists.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	Map<String,String> getMediaUrlAndMetadata(final UUID id) throws DataAccessException;
+	
 }

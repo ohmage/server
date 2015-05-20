@@ -18,10 +18,12 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.MediaServices;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.AudioValidators;
 
+// HT: Deprecated
 public class AudioReadRequest extends UserRequest {
 	/**
 	 * The logger for this class.
@@ -112,7 +114,7 @@ public class AudioReadRequest extends UserRequest {
 				audioId);
 			
 			LOGGER.info("Connecting to the audio stream.");
-			audio = UserMediaServices.instance().getAudio(audioId);
+			audio = MediaServices.instance().getAudio(audioId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -147,7 +149,7 @@ public class AudioReadRequest extends UserRequest {
 			else {
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + audio.getFilename());
+					"attachment; filename=" + audio.getFileName());
 				httpResponse.setHeader(
 					"Content-Length", 
 					new Long(audio.getSize()).toString());

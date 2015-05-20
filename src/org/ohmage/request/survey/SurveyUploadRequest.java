@@ -334,7 +334,9 @@ public class SurveyUploadRequest extends UserRequest {
 						}
 						
 						// String fileType = contentType.split("/")[1]; // not the same as file extension 
-						String fileExt = getFileType(getPartFilename(p));
+						String fileName = getPartFilename(p);
+						/*
+						String fileExt = getFileType(fileName);
 						String fileType = "";
 						// if (fileType == null)
 						//	fileType = getFileTypeFromContentType(contentType); // a hack
@@ -343,7 +345,9 @@ public class SurveyUploadRequest extends UserRequest {
 						} else {
 							fileType = fileExt + "__" + contentType.replace("/", ".");
 						}
-						LOGGER.debug("HT: id: " + name + "Ext: " + fileExt + " Content-type:" + contentType + " fileType:" + fileType);
+						*/
+						
+						LOGGER.debug("HT: id: " + name + " Content-type:" + contentType + " fileName:" + fileName);
 						
 						// TODO: pass fileType to image creation
 						if(contentType.startsWith("image")) {
@@ -364,16 +368,14 @@ public class SurveyUploadRequest extends UserRequest {
 							tVideoContentsMap.put(
 								name,  // put name instead of id in the map. why? 
 								new Video(
-									UUID.fromString(name),
-									fileType,
+									id,	contentType, fileName,
 									getMultipartValue(httpRequest, name)));
 						} 
 						else if(contentType.startsWith("audio/")) {
 							tAudioContentsMap.put(
 								name,
 								new Audio(
-									UUID.fromString(name),
-									fileType,
+									id, contentType, fileName,
 									getMultipartValue(httpRequest, name)));
 						}
 						else if(contentType.startsWith("application/") ||
@@ -381,8 +383,7 @@ public class SurveyUploadRequest extends UserRequest {
 							tDocumentContentsMap.put(
 								name,
 								new DocumentP(
-									UUID.fromString(name),
-									fileType,
+									id,	contentType, fileName,
 									getMultipartValue(httpRequest, name)));
 						}
 						if(LOGGER.isDebugEnabled()) 
@@ -486,19 +487,7 @@ public class SurveyUploadRequest extends UserRequest {
 		return type;
 	}
 	
-	private String getFileTypeFromContentType(final String contentType){
-		String type = null;
-		if (contentType.contains("powerpoint"))
-			type = "ppt";
-		else if (contentType.contains("excel"))
-			type = "xls";
-		else if (contentType.contains("msword"))
-			type = "doc";
-		else if (contentType.contains("text"))
-			type = "txt";
-		
-		return type;
-	}
+
 	
 	/**
 	 * Services the request.

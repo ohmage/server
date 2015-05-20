@@ -42,6 +42,13 @@ public class DocumentP extends Media {
 		super(id, type, content);
 	}
 	
+	public DocumentP(UUID id, String contentType, String fileName,
+			byte[] content) throws DomainException {
+	
+		super(id, contentType, fileName, content);
+	}
+
+
 	/**
 	 * Creates an file with an ID from the given URL.
 	 * 
@@ -58,6 +65,7 @@ public class DocumentP extends Media {
 		super(id, url);
 	}
 	
+
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
 	 */

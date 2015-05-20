@@ -42,6 +42,13 @@ public class Audio extends Media {
 		super(id, type, content);
 	}
 	
+	public Audio(UUID id, String contentType, String fileName,
+			byte[] content) throws DomainException {
+	
+		super(id, contentType, fileName, content);
+	}
+
+	
 	/**
 	 * Creates an audio file with an ID from the given URL.
 	 * 
@@ -57,6 +64,7 @@ public class Audio extends Media {
 	public Audio(final UUID id, final URL url) throws DomainException {
 		super(id, url);
 	}
+	
 	
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
