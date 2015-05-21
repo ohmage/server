@@ -24,24 +24,18 @@ public class DocumentP extends Media {
 	 * @param id
 	 *        The unique identifier for this file data.
 	 * 
-	 * @param type
-	 *        The content type of the media data.
+	 * @param contentType
+	 *        The media content-type.
+	 * 
+	 * @param fileName 
+	 * 		  The media file name. 
 	 * 
 	 * @param content
 	 *        The actual media data as a byte array.
 	 * 
 	 * @throws DomainException
 	 *         One of the parameters was invalid.
-	 */
-	public DocumentP(
-		final UUID id,
-		final String type,
-		final byte[] content)
-		throws DomainException {
-		
-		super(id, type, content);
-	}
-	
+	 */	
 	public DocumentP(UUID id, String contentType, String fileName,
 			byte[] content) throws DomainException {
 	
@@ -58,11 +52,14 @@ public class DocumentP extends Media {
 	 * @param url
 	 *        A URL to the file file.
 	 * 
+	 * @param info 
+	 * 		  Metadata about the media object stored in the DB.
+	 * 
 	 * @throws DomainException
 	 *         The URL was invalid or the object it points to does not exist.
 	 */
-	public DocumentP(final UUID id, final URL url) throws DomainException {
-		super(id, url);
+	public DocumentP(final UUID id, final URL url, final String info) throws DomainException {
+		super(id, url, info);
 	}
 	
 

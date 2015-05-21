@@ -36,15 +36,26 @@ public class Media {
 	private final InputStream content; 
 	private ContentInfo contentInfo; 
 	
-	 private String contentType = null;  
+	/*
+	private String contentType = null;  
 	 private String type = null;
 	 private String filename = null;
+	 */
 	 
 	/**
 	 * The size, in bytes, of the media file.
 	 */
 	public final int size;
 
+	/**
+	 * <p>
+	 * The class that contains request information relevant to the 
+	 * media object. This class is immutable.
+	 * </p>
+	 *
+	 * @author John Jenkins
+	 * @author Hongsuda T.
+	 */
 	public static class ContentInfo {
 		public static String FIELD_SEPARATOR = ";";
 		public static String KEY_VALUE_SEPARATOR = ":";
@@ -53,14 +64,33 @@ public class Media {
 		private String contentType;
 		private String fileName; 
 		private String fileType;
+	
 		
+		/**
+		 * Creates a ContentInfo object with contentType and fileName.
+		 * 
+		 * @param contentType the ContentType string
+		 * 		
+		 * @param fileName The name of the file.
+		 * 
+		 */
 		ContentInfo(String contentType, String fileName) {
 			this.contentType = contentType;
 			this.fileName = fileName;
 			this.fileType = getFileTypeFromFileName(fileName);
 			LOGGER.debug(this.toMetadata());
 		}
-		
+	
+		/**
+		 * Creates a ContentInfo object with contentType, fileName, fileType.
+		 * 
+		 * @param contentType the ContentType string.
+		 * 		
+		 * @param fileName The name of the file.
+		 * 
+		 * @param fileType File extension.
+		 * 
+		 */
 		ContentInfo(String contentType, String fileName, String fileType) {
 			this.contentType = contentType;
 			this.fileName = fileName;
@@ -68,76 +98,21 @@ public class Media {
 			LOGGER.debug(this.toMetadata());
 		}
 
+		/**
+		 * Creates a ContentInfo object with url and info retrieved from the db. 
+		 * 
+		 * @param url The url of the media object.
+		 * 		
+		 * @param info The metadata related to the media object.
+		 */
 		public static ContentInfo createContentInfoFromUrl(URL url, String info) 
 		throws DomainException {
 			String tContentType = null;
 			String tFileName = null;
 			String tFileType = null;
 			
-			if ((info == null) || info.isEmpty()) {
-				// extract info from url instead. Backward compatibility
-				if (url == null) 
-					return new ContentInfo(null, null);
-				
-				String paths[] = url.toString().split("/");
-				String simpleName = paths[paths.length-1];
-				String elms[] = simpleName.split("__");
-				tFileName = elms[0];
-				tFileType = getFileTypeFromFileName(tFileName);
-
-				// get the contentType if it exists
-				if (elms.length > 1) {
-					tContentType = elms[1].replaceFirst("[.]", "/");
-				} 
-				
-					
-				// Try contentType first. If doesn't work, use file extension. 
-				// If there is no extension or if it is greater than
-				// three characters long, the extension will be set to null.
-				try {
-					if (tContentType == null) 
-						tContentType = url.openConnection().getContentType();
-
-						// extract from filename
-					if ((tContentType == null) || tContentType.contains("unknown")) {
-						// 2 cases: no file extension, or invalid file extension file extension 
-						// length is more than 4 characters
-						if (tFileType == null) { 
-							// check long extend for content-type info
-							String parts[] = tFileName.split("\\.", 2); 
-							// LOGGER.debug("HT: Checking filename:" + tFileName);
-							if (parts.length > 1) {  // contain some content type info but not file ext
-								tFileName = parts[0];
-								tContentType = "application/" + parts[1];
-								// LOGGER.debug("HT: parts[0]=" + parts[0] + " parts[1]=" + parts[1]);
-							} else { // no info
-								// LOGGER.debug("HT: parts[0]=" + parts[0]);
-								tContentType = null;
-							}
-						} else {  // construct content-type from fileType
-							if (tFileType.equals("txt"))
-								tContentType = "text/plain";
-							tContentType = "application/" + tFileType;
-						}
-					} else { 
-						// construct filename derived from content type
-						if (tFileType == null) {
-							tFileType = tContentType.split("/")[1];
-							if (tFileType != null)
-								tFileName = tFileName + "." + tFileType;
-						}
-					} 
-				} catch(IOException e) {
-					throw new DomainException(
-							ErrorCode.SYSTEM_GENERAL_ERROR,
-							"The media file does not exist.",
-							e);
-				} // end try
-					
-			
-				return new ContentInfo(tContentType, tFileName, tFileType);
-			} // there is info in the db
-			else {
+			// get information from the info if it is available
+			if ((info != null) && (! info.isEmpty())) {
 				String parts[] = info.split(FIELD_SEPARATOR);
 				for (String p : parts){
 					p = p.trim();  // trim white space?
@@ -147,22 +122,109 @@ public class Media {
 					if (keyValue[0].equals(KEY_FILE_NAME) && (! keyValue[1].isEmpty()))
 						tFileName = keyValue[1];
 				}
+			}
+		
+			if (tContentType != null && tFileName != null) {  // we are done!
 				LOGGER.debug("HT: contentType:" + tContentType + " FileName:" + tFileName);
 				return new ContentInfo(tContentType, tFileName);
 			}
-			
-		}
-		
+								
+			// extract info from url instead. This is also for backward compatibility
+			if (url == null) 
+				return new ContentInfo(null, null);
+				
+			String paths[] = url.toString().split("/");
+			String simpleName = paths[paths.length-1];
+			String elms[] = simpleName.split("__");
+			tFileName = elms[0];
+			tFileType = getFileTypeFromFileName(tFileName);
+
+			// If the contentType exist on filename, use it if necessary
+			if ((elms.length > 1) && (tContentType != null)) {
+				tContentType = elms[1].replaceFirst("[.]", "/");
+			} 
+									
+			// Try contentType first. If doesn't work, use file extension. 
+			// If the string after . is greater than 4 characters, use it for 
+			// content-type and set file extension to null. 			
+			try {
+				if (tContentType == null) 
+					tContentType = url.openConnection().getContentType();
+				
+				// extract from filename
+				if ((tContentType == null) || tContentType.contains("unknown")) {
+					// Only need the following on mtest that encoded request info in the 
+					// filename before changing it to use the DB. 
+					
+					// 2 cases: no file extension, or invalid file extension file extension 
+					// length is more than 4 characters
+					if (tFileType == null) { 
+						// check long extend for content-type info
+						String parts[] = tFileName.split("\\.", 2); 
+						if (parts.length > 1) {  // contain some content type info but not file ext
+							tFileName = parts[0];
+							tContentType = "application/" + parts[1];
+						} else { // no info. 
+							tContentType = null;
+						}
+					} else {  // construct content-type from fileType
+						if (tFileType.equals("txt"))
+							tContentType = "text/plain";
+						tContentType = "application/" + tFileType;
+					}
+				} else { 
+					// construct filename derived from content type
+					if (tFileType == null) {
+						tFileType = tContentType.split("/")[1];
+						if (tFileType != null)  
+							tFileName = tFileName + "." + tFileType;			
+					}
+				} 
+			} catch(IOException e) {
+				throw new DomainException(
+						ErrorCode.SYSTEM_GENERAL_ERROR,
+						"The media file does not exist.",
+						e);
+			} // end try
+					
+			return new ContentInfo(tContentType, tFileName, tFileType);
+		} 
+				
+		/**
+		 * Return the content-type of this media object. Null can be 
+		 * returned if the content-type doesn't exist.  
+		 *  		
+		 * @return Content-type string.
+		 */
 		String getContentType() {
 			return this.contentType;
 		}
+
+		/**
+		 * Return the media file name. Return null if this info doesn't exist. 
+		 *  		
+		 * @return Media file name. 
+		 */
 		String getFileName() { 
 			return this.fileName;
 		}
+	
+		/**
+		 * Return the file type (derived from file extension). 
+		 * Return null if this info doesn't exist. 
+		 *  		
+		 * @return Media file type. 
+		 */
 		String getFileType() { 
 			return this.fileType;
 		}
 	
+		/**
+		 * Return the string representing the data in the contentInfo object to be 
+		 * stored in the url_based_resource table. 
+		 *  		
+		 * @return Metadata string representing the contentInfo object.  
+		 */
 		public String toMetadata() {
 			StringBuilder builder = new StringBuilder();
 			if (contentType != null)
@@ -176,7 +238,14 @@ public class Media {
 		}
 	}
 	
-	
+	/**
+	 * Extract the file extension from a given filename. The file extension has to 
+	 * be no more than MAX_EXTENSION_LENGTH.  
+	 *  		
+	 * @param filename The name of the media file. 
+	 * 
+	 * @return File extension if it exists. Otherwise, return null.
+	 */
 	public static String getFileTypeFromFileName(String filename){
 		String type = null;
 		
@@ -241,6 +310,7 @@ public class Media {
 		this.size = content.length;
 	}
 	
+	/*
 	public Media(
 			final UUID id, 
 			final String type, 
@@ -282,26 +352,9 @@ public class Media {
 			// Validate the size.
 			this.size = content.length;
 		}
-		
+	*/	
 	// can be deleted
-	/*
-	private String getFileType(String filename){
-		String type = null;
-		
-		if (filename != null) {
-			String[] parts = filename.split("[\\.]");
-			if(parts.length != 0) {
-				String extension = parts[parts.length - 1];
-				if(extension.length() <= Media.MAX_EXTENSION_LENGTH) {
-					type = parts[parts.length - 1];
-				} 
-			}
-		}
-		
-		return type;
-	}
-	*/
-	
+
 	/**
 	 * Creates a Media object with an ID and a URL referencing the data.
 	 * 
@@ -314,6 +367,7 @@ public class Media {
 	 * @throws DomainException
 	 *         A parameter was invalid or the data could not be read.
 	 */
+	/*
 	public Media(final UUID id, final URL url) throws DomainException {
 		if(id == null) {
 			throw new DomainException("The ID is null.");
@@ -386,6 +440,7 @@ public class Media {
 			throw new DomainException("Could not connect to the file.", e);
 		}
 	}
+	*/
 	
 	/**
 	 * Creates a Media object with an ID and a URL referencing the data.
@@ -396,6 +451,9 @@ public class Media {
 	 * @param url
 	 *        The URL referencing the data.
 	 * 
+	 * @param info
+	 * 			The request metadata e.g. content-type, filename. 
+	 *  
 	 * @throws DomainException
 	 *         A parameter was invalid or the data could not be read.
 	 */
@@ -465,6 +523,11 @@ public class Media {
 		return size;
 	}
 	
+	/**
+	 * Returns ContentInfo object associated with this media.
+	 * 
+	 * @return The media's size.
+	 */
 	public ContentInfo getContentInfo(){
 		return this.contentInfo;
 	}
@@ -487,7 +550,7 @@ public class Media {
 	}
 	
 	/**
-	 * Returns the type.
+	 * Returns the type (e.g. file extension)
 	 * 
 	 * @return The type.
 	 */
@@ -496,22 +559,12 @@ public class Media {
 	}
 	
 	/**
-	 * Returns the MIME type for this media object. The type is set based on
-	 * the filename extension.
+	 * Returns the MIME type for this media object. 
 	 * 
 	 * @return The MIME type for this object of the form "{super}/{sub}".
 	 */
 	public String getContentType() {
 		return contentInfo.getContentType();
-		/*
-		if (contentType != null)
-			return contentType;
-		
-		String ttype = getType();
-		if (ttype == null)
-			return null;
-		return getMimeTypeRoot(ttype) + "/" + ttype;
-		*/
 	}
 	
 	/**

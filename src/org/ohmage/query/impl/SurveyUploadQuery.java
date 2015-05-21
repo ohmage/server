@@ -629,13 +629,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							
 						LOGGER.debug("HT: currMediaDirectory: " + currMediaDirectory);
 											
-						// Get the file.
-						File mediaFile;
-						if (media.getType() != null)
-							mediaFile = new File(currMediaDirectory.getAbsolutePath() +
-										"/" + mediaId + "." + media.getType());
-						else 
-							mediaFile = new File(currMediaDirectory.getAbsolutePath() +	"/" + mediaId);
+						// Get the file. Only use UUID to store file since all detail should 
+						// be stored in the db. 
+						File mediaFile = new File(currMediaDirectory.getAbsolutePath() +	"/" + mediaId);
 
 						LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
 						

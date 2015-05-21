@@ -21,16 +21,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
-import org.ohmage.domain.Image;
 import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.IImageQueries;
 import org.ohmage.query.IMediaQueries;
 
 /**
@@ -42,6 +41,9 @@ import org.ohmage.query.IMediaQueries;
  * @author Hongsuda T.
  */
 public final class MediaServices {
+	private static final Logger LOGGER =
+			Logger.getLogger(MediaServices.class);
+	
 	private static MediaServices instance;
 	private IMediaQueries mediaQueries;
 	
@@ -126,29 +128,32 @@ public final class MediaServices {
 		}
 	}
 	
-	/**
-	 * Returns a Media object.
-	 * 
-	 * @param id The media's unique identifier.
-	 * 
-	 * @return A media object.
-	 * 
-	 * @throws ServiceException There was an error.
-	 */
-	public Media getMedia(final UUID id) throws ServiceException {
+	
+	public Media getMediaHelper(final UUID id, final Class<? extends Media> mediaType) throws ServiceException {
 		try {
 			Map<String, String> result = mediaQueries.getMediaUrlAndMetadata(id);
 			
-			String urls[] = result.keySet().toArray(new String[0]);
-			if(urls.length == 0) {
-				throw new ServiceException("The media does not exist.");
+			if (result == null) {
+				LOGGER.debug("HT: There is no result found!");
+				throw new ServiceException(ErrorCode.MEDIA_NOT_FOUND, "The media object doesn't exist");
 			}
+			String urls[] = result.keySet().toArray(new String[0]);
 			if (urls.length > 1) {
-				throw new ServiceException("There are multiple urls associated with id:" + id.toString());
+				throw new ServiceException(ErrorCode.SYSTEM_GENERAL_ERROR, "There are multiple urls associated with id:" + id.toString());
 			}
 			URL url = new URL(urls[0]);
+			String info = result.get(urls[0]);
 			
-			return new Media(id, url, result.get(urls[0]));
+			if (mediaType.equals(Media.class))
+			return new Media(id, url, info);
+			else if (mediaType.equals(Audio.class))
+				return new Audio(id, url, info);
+			else if (mediaType.equals(Video.class))
+				return new Video(id, url, info);
+			else if (mediaType.equals(DocumentP.class))
+				return new DocumentP(id, url, info);
+			else throw new ServiceException("Cannot create the media object:" + mediaType.getName());
+			
 		}
 		catch(MalformedURLException e) {
 			throw new ServiceException(
@@ -163,8 +168,20 @@ public final class MediaServices {
 		}
 		
 	}
+	/**
+	 * Returns a Media object.
+	 * 
+	 * @param id The media's unique identifier.
+	 * 
+	 * @return A media object.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public Media getMedia(final UUID id) throws ServiceException {
+		return (Media) getMediaHelper(id, Media.class);	
+	}
 	
-
+	
 	/**
 	 * Returns an Audio object representing the media.
 	 * 
@@ -174,23 +191,8 @@ public final class MediaServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	// HT: No need for this method. Use getMedia().
 	public Audio getAudio(final UUID id) throws ServiceException {
-		try {
-			URL result = mediaQueries.getMediaUrl(id);
-			
-			if(result == null) {
-				throw new ServiceException("The media does not exist.");
-			}
-			
-			return new Audio(id, result);
-		}
-		catch(DomainException e) {
-			throw new ServiceException(e);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
+		return (Audio) getMediaHelper(id, Audio.class);
 	}
 
 	/**
@@ -202,54 +204,11 @@ public final class MediaServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	// HT: No need for this specific method. Use getMedia()
 	public Video getVideo(final UUID id) throws ServiceException {
-		try {
-			URL result = mediaQueries.getMediaUrl(id);
-			
-			if(result == null) {
-				throw new ServiceException("The media does not exist.");
-			}
-			
-			return new Video(id, result);
-		}
-		catch(DomainException e) {
-			throw new ServiceException(e);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
+		return (Video) getMediaHelper(id, Video.class);
+
 	}
 
-	
-	/**
-	 * Returns a DocumentP object representing the media.
-	 * 
-	 * @param id The media's unique identifier.
-	 * 
-	 * @return A DocumentP object.
-	 * 
-	 * @throws ServiceException There was an error.
-	 */
-	// HT: No need for this specific method. Use getMedia()
-	public DocumentP getDocumentP(final UUID id) throws ServiceException {
-		try {
-			URL result = mediaQueries.getMediaUrl(id);
-			
-			if(result == null) {
-				throw new ServiceException("The media does not exist.");
-			}
-			
-			return new DocumentP(id, result);
-		}
-		catch(DomainException e) {
-			throw new ServiceException(e);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
 
 	
-
 }
