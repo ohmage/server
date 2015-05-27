@@ -638,19 +638,6 @@ public abstract class Request {
 					"The zipped data was not valid zip data.",
 					e);
 		}
-		// check for large request/file
-		// MultipartConfig.maxFileSize(), MultipartConfig.maxRequestSize()
-		catch(IllegalStateException e) {
-			LOGGER.info("The request body is larger than maxRequestSize:" + 
-					RequestServlet.MAX_REQUEST_SIZE + 
-					", or a part is larger than the maxFileSize:" + 
-					RequestServlet.MAX_FILE_SIZE, e);
-			setFailed(ErrorCode.SERVER_REQUEST_TOO_LARGE, 
-					"The request body is larger than maxRequestSize:" + 
-					RequestServlet.MAX_REQUEST_SIZE + 
-					", or a part is larger than the maxFileSize:" + RequestServlet.MAX_FILE_SIZE); 
-			throw new ValidationException(e);
-		}
 	}	
 	
 	/**

@@ -182,10 +182,11 @@ public class MediaReadRequest extends UserRequest {
 
 					httpResponse.setHeader(
 						"Content-Length", 
-						new Long(media.getSize()).toString());
+						new Long(media.getFileSize()).toString());
+
 				} else { // it is an image/read request
 					mediaStream =  image.getInputStream(imageSize);
-					httpResponse.setContentType(image.getType(imageSize));
+					httpResponse.setContentType(image.getContentType(imageSize));
 					httpResponse.setHeader(
 							"Content-Length", 
 							new Long(image.getSizeBytes(imageSize)).toString());

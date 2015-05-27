@@ -34,11 +34,14 @@ import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
+import org.ohmage.domain.campaign.prompt.DocumentPrompt;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
 import org.ohmage.query.ISurveyResponseImageQueries;
@@ -143,9 +146,9 @@ public final class SurveyResponseServices {
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<UUID, Image> bufferedImageMap,
-            final Map<String, Video> videoContentsMap,
-            final Map<String, Audio> audioContentsMap, 
-            final Map<String, DocumentP> documentContentsMap) 
+            final Map<UUID, Video> videoContentsMap,
+            final Map<UUID, Audio> audioContentsMap, 
+            final Map<UUID, Media> documentContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -226,27 +229,10 @@ public final class SurveyResponseServices {
 	 */
 	public void verifyVideosExistForVideoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, Video> videos) 
+			final Map<UUID, Video> videos) 
 			throws ServiceException {
 		
 		verifyMediaFilesExistForMediaPromptResponses(VideoPromptResponse.class, surveyResponses, videos);
-		/*
-		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if(promptResponse instanceof VideoPromptResponse) {
-					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! videos.containsKey(responseValue.toString()))) {
-						
-						throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"A video was missing for a video prompt response: " + 
-								responseValue.toString());
-					}
-				}
-			}
-		}
-		*/
 	}
 	
 	/**
@@ -262,7 +248,7 @@ public final class SurveyResponseServices {
 	 */
 	public void verifyAudioFilesExistForAudioPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, Audio> audios) 
+			final Map<UUID, Audio> audios) 
 			throws ServiceException {
 		verifyMediaFilesExistForMediaPromptResponses(AudioPromptResponse.class, surveyResponses, audios);
 		
@@ -282,11 +268,37 @@ public final class SurveyResponseServices {
 	// TODO: HT generalize this for all media type
 	public void verifyDocumentFilesExistForDocumentPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, DocumentP> documentPs) 
+			final Map<UUID, Media> documentPs) 
 			throws ServiceException {
 
 		verifyMediaFilesExistForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
 		
+		/*
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if (promptResponse instanceof DocumentPromptResponse)
+				{
+					Object responseValue = promptResponse.getResponse();
+					if((responseValue instanceof UUID) && 
+							(! documentPs.containsKey(responseValue))) {
+						
+						throw new ServiceException(
+								ErrorCode.SURVEY_INVALID_RESPONSES, 
+								"A file was missing for a document prompt response: " + 
+								responseValue.toString());
+					}
+					// validate the media against the xml
+					try {
+						PromptResponse pr = (PromptResponse)promptResponse;
+						DocumentPrompt dp = (DocumentPrompt) (pr.getPrompt());
+						dp.validateMedia(documentPs.get(responseValue));
+					} catch (DomainException e){
+						throw new ServiceException(e);
+					}
+				}
+			}
+		}
+		*/	
 	}
 	
 	/**
@@ -308,24 +320,46 @@ public final class SurveyResponseServices {
 	public void verifyMediaFilesExistForMediaPromptResponses(
 			final Class<? extends Response> mediaClass,
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, ? extends Media> mediaMap) 
+			final Map<UUID, ? extends Media> mediaMap) 
 			throws ServiceException {
 		
-		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if (mediaClass.isInstance(promptResponse))
-				{
-					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! mediaMap.containsKey(responseValue.toString()))) {
+		if (
+			(mediaClass.equals(PhotoPromptResponse.class)) ||
+			(mediaClass.equals(AudioPromptResponse.class)) ||
+			(mediaClass.equals(VideoPromptResponse.class)) ||
+			(mediaClass.equals(DocumentPromptResponse.class))
+		) {
+			
+			for(SurveyResponse surveyResponse : surveyResponses) {
+				for(Response promptResponse : surveyResponse.getResponses().values()) {
+					if (mediaClass.isInstance(promptResponse))
+					{
+						Object responseValue = promptResponse.getResponse();
+						if((responseValue instanceof UUID) && 
+								(! mediaMap.containsKey(responseValue))) {
 						
-						throw new ServiceException(
+							throw new ServiceException(
 								ErrorCode.SURVEY_INVALID_RESPONSES, 
 								"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
 								responseValue.toString());
+						}
+						// validate the media against the xml
+						try {
+							PromptResponse pr = (PromptResponse)promptResponse;
+							MediaPrompt dp = (MediaPrompt) (pr.getPrompt());
+							dp.validateMediaFileSize(mediaMap.get(responseValue));
+						} catch (DomainException e){
+							throw new ServiceException(e);
+						} catch (Exception e) {
+							throw new ServiceException("Can't convert prompt to MediaPrompt", e);
+						}
 					}
 				}
 			}
+			
+		} else {
+			throw new ServiceException("This method only accepts PhotoPromptResponse, "
+					+ "AudioPromptResponse, VideoPromptResponse and DocumentPromptResponse only!");
 		}
 	}
 

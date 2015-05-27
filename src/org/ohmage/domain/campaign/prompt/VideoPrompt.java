@@ -20,7 +20,7 @@ import org.ohmage.exception.DomainException;
  *
  * @author John Jenkins
  */
-public class VideoPrompt extends Prompt {
+public class VideoPrompt extends MediaPrompt {
 	private static final String JSON_KEY_MAX_SECONDS = "max_seconds";
 	
 	/**
@@ -28,7 +28,11 @@ public class VideoPrompt extends Prompt {
 	 */
 	public static final String XML_MAX_SECONDS = "max_seconds";
 	
-	private final int maxSeconds;
+	/**
+	 * The maximum number of seconds that the recording may last.
+	 */
+	private final Integer maxSeconds;
+
 
 	/**
 	 * Creates a new video prompt.
@@ -70,8 +74,9 @@ public class VideoPrompt extends Prompt {
 			final boolean skippable,
 			final String skipLabel,
 			final String displayLabel,
+			final int index,
 			final Integer maxSeconds,
-			final int index) 
+			final Long maxFileSize	) 
 			throws DomainException {
 		
 		super(
@@ -84,13 +89,15 @@ public class VideoPrompt extends Prompt {
 			skipLabel,
 			displayLabel,
 			Type.VIDEO,
-			index);
+			index, 
+			maxFileSize);
 		
 		if((maxSeconds != null) && (maxSeconds <= 0)) {
 			throw new DomainException(
 				"The maximum number of seconds must be a positive integer.");
 		}
 		this.maxSeconds = maxSeconds;
+		
 	}
 	
 	/**
@@ -119,6 +126,7 @@ public class VideoPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#validateValue(java.lang.Object)
 	 */
+	/*
 	@Override
 	public Object validateValue(
 			final Object value)
@@ -163,7 +171,8 @@ public class VideoPrompt extends Prompt {
 						"'.");
 		}
 	}
-
+*/
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#createResponse(java.lang.Integer, java.lang.Object)
@@ -184,6 +193,7 @@ public class VideoPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#toJson()
 	 */
+	
 	@Override
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
@@ -197,6 +207,7 @@ public class VideoPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
 	 */
+	/*
 	@Override
 	public void toConcordia(
 			final JsonGenerator generator)
@@ -227,6 +238,7 @@ public class VideoPrompt extends Prompt {
 		// End the object.
 		generator.writeEndObject();
 	}
+*/
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -235,7 +247,9 @@ public class VideoPrompt extends Prompt {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + maxSeconds;
+		result = prime * result +
+				((maxSeconds == null) ? 0 : maxSeconds.hashCode());	
+
 		return result;
 	}
 
@@ -254,8 +268,13 @@ public class VideoPrompt extends Prompt {
 			return false;
 		}
 		VideoPrompt other = (VideoPrompt) obj;
-		if(maxSeconds != other.maxSeconds) {
-			return false;
+		if (maxSeconds == null) {
+			if (other.maxSeconds != null)
+				return false;
+		} else {
+			if(! maxSeconds.equals(other.maxSeconds)) {
+				return false;
+			}
 		}
 		return true;
 	}

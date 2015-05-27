@@ -152,7 +152,7 @@ public class AudioReadRequest extends UserRequest {
 					"attachment; filename=" + audio.getFileName());
 				httpResponse.setHeader(
 					"Content-Length", 
-					new Long(audio.getSize()).toString());
+					new Long(audio.getFileSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {

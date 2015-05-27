@@ -22,6 +22,7 @@ import java.util.UUID;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
 import org.ohmage.domain.Image;
+import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
@@ -60,8 +61,8 @@ public interface ISurveyUploadQuery {
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
 			final Map<UUID, Image> bufferedImageMap,
-			final Map<String, Video> videoContentsMap,
-			final Map<String, Audio> audioContentsMap, 
-			final Map<String, DocumentP> documentContentsMap)
+			final Map<UUID, Video> videoContentsMap,
+			final Map<UUID, Audio> audioContentsMap, 
+			final Map<UUID, Media> documentContentsMap)
 			throws DataAccessException;
 }

@@ -13,19 +13,20 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
-import org.ohmage.request.Request;
 import org.ohmage.request.survey.SurveyUploadRequest;
 
 /**
  * <p>
- * This is the super class of all media classes except image
+ * The super class for all media in ohmage.
  * </p>
  *
+ * @author John Jenkins
  * @author Hongsuda T.
  */
 // HT: change from abstract class to regular class.
-public class Media {
-	private static final Logger LOGGER = Logger.getLogger(Media.class);
+public class iMedia {
+	private static final Logger LOGGER =
+			Logger.getLogger(SurveyUploadRequest.class);
 	/**
 	 * The maximum length for a file extension.
 	 */
@@ -247,7 +248,7 @@ public class Media {
 			String[] parts = filename.split("[\\.]");
 			if(parts.length != 0) {
 				String extension = parts[parts.length - 1];
-				if(extension.length() <= Media.MAX_EXTENSION_LENGTH) {
+				if(extension.length() <= iMedia.MAX_EXTENSION_LENGTH) {
 					type = parts[parts.length - 1];
 				} 
 			}
@@ -272,7 +273,7 @@ public class Media {
 	 * @throws DomainException
 	 *         One of the parameters was invalid.
 	 */
-	public Media(
+	public iMedia(
 		final UUID id, 
 		final String contentType,
 		final String fileName,
@@ -318,7 +319,7 @@ public class Media {
 	 * @throws DomainException
 	 *         One of the parameters was invalid.
 	 */
-	public Media(
+	public iMedia(
 		final UUID id, 
 		final String contentType,
 		final String fileName,
@@ -364,7 +365,7 @@ public class Media {
 	 * @throws DomainException
 	 *         A parameter was invalid or the data could not be read.
 	 */
-	public Media(final UUID id, final URL url, final String info) throws DomainException {
+	public iMedia(final UUID id, final URL url, final String info) throws DomainException {
 		if(id == null) {
 			throw new DomainException("The ID is null.");
 		}

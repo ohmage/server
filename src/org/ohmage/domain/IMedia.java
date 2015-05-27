@@ -1,47 +1,27 @@
 package org.ohmage.domain;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
-import org.ohmage.request.Request;
-import org.ohmage.request.survey.SurveyUploadRequest;
 
 /**
  * <p>
- * This is the super class of all media classes except image
+ * Media interface. Need to define an interface
+ * to integrate Image with other media types. 
+ * This is an experiment at the moment!
  * </p>
  *
  * @author Hongsuda T.
  */
 // HT: change from abstract class to regular class.
-public class Media {
-	private static final Logger LOGGER = Logger.getLogger(Media.class);
-	/**
-	 * The maximum length for a file extension.
-	 */
-	public static final int MAX_EXTENSION_LENGTH = 4;
-
-	private final UUID id;
-	private final InputStream content; 
-	private ContentInfo contentInfo; 
-	// The size, in bytes, of the media file.
-	public final long size;
-	/*
-	private String contentType = null;  
-	 private String type = null;
-	 private String filename = null;
-	 */
-
+public interface IMedia {
+	static final Logger LOGGER = Logger.getLogger(IMedia.class);
 	/**
 	 * <p>
 	 * The class that contains request information relevant to the 
@@ -212,7 +192,31 @@ public class Media {
 		String getFileType() { 
 			return this.fileType;
 		}
-	
+
+		/**
+		 * Extract the file extension from a given filename. The file extension has to 
+		 * be no more than MAX_EXTENSION_LENGTH.  
+		 *  		
+		 * @param filename The name of the media file. 
+		 * 
+		 * @return File extension if it exists. Otherwise, return null.
+		 */
+		public static String getFileTypeFromFileName(String filename){
+			String type = null;
+			
+			if (filename != null) {
+				String[] parts = filename.split("[\\.]");
+				if(parts.length != 0) {
+					String extension = parts[parts.length - 1];
+					if(extension.length() <= Media.MAX_EXTENSION_LENGTH) {
+						type = parts[parts.length - 1];
+					} 
+				}
+			}
+			
+			return type;
+		}
+		
 		/**
 		 * Return the string representing the data in the contentInfo object to be 
 		 * stored in the url_based_resource table. 
@@ -232,184 +236,14 @@ public class Media {
 		}
 	}
 	
-	/**
-	 * Extract the file extension from a given filename. The file extension has to 
-	 * be no more than MAX_EXTENSION_LENGTH.  
-	 *  		
-	 * @param filename The name of the media file. 
-	 * 
-	 * @return File extension if it exists. Otherwise, return null.
-	 */
-	public static String getFileTypeFromFileName(String filename){
-		String type = null;
-		
-		if (filename != null) {
-			String[] parts = filename.split("[\\.]");
-			if(parts.length != 0) {
-				String extension = parts[parts.length - 1];
-				if(extension.length() <= Media.MAX_EXTENSION_LENGTH) {
-					type = parts[parts.length - 1];
-				} 
-			}
-		}
-		
-		return type;
-	}
-	
-	/**
-	 * Creates a Media object with an ID, type, and the literal content.
-	 * This is usually called from survey/upload.
-	 * 
-	 * @param id
-	 *        The ID of the Media.
-	 * 
-	 * @param type
-	 *        The content type of the media.
-	 * 
-	 * @param content
-	 *        The content of the media.
-	 * 
-	 * @throws DomainException
-	 *         One of the parameters was invalid.
-	 */
-	public Media(
-		final UUID id, 
-		final String contentType,
-		final String fileName,
-		final byte[] content)
-		throws DomainException {
-		
-		// Validate the ID.
-		if(id == null) {
-			throw new DomainException("The ID is null.");
-		}
-		else {
-			this.id = id;
-		}
-		
-		this.contentInfo = new ContentInfo(contentType, fileName);
-		
-		// Validate the content.
-		if ((content == null) || (content.length == 0)) {
-			throw new DomainException(ErrorCode.MEDIA_INVALID_DATA, "The media content is empty.");
-		}
-		else {
-			this.content = new ByteArrayInputStream(content);
-		}
-		
-		// Validate the size.
-		this.size = content.length;
-	}
-	
-	/**
-	 * Creates a Media object with an ID, type, and the content stream.
-	 * This is usually called to create a media object from other 
-	 * media object. 
-	 * 
-	 * @param id
-	 *        The ID of the Media.
-	 * 
-	 * @param type
-	 *        The content type of the media.
-	 * 
-	 * @param content
-	 *        The content of the media.
-	 * 
-	 * @throws DomainException
-	 *         One of the parameters was invalid.
-	 */
-	public Media(
-		final UUID id, 
-		final String contentType,
-		final String fileName,
-		final long fileSize,
-		final InputStream contentStream)
-		throws DomainException {
-		
-		// Validate the ID.
-		if(id == null) {
-			throw new DomainException("The ID is null.");
-		}
-		else {
-			this.id = id;
-		}
-		
-		this.contentInfo = new ContentInfo(contentType, fileName);
-		
-		// Validate the content.
-		if ((contentStream == null) || (fileSize <= 0)) {
-			throw new DomainException(ErrorCode.MEDIA_INVALID_DATA, "The media content is empty.");
-		}
-		else {
-			this.content = contentStream;
-		}
-		
-		// Validate the size. 
-		this.size = fileSize; 
-	}
-	
-	
-	/**
-	 * Creates a Media object with an ID and a URL referencing the data.
-	 * 
-	 * @param id
-	 *        The ID of the Media.
-	 * 
-	 * @param url
-	 *        The URL referencing the data.
-	 * 
-	 * @param info
-	 * 			The request metadata e.g. content-type, filename. 
-	 *  
-	 * @throws DomainException
-	 *         A parameter was invalid or the data could not be read.
-	 */
-	public Media(final UUID id, final URL url, final String info) throws DomainException {
-		if(id == null) {
-			throw new DomainException("The ID is null.");
-		}
-		else {
-			this.id = id;
-		}
-		
-		if (url == null)
-			throw new DomainException("[MediaID " + id.toString() + "] URL is null.");
-		
-		// Create a connection to the stream.
-		try {
-			this.content = url.openStream();
-		} 
-		catch(MalformedURLException e) {
-			throw new DomainException("The URL is invalid.", e);
-		}
-		catch(IOException e) {
-			throw new DomainException(
-					ErrorCode.SYSTEM_GENERAL_ERROR,
-					"The media file does not exist.",
-					e);
-		}
 
-		// Get the size of the data.
-		try {
-			this.size = url.openConnection().getContentLength();
-		}
-		catch(IOException e) {
-			throw new DomainException("Could not connect to the file.", e);
-		}
-		
-		// extract contentInfo from metadata
-		contentInfo = ContentInfo.createContentInfoFromUrl(url, info);
-		
-	}
 	
 	/**
 	 * Returns the ID.
 	 * 
 	 * @return The ID.
 	 */
-	public UUID getId() {
-		return id;
-	}
+	public UUID getId();
 	
 
 	/**
@@ -417,84 +251,43 @@ public class Media {
 	 * 
 	 * @return An input stream connected to the data.
 	 */
-	public InputStream getContentStream() {
-		return content;
-	}
+	public InputStream getContentStream();
 	
 	/**
 	 * Returns the media's size.
 	 * 
 	 * @return The media's size.
 	 */
-	public long getFileSize() {
-		return size;
-	}
+	public long getFileSize();
 	
 	/**
 	 * Returns ContentInfo object associated with this media.
 	 * 
 	 * @return The media's size.
 	 */
-	public ContentInfo getContentInfo(){
-		return this.contentInfo;
-	}
+	public ContentInfo getContentInfo();
 	
 	/**
 	 * Creates a filename for this media based on its ID and type.
 	 * 
 	 * @return The file's filename.
 	 */
-	public String getFileName() {
-		return contentInfo.getFileName();
-	}
+	public String getFileName();
 	
 	/**
 	 * Returns the type (e.g. file extension)
 	 * 
 	 * @return The type.
 	 */
-	public String getFileType() {
-		return contentInfo.getFileType();
-	}
+	public String getFileType();
 	
 	/**
 	 * Returns the MIME type for this media object. 
 	 * 
 	 * @return The MIME type for this object of the form "{super}/{sub}".
 	 */
-	public String getContentType() {
-		return contentInfo.getContentType();
-	}
+	public String getContentType();
 	
-	/**
-	 * Returns the root MIME type of this media type. 
-	 * 
-	 * @param type
-	 * 			Media type
-	 * 
-	 * @return The root MIME type of this media type.
-	 */
-	protected String getMimeTypeRoot(String type) {
-	
-		if (type == null)
-			return null;
-		
-		switch (type) {
-		case "gif":
-		case "png":
-		case "jpg": 
-		case "jpeg": return ("image");
-		case "txt": 
-		case "csv": return ("text");
-		case "wav":
-		case "aiff": 
-		case "mp3": return ("audio");
-		case "mpg":
-		case "mpeg": 
-		case "mp4": return ("video");
-		default: return("application");	
-		}	
-	}
 	
 	/**
 	 * Writes the media data to the given file. This file *should* end with
@@ -509,54 +302,8 @@ public class Media {
 	 * 
 	 * @see {@link #getExtension()}
 	 */
-	public final void writeFile(final File destination)
-		throws DomainException {
-		
-		// Get the image data.
-		InputStream contents = getContentStream();
-		
-		if(contents == null) {
-			throw new DomainException("The contents parameter is null.");
-		}
-		
-		// Connect to the file that should write it.
-		FileOutputStream fos;
-		try {
-			fos = new FileOutputStream(destination);
-		}
-		catch(SecurityException e) {
-			throw
-				new DomainException(
-					"The file is not allowed to be created.",
-					e);
-		}
-		catch(FileNotFoundException e) {
-			throw new DomainException("The file cannot be created.", e);
-		}
-		
-		// Write the image data.
-		try {
-			int bytesRead;
-			byte[] buffer = new byte[4096];
-			while((bytesRead = contents.read(buffer)) != -1) {
-				fos.write(buffer, 0, bytesRead);
-			}
-		}
-		catch(IOException e) {
-			throw
-				new DomainException(
-					"Error reading or writing the data.",
-					e);
-		}
-		finally {
-			try {
-				fos.close();
-			}
-			catch(IOException e) {
-				throw new DomainException("Could not close the file.", e);
-			}
-		}
-	}
+	public void writeFile(final File destination)
+		throws DomainException;
 	
 }
 	

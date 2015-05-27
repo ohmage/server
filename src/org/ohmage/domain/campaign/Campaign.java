@@ -46,6 +46,7 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,6 +62,7 @@ import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
 import org.ohmage.domain.campaign.prompt.DocumentPrompt;
 import org.ohmage.domain.campaign.prompt.HoursBeforeNowPrompt;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoicePrompt;
 import org.ohmage.domain.campaign.prompt.NumberPrompt;
@@ -73,6 +75,7 @@ import org.ohmage.domain.campaign.prompt.TimestampPrompt;
 import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.Request;
 import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
 
@@ -83,6 +86,8 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class Campaign {
+	private static final Logger LOGGER = Logger.getLogger(Request.class);
+	
 	private static final String XML_ID = "/campaign/campaignUrn";
 	private static final String XML_NAME = "/campaign/campaignName";
 	
@@ -3032,6 +3037,7 @@ public class Campaign {
 			properties = new HashMap<String, LabelValuePair>(0);
 		}
 
+		LOGGER.debug("HT: About the process prompt: " + type.toString());
 		switch(type) {
 		case AUDIO:
 			return processAudio(
@@ -3484,12 +3490,43 @@ public class Campaign {
 					e);
 		}
 		
+		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(DocumentPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						DocumentPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+
 		if(defaultValue != null) {
 			throw new DomainException(
 					"Default values are not allowed for audio prompts: " +
 						id);
 		}
+		
+		if (maxDuration != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=" + maxDuration);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=NULL");
 
+		if (maxFileSize != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=" + maxFileSize);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=NULL");
+
+		
 		return new AudioPrompt(
 			id,
 			condition,
@@ -3500,7 +3537,8 @@ public class Campaign {
 			skipLabel,
 			displayLabel,
 			index,
-			maxDuration);
+			maxDuration,
+			maxFileSize);
 	}
 	
 	/**
@@ -4037,12 +4075,32 @@ public class Campaign {
 					e);
 		}
 		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+	
 		if(defaultValue != null) {
 			throw new DomainException(
 					"Default values are not allowed for photo prompts: " +
 						id);
 		}
 
+		
 		return new PhotoPrompt(
 			id,
 			condition,
@@ -4052,8 +4110,9 @@ public class Campaign {
 			skippable,
 			skipLabel,
 			displayLabel,
+			index, 
 			maxDimension,
-			index);
+			maxFileSize);
 	}
 
 	/**
@@ -4100,21 +4159,20 @@ public class Campaign {
 			final int index) 
 			throws DomainException {
 		
-		// TODO: Set default maxFilesize value. 
-		Integer maxFilesize = null;
+		Long maxFileSize = null;
 		try {
 			LabelValuePair maxFilesizeVlp =
-				properties.get(DocumentPrompt.XML_KEY_MAXIMUM_FILESIZE);  // optional
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
 			
 			if(maxFilesizeVlp != null) {
-				maxFilesize = 
-					Integer.decode(maxFilesizeVlp.getLabel());
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
 			}
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(
 					"The '" +
-						DocumentPrompt.XML_KEY_MAXIMUM_FILESIZE +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
 						"' property is not an integer: " +
 						id, 
 					e);
@@ -4126,6 +4184,13 @@ public class Campaign {
 						id);
 		}
 
+
+		if (maxFileSize != null)
+			LOGGER.debug("HT: Will create documentPrompt with max_filesize=" + maxFileSize);
+		else 
+			LOGGER.debug("HT: Will create documentPrompt with max_filesize=NULL");
+
+
 		return new DocumentPrompt(
 			id,
 			condition,
@@ -4135,8 +4200,8 @@ public class Campaign {
 			skippable,
 			skipLabel,
 			displayLabel,
-			maxFilesize,
-			index);
+			index,
+			maxFileSize);
 	}
 	
 
@@ -4733,6 +4798,38 @@ public class Campaign {
 					e);
 		}
 		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(DocumentPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						DocumentPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+		
+		
+		if (maxSeconds != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=" + maxSeconds);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=NULL");
+
+		if (maxFileSize != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=" + maxFileSize);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=NULL");
+		
+		LOGGER.debug("HT: about to create VideoPrompt");
+		
 		return new VideoPrompt(
 			id,
 			condition,
@@ -4742,7 +4839,8 @@ public class Campaign {
 			skippable,
 			skipLabel,
 			displayLabel,
+			index,
 			maxSeconds,
-			index);
+			maxFileSize);
 	}
 }

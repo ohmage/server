@@ -230,7 +230,8 @@ public class Annotator {
 		AUDIO_INVALID_CONTENT ("1803"),
 		
 		MEDIA_INVALID_ID ("1900"),
-		MEDIA_NOT_FOUND ("1901");
+		MEDIA_NOT_FOUND ("1901"), 
+		MEDIA_INVALID_DATA ("1902");
 		
 		private final String value;
 		

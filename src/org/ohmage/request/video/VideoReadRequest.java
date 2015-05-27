@@ -139,7 +139,7 @@ public class VideoReadRequest extends UserRequest {
 					"attachment; filename=" + video.getFileName());
 				httpResponse.setHeader(
 					"Content-Length", 
-					new Long(video.getSize()).toString());
+					new Long(video.getFileSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {

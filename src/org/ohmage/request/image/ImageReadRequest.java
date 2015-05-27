@@ -235,7 +235,7 @@ public class ImageReadRequest extends UserRequest {
 				// FIXME: This isn't necessarily the case. We might want to do
 				// some sort of image inspection to figure out what this should
 				// be.
-				httpResponse.setContentType(image.getType(size));
+				httpResponse.setContentType(image.getContentType(size));
 				httpResponse.setHeader(
 						"Content-Length", 
 						new Long(image.getSizeBytes(size)).toString());

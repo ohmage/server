@@ -21,7 +21,7 @@ import org.ohmage.exception.DomainException;
  *
  * @author John Jenkins
  */
-public class AudioPrompt extends Prompt {
+public class AudioPrompt extends MediaPrompt {
 	/**
 	 * The JSON key for the maximum duration.
 	 */
@@ -35,6 +35,7 @@ public class AudioPrompt extends Prompt {
 	 * The maximum number of milliseconds that the recording may last.
 	 */
 	private final Long maxDuration;
+	
 	
 	/**
 	 * Creates an audio prompt.
@@ -70,6 +71,7 @@ public class AudioPrompt extends Prompt {
 	 *        This prompt's index in its container's list of survey items.
 	 *        
 	 * @param maxDuration
+	 * @param maxFileSize 
 	 * 
 	 * @throws DomainException
 	 *         Thrown if the maximum duration is negative.
@@ -84,7 +86,8 @@ public class AudioPrompt extends Prompt {
 		final String skipLabel,
 		final String displayLabel,
 		final int index,
-		final Long maxDuration)
+		final Long maxDuration, 
+		final Long maxFileSize)
 		throws DomainException {
 		
 		super(
@@ -97,7 +100,8 @@ public class AudioPrompt extends Prompt {
 			skipLabel,
 			displayLabel,
 			Type.AUDIO,
-			index);
+			index,
+			maxFileSize);
 		
 		// Validate the maximum duration.
 		if((maxDuration != null) && (maxDuration <= 0)) {
@@ -105,6 +109,7 @@ public class AudioPrompt extends Prompt {
 				new DomainException("The maximum duration must be positive.");
 		}
 		this.maxDuration = maxDuration;
+		
 	}
 	
 	/**
@@ -116,6 +121,7 @@ public class AudioPrompt extends Prompt {
 		return maxDuration;
 	}
 	
+		
 	/**
 	 * Conditions are not allowed for audio prompts. Use parent's method.
 	 * 
@@ -138,6 +144,7 @@ public class AudioPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#validateValue(java.lang.Object)
 	 */
+	/*
 	@Override
 	public Object validateValue(final Object value) throws DomainException {
 		// If it's already a NoResponse value, then return make sure that if it
@@ -184,7 +191,8 @@ public class AudioPrompt extends Prompt {
 						"'.");
 		}
 	}
-
+*/
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#createResponse(java.lang.Integer, java.lang.Object)
@@ -217,6 +225,10 @@ public class AudioPrompt extends Prompt {
 			result.put(JSON_KEY_MAX_DURATION, maxDuration);
 		}
 		
+		if(maxFileSize != null) {
+			result.put(DocumentPrompt.JSON_KEY_MAX_FILESIZE, maxFileSize);
+		}
+		
 		return result;
 	}
 
@@ -224,6 +236,7 @@ public class AudioPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
 	 */
+	/*
 	@Override
 	public void toConcordia(JsonGenerator generator)
 		throws JsonGenerationException,
@@ -254,6 +267,7 @@ public class AudioPrompt extends Prompt {
 		// End the object.
 		generator.writeEndObject();
 	}
+	*/
 	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
@@ -262,9 +276,7 @@ public class AudioPrompt extends Prompt {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result =
-			prime *
-				result +
+		result = prime * result +
 				((maxDuration == null) ? 0 : maxDuration.hashCode());
 		return result;
 	}
@@ -284,8 +296,13 @@ public class AudioPrompt extends Prompt {
 			return false;
 		}
 		AudioPrompt other = (AudioPrompt) obj;
-		if(maxDuration != other.maxDuration) {
-			return false;
+		if (maxDuration == null) {
+			if (other.maxDuration != null)
+				return false;
+		} else {
+			if(! maxDuration.equals(other.maxDuration)) {
+				return false;
+			}
 		}
 		return true;
 	}

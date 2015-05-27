@@ -36,7 +36,10 @@ import java.util.UUID;
 import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.Media.ContentInfo;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.ValidationException;
 
 /**
  * A representation of an image.
@@ -465,7 +468,6 @@ public class Image {
 		 * 
 		 * @throws DomainException The InputStream was null.
 		 */
-		// HT: Need a way to pass the filetype to ImageData
 		public ImageData(
 			final InputStream inputStream)
 			throws DomainException {
@@ -672,6 +674,8 @@ public class Image {
 	private final Map<Size, ImageData> imageData =
 		new HashMap<Size, ImageData>();
 	
+	private Media.ContentInfo contentInfo = null; 
+	
 	/**
 	 * Creates a new Image object from a URL object.
 	 * 
@@ -711,6 +715,38 @@ public class Image {
 	}
 	
 	/**
+	 * Creates an original image from the image's byte[]
+	 * 
+	 * @param imageId The ID for this image.
+	 *  
+	 * @param imageContents The image's contents as a byte array.
+	 * 
+	 * @return Returns null if the image's contents are null or have a length 
+	 * 		   of zero; otherwise, a BufferedImage representing a decoded  
+	 * 		   version of the image are returned.
+	 * 
+	 * @throws ValidationException Thrown if the image is not null, has a 
+	 * 							   length greater than 0, and isn't decodable 
+	 * 							   as any type of known image.
+	 */
+	public Image (final UUID id, String contentType, String fileName,
+			final byte[] imageByteArray) throws DomainException {
+		
+		if(id == null) {
+			throw new DomainException("The image's ID is null.");
+		}
+
+		if((imageByteArray == null) || (imageByteArray.length == 0)) {
+			throw new DomainException(ErrorCode.IMAGE_INVALID_DATA, "The image's data is empty.");
+		}
+		InputStream contents = new ByteArrayInputStream(imageByteArray);
+		
+		this.id = id;
+		imageData.put(ORIGINAL, new ImageData(contents));
+		this.contentInfo = new ContentInfo(contentType, fileName);
+	}
+	
+	/**
 	 * Creates an original image from the image's contents.
 	 * 
 	 * @param id The unique identifier for this image.
@@ -719,7 +755,6 @@ public class Image {
 	 * 
 	 * @throws DomainException The ID and/or data are null.
 	 */
-	// HT: Need a way to pass filetype in
 	public Image(
 		final UUID id, 
 		final InputStream contents)
@@ -823,6 +858,11 @@ public class Image {
 		return id;
 	}
 	
+	// HT: to add comment later
+	public Media.ContentInfo getContentInfo(){
+		return contentInfo;
+	}
+		
 	/**
 	 * Returns the size of the image.
 	 * 
@@ -847,7 +887,7 @@ public class Image {
 	 * @throws DomainException There was an error reading the image's content
 	 * 						   type.
 	 */
-	public String getType(final Size size) throws DomainException {
+	public String getContentType(final Size size) throws DomainException {
 		return "image/" + getImageData(size).getImageType();
 	}
 	
@@ -863,6 +903,8 @@ public class Image {
 	public InputStream getInputStream(final Size size) throws DomainException {
 		return getImageData(size).getInputStream();
 	}
+	
+	
 	
 	/**
 	 * <p>Saves the images contents to disk in the given directory. This

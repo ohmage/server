@@ -29,6 +29,7 @@ import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -36,19 +37,23 @@ import org.ohmage.exception.DomainException;
  * 
  * @author Hongsuda T. 
  */
-public class DocumentPrompt extends MediaPrompt {
+public abstract class MediaPrompt extends Prompt {
 	
-	public static final String JSON_KEY_MAX_FILESIZE = MediaPrompt.JSON_KEY_MAX_FILESIZE;
+	/**
+	 * The JSON key for the maximum file size.
+	 */
+	public static final String JSON_KEY_MAX_FILESIZE = "max_filesize";
 	
 	/**
 	 * The campaign configuration property key for the maximum file size 
-	 * allowed for a document.
+	 * allowed.
 	 */
-	public static final String XML_KEY_MAX_FILESIZE = MediaPrompt.XML_KEY_MAX_FILESIZE;
+	public static final String XML_KEY_MAX_FILESIZE = "maxFileSize";
 	
-	// the specified maximum file size
-	
-	//private final Long maxFileSize;
+	/**
+	 * The maximum file size that can be uploaded to the server.
+	 */
+	protected final Long maxFileSize;
 	
 	/**
 	 * Creates a document prompt.
@@ -80,7 +85,7 @@ public class DocumentPrompt extends MediaPrompt {
 	 * 
 	 * @throws DomainException Thrown if the vertical resolution is negative.
 	 */
-	public DocumentPrompt(
+	public MediaPrompt(
 			final String id, 
 			final String condition, 
 			final String unit, 
@@ -89,7 +94,8 @@ public class DocumentPrompt extends MediaPrompt {
 			final boolean skippable, 
 			final String skipLabel,
 			final String displayLabel,
-			final int index,
+			final Prompt.Type type,
+			final int index, 
 			final Long maxFileSize) 
 			throws DomainException {
 		
@@ -103,17 +109,14 @@ public class DocumentPrompt extends MediaPrompt {
 			skipLabel,
 			displayLabel,
 			Type.DOCUMENT,
-			index,
-			maxFileSize);
-	
-	/*	
+			index);
+		
 		if((maxFileSize != null) && (maxFileSize < 0)){ 
 				throw new DomainException(
 					"The maximum filesize cannot be negative.");
 		}
 		
 		this.maxFileSize = maxFileSize;
-		*/
 	}
 	
 	/**
@@ -144,6 +147,74 @@ public class DocumentPrompt extends MediaPrompt {
 				"Conditions are not allowed in document prompts.");
 	}
 
+	/**
+	 * Validates that a given value is valid and, if so, converts it into an
+	 * appropriate object.
+	 * 
+	 * @param value The value to be validated. This must be one of the  
+	 * 				following:<br />
+	 * 				<ul>
+	 * 				<li>{@link NoResponse}</li>
+	 * 				<li>{@link UUID}</li>
+	 * 				<li>{@link String} that represents:</li>
+	 * 				  <ul>
+	 * 				    <li>{@link NoResponse}</li>
+	 * 				    <li>{@link UUID}</li>
+	 * 				  <ul>
+	 * 				</ul>
+	 * 
+	 * @return A {@link UUID} object or a {@link NoResponse} object.
+	 * 
+	 * @throws DomainException The value is invalid.
+	 */
+	@Override
+	public Object validateValue(final Object value) throws DomainException {
+		// If it's already a NoResponse value, then return make sure that if it
+		// was skipped that it as skippable.
+		if(value instanceof NoResponse) {
+			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
+				throw new DomainException(
+						"The prompt, '" +
+							getId() +
+							"', was skipped, but it is not skippable.");
+			}
+			
+			return value;
+		}
+		// If it is already a UUID value, then return it.
+		else if(value instanceof UUID) {
+			return value;
+		}
+		// If it is a String value then attempt to decode it into a NoResponse
+		// value or a UUID value.
+		else if(value instanceof String) {
+			String valueString = (String) value;
+			
+			try {
+				return NoResponse.valueOf(valueString);
+			}
+			catch(IllegalArgumentException notNoResponse) {
+				try {
+					return UUID.fromString(valueString);
+				}
+				catch(IllegalArgumentException notUuid) {
+					throw new DomainException(
+							"The string response value was not " +
+									"decodable into a UUID for prompt '" +
+									getId() +
+									"': " +
+									valueString);
+				}
+			}
+		}	
+		else {
+			throw new DomainException(
+					"The value is not decodable as a reponse value for prompt '" +
+						getId() + 
+						"'.");
+		}
+	}
+	
 	
 	/**
 	 * Validates that the corresponding media object. 
@@ -152,10 +223,7 @@ public class DocumentPrompt extends MediaPrompt {
 	 * 
 	 * @throws DomainException The value is invalid.
 	 */
-	public void validateMedia(final Media media) throws DomainException {
-		validateMediaFileSize(media);
-		
-		/*
+	public void validateMediaFileSize(final Media media) throws DomainException {
 		if (media == null) {
 			throw new DomainException(
 					"The media content is null: " +	getId() + "'.");
@@ -164,38 +232,15 @@ public class DocumentPrompt extends MediaPrompt {
 		if ((maxFileSize != null) && (media.getFileSize() > maxFileSize))
 			throw new DomainException(ErrorCode.MEDIA_INVALID_DATA, 
 					"The file size is larger than its specified maximum: " + maxFileSize);	
-		*/
 	}
 	
 
-	/**
-	 * Creates a response to this prompt based on a response value.
-	 * 
-	 * @param response The response from the user as an Object.
-	 * 
-	 * @param repeatableSetIteration If this prompt belongs to a repeatable 
-	 * 								 set, this is the iteration of that 
-	 * 								 repeatable set on which the response to
-	 * 								 this prompt was made.
-	 * 
-	 * @throws DomainException Thrown if this prompt is part of a repeatable 
-	 * 						   set but the repeatable set iteration value is 
-	 * 						   null, if the repeatable set iteration value is 
-	 * 						   negative, or if the value is not a valid 
-	 * 						   response value for this prompt.
-	 */
-	@Override
-	public DocumentPromptResponse createResponse(
+	public abstract PromptResponse createResponse(
 			final Integer repeatableSetIteration,
 			final Object response) 
-			throws DomainException {
-		
-		return new DocumentPromptResponse(
-				this,
-				repeatableSetIteration,
-				response);
-	}
-	
+			throws DomainException;
+
+
 	/**
 	 * Creates a JSONObject that represents this photo prompt.
 	 * 
@@ -206,13 +251,47 @@ public class DocumentPrompt extends MediaPrompt {
 	@Override
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
-
-		/*
+		
 		if(maxFileSize != null) {
 			result.put(JSON_KEY_MAX_FILESIZE, maxFileSize);
 		}
-		*/
+		
 		return result;
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
+	 */
+	@Override
+	public void toConcordia(
+			final JsonGenerator generator)
+			throws JsonGenerationException, IOException {
+		
+		// The response is always an object.
+		generator.writeStartObject();
+		generator.writeStringField("type", "object");
+		
+		// The fields array.
+		generator.writeArrayFieldStart("schema");
+		
+		// The first field in the object is the prompt's ID.
+		generator.writeStartObject();
+		generator.writeStringField("name", PromptResponse.JSON_KEY_PROMPT_ID);
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		// The second field in the object is the response's value.
+		generator.writeStartObject();
+		generator.writeStringField("name", PromptResponse.JSON_KEY_RESPONSE);
+		generator.writeStringField("type", "string");
+		generator.writeEndObject();
+		
+		// End the array of fields.
+		generator.writeEndArray();
+		
+		// End the object.
+		generator.writeEndObject();
 	}
 
 	
@@ -235,21 +314,25 @@ public class DocumentPrompt extends MediaPrompt {
 	 */
 	@Override
 	public boolean equals(Object obj) {
+
 		if(this == obj) {
 			return true;
 		}
 		if(!super.equals(obj)) {
 			return false;
 		}
-		if(!(obj instanceof DocumentPrompt)) {
+		if(!(obj instanceof MediaPrompt)) {
 			return false;
 		}
-	/*	
-		DocumentPrompt other = (DocumentPrompt) obj;
-		if(! maxFileSize.equals(other.maxFileSize)) {
+		MediaPrompt other = (MediaPrompt) obj;
+		if (maxFileSize == null) {
+			if (other.maxFileSize != null)
+				return false;
+		} else if(! maxFileSize.equals(other.maxFileSize)) {
 			return false;
 		}
-		*/
 		return true;
+
 	}
+	
 }
