@@ -24,12 +24,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
-import org.ohmage.domain.Media;
+import org.ohmage.domain.IMedia;
 import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.domain.campaign.response.DocumentPromptResponse;
-import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -223,7 +221,7 @@ public abstract class MediaPrompt extends Prompt {
 	 * 
 	 * @throws DomainException The value is invalid.
 	 */
-	public void validateMediaFileSize(final Media media) throws DomainException {
+	public void validateMediaFileSize(final IMedia media) throws DomainException {
 		if (media == null) {
 			throw new DomainException(
 					"The media content is null: " +	getId() + "'.");
@@ -242,9 +240,9 @@ public abstract class MediaPrompt extends Prompt {
 
 
 	/**
-	 * Creates a JSONObject that represents this photo prompt.
+	 * Creates a JSONObject that represents this prompt.
 	 * 
-	 * @return A JSONObject that represents this photo prompt.
+	 * @return A JSONObject that represents this prompt.
 	 * 
 	 * @throws JSONException There was a problem creating the JSONObject.
 	 */

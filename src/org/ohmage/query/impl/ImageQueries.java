@@ -154,7 +154,8 @@ public final class ImageQueries extends Query implements IImageQueries {
 										new Image(
 											UUID.fromString(
 												resultSet.getString("uuid")),
-											resultSet.getURL("url"));
+											resultSet.getURL("url"), 
+											null);
 								}
 								catch(DomainException e) {
 									throw

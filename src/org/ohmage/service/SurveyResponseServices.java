@@ -24,7 +24,7 @@ import java.util.UUID;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
-import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
@@ -34,7 +34,6 @@ import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
-import org.ohmage.domain.campaign.prompt.DocumentPrompt;
 import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
@@ -201,6 +200,8 @@ public final class SurveyResponseServices {
 			final Map<UUID, Image> images) 
 			throws ServiceException {
 		
+		verifyMediaFilesExistForMediaPromptResponses(PhotoPromptResponse.class, surveyResponses, images);
+	/*	
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof PhotoPromptResponse) {
@@ -214,6 +215,7 @@ public final class SurveyResponseServices {
 				}
 			}
 		}
+		*/
 	}
 	
 	/**
@@ -273,32 +275,6 @@ public final class SurveyResponseServices {
 
 		verifyMediaFilesExistForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
 		
-		/*
-		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if (promptResponse instanceof DocumentPromptResponse)
-				{
-					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! documentPs.containsKey(responseValue))) {
-						
-						throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"A file was missing for a document prompt response: " + 
-								responseValue.toString());
-					}
-					// validate the media against the xml
-					try {
-						PromptResponse pr = (PromptResponse)promptResponse;
-						DocumentPrompt dp = (DocumentPrompt) (pr.getPrompt());
-						dp.validateMedia(documentPs.get(responseValue));
-					} catch (DomainException e){
-						throw new ServiceException(e);
-					}
-				}
-			}
-		}
-		*/	
 	}
 	
 	/**
@@ -315,12 +291,10 @@ public final class SurveyResponseServices {
 	 * 							corresponding contents don't.
 	 */
 	
-	// TODO: HT: This class doesn't support PhotoPrompt since Image is not a media.
-	
 	public void verifyMediaFilesExistForMediaPromptResponses(
 			final Class<? extends Response> mediaClass,
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<UUID, ? extends Media> mediaMap) 
+			final Map<UUID, ? extends IMedia> mediaMap) 
 			throws ServiceException {
 		
 		if (

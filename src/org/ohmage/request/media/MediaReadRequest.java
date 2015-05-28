@@ -170,25 +170,25 @@ public class MediaReadRequest extends UserRequest {
 			else {
 				
 				if (imageSize == null) {
+					
 					mediaStream = media.getContentStream();
+					String contentType = media.getContentType();
+					
 					// set content type
-					if (media.getContentType() != null)
-						httpResponse.setContentType(media.getContentType());
-					if (media.getFileName() != null)
-						httpResponse.setHeader(
-						"Content-Disposition", "attachment; filename=" + media.getFileName());
-					else 
-						httpResponse.setHeader("Content-Disposition", "attachment;");
-
-					httpResponse.setHeader(
-						"Content-Length", 
+					if (contentType != null)
+						httpResponse.setContentType(contentType);
+					// only set content-disposition if media is not video/image/audio
+					if (contentType.startsWith("application") || contentType.startsWith("text"))
+						httpResponse.setHeader("Content-Disposition", 
+								"attachment; filename=" + media.getFileName());
+					
+					httpResponse.setHeader("Content-Length", 
 						new Long(media.getFileSize()).toString());
 
 				} else { // it is an image/read request
 					mediaStream =  image.getInputStream(imageSize);
 					httpResponse.setContentType(image.getContentType(imageSize));
-					httpResponse.setHeader(
-							"Content-Length", 
+					httpResponse.setHeader("Content-Length", 
 							new Long(image.getSizeBytes(imageSize)).toString());
 					
 				}

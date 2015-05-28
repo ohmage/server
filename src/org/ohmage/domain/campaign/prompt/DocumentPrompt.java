@@ -18,15 +18,10 @@ package org.ohmage.domain.campaign.prompt;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.Media;
-import org.ohmage.domain.campaign.Prompt;
-import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.exception.DomainException;
@@ -38,17 +33,6 @@ import org.ohmage.exception.DomainException;
  */
 public class DocumentPrompt extends MediaPrompt {
 	
-	public static final String JSON_KEY_MAX_FILESIZE = MediaPrompt.JSON_KEY_MAX_FILESIZE;
-	
-	/**
-	 * The campaign configuration property key for the maximum file size 
-	 * allowed for a document.
-	 */
-	public static final String XML_KEY_MAX_FILESIZE = MediaPrompt.XML_KEY_MAX_FILESIZE;
-	
-	// the specified maximum file size
-	
-	//private final Long maxFileSize;
 	
 	/**
 	 * Creates a document prompt.
@@ -106,25 +90,8 @@ public class DocumentPrompt extends MediaPrompt {
 			index,
 			maxFileSize);
 	
-	/*	
-		if((maxFileSize != null) && (maxFileSize < 0)){ 
-				throw new DomainException(
-					"The maximum filesize cannot be negative.");
-		}
-		
-		this.maxFileSize = maxFileSize;
-		*/
 	}
 	
-	/**
-	 * Returns the maximum allowed dimension of an image.
-	 * 
-	 * @return The maximum allowed dimension of an image or null if it
-	 * 		   was not given.
-	 */
-	public Long getMaxFileSize() {
-		return maxFileSize;
-	}
 	
 	/**
 	 * Conditions are not allowed within the document prompt. Use the parent's validation.
@@ -155,16 +122,6 @@ public class DocumentPrompt extends MediaPrompt {
 	public void validateMedia(final Media media) throws DomainException {
 		validateMediaFileSize(media);
 		
-		/*
-		if (media == null) {
-			throw new DomainException(
-					"The media content is null: " +	getId() + "'.");
-		}
-		
-		if ((maxFileSize != null) && (media.getFileSize() > maxFileSize))
-			throw new DomainException(ErrorCode.MEDIA_INVALID_DATA, 
-					"The file size is larger than its specified maximum: " + maxFileSize);	
-		*/
 	}
 	
 
@@ -197,21 +154,15 @@ public class DocumentPrompt extends MediaPrompt {
 	}
 	
 	/**
-	 * Creates a JSONObject that represents this photo prompt.
+	 * Creates a JSONObject that represents this prompt.
 	 * 
-	 * @return A JSONObject that represents this photo prompt.
+	 * @return A JSONObject that represents this prompt.
 	 * 
 	 * @throws JSONException There was a problem creating the JSONObject.
 	 */
 	@Override
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
-
-		/*
-		if(maxFileSize != null) {
-			result.put(JSON_KEY_MAX_FILESIZE, maxFileSize);
-		}
-		*/
 		return result;
 	}
 
@@ -221,13 +172,7 @@ public class DocumentPrompt extends MediaPrompt {
 	 */
 	@Override
 	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result =
-			prime *
-				result +
-				((maxFileSize == null) ? 0 : maxFileSize.hashCode());
-		return result;
+		return super.hashCode();
 	}
 
 	/* (non-Javadoc)
@@ -244,12 +189,7 @@ public class DocumentPrompt extends MediaPrompt {
 		if(!(obj instanceof DocumentPrompt)) {
 			return false;
 		}
-	/*	
-		DocumentPrompt other = (DocumentPrompt) obj;
-		if(! maxFileSize.equals(other.maxFileSize)) {
-			return false;
-		}
-		*/
+	
 		return true;
 	}
 }

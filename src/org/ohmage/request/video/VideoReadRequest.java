@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Video;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
@@ -125,15 +126,14 @@ public class VideoReadRequest extends UserRequest {
 				
 		// Open the connection to the image if it is not null.
 		InputStream videoStream = null;
-		if((! isFailed()) && video != null) {
-			videoStream = video.getContentStream();
-		}
 		
 		try {
 			if(isFailed()) {
 				super.respond(httpRequest, httpResponse, (JSONObject) null);
 			}
 			else {
+				videoStream = video.getContentStream();
+				
 				httpResponse.setHeader(
 					"Content-Disposition", 
 					"attachment; filename=" + video.getFileName());
@@ -186,6 +186,13 @@ public class VideoReadRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
+		}
+		catch(DomainException e) {
+			LOGGER.error("Could not connect to the media file.", e);
+			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "File not found.");
+			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
+			return;
 		}
 		catch(IOException e) {
 			LOGGER.error(

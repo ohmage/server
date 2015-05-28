@@ -13,8 +13,6 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
-import org.ohmage.request.Request;
-import org.ohmage.request.survey.SurveyUploadRequest;
 
 /**
  * <p>
@@ -24,7 +22,7 @@ import org.ohmage.request.survey.SurveyUploadRequest;
  * @author Hongsuda T.
  */
 // HT: change from abstract class to regular class.
-public class Media {
+public class Media implements IMedia {
 	private static final Logger LOGGER = Logger.getLogger(Media.class);
 	/**
 	 * The maximum length for a file extension.
@@ -33,7 +31,7 @@ public class Media {
 
 	private final UUID id;
 	private final InputStream content; 
-	private ContentInfo contentInfo; 
+	private Media.ContentInfo contentInfo; 
 	// The size, in bytes, of the media file.
 	public final long size;
 	/*
@@ -123,10 +121,9 @@ public class Media {
 				return new ContentInfo(tContentType, tFileName);
 			}
 								
-			// extract info from url instead. This is also for backward compatibility
-			if (url == null) 
-				return new ContentInfo(null, null);
-				
+			if (url == null)
+				throw new DomainException("Cannot create ContentInfo. Url is null");
+							
 			String paths[] = url.toString().split("/");
 			String simpleName = paths[paths.length-1];
 			String elms[] = simpleName.split("__");
@@ -402,6 +399,7 @@ public class Media {
 		
 	}
 	
+	// ==== Begin IMedia implementation ============================
 	/**
 	 * Returns the ID.
 	 * 
@@ -417,7 +415,7 @@ public class Media {
 	 * 
 	 * @return An input stream connected to the data.
 	 */
-	public InputStream getContentStream() {
+	public InputStream getContentStream() throws DomainException {
 		return content;
 	}
 	
@@ -435,7 +433,7 @@ public class Media {
 	 * 
 	 * @return The media's size.
 	 */
-	public ContentInfo getContentInfo(){
+	public Media.ContentInfo getContentInfo(){
 		return this.contentInfo;
 	}
 	
@@ -467,6 +465,28 @@ public class Media {
 	}
 	
 	/**
+	 * Writes the media content to the given file. 
+	 *  
+	 * @param directory The directory to write the media to.
+	 * 
+	 * @throws DomainException There was an error reading or writing 
+	 * 						   the file.
+	 * 
+	 */
+	public final File writeContent(final File directory) throws DomainException {
+		
+		if (directory == null)
+			throw new DomainException("Directory to write the content file is null");
+		
+		File mediaFile = new File(directory.getAbsolutePath() + "/" + id.toString());
+		writeFile(mediaFile);
+		return mediaFile;
+	}
+	
+	
+	// ==== End IMedia implementation ======================
+	
+	/**
 	 * Returns the root MIME type of this media type. 
 	 * 
 	 * @param type
@@ -496,15 +516,14 @@ public class Media {
 		}	
 	}
 	
+
 	/**
 	 * Writes the media data to the given file. This file *should* end with
 	 * the string given by the {@link #getExtension()} function.
 	 * 
-	 * @param imageData The image data to be written.
-	 * 
 	 * @param destination The file to write the image to.
 	 * 
-	 * @throws DomainException There was an error reading the image data
+	 * @throws DomainException There was an error reading the data
 	 * 						   or writing the file.
 	 * 
 	 * @see {@link #getExtension()}

@@ -15,16 +15,9 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
-import org.ohmage.domain.campaign.Prompt;
-import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DomainException;
@@ -33,6 +26,7 @@ import org.ohmage.exception.DomainException;
  * This class represents a photo prompt.
  * 
  * @author John Jenkins
+ * @author Hongsuda T.
  */
 public class PhotoPrompt extends MediaPrompt {
 	/**
@@ -180,6 +174,7 @@ public class PhotoPrompt extends MediaPrompt {
 	 * 
 	 * @throws DomainException The value is invalid.
 	 */
+	/*
 	@Override
 	public Object validateValue(final Object value) throws DomainException {
 		// If it's already a NoResponse value, then return make sure that if it
@@ -232,6 +227,7 @@ public class PhotoPrompt extends MediaPrompt {
 						"'.");
 		}
 	}
+	*/
 	
 	/**
 	 * Creates a response to this prompt based on a response value.
@@ -283,6 +279,7 @@ public class PhotoPrompt extends MediaPrompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
 	 */
+	/*
 	@Override
 	public void toConcordia(
 			final JsonGenerator generator)
@@ -313,7 +310,8 @@ public class PhotoPrompt extends MediaPrompt {
 		// End the object.
 		generator.writeEndObject();
 	}
-
+*/
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */

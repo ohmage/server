@@ -46,7 +46,7 @@ import org.ohmage.exception.ValidationException;
  * 
  * @author John Jenkins
  */
-public class Image {
+public class Image implements IMedia{
 	
 	private static final Logger LOGGER = 
 			Logger.getLogger(Image.class);
@@ -674,7 +674,7 @@ public class Image {
 	private final Map<Size, ImageData> imageData =
 		new HashMap<Size, ImageData>();
 	
-	private Media.ContentInfo contentInfo = null; 
+	private final Media.ContentInfo contentInfo; 
 	
 	/**
 	 * Creates a new Image object from a URL object.
@@ -712,6 +712,7 @@ public class Image {
 		for(Size size : sizeToUrlMap.keySet()) {
 			imageData.put(size, new ImageData(sizeToUrlMap.get(size)));
 		}
+		this.contentInfo = new Media.ContentInfo(null, null);
 	}
 	
 	/**
@@ -743,7 +744,7 @@ public class Image {
 		
 		this.id = id;
 		imageData.put(ORIGINAL, new ImageData(contents));
-		this.contentInfo = new ContentInfo(contentType, fileName);
+		this.contentInfo = new Media.ContentInfo(contentType, fileName);
 	}
 	
 	/**
@@ -769,6 +770,7 @@ public class Image {
 		
 		this.id = id;
 		imageData.put(ORIGINAL, new ImageData(contents));
+		this.contentInfo = new Media.ContentInfo(null,  null);
 	}
 	
 	/**
@@ -782,7 +784,8 @@ public class Image {
 	 */
 	public Image(
 		final UUID id, 
-		final URL url)
+		final URL url, 
+		final String info)
 		throws DomainException {
 		
 		if(id == null) {
@@ -794,6 +797,7 @@ public class Image {
 		
 		this.id = id;
 		imageData.put(ORIGINAL, new ImageData(url));
+		this.contentInfo = Media.ContentInfo.createContentInfoFromUrl(url, info);
 	}
 	
 	/**
@@ -849,6 +853,7 @@ public class Image {
 		}
 	}
 	
+	// ==== beginning of iMedia implementation
 	/**
 	 * The ID of the image.
 	 * 
@@ -857,12 +862,33 @@ public class Image {
 	public UUID getId() {
 		return id;
 	}
+				
+	public InputStream getContentStream() throws DomainException {
+		return getInputStream(ORIGINAL);
+	}
 	
-	// HT: to add comment later
+	public long getFileSize() throws DomainException{
+		return getSizeBytes(ORIGINAL);
+	}
+	
 	public Media.ContentInfo getContentInfo(){
 		return contentInfo;
 	}
-		
+
+	public String getContentType() {
+		return contentInfo.getContentType();
+	}
+	
+	public String getFileName() { 
+		return contentInfo.getFileName();
+	}
+	
+	public File writeContent(final File directory) throws DomainException{
+		return saveImage(directory);
+	}
+	
+	// ==== end of iMedia implementation
+	
 	/**
 	 * Returns the size of the image.
 	 * 

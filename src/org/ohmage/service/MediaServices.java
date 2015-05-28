@@ -17,7 +17,6 @@ package org.ohmage.service;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -25,6 +24,8 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.IMedia;
+import org.ohmage.domain.Image;
 import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.exception.DataAccessException;
@@ -129,7 +130,7 @@ public final class MediaServices {
 	}
 	
 	
-	public Media getMediaHelper(final UUID id, final Class<? extends Media> mediaType) throws ServiceException {
+	public IMedia getMediaHelper(final UUID id, final Class<? extends IMedia> mediaType) throws ServiceException {
 		try {
 			Map<String, String> result = mediaQueries.getMediaUrlAndMetadata(id);
 			
@@ -146,13 +147,15 @@ public final class MediaServices {
 			
 			if (mediaType.equals(Media.class))
 			return new Media(id, url, info);
+			else if (mediaType.equals(Image.class))
+				return new Image(id, url, info);
 			else if (mediaType.equals(Audio.class))
 				return new Audio(id, url, info);
 			else if (mediaType.equals(Video.class))
 				return new Video(id, url, info);
 			else if (mediaType.equals(DocumentP.class))
 				return new DocumentP(id, url, info);
-			else throw new ServiceException("Cannot create the media object:" + mediaType.getName());
+			else throw new ServiceException("The type is not a media object:" + mediaType.getName());
 			
 		}
 		catch(MalformedURLException e) {
@@ -206,7 +209,6 @@ public final class MediaServices {
 	 */
 	public Video getVideo(final UUID id) throws ServiceException {
 		return (Video) getMediaHelper(id, Video.class);
-
 	}
 
 
