@@ -299,12 +299,12 @@ public class SurveyUploadRequest extends UserRequest {
 				tDocumentContentsMap = new HashMap<UUID, IMedia>();
 				Collection<Part> parts = null;
 				
-			
 				// init the tDocumentContentsMap with inline images
-				for (UUID uuid : tImageContentsMap.keySet()){
-					Image image = tImageContentsMap.get(uuid);
-					tDocumentContentsMap.put(uuid, image);
-				}
+				tDocumentContentsMap.putAll(tImageContentsMap);
+				// for (UUID uuid : tImageContentsMap.keySet()){
+				//	Image image = tImageContentsMap.get(uuid);
+				//	tDocumentContentsMap.put(uuid, image);
+				//}
 				
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown

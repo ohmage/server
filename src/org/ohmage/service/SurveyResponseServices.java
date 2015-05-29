@@ -309,28 +309,30 @@ public final class SurveyResponseServices {
 			
 			for(SurveyResponse surveyResponse : surveyResponses) {
 				for(Response promptResponse : surveyResponse.getResponses().values()) {
-					if (mediaClass.isInstance(promptResponse))
-					{
+					if (mediaClass.isInstance(promptResponse))	{
 						Object responseValue = promptResponse.getResponse();
-						if((responseValue instanceof UUID) && 
-								(! mediaMap.containsKey(responseValue))) {
+						if(responseValue instanceof UUID) {
+							if (mediaMap.containsKey(responseValue)) {
+								// validate the media against the xml
+								try {
+									PromptResponse pr = (PromptResponse)promptResponse;
+									MediaPrompt dp = (MediaPrompt) (pr.getPrompt());
+									dp.validateMediaFileSize(mediaMap.get(responseValue));
+								} catch (DomainException e){
+									throw new ServiceException(e);
+								} catch (Exception e) {
+									throw new ServiceException("Can't convert prompt to MediaPrompt", e);
+								}	
+							
+							} else { // no media content
+								throw new ServiceException(
+										ErrorCode.SURVEY_INVALID_RESPONSES, 
+										"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
+										responseValue.toString());
+							}
+						}
 						
-							throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
-								responseValue.toString());
-						}
-						// validate the media against the xml
-						try {
-							PromptResponse pr = (PromptResponse)promptResponse;
-							MediaPrompt dp = (MediaPrompt) (pr.getPrompt());
-							dp.validateMediaFileSize(mediaMap.get(responseValue));
-						} catch (DomainException e){
-							throw new ServiceException(e);
-						} catch (Exception e) {
-							throw new ServiceException("Can't convert prompt to MediaPrompt", e);
-						}
-					}
+					} 
 				}
 			}
 			

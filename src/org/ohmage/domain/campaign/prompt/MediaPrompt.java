@@ -224,7 +224,7 @@ public abstract class MediaPrompt extends Prompt {
 	public void validateMediaFileSize(final IMedia media) throws DomainException {
 		if (media == null) {
 			throw new DomainException(
-					"The media content is null: " +	getId() + "'.");
+					"The media content is null: " +	getId() + ".");
 		}
 		
 		if ((maxFileSize != null) && (media.getFileSize() > maxFileSize))
