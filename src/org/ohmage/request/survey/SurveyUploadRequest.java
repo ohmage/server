@@ -493,6 +493,7 @@ public class SurveyUploadRequest extends UserRequest {
 				surveyResponseIds.add(surveyResponse.getSurveyResponseId());
 			}
 
+			// compliance of media file to the campaign definition is done in the verifyMediaFile... methods		
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
 			SurveyResponseServices.instance().verifyImagesFilesForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
@@ -504,8 +505,6 @@ public class SurveyUploadRequest extends UserRequest {
 			
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
 			SurveyResponseServices.instance().verifyDocumentFilesForDocumentPromptResponses(surveyResponses, documentContentsMap);
-			
-			// TODO: validate compliance to campaign definition 
 			
 			
 			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");

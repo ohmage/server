@@ -65,7 +65,7 @@ public class UserInfoReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserInfoReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, null, TokenLocation.EITHER, null);
+		super(httpRequest, false, TokenLocation.EITHER, null);
 		
 		LOGGER.info("Creating a user info read request.");
 		
