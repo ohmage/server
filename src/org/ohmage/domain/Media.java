@@ -48,7 +48,7 @@ public class Media implements IMedia {
 	 *
 	 * @author Hongsuda T.
 	 */
-	public static class ContentInfo {
+	static class ContentInfo {
 		public static String FIELD_SEPARATOR = ";";
 		public static String KEY_VALUE_SEPARATOR = ":";
 		public static String KEY_CONTENT_TYPE = "ContentType";
@@ -301,7 +301,7 @@ public class Media implements IMedia {
 	/**
 	 * Creates a Media object with an ID, type, and the content stream.
 	 * This is usually called to create a media object from other 
-	 * media object. 
+	 * media object. This is no longer needed after IMedia was created!
 	 * 
 	 * @param id
 	 *        The ID of the Media.
@@ -433,9 +433,9 @@ public class Media implements IMedia {
 	 * 
 	 * @return The media's size.
 	 */
-	public Media.ContentInfo getContentInfo(){
-		return this.contentInfo;
-	}
+	//public Media.ContentInfo getContentInfo(){
+	//	return this.contentInfo;
+	//}
 	
 	/**
 	 * Creates a filename for this media based on its ID and type.
@@ -456,12 +456,23 @@ public class Media implements IMedia {
 	}
 	
 	/**
-	 * Returns the MIME type for this media object. 
+	 * Returns the ContentInfo of this object.
 	 * 
-	 * @return The MIME type for this object of the form "{super}/{sub}".
+	 * @return The ContentInfo of this object.
 	 */
 	public String getContentType() {
 		return contentInfo.getContentType();
+	}
+	
+	/**
+	 * Returns the metadata string to be stored in the database entry
+	 * together with the media url.  
+	 * 
+	 * @return The metadata for this object of the form key:value.
+	 * 			Each key:value is separated by ";".
+	 */
+	public String getMetadata() {
+		return contentInfo.toMetadata();
 	}
 	
 	/**

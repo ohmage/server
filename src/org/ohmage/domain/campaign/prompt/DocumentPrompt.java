@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
-import java.io.IOException;
 import java.util.UUID;
 
 import org.json.JSONException;

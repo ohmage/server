@@ -37,7 +37,6 @@ import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.Media.ContentInfo;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 
@@ -871,9 +870,9 @@ public class Image implements IMedia{
 		return getSizeBytes(ORIGINAL);
 	}
 	
-	public Media.ContentInfo getContentInfo(){
-		return contentInfo;
-	}
+	//public Media.ContentInfo getContentInfo(){
+	//	return contentInfo;
+	//}
 
 	public String getContentType() {
 		return contentInfo.getContentType();
@@ -881,6 +880,10 @@ public class Image implements IMedia{
 	
 	public String getFileName() { 
 		return contentInfo.getFileName();
+	}
+	
+	public String getMetadata() { 
+		return contentInfo.toMetadata();
 	}
 	
 	public File writeContent(final File directory) throws DomainException{

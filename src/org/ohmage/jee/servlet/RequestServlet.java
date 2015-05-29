@@ -66,11 +66,11 @@ public class RequestServlet extends HttpServlet {
 	/**
 	 * The maximum allowed size for a set of stream data.
 	 */
-	public static final int MAX_STREAM_DATA_SIZE = 1024*1024*25;
+	public static final long MAX_STREAM_DATA_SIZE = 1024*1024*25;
 	/**
 	 * The maximum allowed size for a single file being uploaded.
 	 */
-	public static final long MAX_FILE_SIZE = 1024*1024*1024*1;
+	public static final long MAX_FILE_SIZE = 1024L*1024L*1024L;
 	/**
 	 * <p>
 	 * The maximum allowed size of a single upload.

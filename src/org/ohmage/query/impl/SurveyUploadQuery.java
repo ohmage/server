@@ -16,7 +16,6 @@
 package org.ohmage.query.impl;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -28,7 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -43,7 +41,6 @@ import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
-import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.RepeatableSet;
@@ -51,7 +48,6 @@ import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
-import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
@@ -160,7 +156,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final Map<UUID, Image> bufferedImageMap,
 			final Map<UUID, Video> videoContentsMap,
 			final Map<UUID, Audio> audioContentsMap,
-			final Map<UUID, Media> documentContentsMap)
+			final Map<UUID, IMedia> documentContentsMap)
 			throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
@@ -431,7 +427,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
             final Map<UUID, Image> bufferedImageMap,
             final Map<UUID, Video> videoContentsMap, 
             final Map<UUID, Audio> audioContentsMap, 
-            final Map<UUID, Media> documentContentsMap,
+            final Map<UUID, IMedia> documentContentsMap,
             final DataSourceTransactionManager transactionManager,
             final TransactionStatus status) 
 			throws DataAccessException {
@@ -540,7 +536,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 									e);
 					}
 					
-					String metadata = image.getContentInfo().toMetadata();
+					String metadata = image.getMetadata();
 					
 					// Get the image's URL.
 					String url = "file://" + originalFile.getAbsolutePath();
@@ -560,9 +556,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					}
 				}
 			}
-			
-
-			// HT: shorten the code
 			else
 			*/			
 				// Save other media files.
@@ -627,7 +620,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
 							
 						// Get the contentInfo
-						String metadata = media.getContentInfo().toMetadata();
+						String metadata = media.getMetadata();
 						
 						// Insert the media URL into the database.
 						try {

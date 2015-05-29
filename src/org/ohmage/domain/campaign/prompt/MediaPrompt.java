@@ -229,7 +229,8 @@ public abstract class MediaPrompt extends Prompt {
 		
 		if ((maxFileSize != null) && (media.getFileSize() > maxFileSize))
 			throw new DomainException(ErrorCode.MEDIA_INVALID_DATA, 
-					"The file size is larger than its specified maximum: " + maxFileSize);	
+					"The file size of prompt ID " + getId().toString() +
+					" is larger than its specified maximum: " + maxFileSize);	
 	}
 	
 

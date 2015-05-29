@@ -42,9 +42,9 @@ public interface IMedia {
 	/**
 	 * Returns ContentInfo object associated with this media.
 	 * 
-	 * @return The media's size.
+	 * @return The ContentInfo of this object.
 	 */
-	public Media.ContentInfo getContentInfo();
+	// public Media.ContentInfo getContentInfo();
 	
 	/**
 	 * Creates a filename for this media based on its ID and type.
@@ -67,6 +67,15 @@ public interface IMedia {
 	 */
 	public String getContentType();
 	
+	
+	/**
+	 * Returns the metadata string to be stored in the database entry
+	 * together with the media url.  
+	 * 
+	 * @return The metadata for this object of the form key:value.
+	 * 			Each key:value is separated by ";".
+	 */
+	public String getMetadata();
 	
 	/**
 	 * Writes the media data to the given directory. 

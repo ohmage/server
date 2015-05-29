@@ -26,7 +26,6 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
-import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.PromptResponse;
@@ -147,7 +146,7 @@ public final class SurveyResponseServices {
             final Map<UUID, Image> bufferedImageMap,
             final Map<UUID, Video> videoContentsMap,
             final Map<UUID, Audio> audioContentsMap, 
-            final Map<UUID, Media> documentContentsMap) 
+            final Map<UUID, IMedia> documentContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -186,7 +185,8 @@ public final class SurveyResponseServices {
 	
 	/**
 	 * Verifies that, for all photo prompt responses, a corresponding image
-	 * exists in the list of images.
+	 * exists in the list of images, and the file doesn't violate the
+	 * prompt definition.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -195,12 +195,12 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public void verifyImagesExistForPhotoPromptResponses(
+	public void verifyImagesFilesForPhotoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, Image> images) 
 			throws ServiceException {
 		
-		verifyMediaFilesExistForMediaPromptResponses(PhotoPromptResponse.class, surveyResponses, images);
+		verifyMediaFilesForMediaPromptResponses(PhotoPromptResponse.class, surveyResponses, images);
 	/*	
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
@@ -220,7 +220,8 @@ public final class SurveyResponseServices {
 	
 	/**
 	 * Verifies that, for all video prompt responses, a corresponding video
-	 * exists in the list of videos.
+	 * exists in the list of videos, and the file doesn't violate the
+	 * prompt definition.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -229,17 +230,18 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public void verifyVideosExistForVideoPromptResponses(
+	public void verifyVideosFilesForVideoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, Video> videos) 
 			throws ServiceException {
 		
-		verifyMediaFilesExistForMediaPromptResponses(VideoPromptResponse.class, surveyResponses, videos);
+		verifyMediaFilesForMediaPromptResponses(VideoPromptResponse.class, surveyResponses, videos);
 	}
 	
 	/**
 	 * Verifies that, for all audio prompt responses, a corresponding audio
-	 * exists in the list of audio files.
+	 * exists in the list of audio files, and the file doesn't violate the
+	 * prompt definition.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -248,11 +250,11 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public void verifyAudioFilesExistForAudioPromptResponses(
+	public void verifyAudioFilesForAudioPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, Audio> audios) 
 			throws ServiceException {
-		verifyMediaFilesExistForMediaPromptResponses(AudioPromptResponse.class, surveyResponses, audios);
+		verifyMediaFilesForMediaPromptResponses(AudioPromptResponse.class, surveyResponses, audios);
 		
 	}
 	
@@ -268,18 +270,19 @@ public final class SurveyResponseServices {
 	 * 							corresponding contents don't.
 	 */
 	// TODO: HT generalize this for all media type
-	public void verifyDocumentFilesExistForDocumentPromptResponses(
+	public void verifyDocumentFilesForDocumentPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<UUID, Media> documentPs) 
+			final Map<UUID, IMedia> documentPs) 
 			throws ServiceException {
 
-		verifyMediaFilesExistForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
+		verifyMediaFilesForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
 		
 	}
 	
 	/**
 	 * Verifies that, for each media prompt responses, a corresponding file/object
-	 * exists in the list of media files.
+	 * exists in the list of media files, and the file doesn't violate the 
+	 * prompt definition.
 	 * 
 	 * @param 	mediaClass The particular media class that we are checking against
 	 * 
@@ -291,7 +294,7 @@ public final class SurveyResponseServices {
 	 * 							corresponding contents don't.
 	 */
 	
-	public void verifyMediaFilesExistForMediaPromptResponses(
+	public void verifyMediaFilesForMediaPromptResponses(
 			final Class<? extends Response> mediaClass,
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, ? extends IMedia> mediaMap) 

@@ -3494,7 +3494,7 @@ public class Campaign {
 		Long maxFileSize = null;
 		try {
 			LabelValuePair maxFilesizeVlp =
-				properties.get(DocumentPrompt.XML_KEY_MAX_FILESIZE);  // optional
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
 			
 			if(maxFilesizeVlp != null) {
 				maxFileSize = 
@@ -3504,7 +3504,7 @@ public class Campaign {
 		catch(NumberFormatException e) {
 			throw new DomainException(
 					"The '" +
-						DocumentPrompt.XML_KEY_MAX_FILESIZE +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
 						"' property is not an integer: " +
 						id, 
 					e);
@@ -4801,7 +4801,7 @@ public class Campaign {
 		Long maxFileSize = null;
 		try {
 			LabelValuePair maxFilesizeVlp =
-				properties.get(DocumentPrompt.XML_KEY_MAX_FILESIZE);  // optional
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
 			
 			if(maxFilesizeVlp != null) {
 				maxFileSize = 
@@ -4811,7 +4811,7 @@ public class Campaign {
 		catch(NumberFormatException e) {
 			throw new DomainException(
 					"The '" +
-						DocumentPrompt.XML_KEY_MAX_FILESIZE +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
 						"' property is not an integer: " +
 						id, 
 					e);

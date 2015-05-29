@@ -20,7 +20,7 @@ public class VideoPrompt extends MediaPrompt {
 	/**
 	 * The key for the properties to retrieve the maximum seconds value.
 	 */
-	public static final String XML_MAX_SECONDS = "max_seconds";
+	public static final String XML_MAX_SECONDS = "maxSeconds";
 	
 	/**
 	 * The maximum number of seconds that the recording may last.

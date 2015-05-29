@@ -37,16 +37,11 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
-import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
-import org.ohmage.domain.campaign.prompt.PhotoPrompt;
-import org.ohmage.domain.campaign.response.AudioPromptResponse;
-import org.ohmage.domain.campaign.response.DocumentPromptResponse;
-import org.ohmage.domain.campaign.response.PhotoPromptResponse;
-import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
@@ -59,7 +54,6 @@ import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
-import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -131,7 +125,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<UUID, Video> videoContentsMap;
 	private final Map<UUID, Audio> audioContentsMap;
-	private final Map<UUID, Media> documentContentsMap;
+	private final Map<UUID, IMedia> documentContentsMap;
 	private final String owner;
 	
 	private Collection<UUID> surveyResponseIds;
@@ -208,7 +202,7 @@ public class SurveyUploadRequest extends UserRequest {
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<UUID, Video> tVideoContentsMap = null;
 		Map<UUID, Audio> tAudioContentsMap = null;
-		Map<UUID, Media> tDocumentContentsMap = null;
+		Map<UUID, IMedia> tDocumentContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -302,24 +296,16 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				tVideoContentsMap = new HashMap<UUID, Video>();
 				tAudioContentsMap = new HashMap<UUID, Audio>();
-				tDocumentContentsMap = new HashMap<UUID, Media>();
+				tDocumentContentsMap = new HashMap<UUID, IMedia>();
 				Collection<Part> parts = null;
 				
 			
 				// init the tDocumentContentsMap with inline images
-				try {
-					for (UUID uuid : tImageContentsMap.keySet()){
-						Image image = tImageContentsMap.get(uuid);
-						tDocumentContentsMap.put(uuid, 
-								new Media(image.getId(), null, null, image.getSizeBytes(Image.ORIGINAL), 
-										image.getInputStream(Image.ORIGINAL)) 
-								);
-					}
-				} catch (DomainException e){
-					LOGGER.info("A Media object could not be built.", e);
-					throw new ValidationException("Could not create the media object.", e);
+				for (UUID uuid : tImageContentsMap.keySet()){
+					Image image = tImageContentsMap.get(uuid);
+					tDocumentContentsMap.put(uuid, image);
 				}
-		
+				
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
@@ -350,19 +336,7 @@ public class SurveyUploadRequest extends UserRequest {
 						}
 						
 						// String fileType = contentType.split("/")[1]; // not the same as file extension 
-						String fileName = getPartFilename(p);
-						/*
-						String fileExt = getFileType(fileName);
-						String fileType = "";
-						// if (fileType == null)
-						//	fileType = getFileTypeFromContentType(contentType); // a hack
-						if (fileExt == null) {
-							fileType = "__" + contentType.replace("/", ".");
-						} else {
-							fileType = fileExt + "__" + contentType.replace("/", ".");
-						}
-						*/
-						
+						String fileName = getPartFilename(p);				
 						LOGGER.debug("HT: id: " + name + " Content-type:" + contentType + " fileName:" + fileName);
 						
 						// TODO: pass fileType to image creation
@@ -376,9 +350,7 @@ public class SurveyUploadRequest extends UserRequest {
 							Image image = new Image(id,	contentType, fileName, 
 									getMultipartValue(httpRequest, name));						
 							tImageContentsMap.put(id, image);	
-							tDocumentContentsMap.put(id, 
-									new Media(id, contentType, fileName, image.getSizeBytes(Image.ORIGINAL), 
-										image.getInputStream(Image.ORIGINAL)));
+							tDocumentContentsMap.put(id, image);
 						}
 						else if(contentType.startsWith("video/")) {
 							Video video = new Video(id,	contentType, fileName,
@@ -522,16 +494,16 @@ public class SurveyUploadRequest extends UserRequest {
 			}
 
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
-			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
+			SurveyResponseServices.instance().verifyImagesFilesForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
 			LOGGER.info("Validating that all video prompt responses have their corresponding videos attached.");
-			SurveyResponseServices.instance().verifyVideosExistForVideoPromptResponses(surveyResponses, videoContentsMap);
+			SurveyResponseServices.instance().verifyVideosFilesForVideoPromptResponses(surveyResponses, videoContentsMap);
 			
 			LOGGER.info("Validating that all audio prompt responses have their corresponding audio files attached.");
-			SurveyResponseServices.instance().verifyAudioFilesExistForAudioPromptResponses(surveyResponses, audioContentsMap);
+			SurveyResponseServices.instance().verifyAudioFilesForAudioPromptResponses(surveyResponses, audioContentsMap);
 			
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
-			SurveyResponseServices.instance().verifyDocumentFilesExistForDocumentPromptResponses(surveyResponses, documentContentsMap);
+			SurveyResponseServices.instance().verifyDocumentFilesForDocumentPromptResponses(surveyResponses, documentContentsMap);
 			
 			// TODO: validate compliance to campaign definition 
 			
