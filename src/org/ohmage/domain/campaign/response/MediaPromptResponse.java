@@ -15,22 +15,23 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.response;
 
-// import java.util.UUID;
+import java.util.UUID;
 
-// import org.ohmage.domain.campaign.PromptResponse;
+import org.ohmage.domain.campaign.PromptResponse;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.prompt.PhotoPrompt;
 import org.ohmage.exception.DomainException;
 
 /**
- * A photo prompt response.
+ * A media prompt response.
  * 
- * @author John Jenkins
+ * @author Hongsuda T.
  */
-public class PhotoPromptResponse extends MediaPromptResponse {
+public abstract class MediaPromptResponse extends PromptResponse {
 	/**
 	 * Creates a photo prompt response.
 	 * 
-	 * @param prompt The PhotoPrompt used to generate this response.
+	 * @param prompt The MediaPrompt used to generate this response.
 	 * 
 	 * @param repeatableSetIteration If the prompt was part of a repeatable 
 	 * 								 set, this is the iteration of that 
@@ -48,8 +49,8 @@ public class PhotoPromptResponse extends MediaPromptResponse {
 	 * 
 	 * @see PhotoPrompt#validateValue(Object) Validation Rules
 	 */
-	public PhotoPromptResponse(
-			final PhotoPrompt prompt,
+	public MediaPromptResponse(
+			final MediaPrompt prompt,
 			final Integer repeatableSetIteration, 
 			final Object response) 
 			throws DomainException {
@@ -57,4 +58,21 @@ public class PhotoPromptResponse extends MediaPromptResponse {
 		super(prompt, repeatableSetIteration, response);
 	}
 	
+	/**
+	 * Returns the UUID.
+	 * 
+	 * @return The UUID.
+	 * 
+	 * @throws DomainException The prompt does not have a response.
+	 */
+	public UUID getUuid() throws DomainException {
+		if(wasNotDisplayed()) {
+			throw new DomainException("The prompt was not displayed.");
+		}
+		else if(wasSkipped()) {
+			throw new DomainException("The prompt was skipped.");
+		}
+		
+		return (UUID) getResponse();
+	}
 }

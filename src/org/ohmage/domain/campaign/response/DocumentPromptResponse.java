@@ -15,9 +15,9 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.response;
 
-import java.util.UUID;
+// import java.util.UUID;
 
-import org.ohmage.domain.campaign.PromptResponse;
+// import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.DocumentPrompt;
 import org.ohmage.exception.DomainException;
 
@@ -26,7 +26,7 @@ import org.ohmage.exception.DomainException;
  * 
  * @author HT
  */
-public class DocumentPromptResponse extends PromptResponse {
+public class DocumentPromptResponse extends MediaPromptResponse {
 	/**
 	 * Creates a Document prompt response.
 	 * 
@@ -57,21 +57,4 @@ public class DocumentPromptResponse extends PromptResponse {
 		super(prompt, repeatableSetIteration, response);
 	}
 	
-	/**
-	 * Returns the UUID.
-	 * 
-	 * @return The UUID.
-	 * 
-	 * @throws DomainException The prompt does not have a response.
-	 */
-	public UUID getUuid() throws DomainException {
-		if(wasNotDisplayed()) {
-			throw new DomainException("The prompt was not displayed.");
-		}
-		else if(wasSkipped()) {
-			throw new DomainException("The prompt was skipped.");
-		}
-		
-		return (UUID) getResponse();
-	}
 }

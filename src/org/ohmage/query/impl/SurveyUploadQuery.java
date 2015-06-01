@@ -50,6 +50,7 @@ import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.MediaPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
@@ -559,10 +560,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			else
 			*/			
 				// Save other media files.
-			if( (promptResponse instanceof PhotoPromptResponse) ||
-				(promptResponse instanceof AudioPromptResponse) ||
-				(promptResponse instanceof VideoPromptResponse) ||
-				(promptResponse instanceof DocumentPromptResponse)	 ) {
+			if( (promptResponse instanceof MediaPromptResponse)	) {
 				LOGGER.debug("HT: Processing a media response");	
 					
 				// Make sure the response contains an actual media response. 

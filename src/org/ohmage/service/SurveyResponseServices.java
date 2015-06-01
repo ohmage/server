@@ -36,6 +36,7 @@ import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.MediaPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
@@ -295,51 +296,41 @@ public final class SurveyResponseServices {
 	 */
 	
 	public void verifyMediaFilesForMediaPromptResponses(
-			final Class<? extends Response> mediaClass,
+			final Class<? extends MediaPromptResponse> mediaClass,
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, ? extends IMedia> mediaMap) 
 			throws ServiceException {
 		
-		if (
-			(mediaClass.equals(PhotoPromptResponse.class)) ||
-			(mediaClass.equals(AudioPromptResponse.class)) ||
-			(mediaClass.equals(VideoPromptResponse.class)) ||
-			(mediaClass.equals(DocumentPromptResponse.class))
-		) {
 			
-			for(SurveyResponse surveyResponse : surveyResponses) {
-				for(Response promptResponse : surveyResponse.getResponses().values()) {
-					if (mediaClass.isInstance(promptResponse))	{
-						Object responseValue = promptResponse.getResponse();
-						if(responseValue instanceof UUID) {
-							if (mediaMap.containsKey(responseValue)) {
-								// validate the media against the xml
-								try {
-									PromptResponse pr = (PromptResponse)promptResponse;
-									MediaPrompt dp = (MediaPrompt) (pr.getPrompt());
-									dp.validateMediaFileSize(mediaMap.get(responseValue));
-								} catch (DomainException e){
-									throw new ServiceException(e);
-								} catch (Exception e) {
-									throw new ServiceException("Can't convert prompt to MediaPrompt", e);
-								}	
+		for(SurveyResponse surveyResponse : surveyResponses) {
+			for(Response promptResponse : surveyResponse.getResponses().values()) {
+				if (mediaClass.isInstance(promptResponse))	{
+					Object responseValue = promptResponse.getResponse();
+					if(responseValue instanceof UUID) {
+						if (mediaMap.containsKey(responseValue)) {
+							// validate the media against the xml
+							try {
+								PromptResponse pr = (PromptResponse)promptResponse;
+								MediaPrompt dp = (MediaPrompt) (pr.getPrompt());
+								dp.validateMediaFileSize(mediaMap.get(responseValue));
+							} catch (DomainException e){
+								throw new ServiceException(e);
+							} catch (Exception e) {
+								throw new ServiceException("Can't convert prompt to MediaPrompt", e);
+							}	
 							
-							} else { // no media content
-								throw new ServiceException(
-										ErrorCode.SURVEY_INVALID_RESPONSES, 
-										"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
-										responseValue.toString());
-							}
+						} else { // no media content
+							throw new ServiceException(
+									ErrorCode.SURVEY_INVALID_RESPONSES, 
+									"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
+											responseValue.toString());
 						}
+					}
 						
-					} 
-				}
+				} 
 			}
-			
-		} else {
-			throw new ServiceException("This method only accepts PhotoPromptResponse, "
-					+ "AudioPromptResponse, VideoPromptResponse and DocumentPromptResponse only!");
 		}
+			
 	}
 
 	
