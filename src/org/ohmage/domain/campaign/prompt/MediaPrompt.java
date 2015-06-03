@@ -106,7 +106,7 @@ public abstract class MediaPrompt extends Prompt {
 			skippable,
 			skipLabel,
 			displayLabel,
-			Type.DOCUMENT,
+			type,
 			index);
 		
 		if((maxFileSize != null) && (maxFileSize < 0)){ 
