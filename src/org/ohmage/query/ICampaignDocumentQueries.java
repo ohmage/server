@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
@@ -25,6 +27,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public interface ICampaignDocumentQueries {
 
@@ -38,6 +41,23 @@ public interface ICampaignDocumentQueries {
 	 */
 	List<String> getCampaignsAssociatedWithDocument(String documentId)
 			throws DataAccessException;
+
+	/**
+	 * Retrieves a List of Campaigns and their roles associated with each document 
+	 * in the document list. 
+	 * 
+	 * 	 * @param username The username of the user whose personal documents are
+	 * 				   being checked.
+	 * 
+	 * @param documentIds The unique identifier (dbId) for the document whose role is
+	 * 					 desired.
+	 * 
+	 * @return A map of document id and campaigns as well as their roles associated 
+	 * with the document.
+	 */
+	List<Document.UserContainerRole> getCampaignRolesAssociatedWithDocumentSet
+		(String username, Collection<Integer>documentIds)	
+				throws DataAccessException;
 
 	/**
 	 * Retrieves a camaign's document role if it is associated with a document.

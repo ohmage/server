@@ -15,13 +15,22 @@
  ******************************************************************************/
 package org.ohmage.query.impl;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.ohmage.domain.Document;
+import org.ohmage.domain.Document.UserContainerRole;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IClassDocumentQueries;
+import org.ohmage.util.StringUtils;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 /**
@@ -76,6 +85,71 @@ public class ClassDocumentQueries extends Query implements IClassDocumentQueries
 					e);
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassDocumentQueries#getClassesAssociatedWithDocument(java.lang.String)
+	 */
+	public List<UserContainerRole> getClassRolesAssociatedWithDocumentSet
+		(String username, Collection<Integer> documentIds) throws DataAccessException {
+		
+		if (documentIds == null || documentIds.size() == 0)
+			throw new DataAccessException("Document list is empty");
+
+		StringBuilder sql = 
+				new StringBuilder(
+						"SELECT d.id, c.urn, dr.role, " +
+								"GROUP_CONCAT(DISTINCT ucr.role ORDER by ucr.role ASC SEPARATOR ';') as user_roles " +
+						"FROM document d " +
+						   "JOIN document_class_role dcr on (d.id = dcr.document_id) " +
+						   "JOIN document_role dr on (dcr.document_role_id=dr.id) " +
+	//					   "JOIN document_privacy_state dps on (d.privacy_state_id = dps.id) " +
+						   "JOIN user_class uc on (dcr.class_id = uc.class_id) " +
+						   "JOIN user_class_role ucr on (ucr.id = uc.user_class_role_id) " +
+						   "JOIN class c on (c.id = dcr.class_id) " +
+						   "JOIN user u on (uc.user_id = u.id) " +
+						"WHERE u.username = ? " +
+	  					   "AND d.id in ");
+		sql.append(StringUtils.generateStatementPList(documentIds.size()));	
+		
+		sql.append(		   
+					//	  " AND ( dps.privacy_state = 'shared' " +
+					//	      "OR ucr.role = 'privileged' " +
+					//	      "OR dr.role = 'owner') " +
+						" GROUP BY d.id, dcr.class_id ");
+		
+		
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		parameters.addAll(documentIds);
+
+		try {
+			
+			return (getJdbcTemplate().query(
+					sql.toString(), 
+					parameters.toArray(), 
+					new RowMapper<Document.UserContainerRole>() {
+						@Override
+						public Document.UserContainerRole mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+							try {
+								return new Document.UserContainerRole(
+												rs.getInt("id"),
+												rs.getString("urn"), 
+												Document.Role.getValue(rs.getString("role")), 
+												rs.getString("user_roles"));
+							} catch (final Exception e) {
+								throw new SQLException("Within mapRow: Can't create a role with parameter: " + rs.getInt("id") + "," + rs.getString("urn"), e);
+							}
+						}
+					}
+				));
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + username + ", " + documentIds.toString(), e);
+		}
+
+	}
+	
 	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IClassDocumentQueries#getClassDocumentRole(java.lang.String, java.lang.String)

@@ -27,6 +27,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -545,7 +546,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		
 		StringBuilder sql = 
 			new StringBuilder(
-				"SELECT d.uuid, d.name, d.description, d.size, " +
+				"SELECT d.id, d.uuid, d.name, d.description, d.size, " +
 					"d.last_modified_timestamp, d.creation_timestamp, " +
 					"dps.privacy_state, duc.username " +
 				"FROM user u, document d, " +
@@ -728,8 +729,8 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 							"SELECT dr.id " +
 							"FROM document_role dr " +
 							"WHERE dr.role IN (" +
-								"'" + Document.Role.OWNER.toString() + "', " +
-								"'" + Document.Role.WRITER.toString() + "'" +
+						//		"'" + Document.Role.WRITER.toString() + "', " +
+								"'" + Document.Role.OWNER.toString() + "'" +
 							")" +
 							"AND (" +
 								// See if the user is directly related to the 
@@ -794,6 +795,51 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					")" +
 				")");
 		
+	
+		// return a map instead of a list
+		/*
+		try {
+			final Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
+			getJdbcTemplate().query(
+				sql.toString(), 
+				parameters.toArray(), 
+				new RowMapper<Object>() {
+					@Override
+					public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+						try {
+							Document doc = new Document(
+									rs.getInt("id"),
+									rs.getString("uuid"),
+									rs.getString("name"),
+									rs.getString("description"),
+									Document.PrivacyState.getValue(rs.getString("privacy_state")),
+									new DateTime(rs.getTimestamp("last_modified_timestamp").getTime()),
+									new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
+									rs.getInt("size"),
+									rs.getString("username"));
+							documentMap.put(rs.getInt("id"), doc);
+							return null;
+						}
+						catch(DomainException e) {
+							throw new SQLException(
+									"A document is broken: " + 
+										rs.getString("uuid"), 
+									e);
+						}
+					}
+				}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+				"Error executing SQL '" + 
+					sql.toString() + 
+					"' with parameters: " +
+					parameters, 
+				e);
+		}
+		*/
+		
 		try {
 			return getJdbcTemplate().query(
 				sql.toString(), 
@@ -807,6 +853,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 						
 						try {
 							return new Document(
+									rs.getInt("id"),
 									rs.getString("uuid"),
 									rs.getString("name"),
 									rs.getString("description"),
@@ -834,6 +881,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					parameters, 
 				e);
 		}
+		
 	}
 	
 	/* (non-Javadoc)

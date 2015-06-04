@@ -16,10 +16,13 @@
 package org.ohmage.service;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
+import org.ohmage.domain.Document.UserContainerRole;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -299,6 +302,8 @@ public class UserDocumentServices {
 		}
 	}
 	
+	
+
 	/**
 	 * Retrieves the information about the documents that match any of the 
 	 * criteria. If all of the criteria are null, it will return all documents
@@ -337,6 +342,124 @@ public class UserDocumentServices {
 	 * @throws ServiceException There was an error.
 	 */
 	public List<Document> getDocumentInformation(
+			final String requesterUsername,
+			final Boolean personalDocuments,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens)
+			throws ServiceException {
+			
+		try {
+			// First get a list of all documents that are visible through the ACL rules.
+			List<Document> result =
+				documentQueries.getDocumentInformation(
+					requesterUsername, 
+					personalDocuments, 
+					campaignIds, 
+					classIds,
+					nameTokens,
+					descriptionTokens);
+	
+			if (result.size() == 0)
+				return result; 
+			
+
+			// create a map for easy reference to document
+			Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
+			for (Document doc : result) {
+				documentMap.put(doc.getDocumentDbId(), doc);
+			}
+			
+			// Update the roles data associated with those document
+			// 1. data derived from userDocument relationship
+			Map<Integer, Document.Role> userRoleMap = userDocumentQueries.getDocumentRoleForDocumentSetSpecificToUser(requesterUsername, documentMap.keySet());
+			for (Integer index : userRoleMap.keySet()) {
+				if(userRoleMap.get(index) != null) {
+					Document doc = documentMap.get(index);
+					doc.setUserRole(userRoleMap.get(index));
+				}
+			}
+			
+			// 2. data derived from ClassDocument relationship
+			List<UserContainerRole> userClassRoles = 
+					classDocumentQueries.getClassRolesAssociatedWithDocumentSet(requesterUsername, documentMap.keySet());
+			for (UserContainerRole ucr : userClassRoles) {
+				Integer dbId = ucr.getDocumentDbId();
+				Document doc = documentMap.get(dbId);
+				doc.addClassRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
+				if (ucr.isPrivilegedUser()) {
+					if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
+						// Automatically increase their privileges to writer.
+						doc.setMaxRole(Document.Role.WRITER);	
+					}
+				}
+			}
+				
+			
+			// 3. data derived from DocumentCampaign relationship
+			List<UserContainerRole> userCampaignRoles= 
+					campaignDocumentQueries.getCampaignRolesAssociatedWithDocumentSet(requesterUsername, documentMap.keySet());
+			for (UserContainerRole ucr : userCampaignRoles) {
+				Integer dbId = ucr.getDocumentDbId();
+				Document doc = documentMap.get(dbId);
+				doc.addCampaignRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
+				if (ucr.isPrivilegedUser()) {
+					if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
+						// Automatically increase their privileges to writer.
+						doc.setMaxRole(Document.Role.WRITER);	
+					}
+				}
+			}
+			
+			return result;
+			}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		catch(DomainException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the information about the documents that match any of the 
+	 * criteria. If all of the criteria are null, it will return all documents
+	 * visible to the requesting user.
+	 * 
+	 * @param requesterUsername This is the username of the requesting user and
+	 * 							is required.
+	 * 
+	 * @param personalDocuments If true will include the documents directly 
+	 * 							associated with this user; if false, it will 
+	 * 							not return the documents directly associated 
+	 * 							with the user unless they also happen to be 
+	 * 							associated with any class or campaign to which
+	 * 							the user belongs. If null, it will be treated 
+	 * 							as false.
+	 * 
+	 * @param campaignIds A collection of campaign unique identifiers that will
+	 * 					  increase the results to include all documents in all
+	 * 					  of these campaigns.
+	 * 
+	 * @param classIds A collection of class unqiue identifiers that will
+	 * 				   increase the results to include all documents in all of
+	 * 				   these classes.
+	 * 
+	 * @param nameTokens A collection of tokens that limits the list to only
+	 * 					 those documents whose name contains any of the tokens.
+	 * 
+	 * @param descriptionTokens A collection of tokens that limits the list to
+	 * 							only those documents that have a description
+	 * 							and where that description contains any of 
+	 * 							these tokens.
+	 *  
+	 * @return A DocumentInformation object representing the information about
+	 * 		   this document.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public List<Document> getDocumentInformationSlow(
 			final String requesterUsername,
 			final Boolean personalDocuments,
 			final Collection<String> campaignIds,

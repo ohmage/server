@@ -17,15 +17,22 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IUserDocumentQueries;
+import org.ohmage.request.document.DocumentReadRequest;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
@@ -36,6 +43,8 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * @author John Jenkins
  */
 public final class UserDocumentQueries extends Query implements IUserDocumentQueries {
+	private static final Logger LOGGER = Logger.getLogger(UserDocumentQueries.class);
+	
 	// Gets the list of documents visible and specific to a user.
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER =
 		"SELECT distinct(d.uuid) " +
@@ -232,6 +241,81 @@ public final class UserDocumentQueries extends Query implements IUserDocumentQue
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER + 
 					"' with parameters: " + username + ", " + documentId, e);
+		}
+	}
+	
+	/**
+	 * Returns the document role for a document that is directly associated
+	 * with a user. If the user is not directly associated with the document or
+	 * it doesn't exist, null is returned.
+	 * 
+	 * @param username The username of the user whose personal documents are
+	 * 				   being checked.
+	 * 
+	 * @param documentId The unique identifier for the document whose role is
+	 * 					 desired.
+	 * 
+	 * @return If the document exist and the user is directly associated with 
+	 * 		   it, then their document role with said document is returned.
+	 * 		   Otherwise, null is returned.
+	 */
+	public Map<Integer, Document.Role> getDocumentRoleForDocumentSetSpecificToUser(String username, Collection<Integer> documentIds) throws DataAccessException {
+		
+		if (documentIds == null || documentIds.size() == 0)
+			throw new DataAccessException("Document list is empty");
+
+		LOGGER.debug("HT: begging of DocumentRoleForDocumentSet *****");
+		StringBuilder sql = 
+				new StringBuilder(
+						"select d.id, dr.role " +
+						"from document d " +
+						  "join document_user_role dur on (d.id = dur.document_id) " +
+						  "join document_role dr on (dur.document_role_id = dr.id) " +
+	//					  "join document_privacy_state dps on (d.privacy_state_id = dps.id) " +
+						  "join user u on (dur.user_id = u.id) "+  
+						"where u.username = ? " +
+						  "and dur.document_id in ");
+		sql.append(StringUtils.generateStatementPList(documentIds.size()));
+	// no need to check for ACL
+	//	sql.append(		  " and ( dps.privacy_state = 'shared')" +
+	//						"or dr.role = 'owner')");
+		
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		parameters.addAll(documentIds);
+	
+		/*
+		LOGGER.debug("HT: sql=" + sql.toString());
+		String param = "";
+		for (Object i : parameters) {
+			param += i.toString() + " ";
+		}
+		LOGGER.debug("HT: params=" + param);
+		*/
+		
+		try {
+			final Map<Integer, Document.Role> docRoleMap = new HashMap<Integer, Document.Role>();
+			getJdbcTemplate().query(
+					sql.toString(), 
+					parameters.toArray(), 
+					new RowMapper<Object>() {
+						@Override
+						public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+							try {
+								docRoleMap.put(rs.getInt("id"), Document.Role.getValue(rs.getString("role")));
+								return null;
+							} catch (Exception e) {
+								LOGGER.debug("HT: something is wrong......");
+								throw new SQLException("Can't create a role with parameter: " + rs.getInt("id") + "," + rs.getString("role"), e);
+							}
+						}
+					}
+				);
+			return docRoleMap;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + username + ", " + documentIds.toString(), e);
 		}
 	}
 	
