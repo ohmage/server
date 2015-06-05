@@ -302,4 +302,18 @@ public final class DateTimeUtils {
 		}
 		return false;
 	}
+	
+	/**
+	 * return a string representing the datetime baed on the DATE_TIME_FORMATTER format.
+	 * 
+	 * @param tz The timezone string.
+	 * 
+	 * @return True if the timezone string is a valid timezone; false, 
+	 * 		   otherwise.
+	 */
+	public static String getStringFromDateTime(DateTime date) {
+		if (date == null)
+			return null;
+		return date.toString(DATE_TIME_FORMATTER);
+	}
 }

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 
@@ -125,7 +126,9 @@ public interface IDocumentQueries {
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
-			final Collection<String> descriptionTokens) 
+			final Collection<String> descriptionTokens,
+			final DateTime startDate,
+			final DateTime endDate) 
 			throws DataAccessException;
 
 	/**

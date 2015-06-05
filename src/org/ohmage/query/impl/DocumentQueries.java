@@ -49,6 +49,7 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IDocumentQueries;
+import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -541,7 +542,9 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
-			final Collection<String> descriptionTokens) 
+			final Collection<String> descriptionTokens,
+			final DateTime startDate,
+			final DateTime endDate) 
 			throws DataAccessException {
 		
 		StringBuilder sql = 
@@ -707,6 +710,18 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 			}
 			sql.append(")");
 		}
+		
+		
+		if(startDate != null){
+			sql.append(" AND d.last_modified_timestamp >= ?");
+			parameters.add(DateTimeUtils.getStringFromDateTime(startDate));
+		}
+		
+		if(endDate != null){
+			sql.append(" AND d.last_modified_timestamp <= ?");
+			parameters.add(DateTimeUtils.getStringFromDateTime(endDate));
+		}
+		
 		
 		// Now, we will tack on the ACL's to limit the results to only those
 		// that are visible to the requesting user. The whole work flow of this

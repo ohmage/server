@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.Document.UserContainerRole;
@@ -347,7 +348,9 @@ public class UserDocumentServices {
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
-			final Collection<String> descriptionTokens)
+			final Collection<String> descriptionTokens,
+			final DateTime startDate, 
+			final DateTime endDate)
 			throws ServiceException {
 			
 		try {
@@ -359,11 +362,12 @@ public class UserDocumentServices {
 					campaignIds, 
 					classIds,
 					nameTokens,
-					descriptionTokens);
+					descriptionTokens,
+					startDate,
+					endDate);
 	
 			if (result.size() == 0)
 				return result; 
-			
 
 			// create a map for easy reference to document
 			Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
@@ -371,7 +375,8 @@ public class UserDocumentServices {
 				documentMap.put(doc.getDocumentDbId(), doc);
 			}
 			
-			// Update the roles data associated with those document
+			// Assuming that the list of doc have passed the ACL rules, 
+			// update the roles data associated with those document.
 			// 1. data derived from userDocument relationship
 			Map<Integer, Document.Role> userRoleMap = userDocumentQueries.getDocumentRoleForDocumentSetSpecificToUser(requesterUsername, documentMap.keySet());
 			for (Integer index : userRoleMap.keySet()) {
@@ -476,7 +481,9 @@ public class UserDocumentServices {
 					campaignIds, 
 					classIds,
 					nameTokens,
-					descriptionTokens);
+					descriptionTokens,
+					null,
+					null);
 			
 			for(Document document : result) {
 				String documentId = document.getDocumentId();
