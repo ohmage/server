@@ -529,6 +529,7 @@ public class UserCampaignServices {
 	 * of the following are true:
 	 * <br />
 	 * <br />
+	 * - If the user is an admin
 	 * - If the user is a supervisor or an author.<br />
 	 * - If the user is an analyst and the campaign is shared.<br />
 	 * - If the user is the same as all of the requesting users.<br />
@@ -551,6 +552,12 @@ public class UserCampaignServices {
 			final String campaignId, final String requesterUsername, 
 			final String... userUsernames) throws ServiceException {
 		try {
+			
+			// If the requester is an admin, he/she can read it.
+			if(userQueries.userIsAdmin(requesterUsername)) {
+				return;
+			}
+						
 			// If the requester is asking about other users.
 			if(userUsernames.length != 0) {
 				// If the requester is the same as all of the users in question.
