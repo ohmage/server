@@ -3037,7 +3037,6 @@ public class Campaign {
 			properties = new HashMap<String, LabelValuePair>(0);
 		}
 
-		LOGGER.debug("HT: About the process prompt: " + type.toString());
 		switch(type) {
 		case AUDIO:
 			return processAudio(
@@ -3053,6 +3052,7 @@ public class Campaign {
 				properties,
 				index);
 			
+		case FILE:	
 		case DOCUMENT:
 			return processDocument(
 				id,

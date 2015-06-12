@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1611,12 +1612,14 @@ public class SurveyResponse {
 				result.put(JSON_KEY_RESPONSES, responses);
 			}
 			else {
-				JSONObject responses = new JSONObject();
+				// HT: attempt to preserve the order of json object
+				JSONObject responses = new JSONObject(new LinkedHashMap<String, String>());
 				for(Integer index : indices) {
 					Response response = this.responses.get(index);
-					
+		
 					responses.put(response.getId(), response.toJson(false));
 				}
+				
 				result.put(JSON_KEY_RESPONSES, responses);
 			}
 		}
@@ -1629,6 +1632,7 @@ public class SurveyResponse {
 			result.put(JSON_KEY_COUNT, count);
 		}
 		
+		// LOGGER.debug("HT: result:" + result.toString());
 		return result;
 	}
 	
