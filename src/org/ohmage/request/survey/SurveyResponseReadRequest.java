@@ -727,7 +727,6 @@ public final class SurveyResponseReadRequest
 								((collapse != null) && collapse)
 							);
 						
-						LOGGER.debug("HT: currResult:" + currResult.toString());
 						
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
 							currResult.put(
