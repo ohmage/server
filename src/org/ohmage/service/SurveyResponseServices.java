@@ -35,7 +35,7 @@ import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
 import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
-import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.FilePromptResponse;
 import org.ohmage.domain.campaign.response.MediaPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
@@ -134,7 +134,7 @@ public final class SurveyResponseServices {
 	 * 
 	 * @param audioContentsMap The map of the audio unique identifiers to their
 	 * 						   objects.
-	 * @param documentContentsMap 
+	 * @param fileContentsMap 
 	 * 
 	 * @return A list of the indices of the survey responses that were 
 	 * 		   duplicates.
@@ -147,7 +147,7 @@ public final class SurveyResponseServices {
             final Map<UUID, Image> bufferedImageMap,
             final Map<UUID, Video> videoContentsMap,
             final Map<UUID, Audio> audioContentsMap, 
-            final Map<UUID, IMedia> documentContentsMap) 
+            final Map<UUID, IMedia> fileContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -159,7 +159,7 @@ public final class SurveyResponseServices {
 				bufferedImageMap,
 				videoContentsMap,
 				audioContentsMap,
-				documentContentsMap);
+				fileContentsMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -260,8 +260,8 @@ public final class SurveyResponseServices {
 	}
 	
 	/**
-	 * Verifies that, for all document prompt responses, a corresponding document
-	 * exists in the list of document files.
+	 * Verifies that, for all file prompt responses, a corresponding file
+	 * exists in the list of OFile objects.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -271,12 +271,12 @@ public final class SurveyResponseServices {
 	 * 							corresponding contents don't.
 	 */
 	// TODO: HT generalize this for all media type
-	public void verifyDocumentFilesForDocumentPromptResponses(
+	public void verifyOFilesForFilePromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<UUID, IMedia> documentPs) 
+			final Map<UUID, IMedia> oFiles) 
 			throws ServiceException {
 
-		verifyMediaFilesForMediaPromptResponses(DocumentPromptResponse.class, surveyResponses, documentPs);
+		verifyMediaFilesForMediaPromptResponses(FilePromptResponse.class, surveyResponses, oFiles);
 		
 	}
 	

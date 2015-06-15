@@ -23,7 +23,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
-import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.OFile;
 import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Media;
@@ -153,8 +153,8 @@ public final class MediaServices {
 				return new Audio(id, url, info);
 			else if (mediaType.equals(Video.class))
 				return new Video(id, url, info);
-			else if (mediaType.equals(DocumentP.class))
-				return new DocumentP(id, url, info);
+			else if (mediaType.equals(OFile.class))
+				return new OFile(id, url, info);
 			else throw new ServiceException("The type is not a media object:" + mediaType.getName());
 			
 		}

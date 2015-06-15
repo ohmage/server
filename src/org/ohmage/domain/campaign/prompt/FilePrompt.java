@@ -22,7 +22,7 @@ import org.json.JSONObject;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
 import org.ohmage.domain.Media;
 import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.FilePromptResponse;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -30,7 +30,7 @@ import org.ohmage.exception.DomainException;
  * 
  * @author Hongsuda T. 
  */
-public class DocumentPrompt extends MediaPrompt {
+public class FilePrompt extends MediaPrompt {
 	
 	
 	/**
@@ -63,7 +63,7 @@ public class DocumentPrompt extends MediaPrompt {
 	 * 
 	 * @throws DomainException Thrown if the vertical resolution is negative.
 	 */
-	public DocumentPrompt(
+	public FilePrompt(
 			final String id, 
 			final String condition, 
 			final String unit, 
@@ -141,12 +141,12 @@ public class DocumentPrompt extends MediaPrompt {
 	 * 						   response value for this prompt.
 	 */
 	@Override
-	public DocumentPromptResponse createResponse(
+	public FilePromptResponse createResponse(
 			final Integer repeatableSetIteration,
 			final Object response) 
 			throws DomainException {
 		
-		return new DocumentPromptResponse(
+		return new FilePromptResponse(
 				this,
 				repeatableSetIteration,
 				response);
@@ -185,7 +185,7 @@ public class DocumentPrompt extends MediaPrompt {
 		if(!super.equals(obj)) {
 			return false;
 		}
-		if(!(obj instanceof DocumentPrompt)) {
+		if(!(obj instanceof FilePrompt)) {
 			return false;
 		}
 	

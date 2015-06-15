@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
-import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.OFile;
 import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;

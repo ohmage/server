@@ -12,7 +12,7 @@ import org.ohmage.exception.DomainException;
  *
  * @author HT
  */
-public class DocumentP extends Media {
+public class OFile extends Media {
 	/**
 	 * The root MIME type for any media of this type, {@value #MIME_TYPE}.
 	 */
@@ -36,7 +36,7 @@ public class DocumentP extends Media {
 	 * @throws DomainException
 	 *         One of the parameters was invalid.
 	 */	
-	public DocumentP(UUID id, String contentType, String fileName,
+	public OFile(UUID id, String contentType, String fileName,
 			byte[] content) throws DomainException {
 	
 		super(id, contentType, fileName, content);
@@ -58,15 +58,17 @@ public class DocumentP extends Media {
 	 * @throws DomainException
 	 *         The URL was invalid or the object it points to does not exist.
 	 */
-	public DocumentP(final UUID id, final URL url, final String info) throws DomainException {
+	public OFile(final UUID id, final URL url, final String info) throws DomainException {
 		super(id, url, info);
 	}
 	
 
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
-	 */
+	 *
+	 * Not used. 
 	protected String getMimeTypeRoot() {
 		return MIME_TYPE_ROOT;
 	}
+		 */
 }

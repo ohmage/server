@@ -8,8 +8,9 @@ import java.util.regex.Pattern;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 
-public class VideoDirectoryCache {
-	private static File currVideoDirectory = null;
+public class XOFileDirectoryCache {
+	private static File currDocumentPDirectory = null;
+	private static String KEY_DOCUMENTP_DIRECTORY = PreferenceCache.KEY_DOCUMENTP_DIRECTORY;
 	
 	/**
 	 * Filters the sub-directories in a directory to only return those that
@@ -34,15 +35,15 @@ public class VideoDirectoryCache {
 	 * Default constructor, made private because this class should be 
 	 * referenced statically.
 	 */
-	private VideoDirectoryCache() {};
+	private XOFileDirectoryCache() {};
 	
 	/**
 	 * Retrieves the file to use to store a video. Each call to this function
-	 * has the implicit expectation that a video file will be stored in the
+	 * has the implicit expectation that a documentp file will be stored in the
 	 * resulting directory; however, this is not required and is not a 
 	 * necessity.
 	 * 
-	 * @return A File object where a video file should be written.
+	 * @return A File object where a documentp file should be written.
 	 */
 	public static File getDirectory() throws DomainException {
 		// Get the maximum number of items in a directory.
@@ -71,18 +72,18 @@ public class VideoDirectoryCache {
 		// that. Note that the initialization is dumb in that it will get to
 		// the end of the structure and not check to see if the leaf node is
 		// full.
-		if(currVideoDirectory == null) {
+		if(currDocumentPDirectory == null) {
 			init(numFilesPerDirectory);
 		}
 		
-		File[] documents = currVideoDirectory.listFiles();
+		File[] documents = currDocumentPDirectory.listFiles();
 		// If the 'imageLeafDirectory' directory is full, traverse the tree and
 		// find a new directory.
 		if(documents.length >= numFilesPerDirectory) {
 			getNewDirectory(numFilesPerDirectory);
 		}
 		
-		return currVideoDirectory;
+		return currDocumentPDirectory;
 	}
 	
 	/**
@@ -97,7 +98,7 @@ public class VideoDirectoryCache {
 		try {
 			// If the current leaf directory has been set, we weren't the first
 			// to call init(), so we can just back out.
-			if(currVideoDirectory != null) {
+			if(currDocumentPDirectory != null) {
 				return;
 			}
 			
@@ -106,13 +107,12 @@ public class VideoDirectoryCache {
 			String rootFile;
 			try {
 				rootFile = 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_VIDEO_DIRECTORY);
+					PreferenceCache.instance().lookup(KEY_DOCUMENTP_DIRECTORY);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_VIDEO_DIRECTORY,
+					KEY_DOCUMENTP_DIRECTORY,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -209,7 +209,7 @@ public class VideoDirectoryCache {
 			}
 			
 			// After we have found a suitable directory, set it.
-			currVideoDirectory = currDirectory;
+			currDocumentPDirectory = currDirectory;
 		}
 		catch(SecurityException e) {
 			throw new DomainException(
@@ -236,7 +236,7 @@ public class VideoDirectoryCache {
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
 			// directory.
-			File[] files = currVideoDirectory.listFiles();
+			File[] files = currDocumentPDirectory.listFiles();
 			if(files.length < numFilesPerDirectory) {
 				return;
 			}
@@ -247,12 +247,12 @@ public class VideoDirectoryCache {
 			try {
 				rootFile = 
 					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_VIDEO_DIRECTORY);
+						PreferenceCache.KEY_DOCUMENTP_DIRECTORY);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_VIDEO_DIRECTORY,
+						PreferenceCache.KEY_DOCUMENTP_DIRECTORY,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -271,7 +271,7 @@ public class VideoDirectoryCache {
 			
 			// A local File to use while we are searching to not confuse other
 			// threads.
-			File newDirectory = currVideoDirectory;
+			File newDirectory = currDocumentPDirectory;
 			
 			// A flag to indicate when we are done looking for a directory.
 			boolean lookingForDirectory = true;
@@ -349,7 +349,7 @@ public class VideoDirectoryCache {
 				}
 			}
 			
-			currVideoDirectory = newDirectory;
+			currDocumentPDirectory = newDirectory;
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(

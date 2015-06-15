@@ -18,7 +18,7 @@ package org.ohmage.domain.campaign.response;
 // import java.util.UUID;
 
 // import org.ohmage.domain.campaign.PromptResponse;
-import org.ohmage.domain.campaign.prompt.DocumentPrompt;
+import org.ohmage.domain.campaign.prompt.FilePrompt;
 import org.ohmage.exception.DomainException;
 
 /**
@@ -26,7 +26,7 @@ import org.ohmage.exception.DomainException;
  * 
  * @author HT
  */
-public class DocumentPromptResponse extends MediaPromptResponse {
+public class FilePromptResponse extends MediaPromptResponse {
 	/**
 	 * Creates a Document prompt response.
 	 * 
@@ -46,10 +46,10 @@ public class DocumentPromptResponse extends MediaPromptResponse {
 	 * 						   repeatable set, or the response could not be 
 	 * 						   properly decoded. 
 	 * 
-	 * @see DocumentPrompt#validateValue(Object) Validation Rules
+	 * @see FilePrompt#validateValue(Object) Validation Rules
 	 */
-	public DocumentPromptResponse(
-			final DocumentPrompt prompt,
+	public FilePromptResponse(
+			final FilePrompt prompt,
 			final Integer repeatableSetIteration, 
 			final Object response) 
 			throws DomainException {

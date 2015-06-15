@@ -49,7 +49,7 @@ import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
-import org.ohmage.domain.campaign.response.DocumentPromptResponse;
+import org.ohmage.domain.campaign.response.FilePromptResponse;
 import org.ohmage.domain.campaign.response.MediaPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
@@ -594,7 +594,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						} else if (promptResponse instanceof VideoPromptResponse) {							
 							currMediaDirectory = MediaDirectoryCache.getVideoDirectory();
 							media = videoContentsMap.get(id);	
-						} else if (promptResponse instanceof DocumentPromptResponse) {
+						} else if (promptResponse instanceof FilePromptResponse) {
 							currMediaDirectory = MediaDirectoryCache.getDocumentpDirectory();
 							media = documentContentsMap.get(id);	
 						} else if (promptResponse instanceof PhotoPromptResponse) {

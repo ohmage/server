@@ -62,8 +62,10 @@ public class Video extends Media {
 
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
-	 */
+	 *
+	 * Not used.
 	protected String getMimeTypeRoot() {
 		return MIME_TYPE_ROOT;
 	}
+	*/
 }

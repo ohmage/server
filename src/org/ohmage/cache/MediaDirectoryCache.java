@@ -10,7 +10,7 @@ import org.ohmage.domain.Media;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Audio;
 import org.ohmage.domain.Video;
-import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.OFile;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.impl.SurveyUploadQuery;
@@ -65,7 +65,7 @@ public class MediaDirectoryCache {
 			return getAudioDirectory();
 		else if (mediaType.equals(Video.class))
 			return getVideoDirectory();
-		else if (mediaType.equals(DocumentP.class))
+		else if (mediaType.equals(OFile.class))
 			return getDocumentpDirectory();
 		else return null;
 		

@@ -65,8 +65,10 @@ public class Audio extends Media {
 	
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
-	 */
+	 * 
+	 * Not use.
 	protected String getMimeTypeRoot() {
 		return MIME_TYPE_ROOT;
 	}
+	*/
 }

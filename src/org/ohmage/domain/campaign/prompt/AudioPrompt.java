@@ -170,7 +170,7 @@ public class AudioPrompt extends MediaPrompt {
 		}
 		
 		if(maxFileSize != null) {
-			result.put(DocumentPrompt.JSON_KEY_MAX_FILESIZE, maxFileSize);
+			result.put(MediaPrompt.JSON_KEY_MAX_FILESIZE, maxFileSize);
 		}
 		
 		return result;

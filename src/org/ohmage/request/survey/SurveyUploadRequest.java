@@ -36,7 +36,7 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
-import org.ohmage.domain.DocumentP;
+import org.ohmage.domain.OFile;
 import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
@@ -366,7 +366,7 @@ public class SurveyUploadRequest extends UserRequest {
 						}
 						else if(contentType.startsWith("application/") ||
 								contentType.startsWith("text/")){ // HT: check this
-							DocumentP doc = new DocumentP(id, contentType, fileName,
+							OFile doc = new OFile(id, contentType, fileName,
 									getMultipartValue(httpRequest, name));
 							tDocumentContentsMap.put(id, doc);
 						}
@@ -504,7 +504,7 @@ public class SurveyUploadRequest extends UserRequest {
 			SurveyResponseServices.instance().verifyAudioFilesForAudioPromptResponses(surveyResponses, audioContentsMap);
 			
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
-			SurveyResponseServices.instance().verifyDocumentFilesForDocumentPromptResponses(surveyResponses, documentContentsMap);
+			SurveyResponseServices.instance().verifyOFilesForFilePromptResponses(surveyResponses, documentContentsMap);
 			
 			
 			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");

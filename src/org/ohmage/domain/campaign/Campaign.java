@@ -60,7 +60,7 @@ import org.ohmage.domain.campaign.Prompt.Type;
 import org.ohmage.domain.campaign.prompt.AudioPrompt;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
-import org.ohmage.domain.campaign.prompt.DocumentPrompt;
+import org.ohmage.domain.campaign.prompt.FilePrompt;
 import org.ohmage.domain.campaign.prompt.HoursBeforeNowPrompt;
 import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
@@ -3054,7 +3054,7 @@ public class Campaign {
 			
 		case FILE:	
 		case DOCUMENT:
-			return processDocument(
+			return processOFile(
 				id,
 				condition,
 				unit,
@@ -4116,7 +4116,7 @@ public class Campaign {
 	}
 
 	/**
-	 * Processes a document prompt and returns a DocumentPrompt object.
+	 * Processes a ohmage file prompt and returns a FilePrompt object.
 	 * 
 	 * @param id The prompt's unique identifier.
 	 * 
@@ -4140,12 +4140,12 @@ public class Campaign {
 	 * 
 	 * @param index The index of this prompt in its collection of survey items.
 	 * 
-	 * @return A DocumentPrompt object.
+	 * @return A FilePrompt object.
 	 * 
 	 * @throws DomainException Thrown if the required properties are missing or
 	 * 						   if any of the parameters are invalid.
 	 */
-	private static DocumentPrompt processDocument(
+	private static FilePrompt processOFile(
 			final String id,
 			final String condition, 
 			final String unit, 
@@ -4180,18 +4180,18 @@ public class Campaign {
 		
 		if(defaultValue != null) {
 			throw new DomainException(
-					"Default values are not allowed for document prompts: " +
+					"Default values are not allowed for file prompts: " +
 						id);
 		}
 
 
 		if (maxFileSize != null)
-			LOGGER.debug("HT: Will create documentPrompt with max_filesize=" + maxFileSize);
+			LOGGER.debug("HT: Will create filePrompt with max_filesize=" + maxFileSize);
 		else 
-			LOGGER.debug("HT: Will create documentPrompt with max_filesize=NULL");
+			LOGGER.debug("HT: Will create filePrompt with max_filesize=NULL");
 
 
-		return new DocumentPrompt(
+		return new FilePrompt(
 			id,
 			condition,
 			unit,
