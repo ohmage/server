@@ -125,7 +125,7 @@ public class SurveyUploadRequest extends UserRequest {
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<UUID, Video> videoContentsMap;
 	private final Map<UUID, Audio> audioContentsMap;
-	private final Map<UUID, IMedia> documentContentsMap;
+	private final Map<UUID, IMedia> fileContentsMap;
 	private final String owner;
 	
 	private Collection<UUID> surveyResponseIds;
@@ -176,7 +176,7 @@ public class SurveyUploadRequest extends UserRequest {
 		imageContentsMap = Collections.emptyMap();
 		videoContentsMap = Collections.emptyMap();
 		audioContentsMap = Collections.emptyMap();
-		documentContentsMap = Collections.emptyMap();
+		fileContentsMap = Collections.emptyMap();
 		this.owner = owner;
 	}
 	
@@ -202,7 +202,7 @@ public class SurveyUploadRequest extends UserRequest {
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<UUID, Video> tVideoContentsMap = null;
 		Map<UUID, Audio> tAudioContentsMap = null;
-		Map<UUID, IMedia> tDocumentContentsMap = null;
+		Map<UUID, IMedia> tFileContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -296,11 +296,11 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				tVideoContentsMap = new HashMap<UUID, Video>();
 				tAudioContentsMap = new HashMap<UUID, Audio>();
-				tDocumentContentsMap = new HashMap<UUID, IMedia>();
+				tFileContentsMap = new HashMap<UUID, IMedia>();
 				Collection<Part> parts = null;
 				
 				// init the tDocumentContentsMap with inline images
-				tDocumentContentsMap.putAll(tImageContentsMap);
+				tFileContentsMap.putAll(tImageContentsMap);
 				// for (UUID uuid : tImageContentsMap.keySet()){
 				//	Image image = tImageContentsMap.get(uuid);
 				//	tDocumentContentsMap.put(uuid, image);
@@ -350,25 +350,25 @@ public class SurveyUploadRequest extends UserRequest {
 							Image image = new Image(id,	contentType, fileName, 
 									getMultipartValue(httpRequest, name));						
 							tImageContentsMap.put(id, image);	
-							tDocumentContentsMap.put(id, image);
+							tFileContentsMap.put(id, image);
 						}
 						else if(contentType.startsWith("video/")) {
 							Video video = new Video(id,	contentType, fileName,
 									getMultipartValue(httpRequest, name)); 
 							tVideoContentsMap.put(id, video); 
-							tDocumentContentsMap.put(id, video);
+							tFileContentsMap.put(id, video);
 						} 
 						else if(contentType.startsWith("audio/")) {
 							Audio audio = new Audio(id, contentType, fileName,
 									getMultipartValue(httpRequest, name));
 							tAudioContentsMap.put(id, audio);
-							tDocumentContentsMap.put(id, audio);
+							tFileContentsMap.put(id, audio);
 						}
 						else if(contentType.startsWith("application/") ||
 								contentType.startsWith("text/")){ // HT: check this
 							OFile doc = new OFile(id, contentType, fileName,
 									getMultipartValue(httpRequest, name));
-							tDocumentContentsMap.put(id, doc);
+							tFileContentsMap.put(id, doc);
 						}
 						if(LOGGER.isDebugEnabled()) 
 							LOGGER.debug("succesfully created a BufferedMedia for key " + id + "[" + contentType +"]");
@@ -399,7 +399,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.imageContentsMap = tImageContentsMap;
 		this.videoContentsMap = tVideoContentsMap;
 		this.audioContentsMap = tAudioContentsMap;
-		this.documentContentsMap = tDocumentContentsMap;
+		this.fileContentsMap = tFileContentsMap;
 		
 		this.owner = null;
 		surveyResponseIds = null;
@@ -504,7 +504,7 @@ public class SurveyUploadRequest extends UserRequest {
 			SurveyResponseServices.instance().verifyAudioFilesForAudioPromptResponses(surveyResponses, audioContentsMap);
 			
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
-			SurveyResponseServices.instance().verifyOFilesForFilePromptResponses(surveyResponses, documentContentsMap);
+			SurveyResponseServices.instance().verifyOFilesForFilePromptResponses(surveyResponses, fileContentsMap);
 			
 			
 			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");
@@ -517,7 +517,7 @@ public class SurveyUploadRequest extends UserRequest {
 					imageContentsMap,
 					videoContentsMap,
 					audioContentsMap, 
-					documentContentsMap);
+					fileContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}
