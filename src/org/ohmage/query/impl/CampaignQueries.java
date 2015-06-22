@@ -1193,13 +1193,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			}
 			
 			if(startDate != null) {
-				builder.append(" AND creation_timestamp >= ?");
+				builder.append(" AND ca.creation_timestamp >= ?");
 				
 				parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
 			}
 			
 			if(endDate != null) {
-				builder.append(" AND creation_timestamp <= ?");
+				builder.append(" AND ca.creation_timestamp <= ?");
 				
 				parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
 			}
@@ -1363,13 +1363,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		
 		// Add the start date if one was given.
 		if(startDate != null) {
-			sqlBuilder.append(" AND creation_timestamp >= ?");
+			sqlBuilder.append(" AND ca.creation_timestamp >= ?");
 			parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
 		}
 		
 		// Add the end date if one was given.
 		if(endDate != null) {
-			sqlBuilder.append(" AND creation_timestamp <= ?");
+			sqlBuilder.append(" AND ca.creation_timestamp <= ?");
 			parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
 		}
 		
