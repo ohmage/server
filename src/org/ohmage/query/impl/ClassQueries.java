@@ -104,8 +104,8 @@ public class ClassQueries extends Query implements IClassQueries {
 	
 	// Inserts a new class.
 	private static final String SQL_INSERT_CLASS =
-		"INSERT INTO class(urn, name, description) " +
-		"VALUES (?,?,?)";
+		"INSERT INTO class(urn, name, description, creation_timestamp) " +
+		"VALUES (?,?,?, NOW())";
 	
 	// Associates a user with a class.
 	private static final String SQL_INSERT_USER_CLASS = 

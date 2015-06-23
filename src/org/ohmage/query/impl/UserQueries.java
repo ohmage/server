@@ -215,8 +215,8 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, password, email_address, admin, enabled, new_account, campaign_creation_privilege) " +
-		"VALUES (?,?,?,?,?,?,?)";
+		"INSERT INTO user(username, password, email_address, admin, enabled, new_account, campaign_creation_privilege, creation_timestamp) " +
+		"VALUES (?,?,?,?,?,?,?,NOW())";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
 	// insert the email address or JSON data; to add these, update the record
