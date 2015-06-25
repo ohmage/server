@@ -253,8 +253,9 @@ public class SurveyResponseFunctionReadRequest extends UserRequest {
 			LOGGER.info("Verifying that the campaign exists.");
 			CampaignServices.instance().checkCampaignExistence(campaignId, true);
 			
-			LOGGER.info("Verifying that the user is allowed to view the requested data.");
-			UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(campaignId, getUser().getUsername());
+			// No need for verification since the ACL is done at the response level. 
+			// LOGGER.info("Verifying that the user is allowed to view the requested data.");
+			// UserCampaignServices.instance().requesterCanViewUsersSurveyResponses(campaignId, getUser().getUsername());
 			
 			LOGGER.info("Gathering the campaign.");
 			Campaign campaign = CampaignServices.instance().getCampaign(campaignId);
