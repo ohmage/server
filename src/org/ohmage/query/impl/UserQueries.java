@@ -641,7 +641,7 @@ public class UserQueries extends Query implements IUserQueries {
 						new Object[] { 
 								username, 
 								hashedPassword, 
-								null,
+								//null,
 								emailAddress, 
 								false, 
 								false, 
