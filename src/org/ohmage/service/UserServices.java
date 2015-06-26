@@ -15,7 +15,15 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -43,6 +51,8 @@ import net.tanesha.recaptcha.ReCaptchaImpl;
 import net.tanesha.recaptcha.ReCaptchaResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
@@ -481,6 +491,112 @@ public final class UserServices {
 			throw new ServiceException(
 					ErrorCode.SERVER_INVALID_CAPTCHA,
 					"The reCaptcha response was invalid.");
+		}
+	}
+	
+	/**
+	 * Verifies that the given captcha information is valid.
+	 * 
+	 * @param remoteAddr The address of the remote host.
+	 * 
+	 * @param challenge The challenge value.
+	 * 
+	 * @param response The response value.
+	 * 
+	 * @throws ServiceException Thrown if the private key is missing or if the
+	 * 							response is invalid.
+	 */
+	public void verifyCaptchaV2(
+			final String remoteAddr,
+			final String challenge,
+			final String response)
+			throws ServiceException {
+		
+		String secretKey;
+		URL url = null;
+		
+		try {
+			secretKey = PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE);
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException(
+					"The ReCaptcha key is missing from the preferences: " +
+						PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE,
+					e);
+		}
+		
+		if ((response == null) || (response.length()==0))
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_CAPTCHA,
+					"The reCaptcha response was invalid.");
+
+		// prepare post data
+		StringBuilder param = new StringBuilder();
+		param.append("secret=" + secretKey);
+		param.append(";response=" + response);
+		if ((remoteAddr != null) && (remoteAddr.length() > 0))
+			param.append(";remoteip=" + remoteAddr); 
+	    
+		try { 
+			// url-encode the post content
+		    String postData = URLEncoder.encode(param.toString(), "UTF-8");
+
+		    url = new URL("https://www.google.com/recaptcha/api/siteverify");
+		    HttpURLConnection connection = (HttpURLConnection) url.openConnection(); 
+		    connection.setDoOutput(true); 
+		    connection.setInstanceFollowRedirects(false);
+		    connection.setRequestMethod("POST"); 
+		    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded"); 
+		    connection.setRequestProperty("charset", "utf-8");
+		    connection.setRequestProperty("Content-Length", Integer.toString(postData.length()));
+		    connection.setUseCaches(false);
+
+		    OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
+		    out.write(postData); 
+		    out.close(); 
+	    
+		    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		    StringBuilder strBuilder = new StringBuilder(); 
+		    String tmp_str; 
+
+		    while ((tmp_str = in.readLine()) != null)
+		    	strBuilder.append(tmp_str);
+		    in.close(); 
+		    
+		    String result = strBuilder.toString();
+	    	if (result.length() == 0) { 
+				throw new ServiceException(
+						ErrorCode.SERVER_INVALID_CAPTCHA,
+						"The reCaptcha response was invalid.");
+	    	}   
+		    //	    System.out.println(result); 
+	    	
+		    try {
+		    	JSONObject jsonResult = new JSONObject(result);
+				 
+		    	if (! jsonResult.getBoolean("success")) {
+					throw new JSONException("Recaptcha failed to verify");
+		    	}
+		    	
+		    } catch (JSONException e) { 
+				throw new ServiceException(
+						ErrorCode.SERVER_INVALID_CAPTCHA,
+						"The reCaptcha response was invalid.");
+		    }
+
+		} catch (MalformedURLException  e) {
+			throw new ServiceException(
+					"MalformedURL: " + url.toString(),
+					e);
+		} catch (UnsupportedEncodingException e) { 
+			throw new ServiceException(
+					"UnsupportedEncoding: Can't encode post-data: " + param.toString(),
+					e);
+		} catch (IOException e) {
+			throw new ServiceException(
+					"IOEncoding: URL=" + url.toString() + ", post-data: " + param.toString(),
+					e);
 		}
 	}
 	
