@@ -183,13 +183,81 @@ public final class UserServices {
 			final Boolean admin, 
 			final Boolean enabled, 
 			final Boolean newAccount, 
-			final Boolean campaignCreationPrivilege)
+			final Boolean campaignCreationPrivilege,
+			final boolean storePlaintextPassword)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword =
+				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
-			userQueries.createUser(username, hashedPassword, emailAddress, admin, enabled, newAccount, campaignCreationPrivilege);
+			userQueries
+				.createUser(
+					username, 
+					((storePlaintextPassword) ? password : null),
+					hashedPassword, 
+					emailAddress, 
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Creates a new user.
+	 * 
+	 * @param username The username for the new user.
+	 * 
+	 * @param password The password for the new user.
+	 * 
+	 * @param emailAddress The user's email address or null.
+	 * 
+	 * @param admin Whether or not the user should initially be an admin.
+	 * 
+	 * @param enabled Whether or not the user should initially be enabled.
+	 * 
+	 * @param newAccount Whether or not the new user must change their password
+	 * 					 before using any other APIs.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the new user is allowed
+	 * 									to create campaigns.
+	 * 
+	 * @return Whether or not the user was successfully created.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public boolean createUser(
+			final String username, 
+			final String password, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final boolean storePlaintextPassword,
+			final UserPersonal personalInfo)
+			throws ServiceException {
+		
+		try {
+			String hashedPassword =
+				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			
+			return
+				userQueries
+					.createUser(
+						username, 
+						((storePlaintextPassword) ? password : null),
+						hashedPassword, 
+						emailAddress, 
+						admin, 
+						enabled, 
+						newAccount, 
+						campaignCreationPrivilege,
+						personalInfo);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -599,6 +667,32 @@ public final class UserServices {
 	}
 	
 	/**
+	 * THIS SHOULD NEVER BE USED.
+	 * 
+	 * @param username
+	 *        The user's username.
+	 * 
+	 * @return The user's plain-text password or null if the user is unknown or
+	 *         their plain-text password was not stored.
+	 * 
+	 * @throws ServiceException
+	 *         There was a problem getting the password.
+	 * 
+	 * @deprecated THIS SHOULD NEVER BE USED.
+	 */
+	public String getPlaintextPassword(
+		final String username)
+		throws ServiceException {
+		
+		try {
+			return userQueries.getPlaintextPassword(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Checks if the user is an admin.
 	 * 
 	 * TODO Any use case that involves an API call which isn't exclusively
@@ -764,6 +858,98 @@ public final class UserServices {
 						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have permission to setup a new " +
 							"user.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Aliens.
+	 * 
+	 * @param requester
+	 *        The user that is attempting to change another user's password.
+	 * 
+	 * @param requestee
+	 *        The user that whose password is being changed.
+	 * 
+	 * @throws ServiceException
+	 *         The requesting user cannot change the requestee user's password.
+	 */
+	public void verifyUserCanChangeOtherUsersPassword(
+		final String requester,
+		final String requestee)
+		throws ServiceException {
+		
+		try {
+			// If the user is not an admin, make sure they have the
+			// Mobilize-specific requirements.
+			if(! userQueries.userIsAdmin(requester)) {
+				// Get the list of class IDs where the requesting user is
+				// privileged.
+				Collection<String> requesterClassIds =
+					userClassQueries
+						.getClassIdsForUserWithRole(
+							requester,
+							Clazz.Role.PRIVILEGED);
+
+				// Get the map of class IDs and the requestee's role in that
+				// class.
+				Map<String, Clazz.Role> requesteeClassIds =
+					userClassQueries
+						.getClassAndRoleForUser(requestee);
+				
+				// If there is no intersection between the two class lists,
+				// then fail out.
+				boolean requesterPrivilegedRequesteeRestricted = false;
+				for(String classId : requesterClassIds) {
+					if(
+						requesteeClassIds.containsKey(classId) &&
+						Clazz
+							.Role
+							.RESTRICTED
+							.equals(requesteeClassIds.get(classId))) {
+						
+						requesterPrivilegedRequesteeRestricted = true;
+						break;
+					}
+				}
+				if(! requesterPrivilegedRequesteeRestricted) {
+					throw
+						new ServiceException(
+							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user does not have permission to change " +
+								"another user's password.",
+							"The requesting user is not privileged in any " +
+								"class where the requestee user is" +
+								"restricted.");
+				}
+				
+				// The requestee user cannot be privileged in any class.
+				for(Clazz.Role role : requesteeClassIds.values()) {
+					if(Clazz.Role.PRIVILEGED.equals(role)) {				
+						throw
+							new ServiceException(
+								ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+								"The user does not have permission to " +
+									"change another user's password.",
+								"The requestee is privileged in a class.");
+					}
+				}
+				
+				// The user must have been setup via the user/setup call. If,
+				// and only if, this happened would their plain-text password
+				// be stored in the database.
+				if(userQueries.getPlaintextPassword(requestee) == null) {
+					throw
+						new ServiceException(
+							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user does not have permission to change " +
+								"another user's password.",
+							"The requestee was not setup via the user/setup " +
+								"API.");
+				}
 			}
 		}
 		catch(DataAccessException e) {

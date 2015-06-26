@@ -17,6 +17,8 @@ package org.ohmage.request.clazz;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -183,13 +185,51 @@ public class ClassUpdateRequest extends UserRequest {
 		
 		try {	
 			LOGGER.info("Checking that the user is privileged in the class or is an admin.");
-			UserClassServices.instance().userIsAdminOrPrivileged(classId, getUser().getUsername());
+			UserClassServices
+				.instance().
+				userIsAdminOrPrivileged(classId, getUser().getUsername());
 			
 			LOGGER.info("Checking that the class exists.");
 			ClassServices.instance().checkClassExistence(classId, true);
 			
-			if((usersToAdd != null) && (usersToAdd.size() != 0)) {
-				UserServices.instance().verifyUsersExist(usersToAdd.keySet(), true);
+			// Validate the list of users to add.
+			if(usersToAdd != null) {
+				// Get the existing list of users in the class.
+				List<String> existingUsers =
+					UserClassServices.instance().getUsersInClass(classId);
+				
+				// Get the users that are being added to the class.
+				Set<String> addingUsers =
+					new HashSet<String>(usersToAdd.keySet());
+				
+				// Remove any users that already exist in the class.
+				addingUsers.removeAll(existingUsers);
+				
+				// If the user is attempting to add new users to the class,
+				// they must be an admin.
+				if(! addingUsers.isEmpty()) {
+					LOGGER
+						.info(
+							"The user is attempting to add users to the " +
+								"class, so we must ensure that they are an " +
+								"admin.");
+					if(! 
+						UserServices
+							.instance()
+							.isUserAnAdmin(getUser().getUsername())) {
+						
+						throw
+							new ServiceException(
+								ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS,
+								"The requesting user must be an admin to " +
+									"add users to a class.");
+					}
+					
+					LOGGER.info("Verifying that the new users exist.");
+					UserServices
+						.instance()
+						.verifyUsersExist(usersToAdd.keySet(), true);
+				}
 			}
 			
 			LOGGER.info("Updating the class.");
