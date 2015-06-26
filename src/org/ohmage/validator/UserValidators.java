@@ -307,6 +307,37 @@ public final class UserValidators {
 	}
 	
 	/**
+	 * Validates that the captcha version to be used for captcha validation.
+	 * 
+	 * @param value The String value of the captcha version.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns version number.
+	 * 
+	 * @throws ValidationException Thrown if the captcha version is not 1.0 or 2.0
+	 * 							   
+	 */
+	public static String validateCaptchaVersion(final String value) 
+			throws ValidationException {
+		
+		LOGGER.info("Validating that an email address is valid.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		String version = value.trim();
+		if ((version == "1.0") || (version == "2.0")){
+			return version;
+		} else {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_CAPTCHA, 
+					"Invalid Captcha version (Expect 1.0 or 2.0): " + 
+						value);
+		}
+	}
+	
+	/**
 	 * If the value is null or only whitespace, null is returned. Otherwise, it
 	 * tokenizes the search string by whitespace with the exception of quoted
 	 * characters.

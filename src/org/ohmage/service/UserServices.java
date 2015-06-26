@@ -466,32 +466,44 @@ public final class UserServices {
 	 * 							response is invalid.
 	 */
 	public void verifyCaptcha(
+			final String version,
 			final String remoteAddr,
 			final String challenge,
 			final String response)
 			throws ServiceException {
 		
-		ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
-		try {
-			reCaptcha.setPrivateKey(
+		if (version.startsWith("1.")){
+		
+			ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
+			try {
+				reCaptcha.setPrivateKey(
 					PreferenceCache.instance().lookup(
 							PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE));
-		}
-		catch(CacheMissException e) {
-			throw new ServiceException(
-					"The ReCaptcha key is missing from the preferences: " +
-						PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE,
-					e);
-		}
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+						"The ReCaptcha key is missing from the preferences: " +
+								PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE,
+								e);
+			}
 		
-		ReCaptchaResponse reCaptchaResponse = 
-				reCaptcha.checkAnswer(remoteAddr, challenge, response);
+			ReCaptchaResponse reCaptchaResponse = 
+					reCaptcha.checkAnswer(remoteAddr, challenge, response);
 		
-		if(! reCaptchaResponse.isValid()) {
+			if(! reCaptchaResponse.isValid()) {
+				throw new ServiceException(
+						ErrorCode.SERVER_INVALID_CAPTCHA,
+						"The reCaptcha response was invalid.");
+			}
+		} else if (version.startsWith("2.")) {
+			verifyCaptchaV2(remoteAddr, response);
+		
+		} else {
 			throw new ServiceException(
 					ErrorCode.SERVER_INVALID_CAPTCHA,
-					"The reCaptcha response was invalid.");
+					"Invalid Captcha version: "+ version);	
 		}
+		
 	}
 	
 	/**
@@ -508,7 +520,6 @@ public final class UserServices {
 	 */
 	public void verifyCaptchaV2(
 			final String remoteAddr,
-			final String challenge,
 			final String response)
 			throws ServiceException {
 		
