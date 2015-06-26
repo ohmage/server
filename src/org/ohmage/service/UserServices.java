@@ -593,6 +593,7 @@ public final class UserServices {
 		
 		String secretKey;
 		URL url = null;
+		String postData = null;
 		
 		try {
 			secretKey = PreferenceCache.instance().lookup(
@@ -609,18 +610,16 @@ public final class UserServices {
 			throw new ServiceException(
 					ErrorCode.SERVER_INVALID_CAPTCHA,
 					"The reCaptcha response was invalid.");
-
-		// prepare post data
-		StringBuilder param = new StringBuilder();
-		param.append("secret=" + secretKey);
-		param.append(";response=" + response);
-		if ((remoteAddr != null) && (remoteAddr.length() > 0))
-			param.append(";remoteip=" + remoteAddr); 
 	    
 		try { 
-			// url-encode the post content
-		    String postData = URLEncoder.encode(param.toString(), "UTF-8");
-
+			// prepare post data
+			StringBuilder param = new StringBuilder();
+			param.append("secret=" + URLEncoder.encode(secretKey.toString(), "UTF-8"));
+			param.append("&response=" + URLEncoder.encode(response.toString(), "UTF-8"));
+			if ((remoteAddr != null) && (remoteAddr.length() > 0))
+				param.append("&remoteip=" + URLEncoder.encode(response.toString(), "UTF-8"));
+			postData = param.toString();
+		
 		    url = new URL("https://www.google.com/recaptcha/api/siteverify");
 		    HttpURLConnection connection = (HttpURLConnection) url.openConnection(); 
 		    connection.setDoOutput(true); 
@@ -670,11 +669,11 @@ public final class UserServices {
 					e);
 		} catch (UnsupportedEncodingException e) { 
 			throw new ServiceException(
-					"UnsupportedEncoding: Can't encode post-data: " + param.toString(),
+					"UnsupportedEncoding: Can't encode post-data: " + postData,
 					e);
 		} catch (IOException e) {
 			throw new ServiceException(
-					"IOEncoding: URL=" + url.toString() + ", post-data: " + param.toString(),
+					"IOEncoding: URL=" + url.toString() + ", post-data: " + postData,
 					e);
 		}
 	}
