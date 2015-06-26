@@ -320,14 +320,14 @@ public final class UserValidators {
 	public static String validateCaptchaVersion(final String value) 
 			throws ValidationException {
 		
-		LOGGER.info("Validating that an email address is valid.");
+		LOGGER.info("Validating that the captcha version number is valid.");
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
 			return null;
 		}
 		
 		String version = value.trim();
-		if ((version == "1.0") || (version == "2.0")){
+		if (version.equals("1.0") || version.equals("2.0")){
 			return version;
 		} else {
 			throw new ValidationException(
