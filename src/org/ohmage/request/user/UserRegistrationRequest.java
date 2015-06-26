@@ -66,6 +66,7 @@ public class UserRegistrationRequest extends Request {
 	private final String captchaResponse;
 	
 	private final String remoteAddr;
+	private final String captchaVersion;
 	
 	/**
 	 * Creates a user registration request.
@@ -87,6 +88,7 @@ public class UserRegistrationRequest extends Request {
 		String tCaptchaChallenge = null;
 		String tCaptchaResponse = null;
 		String tRemoteAddr = null;
+		String tCaptchaVersion = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user registration request.");
@@ -162,6 +164,27 @@ public class UserRegistrationRequest extends Request {
 							"The email address is missing: " + 
 								InputKeys.EMAIL_ADDRESS);
 				}
+
+				// optional: will be used to indicate recapcha v2
+				t = getParameterValues(InputKeys.CAPTCHA_VERSION);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_CAPTCHA,
+							"Multiple recaptcha version were given: " +
+								InputKeys.CAPTCHA_VERSION);
+				}
+				else if(t.length == 1) {
+					tCaptchaVersion = UserValidators.validateCaptchaVersion(t[0]);
+					
+					if (tCaptchaVersion == null)
+						throw new ValidationException(
+								ErrorCode.SERVER_INVALID_CAPTCHA,
+								"Invalid recaptcha version number (expect 1.0 or 2.0): " +
+									InputKeys.CAPTCHA_VERSION);	
+				} else {
+					tCaptchaVersion = "1.0";
+				}
+								
 				
 				t = getParameterValues(InputKeys.CAPTCHA_CHALLENGE);
 				if(t.length > 1) {
@@ -173,12 +196,14 @@ public class UserRegistrationRequest extends Request {
 				else if(t.length == 1) {
 					tCaptchaChallenge = t[0];
 				}
-				else {
-					throw new ValidationException(
-							ErrorCode.SERVER_INVALID_CAPTCHA,
-							"The captcha response key was missing: " +
-								InputKeys.CAPTCHA_CHALLENGE);
-				}
+				else { // The challenge is needed for version 1
+					if (tCaptchaVersion.startsWith("1.0")){
+						throw new ValidationException(
+								ErrorCode.SERVER_INVALID_CAPTCHA,
+								"The captcha response key was missing: " +
+										InputKeys.CAPTCHA_CHALLENGE);
+					}
+				}	
 				
 				t = getParameterValues(InputKeys.CAPTCHA_RESPONSE);
 				if(t.length > 1) {
@@ -211,6 +236,7 @@ public class UserRegistrationRequest extends Request {
 		captchaChallenge = tCaptchaChallenge;
 		captchaResponse = tCaptchaResponse;
 		remoteAddr = tRemoteAddr;
+		captchaVersion = tCaptchaVersion;
 	}
 
 	/**
@@ -226,7 +252,7 @@ public class UserRegistrationRequest extends Request {
 			UserServices.instance().verifySelfRegistrationAllowed();
 			
 			LOGGER.info("Verifying the captcha information.");
-			UserServices.instance().verifyCaptcha(
+			UserServices.instance().verifyCaptcha(captchaVersion,
 					remoteAddr, 
 					captchaChallenge, 
 					captchaResponse);
