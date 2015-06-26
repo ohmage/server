@@ -190,17 +190,17 @@ public class UserRegistrationRequest extends Request {
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.SERVER_INVALID_CAPTCHA,
-							"Multiple captcha challenge keys were given: " +
+							"Multiple captcha challenge key were given: " +
 								InputKeys.CAPTCHA_CHALLENGE);
 				}
 				else if(t.length == 1) {
 					tCaptchaChallenge = t[0];
 				}
 				else { // The challenge is needed for version 1
-					if (tCaptchaVersion.startsWith("1.0")){
+					if (tCaptchaVersion.startsWith("1.")){
 						throw new ValidationException(
 								ErrorCode.SERVER_INVALID_CAPTCHA,
-								"The captcha response key was missing: " +
+								"The captcha challenge key was missing: " +
 										InputKeys.CAPTCHA_CHALLENGE);
 					}
 				}	
@@ -209,7 +209,7 @@ public class UserRegistrationRequest extends Request {
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.SERVER_INVALID_CAPTCHA,
-							"Multiple captcha response keys were given: " +
+							"Multiple captcha response key were given: " +
 								InputKeys.CAPTCHA_RESPONSE);
 				}
 				else if(t.length == 1) {
@@ -218,7 +218,7 @@ public class UserRegistrationRequest extends Request {
 				else {
 					throw new ValidationException(
 							ErrorCode.SERVER_INVALID_CAPTCHA,
-							"The captcha challenge key was missing: " +
+							"The captcha response key was missing: " +
 								InputKeys.CAPTCHA_RESPONSE);
 				}
 				
