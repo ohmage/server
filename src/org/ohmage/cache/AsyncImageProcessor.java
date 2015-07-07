@@ -139,6 +139,8 @@ public class AsyncImageProcessor
 						"The image data is invalid: " + 
 							image.getId().toString(),
 						e);
+				// close the stream
+				image.closeImageStreams();
 				return;
 			}
 			
@@ -159,6 +161,9 @@ public class AsyncImageProcessor
 							image.getId().toString(),
 						e);
 				return;
+			} finally {
+				// close the stream
+				image.closeImageStreams();
 			}
 			
 			// Mark the image as processed.
