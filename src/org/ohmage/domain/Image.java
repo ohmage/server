@@ -663,6 +663,27 @@ public class Image implements IMedia{
 			
 			return bufferedImage;
 		}
+		
+		/**
+		 * Close the inputStream to the data.
+		 * 
+		 * @throws DomainException There was an error closing a connection to
+		 * 						   the data.
+		 */
+		public void closeInputStream() throws DomainException {
+			
+			try {
+				if(inputStream != null) {
+					inputStream.close();
+				}
+			} catch(IOException e) {
+				if (url != null)
+					throw new DomainException("The input stream could not be close: " + url, e);
+				else 
+					throw new DomainException("The input stream could not be close. ", e);
+			}
+		}
+		
 	}
 	
 	// The unique identifier for this image.
@@ -746,7 +767,7 @@ public class Image implements IMedia{
 	}
 	
 	/**
-	 * Creates an original image from the image's contents.
+	 * Creates an original image from the image's input stream.
 	 * 
 	 * @param id The unique identifier for this image.
 	 * 
@@ -772,7 +793,7 @@ public class Image implements IMedia{
 	}
 	
 	/**
-	 * Creates an original image from the image's contents.
+	 * Creates an original image from the image's file.
 	 * 
 	 * @param id The unique identifier for this image.
 	 * 
@@ -933,6 +954,20 @@ public class Image implements IMedia{
 	}
 	
 	
+	/**
+	 * Close InputStreams of all Size connected to the image.
+	 * 
+	 * @throws DomainException There was an error closing the image streams.
+	 */
+	public void closeImageStreams() {
+		try { 
+			for (Size size : imageData.keySet()) {
+				imageData.get(size).closeInputStream();
+			}
+		} catch (DomainException e){
+			LOGGER.error("There was an error closing image streams associated with" + id);
+		}
+	}
 	
 	/**
 	 * <p>Saves the images contents to disk in the given directory. This
