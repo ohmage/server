@@ -141,6 +141,7 @@ public class AsyncImageProcessor
 						e);
 				// close the stream
 				image.closeImageStreams();
+				LOGGER.error("HT: Before returning from error");
 				return;
 			}
 			
