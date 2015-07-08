@@ -676,7 +676,7 @@ public class Image implements IMedia{
 			
 			try {
 				if(inputStream != null) {
-					LOGGER.debug("Closing input stream");
+					LOGGER.info("Closing input stream");
 					inputStream.close();
 				}
 				bufferedImage = null;
@@ -969,7 +969,7 @@ public class Image implements IMedia{
 		LOGGER.error("Error: attempting to close streams.");
 		try { 
 			for (Size size : imageData.keySet()) {
-				LOGGER.debug("HT: About to close Inputstream: " + size.toString());
+				LOGGER.info("HT: About to close Inputstream: " + size.toString());
 				imageData.get(size).closeInputStream();
 			}
 		} catch (DomainException e){
