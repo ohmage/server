@@ -453,7 +453,7 @@ public class Image implements IMedia{
 	 * @author John Jenkins
 	 */
 	private static class ImageData {
-		private final InputStream inputStream;
+		private InputStream inputStream;
 		private final URL url;
 		private final String imageType;
 		
@@ -602,7 +602,9 @@ public class Image implements IMedia{
 			// If we have a URL, get a new input stream and return it.
 			else if(url != null) {
 				try {
-					return url.openStream();
+					// HT: set inputStream
+					inputStream = url.openStream();
+					return inputStream;
 				}
 				catch(IOException e) {
 					throw
@@ -655,8 +657,7 @@ public class Image implements IMedia{
 								"The image contents are invalid.");
 					}
 				}
-				// catch IllegalArgumentException when image has error in exif data.
-				catch(IOException|IllegalArgumentException e) {
+				catch(IOException e) {
 					throw
 						new DomainException("The image could not be read.", e);
 				}
@@ -675,8 +676,11 @@ public class Image implements IMedia{
 			
 			try {
 				if(inputStream != null) {
+					LOGGER.debug("Closing input stream");
 					inputStream.close();
 				}
+				bufferedImage = null;
+				
 			} catch(IOException e) {
 				if (url != null)
 					throw new DomainException("The input stream could not be close: " + url, e);
@@ -963,6 +967,7 @@ public class Image implements IMedia{
 	public void closeImageStreams() {
 		try { 
 			for (Size size : imageData.keySet()) {
+				LOGGER.debug("About to close Inputstream: " + size.toString());
 				imageData.get(size).closeInputStream();
 			}
 		} catch (DomainException e){
