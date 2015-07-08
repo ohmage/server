@@ -136,7 +136,7 @@ public class AsyncImageProcessor
 			catch(DomainException e) {
 				LOGGER
 					.error(
-						"The image data is invalid: " + 
+						"--The image data is invalid: " + 
 							image.getId().toString(),
 						e);
 				// close the stream
