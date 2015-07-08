@@ -965,9 +965,10 @@ public class Image implements IMedia{
 	 * @throws DomainException There was an error closing the image streams.
 	 */
 	public void closeImageStreams() {
+		LOGGER.debug("Attempting to close streams.");
 		try { 
 			for (Size size : imageData.keySet()) {
-				LOGGER.debug("About to close Inputstream: " + size.toString());
+				LOGGER.debug("HT: About to close Inputstream: " + size.toString());
 				imageData.get(size).closeInputStream();
 			}
 		} catch (DomainException e){
