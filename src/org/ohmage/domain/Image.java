@@ -966,6 +966,7 @@ public class Image implements IMedia{
 	 */
 	public void closeImageStreams() {
 		LOGGER.debug("Attempting to close streams.");
+		LOGGER.error("Error: attempting to close streams.");
 		try { 
 			for (Size size : imageData.keySet()) {
 				LOGGER.debug("HT: About to close Inputstream: " + size.toString());
