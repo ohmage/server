@@ -604,6 +604,7 @@ public class Image implements IMedia{
 				try {
 					// HT: set inputStream
 					inputStream = url.openStream();
+					LOGGER.debug("HT: creating an input stream from url: " + inputStream.toString());
 					return inputStream;
 				}
 				catch(IOException e) {
@@ -676,7 +677,7 @@ public class Image implements IMedia{
 			
 			try {
 				if(inputStream != null) {
-					LOGGER.info("Closing input stream");
+					LOGGER.info("Closing input stream: " + inputStream.toString());
 					inputStream.close();
 				}
 				bufferedImage = null;
@@ -830,8 +831,16 @@ public class Image implements IMedia{
 	 * @throws DomainException
 	 *         The data could not be read or is not valid image data.
 	 */
-	public void validate() throws DomainException {
-		imageData.get(ORIGINAL).getBufferedImage();
+	public boolean validate() {
+		try {
+			imageData.get(ORIGINAL).getBufferedImage();
+			return true;
+		} catch (DomainException e) {
+			LOGGER.error(
+					"The image data is invalid: " + id.toString(),
+					e);
+			return false;
+		}
 	}
 	
 	/**
@@ -867,12 +876,12 @@ public class Image implements IMedia{
 		// will be thrown.
 		try {
 			Size.getUrl(size, originalUrl).openStream().close();
-			LOGGER.debug("Size.getURL exists: " + Size.getUrl(size,originalUrl).toString());
+			LOGGER.debug("Size.getURL exists: " +size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return true;
 		}
 		// The file does not exist.
 		catch(IOException e) {
-			LOGGER.debug("Size.getURL doesn't exists: " + Size.getUrl(size,originalUrl).toString());
+			LOGGER.debug("Size.getURL doesn't exists: " + size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return false;
 		}
 	}
@@ -965,11 +974,9 @@ public class Image implements IMedia{
 	 * @throws DomainException There was an error closing the image streams.
 	 */
 	public void closeImageStreams() {
-		LOGGER.debug("Attempting to close streams.");
-		LOGGER.error("Error: attempting to close streams.");
 		try { 
 			for (Size size : imageData.keySet()) {
-				LOGGER.info("HT: About to close Inputstream: " + size.toString());
+				LOGGER.info("HT: Closing Inputstream: " + size.toString());
 				imageData.get(size).closeInputStream();
 			}
 		} catch (DomainException e){
