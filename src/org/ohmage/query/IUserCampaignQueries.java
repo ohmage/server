@@ -92,6 +92,22 @@ public interface IUserCampaignQueries {
 		final String username) throws DataAccessException;
 
 	/**
+	 * Retrieves all of the campaign IDs and a respective set of campaign roles
+	 * for a given set of users. 
+	 * 
+	 * @param userSet
+	 *        A set of usernames.
+	 * 
+	 * @return A map of campaign IDs to the user's roles in that campaign.
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error.
+	 */
+	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUserSet(
+		final Set<String> userSet) throws DataAccessException;
+
+	
+	/**
 	 * Returns a map of usernames to a set of campaign roles for all of the
 	 * users in a campaign.
 	 * 

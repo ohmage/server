@@ -38,6 +38,7 @@ import org.ohmage.domain.campaign.CampaignMask.MaskId;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.ResultSetExtractor;
 import org.springframework.jdbc.core.RowMapper;
@@ -56,6 +57,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public final class UserCampaignQueries extends Query implements IUserCampaignQueries {
 	// Retrieves whether or not a user has any role in a campaign.
@@ -394,6 +396,81 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 						username, 
 					e);
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserCampaignQueries#getUserCampaignRoles(java.lang.String)
+	 */
+	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUserSet(
+			final Set<String> userSet)
+			throws DataAccessException {
+		
+		if (userSet == null || userSet.size() == 0)
+			throw new DataAccessException("userList list is empty");
+
+		StringBuilder sql = 
+				new StringBuilder(
+						"select u.username, c.urn, GROUP_CONCAT(ur.role SEPARATOR ',') roles " + 
+						"from user u join user_role_campaign urc on (u.id = urc.user_id) "+
+						  "join campaign c on (c.id = urc.campaign_id) " +
+						  "join user_role ur on (ur.id = urc.user_role_id) " +
+						"WHERE " +
+						  "u.username in ");
+		sql.append(StringUtils.generateStatementPList(userSet.size()));
+		sql.append(     " GROUP BY u.username, c.urn");
+	
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.addAll(userSet);
+	
+		try {
+			final Map<String, Map<String, Set<Campaign.Role>>> userCampaignRoleMap = 
+					new HashMap<String, Map<String, Set<Campaign.Role>>>();
+			
+			getJdbcTemplate().query(
+					sql.toString(), 
+					parameters.toArray(), 
+					new RowMapper<Object>() {
+						@Override
+						public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+							try {
+								
+								String username = rs.getString("username");
+								String urn = rs.getString("urn");
+								String roles = rs.getString("roles");
+								
+								// create Campaign.roles
+								Set<Campaign.Role> croles = new HashSet<Campaign.Role>();
+								for (String eachRole : roles.split(";")) {
+									try {
+										croles.add(Campaign.Role.getValue(eachRole));
+									} catch (IllegalArgumentException e) {
+										throw new SQLException("The role is invalid:", eachRole);
+									}
+								}
+								
+								Map<String, Set<Campaign.Role>> campaignRoles = userCampaignRoleMap.get(username);
+								if (campaignRoles == null) {
+									campaignRoles = new HashMap<String, Set<Campaign.Role>>();
+									userCampaignRoleMap.put(username, campaignRoles);
+								} 
+								campaignRoles.put(urn,croles);								
+								return null;
+							} 
+							catch (Exception e) {
+								throw new SQLException("Can't create a role with parameters: " + 
+										rs.getString("username") + "," + rs.getString("urn") + "," + rs.getString("roles"), e);
+							}
+						}
+					}
+				);
+			return userCampaignRoleMap;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + userSet.toString(), e);
+		}
+		
 	}
 
 	/*

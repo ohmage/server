@@ -1581,6 +1581,45 @@ public final class UserServices {
 						numToReturn,
 						false);
 			
+			// create a list of users for batch operation
+			Set<String> userSet = new HashSet<String>();
+			for (UserInformation currResult : result.getResults()){
+				userSet.add(currResult.getUsername());
+			}
+			
+			// Retrieve campaign info (batch operation)
+			// Create a map of user and campaigns as well as roles associated with each user and campaign. 
+			Map<String, Map<String, Set<Campaign.Role>>> userCampaignMap = new HashMap<String, Map<String, Set<Campaign.Role>>>();
+			userCampaignMap = userCampaignQueries.getCampaignAndRolesForUserSet(userSet);	
+			// loop through the result, add campaign and role to each UserInformation
+			try {
+				for(UserInformation currResult : result.getResults()) {
+					Map<String, Set<Campaign.Role>> campaignRoles = userCampaignMap.get(currResult.getUsername());
+					if (campaignRoles != null)
+						currResult.addCampaigns(campaignRoles);
+				}
+			}
+			catch(DomainException e) {
+				throw new ServiceException(e);
+			}
+			
+			// Retrieve class info (batch operation)
+			Map<String, Map<String, Clazz.Role>> userClassMap = new HashMap<String, Map<String, Clazz.Role>>();	
+			userClassMap = userClassQueries.getClassAndRoleForUserSet(userSet);
+			// loop through the result, add class and roles to each UserInformation
+			try {
+				for(UserInformation currResult : result.getResults()) {
+					Map<String, Clazz.Role> classRoles = userClassMap.get(currResult.getUsername());
+					if (classRoles != null)
+						currResult.addClasses(classRoles);
+				}
+			}
+			catch(DomainException e) {
+				throw new ServiceException(e);
+			}
+
+			/*
+			// loop through the result, add campaign and role to each UserInformation
 			try {
 				for(UserInformation currResult : result.getResults()) {
 					currResult.addCampaigns(
@@ -1595,6 +1634,7 @@ public final class UserServices {
 			catch(DomainException e) {
 				throw new ServiceException(e);
 			}
+			*/
 			
 			results.addAll(result.getResults());
 

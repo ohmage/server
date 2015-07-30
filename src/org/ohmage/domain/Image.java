@@ -21,12 +21,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -603,7 +605,8 @@ public class Image implements IMedia{
 			else if(url != null) {
 				try {
 					// HT: set inputStream
-					inputStream = url.openStream();
+					// inputStream = url.openStream();
+					inputStream = new FileInputStream(url.getPath());
 					LOGGER.debug("HT: creating an input stream from url: " + inputStream.toString());
 					return inputStream;
 				}
@@ -844,6 +847,38 @@ public class Image implements IMedia{
 	}
 	
 	/**
+	 * Check whether the URL endpoint exists. If it is the file protocol, 
+	 * manually check whether the file exists.
+	 * 
+	 * @throws DomainException
+	 *         The data could not be read or is not valid image data.
+	 */
+	public boolean urlExists(final URL url) {
+
+		// check for file protocol
+	    if (url.getProtocol().equals("file")) {
+	    	LOGGER.debug("check via a file protocol");
+	    	File file = new File(url.getPath());
+	    	if (file.exists())
+	    		return true; 
+	    	else return false;
+	    } else { 
+	    	// use the URL method
+			try {
+				url.openStream().close();
+				LOGGER.debug("Size.getURL exists: " + url.toString());
+				return true;
+			}
+			// The file does not exist.
+			catch(IOException e) {
+				LOGGER.debug("Size.getURL doesn't exists: " + url.toString());
+				return false;
+			}
+	    }
+
+	}
+	
+	/**
 	 * Returns whether or not a certain size of an image exists.
 	 * 
 	 * @param size
@@ -872,6 +907,11 @@ public class Image implements IMedia{
 					"This Image object was not built with a default URL.");
 		}
 		
+		if (urlExists(Size.getUrl(size,  originalUrl)))
+			return true;
+		else return false;
+	
+		/*
 		// Attempt to connect to the file. If it doesn't exist, an exception
 		// will be thrown.
 		try {
@@ -884,6 +924,7 @@ public class Image implements IMedia{
 			LOGGER.debug("Size.getURL doesn't exists: " + size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return false;
 		}
+		*/
 	}
 	
 	// ==== beginning of iMedia implementation
@@ -1184,6 +1225,10 @@ public class Image implements IMedia{
 			else {
 				// Check if this size's image exists as well.
 				URL sizeUrl = Size.getUrl(size, originalUrl);
+				if (urlExists(sizeUrl))
+					result = new ImageData(sizeUrl);
+				else result = size.transform(originalData);
+				/*
 				try {
 					sizeUrl.openStream().close();
 					result = new ImageData(sizeUrl);
@@ -1193,6 +1238,7 @@ public class Image implements IMedia{
 					LOGGER.debug("HT: Transforming data to size " + size.getName());
 					result = size.transform(originalData);
 				}
+				*/
 			}
 			
 			// Save the new image data in the map.
