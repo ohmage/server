@@ -170,7 +170,6 @@ public abstract class WorkflowException extends Exception {
 		}
 		else {
 			request.setFailed(annotator.getErrorCode(), annotator.getErrorText());
-			LOGGER.debug("HT: request's annotator is set to " + annotator.getErrorCode());
 		}
 	}
 	
@@ -199,15 +198,12 @@ public abstract class WorkflowException extends Exception {
 	 */
 	public void logException(final Logger logger, final boolean asWarn) {
 		if(annotator == null) {
-			LOGGER.debug("HT: annotation is null");
 			logger.error(toString(), this);
 		}
 		else if(asWarn) {
-			LOGGER.debug("HT: request's annotator is set to " + annotator.getErrorCode());
 			logger.warn(toString(), this);
 		}
 		else {
-			LOGGER.debug("HT: request's annotator is set to " + annotator.getErrorCode());
 			logger.info(toString(), this);
 		}
 	}

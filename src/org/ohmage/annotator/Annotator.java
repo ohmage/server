@@ -112,7 +112,7 @@ public class Annotator {
 		SURVEY_INVALID_IMAGES_VALUE ("0628"),
 		SURVEY_INVALID_PROMPT_RESPONSE_SEARCH ("0629"),
 		SURVEY_INVALID_SURVEY_PROMPT_MAP ("0630"),
-		SURVEY_DUPLICATE_MEDIA_UUIDS ("0631"), // HT: when media or document uuids are duplicate
+		SURVEY_DUPLICATE_MEDIA_UUIDS ("0631"), // when media or document uuids are duplicate
 
 		CAMPAIGN_INVALID_ID ("0700"),
 		CAMPAIGN_INVALID_NAME ("0701"),

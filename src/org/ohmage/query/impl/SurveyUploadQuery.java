@@ -561,7 +561,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			*/			
 				// Save other media files.
 			if( (promptResponse instanceof MediaPromptResponse)	) {
-				LOGGER.debug("HT: Processing a media response");	
 					
 				// Make sure the response contains an actual media response. 
 				// Can also check this against JsonInputKeys
@@ -581,8 +580,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							LOGGER.debug("HT: The media UUID already exist" + mediaId);
 							throw new DataAccessException(e);
 						}
-						
-						LOGGER.debug("HT: before getting Directory");
+	
 						// Get the current media directory.
 						File currMediaDirectory = null;
 						if (promptResponse instanceof PhotoPromptResponse) {
@@ -602,7 +600,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							media = bufferedImageMap.get(id);	
 						} 
 							
-						LOGGER.debug("HT: currMediaDirectory: " + currMediaDirectory);
 											
 						// Get the file. Only use UUID to store file since all detail should 
 						// be stored in the db. 
@@ -614,8 +611,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			
 						// Get the media URL.
 						String url = "file://" + mediaFile.getAbsolutePath();
-						LOGGER.debug("HT: Media file: " + url);
-						LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
+						// LOGGER.debug("HT: Media file: " + url);
+						// LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
 							
 						// Get the contentInfo
 						String metadata = media.getMetadata();

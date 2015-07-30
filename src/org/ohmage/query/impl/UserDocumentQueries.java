@@ -264,7 +264,7 @@ public final class UserDocumentQueries extends Query implements IUserDocumentQue
 		if (documentIds == null || documentIds.size() == 0)
 			throw new DataAccessException("Document list is empty");
 
-		LOGGER.debug("HT: begging of DocumentRoleForDocumentSet *****");
+		
 		StringBuilder sql = 
 				new StringBuilder(
 						"select d.id, dr.role " +
@@ -276,7 +276,7 @@ public final class UserDocumentQueries extends Query implements IUserDocumentQue
 						"where u.username = ? " +
 						  "and dur.document_id in ");
 		sql.append(StringUtils.generateStatementPList(documentIds.size()));
-	// no need to check for ACL
+	//  no need to check for ACL. If so, uncomment the sql statement
 	//	sql.append(		  " and ( dps.privacy_state = 'shared')" +
 	//						"or dr.role = 'owner')");
 		
@@ -284,14 +284,6 @@ public final class UserDocumentQueries extends Query implements IUserDocumentQue
 		parameters.add(username);
 		parameters.addAll(documentIds);
 	
-		/*
-		LOGGER.debug("HT: sql=" + sql.toString());
-		String param = "";
-		for (Object i : parameters) {
-			param += i.toString() + " ";
-		}
-		LOGGER.debug("HT: params=" + param);
-		*/
 		
 		try {
 			final Map<Integer, Document.Role> docRoleMap = new HashMap<Integer, Document.Role>();
@@ -305,7 +297,6 @@ public final class UserDocumentQueries extends Query implements IUserDocumentQue
 								docRoleMap.put(rs.getInt("id"), Document.Role.getValue(rs.getString("role")));
 								return null;
 							} catch (Exception e) {
-								LOGGER.debug("HT: something is wrong......");
 								throw new SQLException("Can't create a role with parameter: " + rs.getInt("id") + "," + rs.getString("role"), e);
 							}
 						}

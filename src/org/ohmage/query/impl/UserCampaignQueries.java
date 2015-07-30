@@ -338,7 +338,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserCampaignQueries#getUserCampaignRoles(java.lang.String)
+	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignAndRolesForUser(java.lang.String)
 	 */
 	public Map<String, Set<Campaign.Role>> getCampaignAndRolesForUser(
 			final String username)
@@ -400,7 +400,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserCampaignQueries#getUserCampaignRoles(java.lang.String)
+	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignAndRolesForUserSet(java.lang.String)
 	 */
 	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUserSet(
 			final Set<String> userSet)
@@ -409,6 +409,9 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		if (userSet == null || userSet.size() == 0)
 			throw new DataAccessException("userList list is empty");
 
+		// the user_campaign_roles are collapsed into a string separated by "," by mysql GROUP_CONCAT.
+		// If a different database is used, GROUP_CONCAT needs to be replaced with something equivalent,
+		// or return individual roles and implement the role aggregation in Java. 
 		StringBuilder sql = 
 				new StringBuilder(
 						"select u.username, c.urn, GROUP_CONCAT(ur.role SEPARATOR ',') roles " + 

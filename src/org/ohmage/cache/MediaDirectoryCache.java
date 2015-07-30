@@ -87,9 +87,7 @@ public class MediaDirectoryCache {
 	}
 	
 	public static synchronized File getDocumentpDirectory() throws DomainException {
-		LOGGER.debug("HT: about to call getDirectory with " + currDocumentpDirectory);
 		currDocumentpDirectory = getDirectory(currDocumentpDirectory, KEY_DOCUMENTP_DIRECTORY); 
-		LOGGER.debug("HT: getDocumentpDirectory will returns with " + currDocumentpDirectory);
 		return currDocumentpDirectory;
 	}
 	
@@ -103,7 +101,7 @@ public class MediaDirectoryCache {
 	 * @return A File object where a media file should be written.
 	 */
 	private static synchronized File getDirectory(File currMediaDirectory, String keyRootDirectory) throws DomainException {
-		LOGGER.debug("HT: Beginning of getDirectory");
+
 		// Get the maximum number of items in a directory.
 		int numFilesPerDirectory;
 		try {
@@ -130,21 +128,17 @@ public class MediaDirectoryCache {
 		// that. Note that the initialization is dumb in that it will get to
 		// the end of the structure and not check to see if the leaf node is
 		// full.
-		if(currMediaDirectory == null) {
-			LOGGER.debug("HT: currMediaDirectory is null. WIll call init");
+		if(currMediaDirectory == null) {		
 			currMediaDirectory = init(currMediaDirectory, keyRootDirectory, numFilesPerDirectory);  
-			LOGGER.debug("HT: After int.. currMediaDirectory is set to " + currMediaDirectory);
 		}
 		
 		File[] documents = currMediaDirectory.listFiles();
 		// If the 'imageLeafDirectory' directory is full, traverse the tree and
 		// find a new directory.
 		if(documents.length >= numFilesPerDirectory) {
-			LOGGER.debug("HT: About to call getNewDirectory with " + currMediaDirectory);
 			currMediaDirectory = getNewDirectory(currMediaDirectory, keyRootDirectory, numFilesPerDirectory);
 		}
 		
-		LOGGER.debug("About to return from getDirectory");
 		return currMediaDirectory;
 	}
 	
@@ -270,7 +264,6 @@ public class MediaDirectoryCache {
 				}
 			}
 			
-			LOGGER.debug("HT: Will return from init with "+currDirectory);		
 			// After we have found a suitable directory, set it.
 			return(currDirectory); 
 	
@@ -296,14 +289,12 @@ public class MediaDirectoryCache {
 			final int numFilesPerDirectory)
 			throws DomainException {
 		
-		LOGGER.debug("HT: inside getNewDirectory");
 		try {
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
 			// directory.
 			File[] files = currMediaDirectory.listFiles();
 			if(files.length < numFilesPerDirectory) {
-				LOGGER.debug("HT: return current dir");
 				return currMediaDirectory;
 			}
 			

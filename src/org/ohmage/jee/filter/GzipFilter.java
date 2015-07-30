@@ -186,7 +186,7 @@ public class GzipFilter implements Filter {
 		// Otherwise, we have successfully retrieved the parameter map, and
 		// we should save it to the request and return success.
 		else {
-			// HT: printout the result 
+			// HT: printout the result --- debugging
 			/*
 			for (String key : result.keySet()){
 				String msg = "HT: key=" + key + ", value=";

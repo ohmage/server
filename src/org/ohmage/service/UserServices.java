@@ -1581,7 +1581,7 @@ public final class UserServices {
 						numToReturn,
 						false);
 			
-			// create a list of users for batch operation
+			// create a list of users for a batch operation
 			Set<String> userSet = new HashSet<String>();
 			for (UserInformation currResult : result.getResults()){
 				userSet.add(currResult.getUsername());

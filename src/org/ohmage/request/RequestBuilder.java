@@ -315,7 +315,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiImageRead = apiRoot + "/image/read";
 		apiImageBatchZipRead = apiRoot + "/image/batch/zip/read";
 		
-		// HT: Media
+		// Media
 		apiMediaRead = apiRoot + "/media/read";
 		
 		// Mobility
