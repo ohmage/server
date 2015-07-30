@@ -528,6 +528,39 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserCampaignQueries#getAuthorsForCampaign(java.lang.String)
+	 */
+	@Override
+	public List<String> getAuthorsForCampaign(
+			final String campaignId)
+			throws DataAccessException {
+		
+		String sql_get_authors = 
+				 "SELECT u.username " + 
+			     "FROM user u JOIN user_role_campaign urc on (u.id = urc.user_id) " +
+			     "  JOIN campaign c ON (c.id = urc.campaign_id) " +
+			     "  JOIN user_role ur on (ur.id = urc.user_role_id) " + 
+			     "WHERE c.urn = ? AND ur.role = 'author'";
+		
+		try {		
+			
+			return getJdbcTemplate().query(
+						sql_get_authors,
+						new Object[] { campaignId },
+						new SingleColumnRowMapper<String>());			
+		} 
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + 
+							sql_get_authors + 
+						"' with parameters: " + 
+							campaignId, 
+					e);
+		}
+	}
+	
 	/**
 	 * Retrieves all of the campaign IDs and their respective names to which a
 	 * user is associated.

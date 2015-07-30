@@ -985,6 +985,14 @@ public class UserCampaignServices {
 						userCampaignQueries.getUserCampaignRoles(
 								username, 
 								campaign.getId()));
+				try {
+				// get authors
+					campaign.addAuthorList(userCampaignQueries.getAuthorsForCampaign(campaign.getId()));
+				} catch(DomainException e) {
+						throw new ServiceException(
+								"There was a problem adding the author list.",
+								e);
+				}
 				
 				if(withClasses) {
 					try {

@@ -119,9 +119,24 @@ public interface IUserCampaignQueries {
 	 * @throws DataAccessException
 	 *         Thrown if there is an error.
 	 */
-	Map<String, Collection<Campaign.Role>> getUsersAndRolesForCampaign(
+	public Map<String, Collection<Campaign.Role>> getUsersAndRolesForCampaign(
 		String campaignId) throws DataAccessException;
 
+	/**
+	 * Returns a list of usernames to that are authors in a campaign.
+	 * 
+	 * @param campaignId
+	 *        The campaign's unique identifier.
+	 * 
+	 * @return A list of authors' usernames.
+	 * 
+	 * @throws DataAccessException
+	 *         Thrown if there is an error.
+	 */
+	public List<String> getAuthorsForCampaign(
+			final String campaignId)
+			throws DataAccessException;
+	
 	/**
 	 * Retrieves all of the campaign IDs and their respective names to which a
 	 * user is associated.
