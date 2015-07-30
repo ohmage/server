@@ -441,7 +441,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 								
 								// create Campaign.roles
 								Set<Campaign.Role> croles = new HashSet<Campaign.Role>();
-								for (String eachRole : roles.split(";")) {
+								for (String eachRole : roles.split(",")) {
 									try {
 										croles.add(Campaign.Role.getValue(eachRole));
 									} catch (IllegalArgumentException e) {
