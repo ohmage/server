@@ -515,7 +515,7 @@ public class CampaignReadRequest extends UserRequest {
 								campaign
 									.toJson(
 										false,	// ID 
-										longOutput,	// Classes
+										true,	// Classes
 										longOutput,	// Any roles
 										supervisorOrAuthor,	// Participants
 										supervisorOrAuthor, // Analysts

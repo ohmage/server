@@ -1618,23 +1618,6 @@ public final class UserServices {
 				throw new ServiceException(e);
 			}
 
-			/*
-			// loop through the result, add campaign and role to each UserInformation
-			try {
-				for(UserInformation currResult : result.getResults()) {
-					currResult.addCampaigns(
-							userCampaignQueries.getCampaignAndRolesForUser(
-									currResult.getUsername()));
-				
-					currResult.addClasses(
-							userClassQueries.getClassAndRoleForUser(
-									currResult.getUsername()));
-				}
-			}
-			catch(DomainException e) {
-				throw new ServiceException(e);
-			}
-			*/
 			
 			results.addAll(result.getResults());
 
