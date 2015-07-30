@@ -410,8 +410,8 @@ public class CampaignReadRequest extends UserRequest {
 						privacyState, 
 						runningState, 
 						role, 
-						OutputFormat.LONG.equals(outputFormat), 
-						OutputFormat.LONG.equals(outputFormat));
+						OutputFormat.LONG.equals(outputFormat) || OutputFormat.SHORT.equals(outputFormat),  // class info 
+						OutputFormat.LONG.equals(outputFormat));  // user info
 			
 			// If this is a request for XML and there were no campaigns visible
 			// to the user based on the parameters, we need to report that
