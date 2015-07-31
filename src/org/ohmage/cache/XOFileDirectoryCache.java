@@ -9,8 +9,8 @@ import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 
 public class XOFileDirectoryCache {
-	private static File currDocumentPDirectory = null;
-	private static String KEY_DOCUMENTP_DIRECTORY = PreferenceCache.KEY_DOCUMENTP_DIRECTORY;
+	private static File currFileDirectory = null;
+	private static String KEY_FILE_DIRECTORY = PreferenceCache.KEY_FILE_DIRECTORY;
 	
 	/**
 	 * Filters the sub-directories in a directory to only return those that
@@ -72,18 +72,18 @@ public class XOFileDirectoryCache {
 		// that. Note that the initialization is dumb in that it will get to
 		// the end of the structure and not check to see if the leaf node is
 		// full.
-		if(currDocumentPDirectory == null) {
+		if(currFileDirectory == null) {
 			init(numFilesPerDirectory);
 		}
 		
-		File[] documents = currDocumentPDirectory.listFiles();
+		File[] documents = currFileDirectory.listFiles();
 		// If the 'imageLeafDirectory' directory is full, traverse the tree and
 		// find a new directory.
 		if(documents.length >= numFilesPerDirectory) {
 			getNewDirectory(numFilesPerDirectory);
 		}
 		
-		return currDocumentPDirectory;
+		return currFileDirectory;
 	}
 	
 	/**
@@ -98,7 +98,7 @@ public class XOFileDirectoryCache {
 		try {
 			// If the current leaf directory has been set, we weren't the first
 			// to call init(), so we can just back out.
-			if(currDocumentPDirectory != null) {
+			if(currFileDirectory != null) {
 				return;
 			}
 			
@@ -107,12 +107,12 @@ public class XOFileDirectoryCache {
 			String rootFile;
 			try {
 				rootFile = 
-					PreferenceCache.instance().lookup(KEY_DOCUMENTP_DIRECTORY);
+					PreferenceCache.instance().lookup(KEY_FILE_DIRECTORY);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-					KEY_DOCUMENTP_DIRECTORY,
+					KEY_FILE_DIRECTORY,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -209,7 +209,7 @@ public class XOFileDirectoryCache {
 			}
 			
 			// After we have found a suitable directory, set it.
-			currDocumentPDirectory = currDirectory;
+			currFileDirectory = currDirectory;
 		}
 		catch(SecurityException e) {
 			throw new DomainException(
@@ -236,7 +236,7 @@ public class XOFileDirectoryCache {
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
 			// directory.
-			File[] files = currDocumentPDirectory.listFiles();
+			File[] files = currFileDirectory.listFiles();
 			if(files.length < numFilesPerDirectory) {
 				return;
 			}
@@ -247,12 +247,12 @@ public class XOFileDirectoryCache {
 			try {
 				rootFile = 
 					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_DOCUMENTP_DIRECTORY);
+						PreferenceCache.KEY_FILE_DIRECTORY);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_DOCUMENTP_DIRECTORY,
+						PreferenceCache.KEY_FILE_DIRECTORY,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -271,7 +271,7 @@ public class XOFileDirectoryCache {
 			
 			// A local File to use while we are searching to not confuse other
 			// threads.
-			File newDirectory = currDocumentPDirectory;
+			File newDirectory = currFileDirectory;
 			
 			// A flag to indicate when we are done looking for a directory.
 			boolean lookingForDirectory = true;
@@ -349,7 +349,7 @@ public class XOFileDirectoryCache {
 				}
 			}
 			
-			currDocumentPDirectory = newDirectory;
+			currFileDirectory = newDirectory;
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(

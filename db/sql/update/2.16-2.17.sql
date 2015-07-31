@@ -5,7 +5,7 @@ use ohmage;
 -- Note: ideally, we want to only set ohmage data root directory in the preference
 -- table, AND use that to store all data types. 
 INSERT INTO preference VALUES 
-    ('documentp_directory', '/opt/ohmage/userdata/file');
+    ('file_directory', '/opt/ohmage/userdata/files');
 
 -- Add a metadata column to the url_based_resource table to keep track of 
 -- http headers (e.g. content-type, filename, etc.) that were part of the 

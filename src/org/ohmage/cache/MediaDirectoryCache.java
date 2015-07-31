@@ -21,13 +21,13 @@ public class MediaDirectoryCache {
 	private static File currImageDirectory = null;
 	private static File currAudioDirectory = null;
 	private static File currVideoDirectory = null; 
-	private static File currDocumentpDirectory = null;
+	private static File currFileDirectory = null;
 	
 	
 	private static final String KEY_IMAGE_DIRECTORY = PreferenceCache.KEY_IMAGE_DIRECTORY;
 	private static final String KEY_AUDIO_DIRECTORY = PreferenceCache.KEY_AUDIO_DIRECTORY;
 	private static final String KEY_VIDEO_DIRECTORY = PreferenceCache.KEY_VIDEO_DIRECTORY;
-	private static final String KEY_DOCUMENTP_DIRECTORY = PreferenceCache.KEY_DOCUMENTP_DIRECTORY;
+	private static final String KEY_FILE_DIRECTORY = PreferenceCache.KEY_FILE_DIRECTORY;
 	
 	private static final Logger LOGGER = 
 			Logger.getLogger(MediaDirectoryCache.class);
@@ -66,7 +66,7 @@ public class MediaDirectoryCache {
 		else if (mediaType.equals(Video.class))
 			return getVideoDirectory();
 		else if (mediaType.equals(OFile.class))
-			return getDocumentpDirectory();
+			return getFileDirectory();
 		else return null;
 		
 	}
@@ -86,9 +86,9 @@ public class MediaDirectoryCache {
 		return currVideoDirectory;
 	}
 	
-	public static synchronized File getDocumentpDirectory() throws DomainException {
-		currDocumentpDirectory = getDirectory(currDocumentpDirectory, KEY_DOCUMENTP_DIRECTORY); 
-		return currDocumentpDirectory;
+	public static synchronized File getFileDirectory() throws DomainException {
+		currFileDirectory = getDirectory(currFileDirectory, KEY_FILE_DIRECTORY); 
+		return currFileDirectory;
 	}
 	
 	
