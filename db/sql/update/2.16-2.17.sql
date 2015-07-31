@@ -385,8 +385,10 @@ WHERE src.max_ts > urc.last_modified_timestamp;
 -- Some campaigns were detached from classes but still have the direct links to the users
 -- In this case, use campaign last modified timestamp
 UPDATE
-  user_role_campaign urc JOIN campaign c ON (urc.campaign_id = c.id)
-SET urc.last_modified_timestamp = c.last_modified_timestamp
+  user_role_campaign urc 
+  JOIN campaign c ON (urc.campaign_id = c.id)
+  JOIN user u ON (urc.user_id = u.id)
+SET urc.last_modified_timestamp = IF(u.creation_timestamp > c.creation_timestamp, u.creation_timestamp, c.creation_timestamp)
 WHERE urc.last_modified_timestamp = 0;
 
 
