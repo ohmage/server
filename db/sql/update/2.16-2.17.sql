@@ -359,8 +359,6 @@ where src.cc_ts > urc.last_modified_timestamp
   OR src.uc_ts > urc.last_modified_timestamp;
   
 -- campaign update
---  SELECT urc.campaign_id, urc.user_id, urc.user_role_id, urc.last_modified_timestamp, src.max_ts
---  FROM
 UPDATE 
   user_role_campaign urc JOIN 
   (SELECT urc.campaign_id AS campaign_id, urc.user_id AS user_id, urc.user_role_id AS user_role_id, 
@@ -389,7 +387,7 @@ WHERE src.max_ts > urc.last_modified_timestamp;
 UPDATE
   user_role_campaign urc JOIN campaign c ON (urc.campaign_id = c.id)
 SET urc.last_modified_timestamp = c.last_modified_timestamp
-WHERE urc.lsat_modified_timestamp = 0;
+WHERE urc.last_modified_timestamp = 0;
 
 
 -- * update document_user_role, document_class_role, document_campaign_role
