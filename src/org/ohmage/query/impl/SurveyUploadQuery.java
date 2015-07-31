@@ -593,7 +593,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 							currMediaDirectory = MediaDirectoryCache.getVideoDirectory();
 							media = videoContentsMap.get(id);	
 						} else if (promptResponse instanceof FilePromptResponse) {
-							currMediaDirectory = MediaDirectoryCache.getDocumentpDirectory();
+							currMediaDirectory = MediaDirectoryCache.getFileDirectory();
 							media = documentContentsMap.get(id);	
 						} else if (promptResponse instanceof PhotoPromptResponse) {
 							currMediaDirectory = MediaDirectoryCache.getImageDirectory();
