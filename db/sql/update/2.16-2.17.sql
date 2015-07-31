@@ -125,7 +125,7 @@ WHERE user.last_modified_timestamp = 0;
 -- Derived last_modified_timestamp from user_personal
 UPDATE user u JOIN user_personal up ON (u.id = up.user_id)
 SET u.last_modified_timestamp = up.last_modified_timestamp
-WHERE u.last_modified_timestamp < up.last_modified_timestamp
+WHERE u.last_modified_timestamp < up.last_modified_timestamp;
 
 -- Derived from the class info
 UPDATE user u JOIN
