@@ -41,8 +41,8 @@ CREATE TRIGGER `user_insert` BEFORE INSERT ON `user`
 -- create last_modified_timestamp to the campaign table
 ALTER TABLE campaign 
     ADD COLUMN (
-    	`last_modified_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    	);
+       	`last_modified_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
 	
 -- create last_modified_timestamp to keep track of object relationship 	
 ALTER TABLE user_class 
@@ -81,6 +81,22 @@ ALTER TABLE document_class_role
     	);
    	    	
     	
+-- In mysql 5.5, we can create `last_modified_timestamp timestamp NULL timesstamp DEFAULT CURRENT_TIEMSTAMP ... 
+-- It will assisngs the NULL value to the existing entries. However, mysql 5.6 will always 
+-- assign the current timestamps to existing entries. To code againsts these two cases, explicitly assign 
+-- 0 date to the existing entries. 
+
+UPDATE class user_class SET last_modified_timestamp = 0;
+UPDATE campaign SET last_modified_timestamp = 0;    	
+
+UPDATE user_class SET last_modified_timestamp = 0;
+UPDATE campaign_class SET last_modified_timestamp = 0;
+UPDATE user_role_campaign SET last_modified_timestamp = 0;
+UPDATE document_user_role SET last_modified_timestamp = 0;
+UPDATE document_user_creator SET last_modified_timestamp = 0;
+UPDATE document_campaign_role SET last_modified_timestamp = 0;
+UPDATE document_class_role SET last_modified_timestamp = 0;
+
 -- * Update class: update the creation_timestamp AND last_modified_timestamp of the class table       
 -- If the timestamp of class/create is newer than class/update, use it for 
 -- last_modified_timestamp as well. 
