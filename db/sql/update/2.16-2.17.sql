@@ -37,6 +37,12 @@ ALTER TABLE user
 -- This will minimize the impact to the java code since it is done at the db level.     	
 CREATE TRIGGER `user_insert` BEFORE INSERT ON `user`
 	FOR EACH ROW SET new.creation_timestamp = NOW();
+
+-- create last_modified_timestamp to the campaign table
+ALTER TABLE campaign 
+    ADD COLUMN (
+    	`last_modified_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    	);
 	
 -- create last_modified_timestamp to keep track of object relationship 	
 ALTER TABLE user_class 
@@ -107,6 +113,26 @@ SET class.creation_timestamp = audit.creation_timestamp,
     class.last_modified_timestamp = audit.update_timestamp
 WHERE class.creation_timestamp IS NULL;
 
+-- * update campaign last_modified_timestamp 
+UPDATE campaign c JOIN 
+  (SELECT ap.param_value AS urn, MAX(a.db_timestamp) AS last_modified_timestamp
+   FROM audit a 
+     JOIN audit_parameter ap ON (a.id = ap.audit_id)
+     JOIN audit_parameter ap2 ON (a.id = ap2.audit_id)
+   WHERE (a.uri = '/app/campaign/update')
+      AND a.response like '%success%'
+      AND ap.param_key = 'campaign_urn'
+      AND ap2.param_key IN ('xml', 'description', 'privacy_state', 'running_state') 
+   GROUP BY ap.param_value
+  ) AS audit ON c.urn = audit.urn
+SET c.last_modified_timestamp = audit.last_modified_timestamp
+WHERE c.last_modified_timestamp = 0;
+
+
+-- For the rest of the campaigns, derive from campaign creation time.
+UPDATE campaign c
+SET c.last_modified_timestamp = c.creation_timestamp 
+WHERE c.creation_timestamp > c.last_modified_timestamp; 
 
 -- * update user: update the last_modified_timestamp of the user table.
 -- Delete this after last_modified_timestamp is restored
