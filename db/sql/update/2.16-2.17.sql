@@ -82,11 +82,11 @@ ALTER TABLE document_class_role
    	    	
     	
 -- In mysql 5.5, we can create `last_modified_timestamp timestamp NULL timesstamp DEFAULT CURRENT_TIEMSTAMP ... 
--- It will assisngs the NULL value to the existing entries. However, mysql 5.6 will always 
+-- It will assisng the NULL value to the existing entries. However, mysql 5.6 will always 
 -- assign the current timestamps to existing entries. To code againsts these two cases, explicitly assign 
--- 0 date to the existing entries. 
+-- 0 date to the existing entries.. Then exucute the rest of the script to update last_modified_timestamp.
 
-UPDATE class user_class SET last_modified_timestamp = 0;
+UPDATE class SET last_modified_timestamp = 0;
 UPDATE campaign SET last_modified_timestamp = 0;    	
 
 UPDATE user_class SET last_modified_timestamp = 0;
