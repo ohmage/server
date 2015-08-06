@@ -68,7 +68,7 @@ public interface ICampaignClassQueries {
 	 * @return A Mapping of campaign urn and a list of class IDs that are associated 
 	 * 		   with the campaign. 
 	 */
-	Map<String, Collection<String>> getClassesAssociatedWithCampaignList(
+	Map<String, Collection<String>> getClassesAssociatedWithCampaigns(
 			final String subSelectStmt, 
 			final Collection<Object> subSelectParameters)
 			throws DataAccessException;

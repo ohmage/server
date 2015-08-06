@@ -864,9 +864,26 @@ public class UserCampaignServices {
 			}
 			
 			if(withUsers) {
-				List<String> campaignUsernames = 
-					userCampaignQueries.getUsersInCampaign(campaignId);
+				//users and their roles in different campaigns
+				Map<String, Map<String, Collection<Campaign.Role>>> campaignUserRoles = null;
 				
+				// get subSelectStatement and parameters to be used in the query 
+				Collection<Object> parameters = new LinkedList<Object>();
+				String campaignListSubSelect = campaignId;
+				
+				// Add the users and their roles to the campaign.
+				campaignUserRoles = userCampaignQueries.
+						getUsersAndRolesForCampaigns(campaignListSubSelect, parameters);
+				
+				Map<String, Collection<Campaign.Role>> userRoles = campaignUserRoles.get(campaignId);
+				if (userRoles != null) {
+					result.addUsers(userRoles);
+				}	
+				
+				/*			
+				List<String> campaignUsernames = userCampaignQueries.getUsersInCampaign(campaignId);
+				
+
 				for(String campaignUsername : campaignUsernames) {
 					List<Campaign.Role> userRoles = 
 						userCampaignQueries.getUserCampaignRoles(
@@ -885,6 +902,7 @@ public class UserCampaignServices {
 						}
 					}
 				}
+				*/
 			}
 			
 			return result;
@@ -1004,7 +1022,7 @@ public class UserCampaignServices {
 			// Get information about user's roles in campaigns
 			try { 
 				userCampaignRoles = userCampaignQueries.
-						getUserCampaignRolesForCampaignList(username, campaignListSubSelect, parameters);
+						getUserCampaignRolesForCampaigns(username, campaignListSubSelect, parameters);
 			} catch(DataAccessException e) {
 				throw new ServiceException(
 						"There was a problem getting the user's roles in campaigns", e);
@@ -1013,7 +1031,7 @@ public class UserCampaignServices {
 			// get information about authorList in campaigns
 			try {
 				campaignAuthors = 
-						userCampaignQueries.getAuthorsForCampaignList(campaignListSubSelect, parameters);
+						userCampaignQueries.getAuthorsForCampaigns(campaignListSubSelect, parameters);
 			} catch(DataAccessException e) {
 				throw new ServiceException(
 						"There was a problem getting the author list.", e);
@@ -1022,14 +1040,14 @@ public class UserCampaignServices {
 			// get class information
 			if (withClasses) {
 				campaignClasses = campaignClassQueries.
-						getClassesAssociatedWithCampaignList(campaignListSubSelect, parameters);
+						getClassesAssociatedWithCampaigns(campaignListSubSelect, parameters);
 			} 
 			
 			// get user information
 			if (withUsers) {
 				// Add the users and their roles to the campaign.
 				campaignUserRoles = userCampaignQueries.
-						getUsersAndRolesForCampaignList(campaignListSubSelect, parameters);
+						getUsersAndRolesForCampaigns(campaignListSubSelect, parameters);
 			} 
 			
 			// get campaign mask information

@@ -114,7 +114,7 @@ public final class CampaignClassQueries extends Query implements ICampaignClassQ
 	 * @see org.ohmage.query.impl.ICampaignClassQueries#getClassesAssociatedWithCampaignList(java.lang.String)
 	 */
 	@Override
-	public Map<String, Collection<String>> getClassesAssociatedWithCampaignList(
+	public Map<String, Collection<String>> getClassesAssociatedWithCampaigns(
 			final String subSelectStmt, 
 			final Collection<Object> subSelectParameters) 
 			throws DataAccessException {

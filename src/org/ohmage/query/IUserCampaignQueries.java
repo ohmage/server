@@ -94,7 +94,7 @@ public interface IUserCampaignQueries {
 	 * 
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
-	public Map<String, Collection<Campaign.Role>> getUserCampaignRolesForCampaignList(
+	public Map<String, Collection<Campaign.Role>> getUserCampaignRolesForCampaigns(
 			final String username, 
 			final String campaignListSubSelect,
 			final Collection<Object> SubSelectParameters) throws DataAccessException;
@@ -161,7 +161,7 @@ public interface IUserCampaignQueries {
 	 * @throws DataAccessException
 	 *         Thrown if there is an error.
 	 */
-	public Map<String, Map<String, Collection<Role>>> getUsersAndRolesForCampaignList(
+	public Map<String, Map<String, Collection<Role>>> getUsersAndRolesForCampaigns(
 			final String subSelectStmt, 
 			final Collection<Object> subSelectParameters)
 			throws DataAccessException;
@@ -195,7 +195,7 @@ public interface IUserCampaignQueries {
 	 * @throws DataAccessException
 	 *         Thrown if there is an error.
 	 */
-	public Map<String, Collection<String>> getAuthorsForCampaignList(
+	public Map<String, Collection<String>> getAuthorsForCampaigns(
 			final String campaignListSubSelect, 
 			final Collection<Object> parameters)
 			throws DataAccessException; 
