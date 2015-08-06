@@ -35,7 +35,8 @@ public class MediaDirectoryCache {
 	 * Filters the sub-directories in a directory to only return those that
 	 * match the regular expression matcher for directories.
 	 * 
-	 * @author Joshua Selsky, Hongsuda T. 
+	 * @author Joshua Selsky, 
+	 * @author Hongsuda T. 
 	 */
 	private static final class DirectoryFilter implements FilenameFilter {
 		private static final Pattern DIRECTORY_PATTERN = 

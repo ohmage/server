@@ -438,10 +438,13 @@ public interface IUserQueries {
 			throws DataAccessException;
 	
 	/**
-	 * Gathers the information about a person including the classes and
-	 * campaigns to which they belong. Any of the Object parameters may be null
-	 * except 'requesterUsername'.
+	 * Return an SQL statement that Gathers the information about a person including 
+	 * the classes and campaigns to which they belong. Any of the Object parameters 
+	 * may be null except 'requesterUsername'.
 	 * 
+ 	 * @param parameters
+	 *        The parameter objects to be used with the generated sql statement. 
+	 *        
 	 * @param requesterUsername
 	 *        The username of the user that is requesting this information.
 	 * 
@@ -518,7 +521,8 @@ public interface IUserQueries {
 	 * @throws DataAccessException
 	 *         There was an error aggregating the information.
 	 */
-	public QueryResultsList<UserInformation> getUserInformation(
+	public String getVisibleUsersSql(
+			final Collection<Object> parameters,
 			final String requesterUsername,
 			final Collection<String> usernames,
 			final Collection<String> emailAddresses,
@@ -533,9 +537,42 @@ public interface IUserQueries {
 			final Collection<String> personalIds,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
+			final boolean settingUpUser,
 			final long numToSkip,
-			final long numToReturn,
-			final boolean settingUpUser)
+			final long numToReturn)
+			throws DataAccessException;
+
+	
+	/**
+	 * Gathers the information about a person including the classes and
+	 * campaigns to which they belong. Any of the Object parameters may be null
+	 * except 'requesterUsername'.
+	 * 
+	 * @param userSubSelectStmt 
+	 * 		  The sql statement representing visible user list. 
+	 * 
+	 * @param userSubSelectParameters
+	 * 		  The list of parameters to be used with the userSubSelectStmt. 
+	 * 
+	 * @param numToSkip
+	 *        The number of results to skip. The results are sorted
+	 *        alphabetically by username.
+	 * 
+	 * @param numToReturn
+	 *        The number of results to return. The results are sorted
+	 *        alphabetically by username.
+	 * 
+	 * @return A QueryResultsList object containing the users' information and
+	 *         the total number of results.
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error aggregating the information.
+	 */
+	public QueryResultsList<UserInformation> getUserInformation(
+			final String userSubSelectStmt,
+			final Collection<Object> userSubSelectParameters,
+			final long numToSkip,
+			final long numToReturn)
 			throws DataAccessException;
 
 	/**

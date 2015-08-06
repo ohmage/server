@@ -1058,12 +1058,14 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		}
 	}
 
+	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignListSql(java.lang.String, java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
 	 */
 	@Override
-	public QueryResultsList<Campaign> getCampaignInformation(
+	public String getVisibleCampaignsSql(
+			final Collection<Object> parameters,
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
@@ -1075,17 +1077,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)
 			throws DataAccessException {
-		
+					
 		try {
 			// Begin with a common set of elements to select, and the tables to
 			// which those elements belong.
 			StringBuilder builder = 
 				new StringBuilder(
-					"SELECT ca.urn, ca.name, ca.description, " +
-						"ca.icon_url, ca.authored_by, " +
-						"crs.running_state, cps.privacy_state, " +
-						"ca.creation_timestamp, " +
-						"ca.xml " +
+					"SELECT ca.id " +
 					"FROM " +
 						"user u, " +
 						"campaign ca, " +
@@ -1106,15 +1104,9 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 						")" +
 					")");
 			
-			List<Object> parameters = new LinkedList<Object>();
 			parameters.add(username);
 			
-			if(campaignIds != null) {
-				if(campaignIds.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(campaignIds != null && campaignIds.size() > 0) {			
 				builder
 					.append(" AND ca.urn IN ")
 					.append(StringUtils.generateStatementPList(
@@ -1123,12 +1115,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				parameters.addAll(campaignIds);
 			}
 			
-			if(classIds != null) {
-				if(classIds.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(classIds != null && classIds.size() > 0) {
 				builder.append(
 						" AND (" +
 							"ca.id IN (" +
@@ -1148,12 +1135,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				parameters.addAll(classIds);
 			}
 			
-			if(nameTokens != null) {
-				if(nameTokens.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(nameTokens != null && nameTokens.size() > 0) {	
 				boolean firstPass = true;
 				builder.append(" AND (");
 				for(String nameToken : nameTokens) {
@@ -1170,12 +1152,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				builder.append(")");
 			}
 			
-			if(descriptionTokens != null) {
-				if(descriptionTokens.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(descriptionTokens != null && descriptionTokens.size() > 0 ) {		
 				boolean firstPass = true;
 				builder.append(" AND (");
 				for(String descriptionToken : descriptionTokens) {
@@ -1231,7 +1208,44 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				
 				parameters.add(role.toString());
 			}
-			
+		
+			return builder.toString();
+		} catch (Exception e) {
+			throw new DataAccessException("Cannot build an sql statement", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection)
+	 */
+	@Override
+	public QueryResultsList<Campaign> getCampaignInformation(
+			final String subSelectStmt,
+			final Collection<Object> subSelectParameters
+			)
+			throws DataAccessException {
+		
+		
+		if (subSelectStmt == null) {
+			throw new DataAccessException("The subSelectStmt cannot be null!");
+		}
+		
+		StringBuilder builder;
+		try {
+			builder = new StringBuilder( 
+					"SELECT ca.urn, ca.name, ca.description, " +
+						"crs.running_state, cps.privacy_state, " +
+						"ca.creation_timestamp, " +
+						"ca.xml " + 
+					"FROM campaign ca " +
+					  	"JOIN campaign_running_state crs on (ca.running_state_id = crs.id) " +
+						"JOIN campaign_privacy_state cps on (ca.privacy_state_id = cps.id) " +
+					"WHERE ca.id in "
+					);
+			builder.append("(" + subSelectStmt + " )");
+			Collection<Object> parameters = subSelectParameters;
+
 			return getJdbcTemplate().query(
 					builder.toString(),
 					parameters.toArray(),

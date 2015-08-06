@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -99,8 +100,9 @@ public interface IUserClassQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUserSet(
-			final Set<String> userSet)
+	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUsers(
+			final String userSubSelectStmt, 
+			final Collection<Object> userSubSelectParameters)
 			throws DataAccessException;
 	
 	

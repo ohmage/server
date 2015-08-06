@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,6 +45,7 @@ import org.ohmage.util.StringUtils;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public class UserCampaignServices {
 	private static UserCampaignServices instance;
@@ -961,72 +963,139 @@ public class UserCampaignServices {
 			throws ServiceException {
 		
 		try {
-			QueryResultsList<Campaign> queryResult = 
-					campaignQueries.getCampaignInformation(
-							username, 
+			
+			// get a subselect sql statement that deals with ACL and filtering based on the request parameters. 
+			Collection<Object> parameters = new LinkedList<Object>();
+			
+			String campaignListSubSelect = 
+					campaignQueries.getVisibleCampaignsSql(
+							parameters,
+							username,
 							campaignIds, 
 							classIds, 
-							nameTokens,
+							nameTokens, 
 							descriptionTokens,
-							startDate, 
+							startDate,
 							endDate, 
 							privacyState, 
 							runningState, 
 							role);
+		
+			QueryResultsList<Campaign> queryResult = 
+					campaignQueries.getCampaignInformation(campaignListSubSelect, parameters);
+			
 			List<Campaign> campaignResults = queryResult.getResults();
 			
+			// request user's role
 			Map<Campaign, Collection<Campaign.Role>> result =
-					new HashMap<Campaign, Collection<Campaign.Role>>(
-							campaignResults.size());
+					new HashMap<Campaign, Collection<Campaign.Role>>(campaignResults.size());
+
+			 // request user's roles in different campaigns
+			Map<String, Collection<Campaign.Role>> userCampaignRoles = null;
+			// authors for different campaigns
+			Map<String, Collection<String>> campaignAuthors = null;	
+			//users and their roles in different campaigns
+			Map<String, Map<String, Collection<Campaign.Role>>> campaignUserRoles = null;
+			// classes associated with each campaign
+			Map<String, Collection<String>> campaignClasses = null; 
+			 // a list of campaign masks associated with each campaign
+			Map<String, Collection<CampaignMask>> campaignMasks = null; 
 			
-			for(Campaign campaign : campaignResults) {
-				result.put(
-						campaign, 
-						userCampaignQueries.getUserCampaignRoles(
+			// Get information about user's roles in campaigns
+			try { 
+				userCampaignRoles = userCampaignQueries.
+						getUserCampaignRolesForCampaignList(username, campaignListSubSelect, parameters);
+			} catch(DataAccessException e) {
+				throw new ServiceException(
+						"There was a problem getting the user's roles in campaigns", e);
+			}	
+			
+			// get information about authorList in campaigns
+			try {
+				campaignAuthors = 
+						userCampaignQueries.getAuthorsForCampaignList(campaignListSubSelect, parameters);
+			} catch(DataAccessException e) {
+				throw new ServiceException(
+						"There was a problem getting the author list.", e);
+			}	
+			
+			// get class information
+			if (withClasses) {
+				campaignClasses = campaignClassQueries.
+						getClassesAssociatedWithCampaignList(campaignListSubSelect, parameters);
+			} 
+			
+			// get user information
+			if (withUsers) {
+				// Add the users and their roles to the campaign.
+				campaignUserRoles = userCampaignQueries.
+						getUsersAndRolesForCampaignList(campaignListSubSelect, parameters);
+			} 
+			
+			// get campaign mask information
+			try {
+				campaignMasks = userCampaignQueries.
+						getCampaignMasksForCampaignList(
+								null, 
+								null, 
+								null, 
+								null, 
 								username, 
-								campaign.getId()));
-				try {
-				// get authors
-					campaign.addAuthorList(userCampaignQueries.getAuthorsForCampaign(campaign.getId()));
-				} catch(DomainException e) {
-						throw new ServiceException(
-								"There was a problem adding the author list.",
-								e);
-				}
+								campaignListSubSelect, 
+								parameters);
+			} catch(DataAccessException e) {
+				throw new ServiceException(
+						"There was a problem getting the CampaignMask list", e);
+			}	
+			
+			// Update the campaigns with the above informaton 
+			
+			for (Campaign campaign : campaignResults) {
+				String campaignId = campaign.getId();
 				
-				if(withClasses) {
+				// update request user's roles in different campaigns
+				Collection<Campaign.Role> campaignRoles = userCampaignRoles.get(campaignId);
+				if (campaignRoles != null) 
+					result.put(campaign, campaignRoles);
+				
+				// update the author list for each campaign 
+				Collection<String> authorList = campaignAuthors.get(campaignId);
+				if (authorList != null) {
 					try {
-						campaign.addClasses(
-								campaignClassQueries.getClassesAssociatedWithCampaign(
-										campaign.getId()));
-					}
-					catch(DomainException e) {
-						throw new ServiceException(
-								"There was a problem adding the classes.",
-								e);
+						campaign.addAuthorList(authorList);
+					} catch (DomainException e) {
+						throw new ServiceException("Can't add authorList, " + authorList + 
+								", to campaign " + campaign.getId(), e);
 					}
 				}
 				
-				if(withUsers) {
-					// Add the users and their roles to the campaign.
-					campaign.addUsers(
-							userCampaignQueries.getUsersAndRolesForCampaign(
-									campaign.getId()));
+				// update classes
+				if (withClasses) {
+					Collection<String> classes = campaignClasses.get(campaignId);
+					if (classes != null) {
+						try {
+							campaign.addClasses(classes);
+						} catch (DomainException e) {
+							throw new DataAccessException("Can't add classes to campaign: " + campaignId, e);
+						}
+					}
 				}
 				
-				// Get and apply the masks for this campaign.
-				campaign
-					.addMasks(
-						userCampaignQueries
-							.getCampaignMasks(
-								null, 
-								null, 
-								null, 
-								null, 
-								username, 
-								campaign.getId()));
+				// update users and roles information
+				if (withUsers) {
+					Map<String, Collection<Campaign.Role>> userRoles = campaignUserRoles.get(campaignId);
+					if (userRoles != null) {
+						campaign.addUsers(userRoles);
+					}
+				}
+				
+				// update mask information
+				Collection<CampaignMask> masks = campaignMasks.get(campaignId);
+				if (masks != null) {
+					campaign.addMasks(masks);
+				}
 			}
-			
+						
 			return result;
 		}
 		catch(DataAccessException e) {

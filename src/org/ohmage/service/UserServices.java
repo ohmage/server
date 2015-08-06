@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -1404,26 +1405,34 @@ public final class UserServices {
 		}
 		
 		try {
+			Collection<Object> userSubSelectParameters = new LinkedList<Object>();
+			String userSubSelectStmt = userQueries.getVisibleUsersSql(
+					userSubSelectParameters,
+					requesterUsername,
+					usernameCompilation,
+					emailAddressCompilation, 
+					admin, 
+					enabled, 
+					newAccount, 
+					canCreateCampaigns, 
+					canCreateClasses,
+					firstNameCompilation, 
+					lastNameCompilation, 
+					organizationCompilation, 
+					personalIdCompilation,
+					campaignIds,
+					classIds,
+					false,
+					numToSkip, 
+					numToReturn);
+	
+			
 			QueryResultsList<UserInformation> result =
-					userQueries
-						.getUserInformation(
-							requesterUsername,
-							usernameCompilation,
-							emailAddressCompilation, 
-							admin, 
-							enabled, 
-							newAccount, 
-							canCreateCampaigns, 
-							canCreateClasses,
-							firstNameCompilation, 
-							lastNameCompilation, 
-							organizationCompilation, 
-							personalIdCompilation,
-							campaignIds,
-							classIds,
+					userQueries.getUserInformation(
+							userSubSelectStmt,
+							userSubSelectParameters,
 							numToSkip, 
-							numToReturn,
-							false);
+							numToReturn);
 			
 			results.addAll(result.getResults());
 			
@@ -1560,62 +1569,60 @@ public final class UserServices {
 				personalIdTokens.add('%' + partialPersonalId + '%');
 			}
 
+			Collection<Object> userSubSelectParameters = new LinkedList<Object>();
+			String userSubSelectStmt = userQueries.getVisibleUsersSql(
+					userSubSelectParameters,
+					requesterUsername,
+					usernameTokens,
+					emailAddressTokens, 
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege, 
+					null,
+					firstNameTokens, 
+					lastNameTokens, 
+					organizationTokens, 
+					personalIdTokens,
+					null,
+					null,
+					false,
+					numToSkip, 
+					numToReturn);
+					
 			QueryResultsList<UserInformation> result =
-				userQueries
-					.getUserInformation(
-						requesterUsername,
-						usernameTokens,
-						emailAddressTokens, 
-						admin, 
-						enabled, 
-						newAccount, 
-						campaignCreationPrivilege, 
-						null,
-						firstNameTokens, 
-						lastNameTokens, 
-						organizationTokens, 
-						personalIdTokens,
-						null,
-						null,
-						numToSkip, 
-						numToReturn,
-						false);
+				userQueries.getUserInformation(
+						userSubSelectStmt, userSubSelectParameters, numToSkip, numToReturn);
 			
-			// create a list of users for a batch operation
-			Set<String> userSet = new HashSet<String>();
-			for (UserInformation currResult : result.getResults()){
-				userSet.add(currResult.getUsername());
-			}
 			
 			// Retrieve campaign info (batch operation)
 			// Create a map of user and campaigns as well as roles associated with each user and campaign. 
 			Map<String, Map<String, Set<Campaign.Role>>> userCampaignMap = new HashMap<String, Map<String, Set<Campaign.Role>>>();
-			userCampaignMap = userCampaignQueries.getCampaignAndRolesForUserSet(userSet);	
+			userCampaignMap = userCampaignQueries.getCampaignAndRolesForUsers(userSubSelectStmt, userSubSelectParameters);	
 			// loop through the result, add campaign and role to each UserInformation
-			try {
-				for(UserInformation currResult : result.getResults()) {
-					Map<String, Set<Campaign.Role>> campaignRoles = userCampaignMap.get(currResult.getUsername());
-					if (campaignRoles != null)
-						currResult.addCampaigns(campaignRoles);
-				}
-			}
-			catch(DomainException e) {
-				throw new ServiceException(e);
-			}
 			
 			// Retrieve class info (batch operation)
 			Map<String, Map<String, Clazz.Role>> userClassMap = new HashMap<String, Map<String, Clazz.Role>>();	
-			userClassMap = userClassQueries.getClassAndRoleForUserSet(userSet);
+			userClassMap = userClassQueries.getClassAndRoleForUsers(userSubSelectStmt, userSubSelectParameters);
+
 			// loop through the result, add class and roles to each UserInformation
 			try {
+				
 				for(UserInformation currResult : result.getResults()) {
+					
+					// update campaign info 
+					Map<String, Set<Campaign.Role>> campaignRoles = userCampaignMap.get(currResult.getUsername());
+						if (campaignRoles != null)
+							currResult.addCampaigns(campaignRoles);
+					
+					// update class info
 					Map<String, Clazz.Role> classRoles = userClassMap.get(currResult.getUsername());
 					if (classRoles != null)
 						currResult.addClasses(classRoles);
 				}
 			}
 			catch(DomainException e) {
-				throw new ServiceException(e);
+				throw new ServiceException("Can't update campaign or class info to user list", e);
 			}
 
 			
@@ -1664,27 +1671,36 @@ public final class UserServices {
 		
 		// Query for the users.
 		QueryResultsList<UserInformation> queryResult;
+		
+		Collection<Object> userSubSelectParameters = new LinkedList<Object>();
+
 		try {
+			String userSubSelectStmt = userQueries.getVisibleUsersSql(
+					userSubSelectParameters,
+					requesterUsername,
+					null,
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null,
+					firstNameSet, 
+					lastNameSet, 
+					organizationSet, 
+					personalIdSet,
+					null,
+					null,
+					true,
+					0, 
+					2);
+
 			queryResult =
-				userQueries
-					.getUserInformation(
-						requesterUsername,
-						null,
-						null, 
-						null, 
-						null, 
-						null, 
-						null, 
-						null,
-						firstNameSet, 
-						lastNameSet, 
-						organizationSet, 
-						personalIdSet,
-						null,
-						null,
+				userQueries.getUserInformation(
+						userSubSelectStmt,
+						userSubSelectParameters,		
 						0, 
-						2,
-						true);
+						2);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

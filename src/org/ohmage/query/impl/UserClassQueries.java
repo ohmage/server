@@ -18,6 +18,7 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -340,13 +341,11 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 	 * @see org.ohmage.query.IUserClassQueries#getClassAndRoleForUserSet(java.lang.String)
 	 */
 	@Override
-	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUserSet(
-			final Set<String> userSet)
+	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUsers(
+			final String userSubSelectStmt,
+			final Collection<Object> userSubSelectParameters)
 			throws DataAccessException {
 		
-		if (userSet == null || userSet.size() == 0)
-			throw new DataAccessException("userList list is empty");
-
 		StringBuilder sql = 
 				new StringBuilder(
 						"SELECT u.username, c.urn, ucr.role " +
@@ -355,18 +354,15 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 						" JOIN user_class_role ucr on (ucr.id = uc.user_class_role_id) " +
 						"WHERE " +
 						  "u.username in ");
-		sql.append(StringUtils.generateStatementPList(userSet.size()));
-	
-		List<Object> parameters = new LinkedList<Object>();
-		parameters.addAll(userSet);
-	
+		sql.append(" ( " + userSubSelectStmt + " )");
+		
 		try {
 			final Map<String, Map<String, Clazz.Role>> userClassRoleMap = 
 					new HashMap<String, Map<String, Clazz.Role>>();
 			
 			getJdbcTemplate().query(
 					sql.toString(), 
-					parameters.toArray(), 
+					userSubSelectParameters.toArray(), 
 					new RowMapper<Object>() {
 						@Override
 						public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
@@ -403,7 +399,7 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
-					"' with parameters: " + userSet.toString(), e);
+					"' with parameters: " + userSubSelectStmt, e);
 		}
 		
 	}

@@ -1442,10 +1442,11 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
+	 * @see org.ohmage.query.IUserQueries#getVisibleUsersSql(java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
 	 */
 	@Override
-	public QueryResultsList<UserInformation> getUserInformation(
+	public String getVisibleUsersSql(
+		final Collection<Object> parameters,
 		final String requesterUsername,
 		final Collection<String> usernames,
 		final Collection<String> emailAddresses,
@@ -1460,26 +1461,15 @@ public class UserQueries extends Query implements IUserQueries {
 		final Collection<String> personalIds,
 		final Collection<String> campaignIds,
 		final Collection<String> classIds,
+		final boolean settingUpUser,
 		final long numToSkip,
-		final long numToReturn,
-		final boolean settingUpUser)
+		final long numToReturn)
 		throws DataAccessException {
 		
 		// The initial SELECT selects everything.
 		StringBuilder sql = 
 				new StringBuilder(
-						"SELECT u.username, " +
-							"u.email_address, " +
-							"u.admin, " +
-							"u.enabled, " +
-							"u.new_account, " +
-							"u.campaign_creation_privilege, " +
-							"u.class_creation_privilege, " +
-							"u.user_setup_privilege, " +
-							"up.first_name, " +
-							"up.last_name, " +
-							"up.organization, " +
-							"up.personal_id " +
+						"SELECT u.id " +
 						"FROM user u " +
 							"LEFT JOIN user_personal up ON " +
 								"u.id = up.user_id, " +
@@ -1543,19 +1533,12 @@ public class UserQueries extends Query implements IUserQueries {
 				);
 		
 		// The initial parameter list doesn't have any items.
-		Collection<Object> parameters = new LinkedList<Object>();
 		parameters.add(requesterUsername);
 		
 		// If the list of usernames is present, add a WHERE clause component
 		// that limits the results to only those users whose exact username is
 		// in the list.
-		if(usernames != null) {
-			if(usernames.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(usernames != null && usernames.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1577,13 +1560,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of email addresses is present, add a WHERE clause that
 		// that contains all of the tokens in their own OR.
-		if(emailAddresses != null) {
-			if(emailAddresses.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(emailAddresses != null && emailAddresses.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1650,13 +1627,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of first name tokens is present, add a WHERE clause that
 		// contains all of the tokens in their own OR.
-		if(firstNames != null) {
-			if(firstNames.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(firstNames != null && firstNames.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1678,13 +1649,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of last name tokens is present, add a WHERE clause that
 		// contains all of the tokens in their own OR.
-		if(lastNames != null) {
-			if(lastNames.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(lastNames != null && lastNames.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1706,13 +1671,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of organization tokens is present, add a WHERE clause
 		// that contains all of the tokens in their own OR.
-		if(organizations != null) {
-			if(organizations.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(organizations != null && organizations.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1734,13 +1693,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of personal ID tokens is present, add a WHERE clause 
 		// that contains all of the tokens in their own OR.
-		if(personalIds != null) {
-			if(personalIds.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(personalIds != null && personalIds.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1763,13 +1716,7 @@ public class UserQueries extends Query implements IUserQueries {
 		// If a collection of campaign IDs is present, add a WHERE clause 
 		// component that limits the results to only those in any of the  
 		// campaigns.
-		if(campaignIds != null) {
-			if(campaignIds.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(campaignIds != null && campaignIds.size() > 0) {
 			sql.append(
 					" AND u.id IN (" +
 						"SELECT urc.user_id " +
@@ -1785,13 +1732,7 @@ public class UserQueries extends Query implements IUserQueries {
 		// If a collection of class IDs is present, add a WHERE clause 
 		// component that limits the results to only those in any of the 
 		// classes.
-		if(classIds != null) {
-			if(classIds.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(classIds != null && classIds.size() > 0) {			
 			sql.append(
 					" AND u.id IN (" +
 						"SELECT uc.user_id " +
@@ -1807,11 +1748,48 @@ public class UserQueries extends Query implements IUserQueries {
 		// Always order the results by username to facilitate paging.
 		sql.append(" ORDER BY u.username");
 		
+		return sql.toString();
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
+	 */
+	@Override
+	public QueryResultsList<UserInformation> getUserInformation(
+			final String userSubSelectStmt,
+			final Collection<Object> userSubSelectParameters,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException {
+	
+
+		// The initial SELECT selects everything.
+		StringBuilder sql = 
+				new StringBuilder(
+						"SELECT u.username, " +
+							"u.email_address, " +
+							"u.admin, " +
+							"u.enabled, " +
+							"u.new_account, " +
+							"u.campaign_creation_privilege, " +
+							"u.class_creation_privilege, " +
+							"u.user_setup_privilege, " +
+							"up.first_name, " +
+							"up.last_name, " +
+							"up.organization, " +
+							"up.personal_id " +
+						"FROM user u " +
+							"LEFT JOIN user_personal up ON " +
+								"u.id = up.user_id " +
+						"WHERE u.id IN ");
+		sql.append(" ( " + userSubSelectStmt + " ) ");		
+			
 		// Returns the results as queried by the database.
 		try {
 			return getJdbcTemplate().query(
 					sql.toString(), 
-					parameters.toArray(),
+					userSubSelectParameters.toArray(),
 					new ResultSetExtractor<QueryResultsList<UserInformation>>() {
 						/**
 						 * Extracts the data into the results and then returns
@@ -1935,7 +1913,7 @@ public class UserQueries extends Query implements IUserQueries {
 					"Error executing the following SQL '" + 
 						sql.toString() + 
 						"' with parameter(s): " + 
-						parameters);
+						userSubSelectParameters);
 		}
 	}
 	

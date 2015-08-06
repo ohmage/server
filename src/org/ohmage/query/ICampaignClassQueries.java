@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.campaign.Campaign;
@@ -26,6 +28,7 @@ import org.ohmage.exception.DataAccessException;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public interface ICampaignClassQueries {
 
@@ -51,6 +54,23 @@ public interface ICampaignClassQueries {
 	 * 		   campaign.
 	 */
 	List<String> getClassesAssociatedWithCampaign(String campaignId)
+			throws DataAccessException;
+
+	/**
+	 * Retrieves the list of unique identifiers for all of the classes that are
+	 * associated with a list of campaigns derived from the subselect statement.
+	 * 
+	 * @param subSelectStmt The sub-select statement that returns a list of 
+	 *  	  campaign ids. 
+	 *  
+	 * @param subSelectParameters parameters to be used in the subselect statement.
+	 * 
+	 * @return A Mapping of campaign urn and a list of class IDs that are associated 
+	 * 		   with the campaign. 
+	 */
+	Map<String, Collection<String>> getClassesAssociatedWithCampaignList(
+			final String subSelectStmt, 
+			final Collection<Object> subSelectParameters)
 			throws DataAccessException;
 
 	/**

@@ -23,6 +23,8 @@ import java.util.Set;
 import org.joda.time.DateTime;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.CampaignMask;
+import org.ohmage.domain.campaign.Campaign.Role;
+import org.ohmage.domain.campaign.CampaignMask.MaskId;
 import org.ohmage.exception.DataAccessException;
 
 public interface IUserCampaignQueries {
@@ -76,6 +78,28 @@ public interface IUserCampaignQueries {
 	List<Campaign.Role> getUserCampaignRoles(String username, String campaignId)
 		throws DataAccessException;
 
+	
+	/**
+	 * Returns a List of roles for this user in all campaigns that fit the 
+	 * request criteria.
+	 * 
+	 * @param username
+	 *        The username of the user that whose roles are desired.
+	 * 
+	 * @param campaignListSubSelect
+	 *        The subselect statement that returns a list of campaigns. 
+	 *        
+	 * @param SubSelectParameters 
+	 * 		  The parameters to be used for the subselect statement.
+	 * 
+	 * @return A possibly empty List of roles for this user in this campaign.
+	 */
+	public Map<String, Collection<Campaign.Role>> getUserCampaignRolesForCampaignList(
+			final String username, 
+			final String campaignListSubSelect,
+			final Collection<Object> SubSelectParameters) throws DataAccessException;
+
+		
 	/**
 	 * Retrieves all of the campaign IDs and a respective set of campaign roles
 	 * for a given user.
@@ -94,17 +118,17 @@ public interface IUserCampaignQueries {
 	/**
 	 * Retrieves all of the campaign IDs and a respective set of campaign roles
 	 * for a given set of users. 
-	 * 
-	 * @param userSet
-	 *        A set of usernames.
+	 * @param userSubSelectStmt TODO
+	 * @param userSubSelectParameters TODO
 	 * 
 	 * @return A map of campaign IDs to the user's roles in that campaign.
 	 * 
 	 * @throws DataAccessException
 	 *         There was an error.
 	 */
-	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUserSet(
-		final Set<String> userSet) throws DataAccessException;
+	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUsers(
+		final String userSubSelectStmt, 
+		final Collection<Object> userSubSelectParameters) throws DataAccessException;
 
 	
 	/**
@@ -123,6 +147,26 @@ public interface IUserCampaignQueries {
 		String campaignId) throws DataAccessException;
 
 	/**
+	 * Returns a map of campaign urns to a map of users and their roles in those campaigns.
+	 * 
+	 * @param subSelectStmt
+	 *        The sub select statement that returns a list of campaign ids.
+	 * 
+	 * @param subSelectParameters
+	 * 		  The parameters to be used for the above subSelectStmt.
+	 * 
+	 * @return A map of campaign urns to a map of users and their roles associated 
+	 * 		  with each campaign.
+	 * 
+	 * @throws DataAccessException
+	 *         Thrown if there is an error.
+	 */
+	public Map<String, Map<String, Collection<Role>>> getUsersAndRolesForCampaignList(
+			final String subSelectStmt, 
+			final Collection<Object> subSelectParameters)
+			throws DataAccessException;
+
+	/**
 	 * Returns a list of usernames to that are authors in a campaign.
 	 * 
 	 * @param campaignId
@@ -137,6 +181,25 @@ public interface IUserCampaignQueries {
 			final String campaignId)
 			throws DataAccessException;
 	
+	/**
+	 * Returns a map of campaigns and author lists associated with each campaign. 
+	 *  
+	 * @param campaignListSubSelect 
+	 *        The sub-select statement to be used to retrived a list of valid campaigns
+	 * 
+	 * @param parameters 
+	 * 		  The list of objects to be used as parameters to the sub-select statement. 
+	 * 
+	 * @return A map of campaigns and author lists assoicated with each campaign.
+	 * 
+	 * @throws DataAccessException
+	 *         Thrown if there is an error.
+	 */
+	public Map<String, Collection<String>> getAuthorsForCampaignList(
+			final String campaignListSubSelect, 
+			final Collection<Object> parameters)
+			throws DataAccessException; 
+			
 	/**
 	 * Retrieves all of the campaign IDs and their respective names to which a
 	 * user is associated.
@@ -197,4 +260,17 @@ public interface IUserCampaignQueries {
 		String assigneeUserId,
 		String campaignId)
 		throws DataAccessException;
+	
+	
+	public Map<String, Collection<CampaignMask>> getCampaignMasksForCampaignList(
+			final MaskId maskId,
+			final DateTime startDate,
+			final DateTime endDate,
+			final String assignerUserId,
+			final String assigneeUserId,
+			final String campaignSubSelectStmt,
+			final Collection<Object> subSelectParameters)
+			throws DataAccessException;
+
+	
 }
