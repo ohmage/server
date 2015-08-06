@@ -1087,8 +1087,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 					"FROM " +
 						"user u, " +
 						"campaign ca, " +
-							"campaign_running_state crs, " +
-							"campaign_privacy_state cps " +
+						"campaign_running_state crs, " +
+						"campaign_privacy_state cps " +
 					"WHERE u.username = ? " +
 					"AND ca.running_state_id = crs.id " +
 					"AND ca.privacy_state_id = cps.id " +

@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserInformation.UserPersonal;
@@ -38,6 +39,7 @@ import org.ohmage.query.ICampaignSurveyResponseQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserQueries;
 import org.ohmage.query.impl.QueryResultsList;
+import org.ohmage.request.campaign.CampaignReadRequest;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -48,6 +50,8 @@ import org.ohmage.util.StringUtils;
  * @author Hongsuda T.
  */
 public class UserCampaignServices {
+	private static final Logger LOGGER = Logger.getLogger(UserCampaignServices.class);
+
 	private static UserCampaignServices instance;
 	
 	private ICampaignQueries campaignQueries;
@@ -999,13 +1003,17 @@ public class UserCampaignServices {
 							runningState, 
 							role);
 		
+			LOGGER.debug(campaignListSubSelect);
+			
 			QueryResultsList<Campaign> queryResult = 
 					campaignQueries.getCampaignInformation(campaignListSubSelect, parameters);
+			LOGGER.debug("HT: number of campaigns: " + queryResult.getTotalNumResults());
 			
 			List<Campaign> campaignResults = queryResult.getResults();
-			
+			LOGGER.debug("HT: number of campaigns: " + queryResult.getTotalNumResults() + "," + campaignResults.size());
+		
 			// request user's role
-			Map<Campaign, Collection<Campaign.Role>> result =
+			Map<Campaign, Collection<Campaign.Role>> campaignRolesMap =
 					new HashMap<Campaign, Collection<Campaign.Role>>(campaignResults.size());
 
 			 // request user's roles in different campaigns
@@ -1073,9 +1081,12 @@ public class UserCampaignServices {
 				
 				// update request user's roles in different campaigns
 				Collection<Campaign.Role> campaignRoles = userCampaignRoles.get(campaignId);
-				if (campaignRoles != null) 
-					result.put(campaign, campaignRoles);
-				
+				if (campaignRoles != null) {
+					campaignRolesMap.put(campaign, campaignRoles);
+				} else {
+					// add the campaign anyway with no roles.
+					campaignRolesMap.put(campaign, new LinkedList<Campaign.Role>());
+				}
 				// update the author list for each campaign 
 				Collection<String> authorList = campaignAuthors.get(campaignId);
 				if (authorList != null) {
@@ -1114,7 +1125,7 @@ public class UserCampaignServices {
 				}
 			}
 						
-			return result;
+			return campaignRolesMap;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
