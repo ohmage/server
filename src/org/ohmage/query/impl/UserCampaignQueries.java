@@ -748,7 +748,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 * @return A Map of campaign IDs to campaign names for all of the campaigns
 	 * 		   to which the user is associated.
 	 */
-	public Map<String, String> getCampaignIdsAndNameForUser(String username) throws DataAccessException {
+	public Map<String, String> getCampaignIdsAndNamesForUser(String username) throws DataAccessException {
 		try {
 			final Map<String, String> result = new HashMap<String, String>();
 			
@@ -1006,14 +1006,14 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignMaskForCampaignList
 	 */
 	@Override
-	public Map<String, Collection<CampaignMask>> getCampaignMasksForCampaignList(
+	public Map<String, Collection<CampaignMask>> getCampaignMasksForCampaigns(
+		final String campaignSubSelectStmt,
+		final Collection<Object> subSelectParameters,
 		final MaskId maskId,
 		final DateTime startDate,
 		final DateTime endDate,
 		final String assignerUserId,
-		final String assigneeUserId,
-		final String campaignSubSelectStmt,
-		final Collection<Object> subSelectParameters)
+		final String assigneeUserId)
 		throws DataAccessException {
 		
 		// Build the default SQL.

@@ -58,18 +58,22 @@ public interface IUserDocumentQueries {
 	 * with a user. If the user is not directly associated with the document or
 	 * it doesn't exist, null is returned.
 	 * 
+	 * @param docSqlStmt Sql statement to retrieve a list of valid doc ids. 
+	 * 
+	 * @param docSqlParameters Sql parameters to be used with the above sql.
+	 * 					
 	 * @param username The username of the user whose personal documents are
 	 * 				   being checked.
-	 * 
-	 * @param documentIds The unique identifier (dbId) for the document whose role is
-	 * 					 desired.
 	 * 
 	 * @return If the document exist and the user is directly associated with 
 	 * 		   it, then their document role with said document is returned.
 	 * 		   Otherwise, null is returned.
 	 */
-	Map<Integer, Document.Role> getDocumentRoleForDocumentSetSpecificToUser(String username,
-			Collection<Integer> documentIds) throws DataAccessException;
+	public Map<String, Document.Role> getDocumentRoleForDocumentsSpecificToUser(
+			final String docSqlStmt, 
+			final Collection<Object> docSqlParameters, 
+			final String username)
+			throws DataAccessException;
 	
 	/**
 	 * Retrieves all of the document roles for a user across their personal
@@ -86,5 +90,8 @@ public interface IUserDocumentQueries {
 	 */
 	List<Document.Role> getDocumentRolesForDocumentForUser(String username,
 			String documentId) throws DataAccessException;
+
+
+
 
 }

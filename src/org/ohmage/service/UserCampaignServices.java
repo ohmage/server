@@ -685,7 +685,7 @@ public class UserCampaignServices {
 			if(campaignIds == null) {
 				// Initializes the list with all of the campaign IDs for the 
 				// requesting user.
-				desiredCampaignIds.addAll(userCampaignQueries.getCampaignIdsAndNameForUser(username).keySet());
+				desiredCampaignIds.addAll(userCampaignQueries.getCampaignIdsAndNamesForUser(username).keySet());
 			}
 			else {
 				// Initializes the list with the campaign IDs in the query.
@@ -1003,20 +1003,17 @@ public class UserCampaignServices {
 							runningState, 
 							role);
 		
-			LOGGER.debug(campaignListSubSelect);
+			//LOGGER.debug(campaignListSubSelect);
 			
 			QueryResultsList<Campaign> queryResult = 
 					campaignQueries.getCampaignInformation(campaignListSubSelect, parameters);
-			LOGGER.debug("HT: number of campaigns: " + queryResult.getTotalNumResults());
-			
 			List<Campaign> campaignResults = queryResult.getResults();
-			LOGGER.debug("HT: number of campaigns: " + queryResult.getTotalNumResults() + "," + campaignResults.size());
 		
-			// request user's role
+			// request user's role. To be returned.
 			Map<Campaign, Collection<Campaign.Role>> campaignRolesMap =
 					new HashMap<Campaign, Collection<Campaign.Role>>(campaignResults.size());
 
-			 // request user's roles in different campaigns
+			// request user's roles in different campaigns
 			Map<String, Collection<Campaign.Role>> userCampaignRoles = null;
 			// authors for different campaigns
 			Map<String, Collection<String>> campaignAuthors = null;	
@@ -1061,14 +1058,14 @@ public class UserCampaignServices {
 			// get campaign mask information
 			try {
 				campaignMasks = userCampaignQueries.
-						getCampaignMasksForCampaignList(
-								null, 
-								null, 
-								null, 
-								null, 
-								username, 
+						getCampaignMasksForCampaigns(
 								campaignListSubSelect, 
-								parameters);
+								parameters, 
+								null, 
+								null, 
+								null, 
+								null, 
+								username);
 			} catch(DataAccessException e) {
 				throw new ServiceException(
 						"There was a problem getting the CampaignMask list", e);

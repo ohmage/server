@@ -1735,7 +1735,7 @@ public final class UserServices {
 		
 		try {
 			// Get the campaigns and their names for the requester.
-			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNameForUser(username);
+			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNamesForUser(username);
 						
 			// Get the requester's campaign roles for each of the campaigns.
 			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();

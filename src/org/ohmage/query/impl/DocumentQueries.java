@@ -533,10 +533,11 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 	}
 	
 	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentInformation(java.lang.String)
+	 * @see org.ohmage.query.impl.IDocumentQueries#getVisibleDocumentsSql(java.lang.String)
 	 */
 	@Override
-	public List<Document> getDocumentInformation(
+	public String getVisibleDocumentsSql(
+			final Collection<Object> sqlParameters,
 			final String username,
 			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
@@ -549,9 +550,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		
 		StringBuilder sql = 
 			new StringBuilder(
-				"SELECT d.id, d.uuid, d.name, d.description, d.size, " +
-					"d.last_modified_timestamp, d.creation_timestamp, " +
-					"dps.privacy_state, duc.username " +
+				"SELECT d.id " +
 				"FROM user u, document d, " +
 					"document_privacy_state dps, document_user_creator duc " +
 				"WHERE u.username = ? " +
@@ -559,11 +558,19 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				"AND d.id = duc.document_id " +
 				"AND (");
 		
-		List<Object> parameters = new LinkedList<Object>();
-		parameters.add(username);
+		sqlParameters.add(username);
 		
 		boolean needOr = false;
-		if(personalDocuments == null) {
+		if (personalDocuments != null && personalDocuments == true) {
+			// Get all of the personal documents. 
+			sql.append(
+				"d.id IN (" +
+					"SELECT dur.document_id " +
+					"FROM document_user_role dur " +
+					"WHERE u.id = dur.user_id" +
+				")");
+			needOr = true;
+		} else {
 			// If campaignIds and classIds are null, get all of the documents
 			// visible to the user.
 			if((campaignIds == null) && (classIds == null)) {
@@ -595,29 +602,9 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				);
 			}
 		}
-		else if(personalDocuments) {
-			// Get all of the personal documents. 
-			sql.append(
-				"d.id IN (" +
-					"SELECT dur.document_id " +
-					"FROM document_user_role dur " +
-					"WHERE u.id = dur.user_id" +
-				")");
-			needOr = true;
-		}
-		else {
-			// If campaignIds and classIds are null and they are specifically 
-			// asking for not their personal documents, then return nothing.
-			if((campaignIds == null) && (classIds == null)) {
-				return Collections.emptyList();
-			}
-		}
 		
-		if(campaignIds != null) {
-			if(campaignIds.size() == 0) {
-				return Collections.emptyList();
-			}
-			
+		
+		if(campaignIds != null && campaignIds.size() > 0) {			
 			if(needOr) {
 				sql.append(" OR ");
 			}
@@ -638,13 +625,10 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				")");
 			needOr = true;
 			
-			parameters.addAll(campaignIds);
+			sqlParameters.addAll(campaignIds);
 		}
 		
-		if(classIds != null) {
-			if(classIds.size() == 0) {
-				return Collections.emptyList();
-			}
+		if(classIds != null && classIds.size() > 0) {
 			
 			if(needOr) {
 				sql.append(" OR ");
@@ -664,16 +648,13 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 					"AND c.id = dcr.class_id" +
 				")");
 			
-			parameters.addAll(classIds);
+			sqlParameters.addAll(classIds);
 		}
 		
 		sql.append(")");
 		
-		if(nameTokens != null) {
-			if(nameTokens.size() == 0) {
-				return Collections.emptyList();
-			}
-			
+		if(nameTokens != null && nameTokens.size() > 0) {
+				
 			sql.append(" AND (");
 			boolean firstPass = true;
 			for(String nameToken : nameTokens) {
@@ -685,16 +666,13 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				}
 				
 				sql.append("d.name LIKE ?");
-				parameters.add('%' + nameToken + '%');
+				sqlParameters.add('%' + nameToken + '%');
 			}
 			sql.append(")");
 		}
 		
-		if(descriptionTokens != null) {
-			if(descriptionTokens.size() == 0) {
-				return Collections.emptyList();
-			}
-			
+		if(descriptionTokens != null && descriptionTokens.size() > 0) {
+				
 			sql.append(" AND (");
 			boolean firstPass = true;
 			for(String descriptionToken : descriptionTokens) {
@@ -706,7 +684,7 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				}
 				
 				sql.append("d.description LIKE ?");
-				parameters.add('%' + descriptionToken + '%');
+				sqlParameters.add('%' + descriptionToken + '%');
 			}
 			sql.append(")");
 		}
@@ -714,12 +692,12 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		
 		if(startDate != null){
 			sql.append(" AND d.last_modified_timestamp >= ?");
-			parameters.add(DateTimeUtils.getStringFromDateTime(startDate));
+			sqlParameters.add(DateTimeUtils.getStringFromDateTime(startDate));
 		}
 		
 		if(endDate != null){
 			sql.append(" AND d.last_modified_timestamp <= ?");
-			parameters.add(DateTimeUtils.getStringFromDateTime(endDate));
+			sqlParameters.add(DateTimeUtils.getStringFromDateTime(endDate));
 		}
 		
 		
@@ -811,54 +789,36 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 				")");
 		
 	
-		// return a map instead of a list
-		/*
-		try {
-			final Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
-			getJdbcTemplate().query(
-				sql.toString(), 
-				parameters.toArray(), 
-				new RowMapper<Object>() {
-					@Override
-					public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
-						try {
-							Document doc = new Document(
-									rs.getInt("id"),
-									rs.getString("uuid"),
-									rs.getString("name"),
-									rs.getString("description"),
-									Document.PrivacyState.getValue(rs.getString("privacy_state")),
-									new DateTime(rs.getTimestamp("last_modified_timestamp").getTime()),
-									new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
-									rs.getInt("size"),
-									rs.getString("username"));
-							documentMap.put(rs.getInt("id"), doc);
-							return null;
-						}
-						catch(DomainException e) {
-							throw new SQLException(
-									"A document is broken: " + 
-										rs.getString("uuid"), 
-									e);
-						}
-					}
-				}
-			);
-		}
-		catch(org.springframework.dao.DataAccessException e) {
-			throw new DataAccessException(
-				"Error executing SQL '" + 
-					sql.toString() + 
-					"' with parameters: " +
-					parameters, 
-				e);
-		}
-		*/
+		return sql.toString();
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IDocumentQueries#getDocumentInformation(java.lang.String)
+	 */
+	@Override
+	public List<Document> getDocumentInformation(
+			final String docSubSelectStmt, 
+			final Collection<Object> docSqlParameters,
+			final String username) 
+			throws DataAccessException {
+		
+		StringBuilder sql = 
+			new StringBuilder(
+				"SELECT d.uuid, d.name, d.description, d.size, " +
+					"d.last_modified_timestamp, d.creation_timestamp, " +
+					"dps.privacy_state, duc.username " +
+				"FROM document d " +
+					"JOIN document_privacy_state dps on (d.privacy_state_id = dps.id) " +
+					"JOIN document_user_creator duc on (d.id = duc.document_id) " +
+				"WHERE d.id IN ");
+		sql.append(" ( " + docSubSelectStmt + " )");
+				
 		
 		try {
 			return getJdbcTemplate().query(
 				sql.toString(), 
-				parameters.toArray(), 
+				docSqlParameters.toArray(), 
 				new RowMapper<Document>() {
 					@Override
 					public Document mapRow(
@@ -868,7 +828,6 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 						
 						try {
 							return new Document(
-									rs.getInt("id"),
 									rs.getString("uuid"),
 									rs.getString("name"),
 									rs.getString("description"),
@@ -890,10 +849,8 @@ public class DocumentQueries extends Query implements IDocumentQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(
-				"Error executing SQL '" + 
-					sql.toString() + 
-					"' with parameters: " +
-					parameters, 
+				"Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + docSqlParameters, 
 				e);
 		}
 		

@@ -53,7 +53,6 @@ public class Document {
 	private final DateTime creationDate;
 	private final int size;
 	private final String creator;
-	private final Integer dbId;     // for db operation
 	
 	/**
 	 * Known document privacy states.
@@ -161,24 +160,27 @@ public class Document {
 	}
 	
 	
+	// a UserContainer can be either a class or a campaign. 
+	// This is used to keep track of data returned from the database.
 	public static class UserContainerRole{
-		private final Integer documentDbId;
+		private final String documentId;
 		private final String containerId;
 		private final Document.Role documentContainerRole; 
 		private final String userContainerRole;
 		
-		public UserContainerRole(final Integer documentDbId, 
+		public UserContainerRole(
+				final String documentId, 
 				final String ContainerId, 
 				final Document.Role documentContainerRole, 
 				final String userContainerRole) {
-			this.documentDbId = documentDbId;
+			this.documentId = documentId;
 			this.containerId = ContainerId; 
 			this.documentContainerRole = documentContainerRole;
 			this.userContainerRole = userContainerRole;
 		}
 		
-		public Integer getDocumentDbId() {
-			return documentDbId;
+		public String getDocumentId() {
+			return documentId;
 		}
 		public String getContainerId(){
 			return containerId;
@@ -270,90 +272,12 @@ public class Document {
 		this.creationDate = creationDate;
 		this.size = size;
 		this.creator = creator;
-		this.dbId = -1;
 		
 		maxRole = null;
 		campaignAndRole = new HashMap<String, Role>();
 		classAndRole = new HashMap<String, Role>();
 	}
 	
-	/**
-	 * Creates a new Document object that contains information about
-	 * a document and keeps track of a list of roles for the user, campaigns, 
-	 * and classes. All values should be taken from the database.
-	 * 
-	 * @param documentId A unique identifier for this document. 
-	 * 
-	 * @param name The name of the document.
-	 * 
-	 * @param description A description of the document.
-	 * 
-	 * @param lastModified The last time the document was modified.
-	 * 
-	 * @param size The size of the document in bytes.
-	 * 
-	 * @param privacyState The current privacy state of the document.
-	 * 
-	 * @throws DomainException Thrown if any of the parameters are null or 
-	 * 						   invalid.
-	 */
-	public Document(
-			final int dbId,
-			final String documentId, 
-			final String name, 
-			final String description,
-			final PrivacyState privacyState, 
-			final DateTime lastModified, 
-			final DateTime creationDate, 
-			final int size, 
-			final String creator)
-			throws DomainException {
-		
-		if(StringUtils.isEmptyOrWhitespaceOnly(documentId)) {
-			throw new DomainException(
-					ErrorCode.DOCUMENT_INVALID_ID,
-					"The document's ID cannot be null or whitespace only.");
-		}
-		else if(StringUtils.isEmptyOrWhitespaceOnly(name)) {
-			throw new DomainException(
-					ErrorCode.DOCUMENT_INVALID_NAME,
-					"The document's name cannot be null or whitespace only.");
-		}
-		else if(privacyState == null) {
-			throw new DomainException(
-					ErrorCode.DOCUMENT_INVALID_PRIVACY_STATE,
-					"The document's privacy state cannot be null.");
-		}
-		else if(lastModified == null) {
-			throw new DomainException(
-					ErrorCode.SERVER_INVALID_DATE,
-					"The document's last modified value cannot be null.");
-		}
-		else if(creationDate == null) {
-			throw new DomainException(
-					ErrorCode.SERVER_INVALID_DATE,
-					"The document's creation date cannot be null.");
-		}
-		else if(size < 0) {
-			throw new DomainException(
-					ErrorCode.DOCUMENT_INVALID_CONTENTS,
-					"The document's size cannot be negative.");
-		}
-		
-		this.documentId = documentId;
-		this.name = name;
-		this.description = description;
-		this.privacyState = privacyState;
-		this.lastModified = lastModified;
-		this.creationDate = creationDate;
-		this.size = size;
-		this.creator = creator;
-		this.dbId = dbId;
-		
-		maxRole = null;
-		campaignAndRole = new HashMap<String, Role>();
-		classAndRole = new HashMap<String, Role>();
-	}
 
 	
 	/**
@@ -540,19 +464,9 @@ public class Document {
 			throw new IllegalArgumentException("The user's maximum role is unknown.", e);
 		}
 		
-		this.dbId = -1;
 		
 	}
-	
-	/**
-	 * Returns the DB ID for this document.
-	 * 
-	 * @return The unique ID for this document.
-	 */
-	public Integer getDocumentDbId() {
-		return dbId;
-	}
-	
+		
 	/**
 	 * Returns the unique ID for this document.
 	 * 
