@@ -166,9 +166,9 @@ public interface ICampaignQueries {
 	/**
 	 * Creates a new CampaignInformation object based on the information about
 	 * some campaign.
-	 * 
+	 * 	 
 	 * @param campaignId
-	 *            The campaign's unique identifier.
+	 *            The campaign's unique identifier. 
 	 * 
 	 * @return A CampaignInformation object with the required information about
 	 *         a campaign or null if no such campaign exists.
@@ -355,7 +355,7 @@ public interface ICampaignQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public QueryResultsList<Campaign> getCampaignInformation(
+	public Collection<Campaign> getCampaignInformation(
 			final String subSelectStmt,
 			final Collection<Object> subSelectParameters)
 			throws DataAccessException;
@@ -407,8 +407,22 @@ public interface ICampaignQueries {
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)
 			throws DataAccessException;
+
 	
-	
+	public String getVisibleCampaignSearchSql(
+			final Collection<Object> parameters,
+			final String username,
+			final String partialCampaignId,
+			final String partialCampaignName,
+			final String partialDescription,
+			final String partialXml,
+			final String partialAuthoredBy,
+			final DateTime startDate,
+			final DateTime endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState) 
+			throws DataAccessException;
+
 	/**
 	 * Queries all of the campaigns in the system limited by the parameters.
 	 * The ordering is by creation timestamp for paging.

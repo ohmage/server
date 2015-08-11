@@ -1061,6 +1061,105 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	
 	/*
 	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getvisiableCampaignSearchSql(java.lang.String, java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
+	 */
+	@Override
+	public String getVisibleCampaignSearchSql(
+			final Collection<Object> parameters,
+			final String username,
+			final String partialCampaignId,
+			final String partialCampaignName,
+			final String partialDescription,
+			final String partialXml,
+			final String partialAuthoredBy,
+			final DateTime startDate,
+			final DateTime endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState) 
+			throws DataAccessException {
+					
+		try {
+			// Begin with a common set of elements to select, and the tables to
+			// which those elements belong.
+			StringBuilder builder = 
+				new StringBuilder(
+					"SELECT ca.id " +
+					"FROM " +
+						"user u, " +
+						"campaign ca, " +
+						"campaign_running_state crs, " +
+						"campaign_privacy_state cps " +
+					"WHERE u.username = ? " +
+					"AND ca.running_state_id = crs.id " +
+					"AND ca.privacy_state_id = cps.id " +
+					// ACL
+					"AND (" +
+						"(u.admin = true)" +
+						" OR " +
+						"EXISTS (" +
+							"SELECT id " +
+							"FROM user_role_campaign urc " +
+							"WHERE u.id = urc.user_id " +
+							"AND ca.id = urc.campaign_id " +
+						")" +
+					")");
+			
+			parameters.add(username);
+			
+			if(partialCampaignId != null) {			
+				builder.append(" AND ca.urn LIKE ?");
+				parameters.add("%" + partialCampaignId + "%");
+			}
+			
+			if(partialCampaignName != null) {			
+				builder.append(" AND ca.name LIKE ?");
+				parameters.add("%" + partialCampaignName + "%");
+			}
+	
+		
+			if(partialDescription != null) {			
+				builder.append(" AND ca.description LIKE ?");
+				parameters.add("%" + partialDescription + "%");
+			}
+
+			if(partialXml != null) {			
+				builder.append(" AND ca.xml LIKE ?");
+				parameters.add("%" + partialXml + "%");
+			}
+
+			if(partialAuthoredBy != null) {			
+				builder.append(" AND ca.authored_by LIKE ?");
+				parameters.add("%" + partialAuthoredBy + "%");
+			}
+
+			if(startDate != null) {
+				builder.append(" AND ca.creation_timestamp >= ?");
+				parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
+			}
+			
+			if(endDate != null) {
+				builder.append(" AND ca.creation_timestamp <= ?");
+				parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
+			}
+			
+			if(runningState != null) {
+				builder.append(" AND crs.running_state = ?");
+				parameters.add(runningState.toString());
+			}
+			
+			if(privacyState != null) {
+				builder.append(" AND cps.privacy_state = ?");
+				parameters.add(privacyState.toString());
+			}
+					
+			return builder.toString();
+		} catch (Exception e) {
+			throw new DataAccessException("Cannot build an sql statement", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
 	 * @see org.ohmage.query.ICampaignQueries#getCampaignListSql(java.lang.String, java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
 	 */
 	@Override
@@ -1220,7 +1319,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection)
 	 */
 	@Override
-	public QueryResultsList<Campaign> getCampaignInformation(
+	public Collection<Campaign> getCampaignInformation(
 			final String subSelectStmt,
 			final Collection<Object> subSelectParameters
 			)
@@ -1249,23 +1348,23 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			return getJdbcTemplate().query(
 					builder.toString(),
 					parameters.toArray(),
-					new ResultSetExtractor<QueryResultsList<Campaign>>() {
+					new ResultSetExtractor<Collection<Campaign>>() {
 						/**
 						 * Counts the total number of results and converts each
 						 * of the actual results into a Campaign object.
 						 */
 						@Override
-						public QueryResultsList<Campaign> extractData(
+						public Collection<Campaign> extractData(
 								ResultSet rs)
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
 							try {
-								QueryResultListBuilder<Campaign> result = 
-										new QueryResultListBuilder<Campaign>();
+								Collection<Campaign> result = 
+										new LinkedList<Campaign>();
 								
 								while(rs.next()) {
-									result.addResult(
+									result.add(
 											new Campaign(
 													null,
 													null,
@@ -1276,7 +1375,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 													rs.getString("xml")));
 								}
 							
-								return result.getQueryResult();
+								return result;
 							}
 							catch(DomainException e) {
 								throw new SQLException(e);

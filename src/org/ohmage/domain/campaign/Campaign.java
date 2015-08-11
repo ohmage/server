@@ -320,6 +320,10 @@ public class Campaign {
 			return name().toLowerCase();
 		}
 	}
+	// the role of the request user
+	private final Collection<Role> requestUserRoles;
+
+	// roles of all users associated with the campaign
 	private final Map<String, Collection<Role>> userRoles;
 
 	/**
@@ -439,6 +443,7 @@ public class Campaign {
 		
 		this.surveyMap = surveyMap; // TODO deep copy?
 		
+		requestUserRoles = new LinkedList<Role>();
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
 		authorList = new LinkedList<String>();
@@ -632,6 +637,7 @@ public class Campaign {
 		xml = tXml;
 		surveyMap = tSurveyMap;
 		
+		requestUserRoles = new LinkedList<Role>();
 		authorList = new LinkedList<String>();
 	}
 	
@@ -712,6 +718,7 @@ public class Campaign {
 		
 		this.xml = root.toXML();
 		
+		requestUserRoles = new LinkedList<Role>();
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
 		authorList = new LinkedList<String>();
@@ -953,6 +960,45 @@ public class Campaign {
 		return maskedXml;
 	}
 	
+	/**
+	 * Adds a role of the request user associated with this campaign.
+	 * 
+	 * @param role A role of the request user in this campaign.
+	 * 
+	 * @throws DomainException Thrown if the role is null.
+	 */	
+	public void addRequestUserRole(final Role role) throws DomainException {
+		if (role == null) {
+			throw new DomainException("The request user's role is null");
+		}
+		
+		requestUserRoles.add(role);
+	}
+	/**
+	 * Adds a collection of roles of the request user associated with 
+	 * this campaign.
+	 * 
+	 * @param roles The request user's configuration role.
+	 * 
+	 * @throws DomainException Thrown if the roles is null.
+	 */
+	public void addRequestUserRoles(final Collection<Role> roles) throws DomainException { 
+		if (roles == null || roles.size() == 0) {
+			throw new DomainException("The request user's roles is null or empty");
+		}
+		requestUserRoles.addAll(roles);
+	}
+
+	/**
+	 * Retrieve the roles associated with the request user. 
+	 * 
+	 * @return the request user's roles associated with this campaign
+	 * 
+	 * @throws DomainException Thrown if the roles is null.
+	 */
+	public Collection<Role> getRequestUserRoles(){
+		return requestUserRoles;
+	}
 	/**
 	 * Adds a user and an associated role to the list of users and their roles.
 	 * 
@@ -1870,6 +1916,7 @@ public class Campaign {
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
 		result.put(JSON_KEY_AUTHOR_LIST, authorList);
+		// add request's user roles
 		
 		// If there is no mask, report the actual campaign creation timestamp.
 		if(masks.size() == 0) {

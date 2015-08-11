@@ -653,4 +653,17 @@ public final class StringUtils {
 		 }
 		 return false;
 	}
+	
+	/**
+	 * Validates that a String value is a valid string value.
+	 * 
+	 * @return true if the provided value is a valid URN, false otherwise
+	 */
+	public static String validateString(String value) {
+		if(isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		return value;
+	}
+
 }

@@ -347,7 +347,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 * 
 	 * @return A possibly empty List of roles for this user in this campaign.
 	 */
-	public Map<String, Collection<Campaign.Role>> getUserCampaignRolesForCampaigns(
+	public Map<String, Collection<Campaign.Role>> getCampaignsAndRolesForUserAndCampaigns(
 			final String username, 
 			final String campaignListSubSelect,
 			final Collection<Object> SubSelectParameters) throws DataAccessException {

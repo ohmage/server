@@ -21,6 +21,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -32,6 +33,7 @@ import nu.xom.Nodes;
 import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -43,6 +45,9 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ICampaignImageQueries;
 import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.IImageQueries;
+import org.ohmage.query.IUserCampaignQueries;
+import org.ohmage.query.impl.QueryResultsList;
+import org.ohmage.request.campaign.CampaignSearchRequest;
 
 /**
  * This class contains the services that pertain to campaigns.
@@ -51,6 +56,8 @@ import org.ohmage.query.IImageQueries;
  * @author Joshua Selsky
  */
 public class CampaignServices {
+	private static final Logger LOGGER = Logger.getLogger(CampaignServices.class);
+
 	private static CampaignServices instance;
 	private ICampaignQueries campaignQueries;
 	private ICampaignImageQueries campaignImageQueries;
@@ -423,6 +430,7 @@ public class CampaignServices {
 		}
 	}
 	
+	
 	/**
 	 * Begins with all of the campaigns that exist in the system and then 
 	 * removes those that don't match the parameterized criteria. If a  
@@ -457,7 +465,8 @@ public class CampaignServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Set<String> campaignIdSearch(
+	public Collection<Campaign> campaignSearch(
+			final String requestUsername,
 			final String partialCampaignId,
 			final String partialCampaignName,
 			final String partialDescription,
@@ -470,113 +479,37 @@ public class CampaignServices {
 			throws ServiceException {
 		
 		try {
-			Set<String> result = null;
+			Collection<Object> campaignSqlParameters = new LinkedList<Object>();
 			
-			if(partialCampaignId != null) {
-				result = new HashSet<String>(
-						campaignQueries.getCampaignsFromPartialId(
-								partialCampaignId));
-			}
+			String campaignSqlStmt = campaignQueries.getVisibleCampaignSearchSql(
+					campaignSqlParameters,
+					requestUsername,
+					partialCampaignId,
+					partialCampaignName,
+					partialDescription,
+					partialXml,
+					partialAuthoredBy,
+					startDate,
+					endDate,
+					privacyState,
+					runningState);
+						
+			Collection<Campaign> campaignResults = 
+					UserCampaignServices.instance().getCampaignInformation(
+							campaignSqlStmt,
+							campaignSqlParameters,
+							requestUsername,
+							true,
+							true);
+
+			return campaignResults;
 			
-			if(partialCampaignName != null) {
-				List<String> campaignIds =
-					campaignQueries.getCampaignsFromPartialName(
-							partialCampaignName);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(partialDescription != null) {
-				List<String> campaignIds =
-					campaignQueries.getCampaignsFromPartialDescription(
-							partialDescription);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(partialAuthoredBy != null) {
-				List<String> campaignIds =
-					campaignQueries.getCampaignsFromPartialAuthoredBy(
-							partialAuthoredBy);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(startDate != null) {
-				List<String> campaignIds = 
-					campaignQueries.getCampaignsOnOrAfterDate(startDate);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(endDate != null) {
-				List<String> campaignIds = 
-					campaignQueries.getCampaignsOnOrBeforeDate(endDate);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(privacyState != null) {
-				List<String> campaignIds =
-					campaignQueries.getCampaignsWithPrivacyState(privacyState);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(runningState != null) {
-				List<String> campaignIds =
-					campaignQueries.getCampaignsWithRunningState(runningState);
-				
-				if(result == null) {
-					result = new HashSet<String>(campaignIds);
-				}
-				else {
-					result.retainAll(campaignIds);
-				}
-			}
-			
-			if(result == null) {
-				result = new HashSet<String>(
-						campaignQueries.getAllCampaignIds());
-			}
-			
-			return result;
-		}
-		catch(DataAccessException e) {
+		} catch(DataAccessException e) {
 			throw new ServiceException(e);
 		}
 	}
 	
+
 	/**
 	 * Verifies that the survey responses as JSONObjects are valid survey
 	 * responses for the given campaign.
@@ -705,4 +638,161 @@ public class CampaignServices {
 			imageQueries.deleteImageDiskOnly(imageUrl);
 		}
 	}
+
+	// ---------------- deprecated methods -----------------------
+	/**
+	 * Begins with all of the campaigns that exist in the system and then 
+	 * removes those that don't match the parameterized criteria. If a  
+	 * parameter is null, it is ignored. Therefore, if all parameters are null,
+	 * then all campaign IDs are returned.
+	 * 
+	 * @param partialCampaignId Only return campaigns whose ID contains this
+	 * 							value.
+	 * 
+	 * @param partialCampaignName Only return campaigns whose name contains 
+	 * 							  this value.
+	 * 
+	 * @param partialDescription Only return campaigns whose description 
+	 * 							 contains this value.
+	 * 
+	 * @param partialXml Only return campaigns whose XML contains this value.
+	 * 
+	 * @param partialAuthoredBy Only return campaigns whose authored by value
+	 * 							contains this value.
+	 * 
+	 * @param startDate Only return campaigns that were created on or after 
+	 * 					this date.
+	 * 
+	 * @param endDate Only return campaigns that were created on or before this
+	 * 				  date.
+	 * 
+	 * @param privacyState Only return campaigns with this privacy state.
+	 * 
+	 * @param runningState Only return campaigns with this running state.
+	 * 
+	 * @return The set of campaign IDs.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	// deprecated!  Very inefficient!
+	public Set<String> xCampaignIdSearch(
+			final String partialCampaignId,
+			final String partialCampaignName,
+			final String partialDescription,
+			final String partialXml,
+			final String partialAuthoredBy,
+			final DateTime startDate,
+			final DateTime endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState) 
+			throws ServiceException {
+		
+		try {
+			Set<String> result = null;
+			
+			if(partialCampaignId != null) {
+				result = new HashSet<String>(
+						campaignQueries.getCampaignsFromPartialId(
+								partialCampaignId));
+			}
+			
+			if(partialCampaignName != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsFromPartialName(
+							partialCampaignName);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(partialDescription != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsFromPartialDescription(
+							partialDescription);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(partialAuthoredBy != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsFromPartialAuthoredBy(
+							partialAuthoredBy);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(startDate != null) {
+				List<String> campaignIds = 
+					campaignQueries.getCampaignsOnOrAfterDate(startDate);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(endDate != null) {
+				List<String> campaignIds = 
+					campaignQueries.getCampaignsOnOrBeforeDate(endDate);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(privacyState != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsWithPrivacyState(privacyState);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(runningState != null) {
+				List<String> campaignIds =
+					campaignQueries.getCampaignsWithRunningState(runningState);
+				
+				if(result == null) {
+					result = new HashSet<String>(campaignIds);
+				}
+				else {
+					result.retainAll(campaignIds);
+				}
+			}
+			
+			if(result == null) {
+				result = new HashSet<String>(
+						campaignQueries.getAllCampaignIds());
+			}
+			
+			return result;
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
 }
