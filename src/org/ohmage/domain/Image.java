@@ -39,6 +39,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 
@@ -1314,4 +1315,39 @@ public class Image implements IMedia{
 			}
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result =
+			prime *
+				result + id.hashCode();
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+
+		if(this == obj) {
+			return true;
+		}
+		if(!super.equals(obj)) {
+			return false;
+		}
+		if(!(obj instanceof Image)) {
+			return false;
+		}
+		Image other = (Image) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+
 }
