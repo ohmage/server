@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS user (
   email_address varchar(320),
   admin bit NOT NULL,
   last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
+  plaintext_password text,
   PRIMARY KEY (id),
   UNIQUE (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

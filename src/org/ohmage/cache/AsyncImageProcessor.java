@@ -129,57 +129,50 @@ public class AsyncImageProcessor
 		 *        saved and processed.
 		 */
 		private void processImage(final Image image) {
-			// Validate that the image data is valid.
-			try {
-				image.validate();
-			}
-			catch(DomainException e) {
-				LOGGER
-					.error(
-						"The image data is invalid: " + 
-							image.getId().toString(),
-						e);
-				// close the stream
-				image.closeImageStreams();
-				return;
-			}
+			boolean markAsProcessed = true;
 			
-			// Create the sub-images.
 			try {
-				for(Size size : Image.getSizes()) {
-					// If the size of the image does not exist, create it.
-					if(! image.sizeExists(size)) {
-						image.saveImage(size);
+				// validate that the image data is valid
+				if (image.validate()) {
+					// Create the sub-images.
+					try {
+						for(Size size : Image.getSizes()) {
+							// If the size of the image does not exist, create it.
+							if(! image.sizeExists(size)) {
+								image.saveImage(size);
+							}
+						}
 					}
-				}
-			}
-			catch(DomainException e) {
-				LOGGER
-					.error(
-						"One of the sizes of the image could not be " +
-							"created: " + 
-							image.getId().toString(),
-						e);
-				return;
-			} finally {
+					catch(DomainException e) {
+						LOGGER.error(
+							"One of the sizes of the image could not be created: " + 
+								image.getId().toString(),
+							e);
+						// Will retry later
+						markAsProcessed = false; 
+					}
+				} 
+			} finally { 
 				// close the stream
-				image.closeImageStreams();
+				image.closeImageStreams();				
 			}
 			
-			// Mark the image as processed.
-			try {
-				ImageServices.instance().markImageAsProcessed(image.getId());
-			}
-			catch(ServiceException e) {
-				LOGGER
-					.error(
+			if (markAsProcessed) {
+				// Mark the image as processed.
+				try {
+					ImageServices.instance().markImageAsProcessed(image.getId());
+				}
+				catch(ServiceException e) {
+					LOGGER.error(
 						"The image could not be marked as processed: " + 
 							image.getId().toString(),
 						e);
-				return;
+					return;
+				}
 			}
 		}
 	}
+	
 	/**
 	 * The instance of the image processor.
 	 */

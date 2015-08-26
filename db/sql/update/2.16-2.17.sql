@@ -5,7 +5,7 @@ use ohmage;
 -- Note: ideally, we want to only set ohmage data root directory in the preference
 -- table, AND use that to store all data types. 
 INSERT INTO preference VALUES 
-    ('documentp_directory', '/opt/ohmage/userdata/file');
+    ('file_directory', '/opt/ohmage/userdata/files');
 
 -- Add a metadata column to the url_based_resource table to keep track of 
 -- http headers (e.g. content-type, filename, etc.) that were part of the 
@@ -37,6 +37,12 @@ ALTER TABLE user
 -- This will minimize the impact to the java code since it is done at the db level.     	
 CREATE TRIGGER `user_insert` BEFORE INSERT ON `user`
 	FOR EACH ROW SET new.creation_timestamp = NOW();
+
+-- create last_modified_timestamp to the campaign table
+ALTER TABLE campaign 
+    ADD COLUMN (
+       	`last_modified_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
 	
 -- create last_modified_timestamp to keep track of object relationship 	
 ALTER TABLE user_class 
@@ -75,6 +81,22 @@ ALTER TABLE document_class_role
     	);
    	    	
     	
+-- In mysql 5.5, we can create `last_modified_timestamp timestamp NULL timesstamp DEFAULT CURRENT_TIEMSTAMP ... 
+-- It will assisng the NULL value to the existing entries. However, mysql 5.6 will always 
+-- assign the current timestamps to existing entries. To code againsts these two cases, explicitly assign 
+-- 0 date to the existing entries.. Then exucute the rest of the script to update last_modified_timestamp.
+
+UPDATE class SET last_modified_timestamp = 0;
+UPDATE campaign SET last_modified_timestamp = 0;    	
+
+UPDATE user_class SET last_modified_timestamp = 0;
+UPDATE campaign_class SET last_modified_timestamp = 0;
+UPDATE user_role_campaign SET last_modified_timestamp = 0;
+UPDATE document_user_role SET last_modified_timestamp = 0;
+UPDATE document_user_creator SET last_modified_timestamp = 0;
+UPDATE document_campaign_role SET last_modified_timestamp = 0;
+UPDATE document_class_role SET last_modified_timestamp = 0;
+
 -- * Update class: update the creation_timestamp AND last_modified_timestamp of the class table       
 -- If the timestamp of class/create is newer than class/update, use it for 
 -- last_modified_timestamp as well. 
@@ -107,6 +129,26 @@ SET class.creation_timestamp = audit.creation_timestamp,
     class.last_modified_timestamp = audit.update_timestamp
 WHERE class.creation_timestamp IS NULL;
 
+-- * update campaign last_modified_timestamp 
+UPDATE campaign c JOIN 
+  (SELECT ap.param_value AS urn, MAX(a.db_timestamp) AS last_modified_timestamp
+   FROM audit a 
+     JOIN audit_parameter ap ON (a.id = ap.audit_id)
+     JOIN audit_parameter ap2 ON (a.id = ap2.audit_id)
+   WHERE (a.uri = '/app/campaign/update')
+      AND a.response like '%success%'
+      AND ap.param_key = 'campaign_urn'
+      AND ap2.param_key IN ('xml', 'description', 'privacy_state', 'running_state') 
+   GROUP BY ap.param_value
+  ) AS audit ON c.urn = audit.urn
+SET c.last_modified_timestamp = audit.last_modified_timestamp
+WHERE c.last_modified_timestamp = 0;
+
+
+-- For the rest of the campaigns, derive from campaign creation time.
+UPDATE campaign c
+SET c.last_modified_timestamp = c.creation_timestamp 
+WHERE c.creation_timestamp > c.last_modified_timestamp; 
 
 -- * update user: update the last_modified_timestamp of the user table.
 -- Delete this after last_modified_timestamp is restored
@@ -125,7 +167,7 @@ WHERE user.last_modified_timestamp = 0;
 -- Derived last_modified_timestamp from user_personal
 UPDATE user u JOIN user_personal up ON (u.id = up.user_id)
 SET u.last_modified_timestamp = up.last_modified_timestamp
-WHERE u.last_modified_timestamp < up.last_modified_timestamp
+WHERE u.last_modified_timestamp < up.last_modified_timestamp;
 
 -- Derived from the class info
 UPDATE user u JOIN
@@ -359,8 +401,6 @@ where src.cc_ts > urc.last_modified_timestamp
   OR src.uc_ts > urc.last_modified_timestamp;
   
 -- campaign update
---  SELECT urc.campaign_id, urc.user_id, urc.user_role_id, urc.last_modified_timestamp, src.max_ts
---  FROM
 UPDATE 
   user_role_campaign urc JOIN 
   (SELECT urc.campaign_id AS campaign_id, urc.user_id AS user_id, urc.user_role_id AS user_role_id, 
@@ -387,9 +427,11 @@ WHERE src.max_ts > urc.last_modified_timestamp;
 -- Some campaigns were detached from classes but still have the direct links to the users
 -- In this case, use campaign last modified timestamp
 UPDATE
-  user_role_campaign urc JOIN campaign c ON (urc.campaign_id = c.id)
-SET urc.last_modified_timestamp = c.last_modified_timestamp
-WHERE urc.lsat_modified_timestamp = 0;
+  user_role_campaign urc 
+  JOIN campaign c ON (urc.campaign_id = c.id)
+  JOIN user u ON (urc.user_id = u.id)
+SET urc.last_modified_timestamp = IF(u.creation_timestamp > c.creation_timestamp, u.creation_timestamp, c.creation_timestamp)
+WHERE urc.last_modified_timestamp = 0;
 
 
 -- * update document_user_role, document_class_role, document_campaign_role

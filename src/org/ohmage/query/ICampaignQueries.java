@@ -166,9 +166,9 @@ public interface ICampaignQueries {
 	/**
 	 * Creates a new CampaignInformation object based on the information about
 	 * some campaign.
-	 * 
+	 * 	 
 	 * @param campaignId
-	 *            The campaign's unique identifier.
+	 *            The campaign's unique identifier. 
 	 * 
 	 * @return A CampaignInformation object with the required information about
 	 *         a campaign or null if no such campaign exists.
@@ -355,7 +355,47 @@ public interface ICampaignQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public QueryResultsList<Campaign> getCampaignInformation(
+	public Collection<Campaign> getCampaignInformation(
+			final String subSelectStmt,
+			final Collection<Object> subSelectParameters)
+			throws DataAccessException;
+	
+	/**
+	 * Returns the sql statement for all campaigns visible to the user that 
+	 * match the given criteria. The username is required for ACL purposes but
+	 * the rest of the information is optional.
+	 * @param parameters The parameters object to be passed on to the sql execution.
+	 * @param username The requesting user's username.
+	 * @param campaignIds Limits the results to only campaigns whose ID is in
+	 * 					  this collection.
+	 * @param classIds Limits the results to only those campaigns that are 
+	 * 				   associated with a class whose ID is in this list.
+	 * @param nameTokens A collection of token strings which limit the results
+	 * 					 to only those campaigns whose name contains at least 
+	 * 					 one of the tokens.
+	 * @param descriptionTokens A collection of token strings which limit the
+	 * 							results to only those campaigns that have a 
+	 * 							description and whose description contains at
+	 * 							least one of the tokens.
+	 * @param startDate Limits the results to only those campaigns that were 
+	 * 					created on or after this date.
+	 * @param endDate Limits the results to only those campaigns that were
+	 * 				  created on or before this date.
+	 * @param privacyState Limits the results to only those campaigns that have
+	 * 					   this privacy state.
+	 * @param runningState Limits the results to only those campaigns that have
+	 * 					   this running state.
+	 * @param role Limits the results to only those campaigns where the 
+	 * 			   requesting user has at least this role in the campaign.
+	 * 
+	 * @return The query results which contain the total number of campaigns 
+	 * 		   that matched this criteria as well as the list of campaigns in
+	 * 		   the current page.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public String getVisibleCampaignsSql(
+			final Collection<Object> parameters,
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
@@ -367,7 +407,22 @@ public interface ICampaignQueries {
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)
 			throws DataAccessException;
+
 	
+	public String getVisibleCampaignSearchSql(
+			final Collection<Object> parameters,
+			final String username,
+			final String partialCampaignId,
+			final String partialCampaignName,
+			final String partialDescription,
+			final String partialXml,
+			final String partialAuthoredBy,
+			final DateTime startDate,
+			final DateTime endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState) 
+			throws DataAccessException;
+
 	/**
 	 * Queries all of the campaigns in the system limited by the parameters.
 	 * The ordering is by creation timestamp for paging.

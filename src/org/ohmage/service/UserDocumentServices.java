@@ -17,6 +17,7 @@ package org.ohmage.service;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,7 @@ import org.ohmage.query.IUserDocumentQueries;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public class UserDocumentServices {
 	private static UserDocumentServices instance;
@@ -354,9 +356,10 @@ public class UserDocumentServices {
 			throws ServiceException {
 			
 		try {
-			// First get a list of all documents that are visible through the ACL rules.
-			List<Document> result =
-				documentQueries.getDocumentInformation(
+			Collection<Object> docSqlParameters = new LinkedList<Object>();
+			
+			String docSqlStmt = documentQueries.getVisibleDocumentsSql(
+					docSqlParameters,
 					requesterUsername, 
 					personalDocuments, 
 					campaignIds, 
@@ -365,58 +368,74 @@ public class UserDocumentServices {
 					descriptionTokens,
 					startDate,
 					endDate);
+			
+			// First get a list of all documents that are visible through the ACL rules.
+			List<Document> result = documentQueries.getDocumentInformation(
+					docSqlStmt,
+					docSqlParameters,
+					requesterUsername);
 	
 			if (result.size() == 0)
 				return result; 
-
-			// create a map for easy reference to document
-			Map<Integer, Document> documentMap = new HashMap<Integer, Document>();
-			for (Document doc : result) {
-				documentMap.put(doc.getDocumentDbId(), doc);
-			}
 			
 			// Assuming that the list of doc have passed the ACL rules, 
 			// update the roles data associated with those document.
 			// 1. data derived from userDocument relationship
-			Map<Integer, Document.Role> userRoleMap = userDocumentQueries.getDocumentRoleForDocumentSetSpecificToUser(requesterUsername, documentMap.keySet());
-			for (Integer index : userRoleMap.keySet()) {
-				if(userRoleMap.get(index) != null) {
-					Document doc = documentMap.get(index);
-					doc.setUserRole(userRoleMap.get(index));
-				}
-			}
-			
+			Map<String, Document.Role> userRoleMap = userDocumentQueries.
+					getDocumentRoleForDocumentsSpecificToUser(docSqlStmt, docSqlParameters, requesterUsername);
+
 			// 2. data derived from ClassDocument relationship
-			List<UserContainerRole> userClassRoles = 
-					classDocumentQueries.getClassRolesAssociatedWithDocumentSet(requesterUsername, documentMap.keySet());
-			for (UserContainerRole ucr : userClassRoles) {
-				Integer dbId = ucr.getDocumentDbId();
-				Document doc = documentMap.get(dbId);
-				doc.addClassRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
-				if (ucr.isPrivilegedUser()) {
-					if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
-						// Automatically increase their privileges to writer.
-						doc.setMaxRole(Document.Role.WRITER);	
-					}
-				}
-			}
-				
-			
+			Map<String, Collection<UserContainerRole>> userClassRoles = classDocumentQueries.
+					getClassesAndRolesForDocuments(docSqlStmt, docSqlParameters, requesterUsername);
+
 			// 3. data derived from DocumentCampaign relationship
-			List<UserContainerRole> userCampaignRoles= 
-					campaignDocumentQueries.getCampaignRolesAssociatedWithDocumentSet(requesterUsername, documentMap.keySet());
-			for (UserContainerRole ucr : userCampaignRoles) {
-				Integer dbId = ucr.getDocumentDbId();
-				Document doc = documentMap.get(dbId);
-				doc.addCampaignRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
-				if (ucr.isPrivilegedUser()) {
-					if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
-						// Automatically increase their privileges to writer.
-						doc.setMaxRole(Document.Role.WRITER);	
+			Map<String, Collection<UserContainerRole>> userCampaignRoles = campaignDocumentQueries.
+					getCampaignsAndRolesForDocuments(docSqlStmt, docSqlParameters, requesterUsername);
+		
+			
+			for (Document doc : result) {
+				String docId = doc.getDocumentId();
+				
+				// set user role
+				Document.Role role = userRoleMap.get(docId);
+				if (role != null)
+					doc.setUserRole(role);
+				
+				// set class role 
+				Collection<UserContainerRole> containers = userClassRoles.get(docId);
+				if (containers != null) {
+					for (UserContainerRole ucr : containers) {
+						// update class and document role
+						doc.addClassRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
+						// if a privileged user, upgrade the document role
+						if (ucr.isPrivilegedUser()) {
+							if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
+								// Automatically increase their privileges to writer.
+								doc.setMaxRole(Document.Role.WRITER);	
+							}
+						}
 					}
 				}
+				
+				// set campaign role
+				Collection<UserContainerRole> campaignContainers = userCampaignRoles.get(docId);
+				if (campaignContainers != null) {
+					for (UserContainerRole ucr : campaignContainers) {
+						// update class and document role
+						doc.addCampaignRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
+						// if a privileged user, upgrade the document role
+						if (ucr.isPrivilegedUser()) {
+							if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
+								// Automatically increase their privileges to writer.
+								doc.setMaxRole(Document.Role.WRITER);	
+							}
+						}
+					}
+				}
+
+				
 			}
-			
+									
 			return result;
 			}
 		catch(DataAccessException e) {
@@ -474,8 +493,10 @@ public class UserDocumentServices {
 			throws ServiceException {
 		
 		try {
-			List<Document> result =
-				documentQueries.getDocumentInformation(
+			Collection<Object> docSqlParameters = new LinkedList<Object>();
+			
+			String docSqlStmt = documentQueries.getVisibleDocumentsSql(
+					docSqlParameters,
 					requesterUsername, 
 					personalDocuments, 
 					campaignIds, 
@@ -484,6 +505,14 @@ public class UserDocumentServices {
 					descriptionTokens,
 					null,
 					null);
+			// First get a list of all documents that are visible through the ACL rules.
+
+			
+			List<Document> result =
+				documentQueries.getDocumentInformation(
+					docSqlStmt,
+					docSqlParameters,
+					requesterUsername);
 			
 			for(Document document : result) {
 				String documentId = document.getDocumentId();

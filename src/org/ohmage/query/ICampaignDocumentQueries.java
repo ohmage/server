@@ -44,21 +44,24 @@ public interface ICampaignDocumentQueries {
 
 	/**
 	 * Retrieves a List of Campaigns and their roles associated with each document 
-	 * in the document list. 
+	 * in the list. 
 	 * 
-	 * 	 * @param username The username of the user whose personal documents are
+	 * @param docSqlStmt SQL statement to retrieve a list of documents
+	 * 					 visible by the requesting user. 
+	 * 
+	 * @param docSqlParameters SQL parameters to be used with the above statement. 
+
+	 * @param username The username of the user whose personal documents are
 	 * 				   being checked.
-	 * 
-	 * @param documentIds The unique identifier (dbId) for the document whose role is
-	 * 					 desired.
-	 * 
+	 *  
 	 * @return A map of document id and campaigns as well as their roles associated 
 	 * with the document.
 	 */
-	List<Document.UserContainerRole> getCampaignRolesAssociatedWithDocumentSet
-		(String username, Collection<Integer>documentIds)	
-				throws DataAccessException;
-
+	public Map<String, Collection<Document.UserContainerRole>> getCampaignsAndRolesForDocuments(
+	final String docSqlStmt,
+	final Collection<Object> docSqlParameters,
+	final String username) throws DataAccessException;
+	
 	/**
 	 * Retrieves a camaign's document role if it is associated with a document.
 	 * 

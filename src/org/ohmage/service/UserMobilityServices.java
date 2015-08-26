@@ -121,7 +121,7 @@ public class UserMobilityServices {
 				return;
 			}
 			
-			Set<String> campaignIds = userCampaignQueries.getCampaignIdsAndNameForUser(usersUsername).keySet();
+			Set<String> campaignIds = userCampaignQueries.getCampaignIdsAndNamesForUser(usersUsername).keySet();
 			for(String campaignId : campaignIds) {
 				List<Campaign.Role> requestersCampaignRoles = userCampaignQueries.getUserCampaignRoles(requestersUsername, campaignId);
 				

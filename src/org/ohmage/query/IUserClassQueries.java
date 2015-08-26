@@ -15,6 +15,7 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,6 +90,22 @@ public interface IUserClassQueries {
 			final String username)
 			throws DataAccessException;
 
+	/**
+	 * Returns a Map of all classes and the user's respective role in that 
+	 * class for all users in the user set.
+	 * 
+	 * @param userSet A set of usernames.
+	 * 
+	 * @return A map of user and class ID to the user's respective role.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUsers(
+			final String userSubSelectStmt, 
+			final Collection<Object> userSubSelectParameters)
+			throws DataAccessException;
+	
+	
 	/**
 	 * Returns the set of all class IDs and their names with which a user is
 	 * associated.

@@ -138,7 +138,7 @@ public class Campaign {
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
 	private static final String JSON_KEY_ICON_URL = "icon_url";
-	private static final String JSON_KEY_AUTHORED_BY = "authored_by";
+	private static final String JSON_KEY_AUTHORED_BY = "authored_by";  // Deprecated. No longer in use in xml.
 	private static final String JSON_KEY_RUNNING_STATE = "running_state";
 	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
@@ -146,6 +146,7 @@ public class Campaign {
 	private static final String JSON_KEY_SURVEYS = "surveys";
 	
 	private static final String JSON_KEY_CLASSES = "classes";
+	private static final String JSON_KEY_AUTHOR_LIST = "author_list";
 	
 	private static final String JSON_KEY_ROLES = "user_role_campaign";
 	private static final String JSON_KEY_SUPERVISOR = "supervisor";
@@ -198,9 +199,16 @@ public class Campaign {
 	
 	/**
 	 * Some identifying information about the user that authored this 
-	 * configuration.
+	 * configuration. This data is derived from the XML. 
+	 * Deprecated. 
 	 */
 	private final String authoredBy;
+	
+	/**
+	 * A list of authors that are associated with the campaign. 
+	 * This is derived from the database.
+	 */
+	private final List<String> authorList;
 	
 	/**
 	 * Campaign privacy states.
@@ -312,6 +320,10 @@ public class Campaign {
 			return name().toLowerCase();
 		}
 	}
+	// the role of the request user
+	private final Collection<Role> requestUserRoles;
+
+	// roles of all users associated with the campaign
 	private final Map<String, Collection<Role>> userRoles;
 
 	/**
@@ -431,8 +443,10 @@ public class Campaign {
 		
 		this.surveyMap = surveyMap; // TODO deep copy?
 		
+		requestUserRoles = new LinkedList<Role>();
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
+		authorList = new LinkedList<String>();
 	}
 	
 	/**
@@ -622,6 +636,9 @@ public class Campaign {
 		
 		xml = tXml;
 		surveyMap = tSurveyMap;
+		
+		requestUserRoles = new LinkedList<Role>();
+		authorList = new LinkedList<String>();
 	}
 	
 	/**
@@ -701,8 +718,10 @@ public class Campaign {
 		
 		this.xml = root.toXML();
 		
+		requestUserRoles = new LinkedList<Role>();
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
+		authorList = new LinkedList<String>();
 	}
 	
 	/**
@@ -942,6 +961,45 @@ public class Campaign {
 	}
 	
 	/**
+	 * Adds a role of the request user associated with this campaign.
+	 * 
+	 * @param role A role of the request user in this campaign.
+	 * 
+	 * @throws DomainException Thrown if the role is null.
+	 */	
+	public void addRequestUserRole(final Role role) throws DomainException {
+		if (role == null) {
+			throw new DomainException("The request user's role is null");
+		}
+		
+		requestUserRoles.add(role);
+	}
+	/**
+	 * Adds a collection of roles of the request user associated with 
+	 * this campaign.
+	 * 
+	 * @param roles The request user's configuration role.
+	 * 
+	 * @throws DomainException Thrown if the roles is null.
+	 */
+	public void addRequestUserRoles(final Collection<Role> roles) throws DomainException { 
+		if (roles == null || roles.size() == 0) {
+			throw new DomainException("The request user's roles is null or empty");
+		}
+		requestUserRoles.addAll(roles);
+	}
+
+	/**
+	 * Retrieve the roles associated with the request user. 
+	 * 
+	 * @return the request user's roles associated with this campaign
+	 * 
+	 * @throws DomainException Thrown if the roles is null.
+	 */
+	public Collection<Role> getRequestUserRoles(){
+		return requestUserRoles;
+	}
+	/**
 	 * Adds a user and an associated role to the list of users and their roles.
 	 * 
 	 * @param username The username of the user.
@@ -1069,6 +1127,35 @@ public class Campaign {
 		}
 		
 		classes.addAll(classIds);
+	}
+	
+	/**
+	 * Adds a collection of classes to the already existing collection of 
+	 * classes.
+	 * 
+	 * @param classIds The collection of class IDs to add.
+	 * 
+	 * @throws DomainException Thrown if the class ID list is null.
+	 */
+	public void addAuthorList(
+			final Collection<String> authors) 
+			throws DomainException {
+		
+		if(authors == null) {
+			throw new DomainException("The author list is null.");
+		}
+		
+		authorList.addAll(authors);
+	}
+
+
+	/**
+	 * Returns the map of survey IDs to Survey objects.
+	 * 
+	 * @return The map of survey IDs to Survey objects.
+	 */
+	public List<String> getAuthorList() {
+		return authorList;
 	}
 	
 	/**
@@ -1828,6 +1915,8 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
+		result.put(JSON_KEY_AUTHOR_LIST, authorList);
+		// add request's user roles
 		
 		// If there is no mask, report the actual campaign creation timestamp.
 		if(masks.size() == 0) {

@@ -686,6 +686,41 @@
 								            </div>
 								        </div>
 								    </div>
+								     <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignSearch">
+								    	        <i class="icon-plus"></i> Campaign Search
+								    	    </a>
+								    	</div>
+								    	<div id="collapseCampaignSearch" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="campaign/search" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Campaign URN Search</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Campaign Name Search</label>
+								                    <input type="text" name="campaign_name">
+								                    <label>Description Search</label>
+            										<input type="text" name="description">
+            										 <label>Xml Search</label>
+            										<input type="text" name="xml">
+            										 <label>Authored By Search</label>
+            										<input type="text" name="authored_by">
+            										<label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Running State</label>
+								                    <input type="text" name="running_state">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignUpdate">

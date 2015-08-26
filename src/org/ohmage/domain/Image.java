@@ -21,12 +21,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ValidationException;
 
@@ -603,7 +606,9 @@ public class Image implements IMedia{
 			else if(url != null) {
 				try {
 					// HT: set inputStream
-					inputStream = url.openStream();
+					// inputStream = url.openStream();
+					inputStream = new FileInputStream(url.getPath());
+					LOGGER.debug("HT: creating an input stream from url: " + inputStream.toString());
 					return inputStream;
 				}
 				catch(IOException e) {
@@ -676,7 +681,7 @@ public class Image implements IMedia{
 			
 			try {
 				if(inputStream != null) {
-					LOGGER.debug("Closing input stream");
+					LOGGER.info("Closing input stream: " + inputStream.toString());
 					inputStream.close();
 				}
 				bufferedImage = null;
@@ -830,8 +835,48 @@ public class Image implements IMedia{
 	 * @throws DomainException
 	 *         The data could not be read or is not valid image data.
 	 */
-	public void validate() throws DomainException {
-		imageData.get(ORIGINAL).getBufferedImage();
+	public boolean validate() {
+		try {
+			imageData.get(ORIGINAL).getBufferedImage();
+			return true;
+		} catch (DomainException e) {
+			LOGGER.error(
+					"The image data is invalid: " + id.toString(),
+					e);
+			return false;
+		}
+	}
+	
+	/**
+	 * Check whether the URL endpoint exists. If it is the file protocol, 
+	 * manually check whether the file exists.
+	 * 
+	 * @throws DomainException
+	 *         The data could not be read or is not valid image data.
+	 */
+	public boolean urlExists(final URL url) {
+
+		// check for file protocol
+	    if (url.getProtocol().equals("file")) {
+	    	LOGGER.debug("check via a file protocol");
+	    	File file = new File(url.getPath());
+	    	if (file.exists())
+	    		return true; 
+	    	else return false;
+	    } else { 
+	    	// use the URL method
+			try {
+				url.openStream().close();
+				LOGGER.debug("Size.getURL exists: " + url.toString());
+				return true;
+			}
+			// The file does not exist.
+			catch(IOException e) {
+				LOGGER.debug("Size.getURL doesn't exists: " + url.toString());
+				return false;
+			}
+	    }
+
 	}
 	
 	/**
@@ -863,18 +908,24 @@ public class Image implements IMedia{
 					"This Image object was not built with a default URL.");
 		}
 		
+		if (urlExists(Size.getUrl(size,  originalUrl)))
+			return true;
+		else return false;
+	
+		/*
 		// Attempt to connect to the file. If it doesn't exist, an exception
 		// will be thrown.
 		try {
 			Size.getUrl(size, originalUrl).openStream().close();
-			LOGGER.debug("Size.getURL exists: " + Size.getUrl(size,originalUrl).toString());
+			LOGGER.debug("Size.getURL exists: " +size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return true;
 		}
 		// The file does not exist.
 		catch(IOException e) {
-			LOGGER.debug("Size.getURL doesn't exists: " + Size.getUrl(size,originalUrl).toString());
+			LOGGER.debug("Size.getURL doesn't exists: " + size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return false;
 		}
+		*/
 	}
 	
 	// ==== beginning of iMedia implementation
@@ -967,7 +1018,7 @@ public class Image implements IMedia{
 	public void closeImageStreams() {
 		try { 
 			for (Size size : imageData.keySet()) {
-				LOGGER.debug("About to close Inputstream: " + size.toString());
+				LOGGER.info("HT: Closing Inputstream: " + size.toString());
 				imageData.get(size).closeInputStream();
 			}
 		} catch (DomainException e){
@@ -1175,6 +1226,10 @@ public class Image implements IMedia{
 			else {
 				// Check if this size's image exists as well.
 				URL sizeUrl = Size.getUrl(size, originalUrl);
+				if (urlExists(sizeUrl))
+					result = new ImageData(sizeUrl);
+				else result = size.transform(originalData);
+				/*
 				try {
 					sizeUrl.openStream().close();
 					result = new ImageData(sizeUrl);
@@ -1184,6 +1239,7 @@ public class Image implements IMedia{
 					LOGGER.debug("HT: Transforming data to size " + size.getName());
 					result = size.transform(originalData);
 				}
+				*/
 			}
 			
 			// Save the new image data in the map.
@@ -1259,4 +1315,39 @@ public class Image implements IMedia{
 			}
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result =
+			prime *
+				result + id.hashCode();
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+
+		if(this == obj) {
+			return true;
+		}
+		if(!super.equals(obj)) {
+			return false;
+		}
+		if(!(obj instanceof Image)) {
+			return false;
+		}
+		Image other = (Image) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+
 }

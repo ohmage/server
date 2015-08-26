@@ -449,7 +449,7 @@ public class SurveyUploadRequest extends UserRequest {
 			Map<Campaign, Collection<Campaign.Role>> campaigns = 
 				UserCampaignServices
 					.instance()
-						.getCampaignInformation(
+						.getCampaignInformationAndRoles(
 							getUser().getUsername(),
 							campaignIds,
 							null,
