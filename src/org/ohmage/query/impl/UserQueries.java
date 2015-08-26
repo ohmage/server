@@ -1751,6 +1751,43 @@ public class UserQueries extends Query implements IUserQueries {
 		return sql.toString();
 	}
 	
+	/**
+	 * Retrieve total number of visiable users. This number is always greater
+	 * than or equal to the sql stmt with the LIMIT x,y attached to limit the 
+	 * returned rows.  
+	 * 
+	 * @param userSqlStmt 
+	 * 		  The sql statement representing visible user list. 
+	 * 
+	 * @param userSqlParameters
+	 * 		  The list of parameters to be used with the userSubSelectStmt. 
+	 *  
+	 * @return Total number of users based on the provided sql statement. 
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error aggregating the information.
+	 */
+	public Long getTotalUsers(
+			final String userSqlStmt, 
+			final Collection<Object> userSqlParameters) 
+		throws DataAccessException {
+		
+		String userCountSql = userSqlStmt.replace("select u.id", "select count(u.id)"); 
+		try {
+			return getJdbcTemplate().queryForLong(
+					userCountSql,
+					userSqlParameters);
+			
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + userCountSql +
+						"' with parameter: " + userSqlParameters,
+					e);
+		}
+		
+	}
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
@@ -1786,6 +1823,8 @@ public class UserQueries extends Query implements IUserQueries {
 		sql.append(" ( " + userSubSelectStmt + " ) ");		
 			
 		// Returns the results as queried by the database.
+		// Note: A different implementation is to only retrieve what's needed from 
+		// DB using LIMTI x,y and execute another query to get # of results
 		try {
 			return getJdbcTemplate().query(
 					sql.toString(), 
