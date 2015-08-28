@@ -24,6 +24,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.User;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -941,4 +942,44 @@ public final class UserValidators {
 		
 		return result;
 	}
+	
+	/**
+	 * Validates that a given username prefix follows our conventions. If it is null 
+	 * or whitespace only, null is returned. If it doesn't follow our 
+	 * conventions, a ValidationException is thrown. Otherwise, the username prefix is
+	 * passed back to the caller.
+	 * 
+	 * @param username The username prefix to validate.
+	 * 
+	 * @return Returns null if the username is null or whitespace only. 
+	 * 		   Otherwise, it returns the username.
+	 * 
+	 * @throws ValidationException Thrown if the username isn't null or 
+	 * 							   whitespace only and doesn't follow our 
+	 * 							   conventions.
+	 */
+	public static String validateUsernamePrefix(final String usernamePrefix) 
+			throws ValidationException {
+		
+		// change minimum length to 2 instead of 4 in username
+		String usernamePrefixString = USERNAME_PATTERN_STRING.replace("4", 
+				String.valueOf(UserSetupRequest.MIN_USERNAME_PREFIX_LENGTH));
+		Pattern usernamePrefixPattern = Pattern.compile(usernamePrefixString);
+
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernamePrefix)) {
+			return null;
+		}
+		
+		if(usernamePrefixPattern.matcher(usernamePrefix).matches()) {
+			return usernamePrefix;
+		}
+		else {
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_USERNAME, 
+					"The username prefix is invalid.");
+		}
+	}
+	
+
 }

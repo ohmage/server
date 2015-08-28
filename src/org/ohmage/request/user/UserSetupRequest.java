@@ -40,16 +40,24 @@ public class UserSetupRequest extends UserRequest {
 	private static final Logger LOGGER =
 		Logger.getLogger(UserCreationRequest.class);
 	
-	private static final String USERNAME_PREFIX = "lausd-";
-	private static final int USERNAME_DIGITS = 5;
+	// private static final String USERNAME_PREFIX = "lausd-";
+	// private static final int USERNAME_DIGITS = 5;
+	private static final String DEFAULT_USERNAME_PREFIX = "lausd-";
+	private static final int DEFAULT_USERNAME_DIGITS = 5;
+	private static final int MAX_USERNAME_DIGITS = 10;
+	private static final int MIN_USERNAME_DIGITS = 1;
+	public static final int MIN_USERNAME_PREFIX_LENGTH = 2;
 	
 	private final UserPersonal personalInfo;
 	private final Set<String> classIds;
+	private final String usernamePrefix;
+	private final int usernameDigits;
 	
 	private String username = null;
 	private String password = null;
 	private String emailAddress = null;
 	
+
 	/**
 	 * Creates a user creation request.
 	 * 
@@ -69,6 +77,8 @@ public class UserSetupRequest extends UserRequest {
 		
 		UserPersonal tPersonalInfo = null;
 		Set<String> tClassIds = null;
+		String tUsernamePrefix = DEFAULT_USERNAME_PREFIX;
+		int tUsernameDigits = DEFAULT_USERNAME_DIGITS;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user setup request.");
@@ -180,6 +190,52 @@ public class UserSetupRequest extends UserRequest {
 				else if(t.length == 1) {
 					tClassIds = ClassValidators.validateClassIdList(t[0]);
 				}
+				
+				// get user account prefix // 
+				t = getParameterValues(InputKeys.USERNAME_PREFIX);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME_PROPERTY,
+							"Multiple username prefixes were given: " +
+								InputKeys.USERNAME_PREFIX);
+				}
+				else if(t.length == 1) {
+					try {
+						tUsernamePrefix = UserValidators.validateUsernamePrefix(t[0].trim());
+					} catch (ValidationException e) {
+						throw new ValidationException(
+								ErrorCode.USER_INVALID_USERNAME_PROPERTY,
+								"Invalid username prefix pattern: " +
+									InputKeys.USERNAME_PREFIX, 
+									e);
+					}
+				}		
+				
+				// number of digits
+				t = getParameterValues(InputKeys.USERNAME_DIGITS);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME_PROPERTY,
+							"Multiple username digit values were given: " +
+								InputKeys.USERNAME_PREFIX);
+				}
+				else if(t.length == 1) {
+					try {
+						tUsernameDigits = Integer.parseInt(t[0].trim());
+						if (tUsernameDigits < MIN_USERNAME_DIGITS || tUsernameDigits > MAX_USERNAME_DIGITS)
+							throw new ValidationException(
+									ErrorCode.USER_INVALID_USERNAME_PROPERTY,
+									"Invalid username digits (must be between " + MIN_USERNAME_DIGITS + 
+									"and " + MAX_USERNAME_DIGITS + ":" + InputKeys.USERNAME_PREFIX);			
+					} catch (NumberFormatException e) {
+						throw new ValidationException(
+								ErrorCode.USER_INVALID_USERNAME_PROPERTY,
+								"Invalid username digits: " +
+									InputKeys.USERNAME_PREFIX, 
+									e);
+					}
+				}		
+				
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -189,6 +245,8 @@ public class UserSetupRequest extends UserRequest {
 		
 		personalInfo = tPersonalInfo;
 		classIds = tClassIds;
+		usernamePrefix = tUsernamePrefix;
+		usernameDigits = tUsernameDigits;
 	}
 
 	/*
@@ -240,6 +298,9 @@ public class UserSetupRequest extends UserRequest {
 						.instance()
 						.getUserEmail(getUser().getUsername());
 				
+				// For security reason, only set storedPlainText password to true 
+				// only if the newAccount is set to true to enforce password change 
+				// upon first login. 
 				LOGGER.info("Creating the user.");
 				haveUserInfo =
 					UserServices
@@ -248,11 +309,11 @@ public class UserSetupRequest extends UserRequest {
 							username,
 							password,
 							emailAddress,
-							false,
-							true,
-							true,
-							true,
-							true,
+							false,  // admin
+							true,   // enable
+							true,   // new account
+							true,   // campaign creation privilege
+							true,   // storedPlainTextPassword
 							personalInfo);
 			}
 			
@@ -325,30 +386,28 @@ public class UserSetupRequest extends UserRequest {
 		}
 	}
 	
+	
 	/**
 	 * Creates a random username.
 	 * 
 	 * @return The random username.
 	 * 
 	 * @throws ServiceException There was a problem creating the username.
-	 * 
-	 * @see #USERNAME_PREFIX
-	 * @see #USERNAME_DIGITS
+	 *
 	 */
 	public String getRandomUsername() throws ServiceException {
 		// Setup the zero array.
-    	char[] zeros = new char[USERNAME_DIGITS];
+    	char[] zeros = new char[usernameDigits];
     	Arrays.fill(zeros, '0');
-		DecimalFormat format =
-			new DecimalFormat(String.valueOf(zeros));
-		int modifier = (new Double(Math.pow(10, USERNAME_DIGITS))).intValue();
+		DecimalFormat format = new DecimalFormat(String.valueOf(zeros));
+		int modifier = (new Double(Math.pow(10, usernameDigits))).intValue();
 		
 		// Create usernames until we get one that has not yet been created.
 		String username = null;
 		do {
 	    	int num =
 	    		(new Double(Math.random() * modifier)).intValue() % modifier;
-			username = USERNAME_PREFIX + format.format(num);
+			username = usernamePrefix + format.format(num);
 			
 			try {
 				LOGGER
