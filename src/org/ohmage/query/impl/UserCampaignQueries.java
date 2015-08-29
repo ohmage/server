@@ -399,10 +399,10 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignAndRolesForUser(java.lang.String)
+	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignsAndRolesForUser(java.lang.String)
 	 */
 	// deprecated. It is inefficient to get information for one campaign at a time. 
-	public Map<String, Set<Campaign.Role>> getCampaignAndRolesForUser(
+	public Map<String, Set<Campaign.Role>> getCampaignsAndRolesForUser(
 			final String username)
 			throws DataAccessException {
 		
@@ -464,7 +464,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignAndRolesForUsers(java.lang.String, java.lang.Collection)
 	 */
-	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUsers(
+	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignsAndRolesForUsers(
 			final String userSubSelectStmt,
 			final Collection<Object> userSubSelectParameters)
 			throws DataAccessException {

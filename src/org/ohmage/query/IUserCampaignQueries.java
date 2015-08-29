@@ -112,7 +112,7 @@ public interface IUserCampaignQueries {
 	 * @throws DataAccessException
 	 *         There was an error.
 	 */
-	public Map<String, Set<Campaign.Role>> getCampaignAndRolesForUser(
+	public Map<String, Set<Campaign.Role>> getCampaignsAndRolesForUser(
 		final String username) throws DataAccessException;
 
 	/**
@@ -126,7 +126,7 @@ public interface IUserCampaignQueries {
 	 * @throws DataAccessException
 	 *         There was an error.
 	 */
-	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignAndRolesForUsers(
+	public Map<String, Map<String, Set<Campaign.Role>>> getCampaignsAndRolesForUsers(
 		final String userSelectStmt, 
 		final Collection<Object> userSqlParameters) throws DataAccessException;
 

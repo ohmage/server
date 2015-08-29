@@ -284,7 +284,7 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 	 * @see org.ohmage.query.IUserClassQueries#getClassAndRoleForUser(java.lang.String)
 	 */
 	@Override
-	public Map<String, Clazz.Role> getClassAndRoleForUser(
+	public Map<String, Clazz.Role> getClassesAndRolesForUser(
 			final String username)
 			throws DataAccessException {
 		
@@ -341,7 +341,7 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 	 * @see org.ohmage.query.IUserClassQueries#getClassAndRoleForUserSet(java.lang.String)
 	 */
 	@Override
-	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUsers(
+	public Map<String, Map<String, Clazz.Role>> getClassesAndRolesForUsers(
 			final String userSubSelectStmt,
 			final Collection<Object> userSubSelectParameters)
 			throws DataAccessException {
