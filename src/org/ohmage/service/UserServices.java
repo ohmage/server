@@ -1741,15 +1741,7 @@ public final class UserServices {
 			// Get the campaigns and their names for the requester.
 			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNamesForUser(username);
 			
-			// Get the requester's campaign roles for each of the campaigns.
-			/*
-			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();
-			for(String campaignId : campaigns.keySet()) {
-				campaignRoles.addAll(
-						userCampaignQueries.getUserCampaignRoles(username, campaignId));
-			}
-			*/
-	
+			// Get the requester's campaign roles for each of the campaigns.	
 			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();
 			Map<String, Set<Campaign.Role>> campaignRolesMap = 
 					userCampaignQueries.getCampaignsAndRolesForUser(username);
@@ -1762,9 +1754,6 @@ public final class UserServices {
 			
 			// Get the requester's class roles for each of the classes.
 			Set<Clazz.Role> classRoles = new HashSet<Clazz.Role>();
-			// for(String classId : classes.keySet()) {
-			//	classRoles.add(userClassQueries.getUserClassRole(classId, username));
-			//}
 			Map<String, Clazz.Role> classRolesMap = userClassQueries.getClassesAndRolesForUser(username);
 			for(String classId : classRolesMap.keySet()) {
 				classRoles.add(classRolesMap.get(classId));
