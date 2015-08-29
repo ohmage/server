@@ -86,7 +86,7 @@ public interface IUserClassQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public Map<String, Clazz.Role> getClassAndRoleForUser(
+	public Map<String, Clazz.Role> getClassesAndRolesForUser(
 			final String username)
 			throws DataAccessException;
 
@@ -100,7 +100,7 @@ public interface IUserClassQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	public Map<String, Map<String, Clazz.Role>> getClassAndRoleForUsers(
+	public Map<String, Map<String, Clazz.Role>> getClassesAndRolesForUsers(
 			final String userSubSelectStmt, 
 			final Collection<Object> userSubSelectParameters)
 			throws DataAccessException;

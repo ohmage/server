@@ -1025,7 +1025,7 @@ public final class UserServices {
 				// class.
 				Map<String, Clazz.Role> requesteeClassIds =
 					userClassQueries
-						.getClassAndRoleForUser(requestee);
+						.getClassesAndRolesForUser(requestee);
 				
 				// If there is no intersection between the two class lists,
 				// then fail out.
@@ -1598,12 +1598,12 @@ public final class UserServices {
 			// Retrieve campaign info (batch operation)
 			// Create a map of user and campaigns as well as roles associated with each user and campaign. 
 			Map<String, Map<String, Set<Campaign.Role>>> userCampaignMap = new HashMap<String, Map<String, Set<Campaign.Role>>>();
-			userCampaignMap = userCampaignQueries.getCampaignAndRolesForUsers(userSubSelectStmt, userSubSelectParameters);	
+			userCampaignMap = userCampaignQueries.getCampaignsAndRolesForUsers(userSubSelectStmt, userSubSelectParameters);	
 			// loop through the result, add campaign and role to each UserInformation
 			
 			// Retrieve class info (batch operation)
 			Map<String, Map<String, Clazz.Role>> userClassMap = new HashMap<String, Map<String, Clazz.Role>>();	
-			userClassMap = userClassQueries.getClassAndRoleForUsers(userSubSelectStmt, userSubSelectParameters);
+			userClassMap = userClassQueries.getClassesAndRolesForUsers(userSubSelectStmt, userSubSelectParameters);
 
 			// loop through the result, add class and roles to each UserInformation
 			try {
@@ -1734,26 +1734,40 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
+			
+			// check whether it is a valid user
+			checkUserExistance(username, true);
+			
 			// Get the campaigns and their names for the requester.
 			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNamesForUser(username);
-						
+			
 			// Get the requester's campaign roles for each of the campaigns.
+			/*
 			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();
 			for(String campaignId : campaigns.keySet()) {
 				campaignRoles.addAll(
-						userCampaignQueries.getUserCampaignRoles(
-								username, 
-								campaignId));
+						userCampaignQueries.getUserCampaignRoles(username, campaignId));
 			}
-
+			*/
+	
+			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();
+			Map<String, Set<Campaign.Role>> campaignRolesMap = 
+					userCampaignQueries.getCampaignsAndRolesForUser(username);
+			for (String campaignId : campaignRolesMap.keySet()){
+				campaignRoles.addAll(campaignRolesMap.get(campaignId));	
+			}
+			
 			// Get the classes and their names for the requester.
 			Map<String, String> classes = userClassQueries.getClassIdsAndNameForUser(username);
 			
 			// Get the requester's class roles for each of the classes.
 			Set<Clazz.Role> classRoles = new HashSet<Clazz.Role>();
-			for(String classId : classes.keySet()) {
-				classRoles.add(
-						userClassQueries.getUserClassRole(classId, username));
+			// for(String classId : classes.keySet()) {
+			//	classRoles.add(userClassQueries.getUserClassRole(classId, username));
+			//}
+			Map<String, Clazz.Role> classRolesMap = userClassQueries.getClassesAndRolesForUser(username);
+			for(String classId : classRolesMap.keySet()) {
+				classRoles.add(classRolesMap.get(classId));
 			}
 			
 			// Get campaign creation privilege.
