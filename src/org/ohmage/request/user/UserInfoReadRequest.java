@@ -64,7 +64,7 @@ public class UserInfoReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserInfoReadRequest.class);
 	
 	private String gUsername;
-	private UserSummary result;
+	private UserSummary result = null;
 	
 	/**
 	 * Creates a new user info read request.
