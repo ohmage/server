@@ -64,7 +64,7 @@ public class UserInfoReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserInfoReadRequest.class);
 	
 	private String gUsername;
-	private UserSummary result;
+	private UserSummary result = null;
 	
 	/**
 	 * Creates a new user info read request.
@@ -97,6 +97,8 @@ public class UserInfoReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
 						tUsername = t[0];
+					} else {
+						tUsername = getUser().getUsername();
 					}
 				}
 			}
@@ -104,13 +106,14 @@ public class UserInfoReadRequest extends UserRequest {
 				e.failRequest(this);
 				e.logException(LOGGER);
 			}
+		} else {
+			LOGGER.debug("The request failed");
 		}
 		
-		if (tUsername != null)
-			gUsername = tUsername;
-		else gUsername = getUser().getUsername();
-		
+		gUsername = tUsername;
 		result = null;
+		
+		LOGGER.debug("HT: End of userInfoReadRequest: username = " + gUsername);
 	}
 
 	/**
