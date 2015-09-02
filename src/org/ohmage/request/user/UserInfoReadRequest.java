@@ -97,10 +97,11 @@ public class UserInfoReadRequest extends UserRequest {
 				else if(t.length == 1) {
 					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
 						tUsername = t[0];
-					} else {
-						tUsername = getUser().getUsername();
-					}
+					} 
 				}
+				// if username is not provided, assume username is the requesting user
+				if (tUsername == null)
+					tUsername = getUser().getUsername();
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -128,6 +129,7 @@ public class UserInfoReadRequest extends UserRequest {
 		}
 		
 		try {
+			
 			// Need to be an admin to look at other user's info
 			if (gUsername != getUser().getUsername()) {
 				LOGGER.info("Checking that the user is an admin: " + getUser().getUsername());
