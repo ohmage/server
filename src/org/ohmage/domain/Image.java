@@ -662,7 +662,8 @@ public class Image implements IMedia{
 								"The image contents are invalid.");
 					}
 				}
-				catch(IOException e) {
+				// catch IllegalArgumentException when image has error in exif data.
+				catch(IOException|IllegalArgumentException e) {
 					throw
 						new DomainException("The image could not be read.", e);
 				}
