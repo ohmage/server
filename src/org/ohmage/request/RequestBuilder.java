@@ -102,6 +102,7 @@ import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateRequest;
 import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateTimeseriesRequest;
 import org.ohmage.request.visualization.VizTwoDDensityRequest;
 import org.ohmage.request.visualization.VizUserTimeseriesRequest;
+import org.ohmage.service.ConfigServices;
 import org.springframework.web.context.ServletContextAware;
 
 /**
@@ -636,7 +637,12 @@ public final class RequestBuilder implements ServletContextAware {
 			return new UserDeletionRequest(httpRequest);
 		}
 		else if(apiUserSetup.equals(requestUri)) {
-			return new UserSetupRequest(httpRequest);
+			try {
+				if (ConfigServices.readServerConfiguration().getUserSetupEnabled())
+					return new UserSetupRequest(httpRequest);
+			} catch (Exception e) {
+				LOGGER.info("Can't get user setup config. Will disable this API.");
+			}
 		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {

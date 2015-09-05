@@ -501,12 +501,12 @@ public final class UserServices {
 			Boolean selfRegistrationAllowed =
 				StringUtils.decodeBoolean(
 					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION));
+						PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED));
 				
 			if(selfRegistrationAllowed == null) {
 				throw new ServiceException(
 					"The self-registration flag is not a valid boolean: " +
-						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION);	
+						PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED);	
 			}
 			else if(! selfRegistrationAllowed) {
 				throw new ServiceException(
@@ -517,7 +517,7 @@ public final class UserServices {
 		catch(CacheMissException e) {
 			throw new ServiceException(
 				"Could not retrieve the 'known' key: " +
-					PreferenceCache.KEY_ALLOW_SELF_REGISTRATION,
+					PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED,
 				e);
 		}
 	}

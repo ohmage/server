@@ -88,8 +88,11 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_APPLICATION_BUILD = "application.build";
 	
 	// Self-registration information.
-	public static final String KEY_ALLOW_SELF_REGISTRATION = "self_registration_allowed";
+	public static final String KEY_SELF_REGISTRATION_ALLOWED = "self_registration_allowed";
 	public static final String KEY_TERMS_OF_SERVICE = "terms_of_service";
+	
+	// Whether or not user/setup should be enabled
+	public static final String KEY_USER_SETUP_ENABLED = "user_setup_enabled";
 	
 	// Key for the public class.
 	public static final String KEY_PUBLIC_CLASS_ID = "public_class_id";

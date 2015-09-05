@@ -79,6 +79,17 @@ public class ServerConfig {
 	 * Whether or not users are allowed to self-register.
 	 */
 	public static final String JSON_KEY_SELF_REGISTRATION_ALLOWED = "self_registration_allowed";
+	/**
+	 * Whether or not Mobility is enabled on this server.
+	 */
+	public static final String JSON_KEY_USER_SETUP_ENABLED = "user_setup_enabled";
+	
+	/**
+	 * Default value if the parameters are not provided
+	 */
+	public static final boolean DEFAULT_USER_SETUP_ENABLED = false;
+	public static final boolean DEFAULT_SELF_REGISTRATION_ALLOWED = true;
+	
 	
 	private final String appName;
 	private final String appVersion;
@@ -91,7 +102,7 @@ public class ServerConfig {
 	private final long maxRequestSize;
 	private final long maxParamSize;
 	private final boolean selfRegistrationAllowed;
-	
+	private final boolean userSetupEnabled;
 	
 	/**
 	 * Creates a new server configuration.
@@ -122,7 +133,8 @@ public class ServerConfig {
 			final long authTokenLifetime,
 			final long maximumRequestSize,
 			final long maximumParameterSize,
-			final boolean selfRegistrationAllowed) 
+			final boolean selfRegistrationAllowed, 
+			final boolean userSetupEnabled) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
@@ -162,6 +174,8 @@ public class ServerConfig {
 		maxParamSize = maximumParameterSize;
 		
 		this.selfRegistrationAllowed = selfRegistrationAllowed;
+		
+		this.userSetupEnabled = userSetupEnabled;
 	}
 	
 	/**
@@ -310,6 +324,17 @@ public class ServerConfig {
 					"The self registration flag is missing.",
 					e);
 		}
+		
+		try {
+			userSetupEnabled =
+					serverConfigAsJson.getBoolean(JSON_KEY_USER_SETUP_ENABLED);
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+					"The user setup flag is missing",
+					e);
+		}
+
 	}
 	
 	/**
@@ -414,6 +439,16 @@ public class ServerConfig {
 	}
 	
 	/**
+	 * Returns whether or not user setup is enabled.
+	 * 
+	 * @return Whether or not user setup is enabled.
+	 */
+	public final boolean getUserSetupEnabled() {
+		return userSetupEnabled;
+	}
+	
+	
+	/**
 	 * Returns this server configuration as a JSONObject.
 	 * 
 	 * @return This server configuration as a JSONObject.
@@ -435,7 +470,8 @@ public class ServerConfig {
 		result.put(JSON_KEY_MAXIMUM_REQUEST_SIZE, maxRequestSize);
 		result.put(JSON_KEY_MAXIMUM_PARAMETER_SIZE, maxParamSize);
 		result.put(JSON_KEY_SELF_REGISTRATION_ALLOWED, selfRegistrationAllowed);
-		
+		result.put(JSON_KEY_USER_SETUP_ENABLED, userSetupEnabled);
+	
 		return result;
 	}
 }

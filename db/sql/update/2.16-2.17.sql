@@ -1,17 +1,26 @@
 use ohmage;
 
 -- Update the preference table to add the new preference indicating the root 
--- directory of the document prompt (documentp) 
+-- directory of the file prompt  
 -- Note: ideally, we want to only set ohmage data root directory in the preference
 -- table, AND use that to store all data types. 
 INSERT INTO preference VALUES 
     ('file_directory', '/opt/ohmage/userdata/files');
+    
+-- Allow user/setup to be used.
+INSERT INTO preference VALUES 
+    ('user_setup_enabled', 'true');
 
 -- Add a metadata column to the url_based_resource table to keep track of 
 -- http headers (e.g. content-type, filename, etc.) that were part of the 
 -- survey/upload request. This metadata will be used for media/read.  
 ALTER TABLE url_based_resource 
-    ADD COLUMN `metadata` text DEFAULT NULL;
+    ADD COLUMN `metadata` text CHARACTER SET utf8 DEFAULT NULL;
+    
+-- Renaming plaintext_password to original_password to appropriately reflect 
+-- the implementation    
+ALTER TABLE user
+    CHANGE COLUMN `plaintext_password` `initial_password` text CHARACTER SET utf8 DEFAULT NULL;
 
 -- Add a creation_time AND last_modified_timestamp to keep track of the
 -- class activity. 
