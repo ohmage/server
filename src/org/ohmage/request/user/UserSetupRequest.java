@@ -30,6 +30,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserValidators;
 
@@ -73,7 +74,7 @@ public class UserSetupRequest extends UserRequest {
 		final HttpServletRequest httpRequest)
 		throws IOException, InvalidRequestException {
 		
-		super(httpRequest, null, TokenLocation.PARAMETER, null);
+		super(httpRequest, null, TokenLocation.EITHER, null);
 		
 		UserPersonal tPersonalInfo = null;
 		Set<String> tClassIds = null;
@@ -199,7 +200,7 @@ public class UserSetupRequest extends UserRequest {
 							"Multiple username prefixes were given: " +
 								InputKeys.USERNAME_PREFIX);
 				}
-				else if(t.length == 1) {
+				else if ((t.length == 1) && (! StringUtils.isEmptyOrWhitespaceOnly(t[0]))) {
 					try {
 						tUsernamePrefix = UserValidators.validateUsernamePrefix(t[0].trim());
 					} catch (ValidationException e) {
@@ -219,7 +220,7 @@ public class UserSetupRequest extends UserRequest {
 							"Multiple username digit values were given: " +
 								InputKeys.USERNAME_PREFIX);
 				}
-				else if(t.length == 1) {
+				else if ((t.length == 1) && (! StringUtils.isEmptyOrWhitespaceOnly(t[0]))) {
 					try {
 						tUsernameDigits = Integer.parseInt(t[0].trim());
 						if (tUsernameDigits < MIN_USERNAME_DIGITS || tUsernameDigits > MAX_USERNAME_DIGITS)
