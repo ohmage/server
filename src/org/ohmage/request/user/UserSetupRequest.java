@@ -334,7 +334,7 @@ public class UserSetupRequest extends UserRequest {
 				this.emailAddress =
 					UserServices.instance().getUserEmail(username);
 				this.password =
-					UserServices.instance().getPlaintextPassword(username);
+					UserServices.instance().getInitialPassword(username);
 			}
 			
 			// Add them to the class, if given.

@@ -216,7 +216,7 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, password, plaintext_password, email_address, admin, enabled, new_account, campaign_creation_privilege, creation_timestamp) " +
+		"INSERT INTO user(username, password, initial_password, email_address, admin, enabled, new_account, campaign_creation_privilege, creation_timestamp) " +
 		"VALUES (?,?,?,?,?,?,?,?,NOW())";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
@@ -385,7 +385,7 @@ public class UserQueries extends Query implements IUserQueries {
 	@Override
 	public void createUser(
 			final String username, 
-			final String plaintextPassword,
+			final String initialPassword,
 			final String hashedPassword, 
 			final String emailAddress, 
 			final Boolean admin, 
@@ -430,7 +430,7 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, plaintextPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DuplicateKeyException e) {
 				transactionManager.rollback(status);
@@ -443,7 +443,7 @@ public class UserQueries extends Query implements IUserQueries {
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + plaintextPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			// Commit the transaction.
@@ -467,7 +467,7 @@ public class UserQueries extends Query implements IUserQueries {
 	@Override
 	public boolean createUser(
 			final String username, 
-			final String plaintextPassword,
+			final String initialPassword,
 			final String hashedPassword, 
 			final String emailAddress, 
 			final Boolean admin, 
@@ -515,7 +515,7 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, plaintextPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
 			}
 			catch(org.springframework.dao.DuplicateKeyException e) {
 				transactionManager.rollback(status);
@@ -528,7 +528,7 @@ public class UserQueries extends Query implements IUserQueries {
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + plaintextPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			if(personalInfo != null) {
@@ -843,14 +843,14 @@ public class UserQueries extends Query implements IUserQueries {
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserQueries#getPlaintextPassword(java.lang.String)
+	 * @see org.ohmage.query.IUserQueries#getInitialPassword(java.lang.String)
 	 */
 	@Override
-	public String getPlaintextPassword(
+	public String getInitialPassword(
 			final String username) 
 			throws DataAccessException {
 		
-		String sql = "SELECT plaintext_password FROM user WHERE username = ?";
+		String sql = "SELECT initial_password FROM user WHERE username = ?";
 		
 		try {
 			return getJdbcTemplate().queryForObject(

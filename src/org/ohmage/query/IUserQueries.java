@@ -30,7 +30,7 @@ public interface IUserQueries {
 	 * 
 	 * @param username The username for the new user.
 	 * 
-	 * @param plaintextPassword This should ALWAYS be null!
+	 * @param initialPassword This should ALWAYS be null!
 	 * 
 	 * @param hashedPassword The hashed password for the new user.
 	 * 
@@ -48,7 +48,7 @@ public interface IUserQueries {
 	 */
 	void createUser(
 			final String username, 
-			final String plaintextPassword,
+			final String initialPassword,
 			final String hashedPassword, 
 			final String emailAddress,
 			final Boolean admin,
@@ -62,7 +62,7 @@ public interface IUserQueries {
 	 * 
 	 * @param username The username for the new user.
 	 * 
-	 * @param plaintextPassword This should ALWAYS be null!
+	 * @param initialPassword This should ALWAYS be null!
 	 * 
 	 * @param hashedPassword The hashed password for the new user.
 	 * 
@@ -82,7 +82,7 @@ public interface IUserQueries {
 	 */
 	boolean createUser(
 			final String username, 
-			final String plaintextPassword,
+			final String initialPassword,
 			final String hashedPassword, 
 			final String emailAddress,
 			final Boolean admin,
@@ -140,15 +140,13 @@ public interface IUserQueries {
 	 * @param username
 	 *        The user's username.
 	 * 
-	 * @return The user's plain-text password or null if the user is unknown or
-	 *         their plain-text password was not stored.
+	 * @return The user's initial password or null if the user is unknown or
+	 *         the initial password was not stored.
 	 * 
 	 * @throws DataAccessException
 	 *         There was a problem getting the password.
-	 * 
-	 * @deprecated THIS SHOULD NEVER BE USED.
 	 */
-	public String getPlaintextPassword(
+	public String getInitialPassword(
 		final String username)
 		throws DataAccessException;
 

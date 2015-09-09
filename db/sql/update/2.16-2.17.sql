@@ -5,12 +5,14 @@ use ohmage;
 -- Note: ideally, we want to only set ohmage data root directory in the preference
 -- table, AND use that to store all data types. 
 INSERT INTO preference VALUES 
-    ('file_directory', '/opt/ohmage/userdata/files');
+    ('file_directory', '/opt/ohmage/userdata/files')
+    ON DUPLICATE KEY UPDATE p_value = VALUES(p_value);
     
--- Allow user/setup to be used.
+-- Configure user/setup functionality. If the row already exist, update it.
 INSERT INTO preference VALUES 
-    ('user_setup_enabled', 'true');
-
+    ('user_setup_enabled', 'true')
+    ON DUPLICATE KEY UPDATE p_value = VALUES(p_value) ;
+ 
 -- Add a metadata column to the url_based_resource table to keep track of 
 -- http headers (e.g. content-type, filename, etc.) that were part of the 
 -- survey/upload request. This metadata will be used for media/read.  
@@ -33,8 +35,9 @@ ALTER TABLE class
     	
 -- Create a trigger so that the class.creation_time will be automatically set to now.
 -- This will minimize the impact to the java code since it is done at the db level.     	
-CREATE TRIGGER `class_insert` BEFORE INSERT ON `class`
-	FOR EACH ROW SET new.creation_timestamp = NOW();
+-- No need to create trigger. Already update the app to reflect creation_time. 
+-- CREATE TRIGGER `class_insert` BEFORE INSERT ON `class`
+--	FOR EACH ROW SET new.creation_timestamp = NOW();
 	
 	
 -- Add creation_time to keep track of when the user is created. 
@@ -43,9 +46,10 @@ ALTER TABLE user
     ADD COLUMN `creation_timestamp` datetime DEFAULT null;
     	
 -- Create a trigger so that the user.creation_time will be automatically set to now.
--- This will minimize the impact to the java code since it is done at the db level.     	
-CREATE TRIGGER `user_insert` BEFORE INSERT ON `user`
-	FOR EACH ROW SET new.creation_timestamp = NOW();
+-- This will minimize the impact to the java code since it is done at the db level. 
+-- No need to create trigger. Already update the app to reflect creation_time.     	
+-- CREATE TRIGGER `user_insert` BEFORE INSERT ON `user`
+--	FOR EACH ROW SET new.creation_timestamp = NOW();
 
 -- create last_modified_timestamp to the campaign table
 ALTER TABLE campaign 

@@ -195,7 +195,7 @@ public final class UserServices {
 			final Boolean enabled, 
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
-			final boolean storePlaintextPassword)
+			final boolean storeInitialPassword)
 			throws ServiceException {
 		
 		try {
@@ -205,7 +205,7 @@ public final class UserServices {
 			userQueries
 				.createUser(
 					username, 
-					((storePlaintextPassword) ? password : null),
+					((storeInitialPassword) ? password : null),
 					hashedPassword, 
 					emailAddress, 
 					admin, 
@@ -249,7 +249,7 @@ public final class UserServices {
 			final Boolean enabled, 
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
-			final boolean storePlaintextPassword,
+			final boolean storeInitialPassword,
 			final UserPersonal personalInfo)
 			throws ServiceException {
 		
@@ -261,7 +261,7 @@ public final class UserServices {
 				userQueries
 					.createUser(
 						username, 
-						((storePlaintextPassword) ? password : null),
+						((storeInitialPassword) ? password : null),
 						hashedPassword, 
 						emailAddress, 
 						admin, 
@@ -805,14 +805,13 @@ public final class UserServices {
 	 * @throws ServiceException
 	 *         There was a problem getting the password.
 	 * 
-	 * @deprecated THIS SHOULD NEVER BE USED.
 	 */
-	public String getPlaintextPassword(
+	public String getInitialPassword(
 		final String username)
 		throws ServiceException {
 		
 		try {
-			return userQueries.getPlaintextPassword(username);
+			return userQueries.getInitialPassword(username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -1068,7 +1067,7 @@ public final class UserServices {
 				// The user must have been setup via the user/setup call. If,
 				// and only if, this happened would their plain-text password
 				// be stored in the database.
-				if(userQueries.getPlaintextPassword(requestee) == null) {
+				if(userQueries.getInitialPassword(requestee) == null) {
 					throw
 						new ServiceException(
 							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 

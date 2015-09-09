@@ -459,6 +459,35 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserSetup">
+								    	        <i class="icon-plus"></i> User Setup
+								    	    </a>
+								    	</div>
+								    	<div id="collapseUserSetup" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="user/setup" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> First Name</label>
+										            <input type="text" name="first_name">
+										            <label><span class="label label-info">required</span> Last Name</label>
+										            <input type="text" name="last_name">
+										            <label><span class="label label-info">required</span> Organization</label>
+										            <input type="text" name="organization">
+										            <label><span class="label label-info">required</span> Personal ID</label>
+										            <input type="text" name="personal_id">
+										            <label>User Name Prefix</label>
+								                    <input type="text" name="username_prefix">
+								                    <label>User Name Digits</label>
+								                    <input type="text" name="username_digits"> 
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserSearch">
 								    	        <i class="icon-plus"></i> User Search
 								    	    </a>
