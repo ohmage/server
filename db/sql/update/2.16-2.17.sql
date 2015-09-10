@@ -10,7 +10,7 @@ INSERT INTO preference VALUES
     
 -- Configure user/setup functionality. If the row already exist, update it.
 INSERT INTO preference VALUES 
-    ('user_setup_enabled', 'true')
+    ('user_setup_enabled', 'false')
     ON DUPLICATE KEY UPDATE p_value = VALUES(p_value) ;
  
 -- Add a metadata column to the url_based_resource table to keep track of 
