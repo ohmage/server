@@ -2,7 +2,7 @@ INSERT INTO preference VALUES
     ('file_directory', '${base_dir}/files');
 
 INSERT INTO preference VALUES 
-    ('user_setup_enabled', 'true');
+    ('user_setup_enabled', 'false');
 
 ALTER TABLE url_based_resource 
     ADD COLUMN `metadata` text CHARACTER SET utf8 DEFAULT NULL;
