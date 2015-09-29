@@ -18,6 +18,34 @@ INSERT INTO preference VALUES
 -- survey/upload request. This metadata will be used for media/read.  
 ALTER TABLE url_based_resource 
     ADD COLUMN `metadata` text CHARACTER SET utf8 DEFAULT NULL;
+
+-- If the server is running 2.16 instead of 2.16.1 (user-setup), the user table 
+-- will not have the plaintext_password column. 
+-- Check whether the plaintext_password exist, if not create it first.
+DROP PROCEDURE IF EXISTS add_plaintext_password;
+
+DELIMITER $$
+
+CREATE DEFINER=CURRENT_USER PROCEDURE add_plaintext_password ( ) 
+BEGIN
+DECLARE colName TEXT;
+SELECT column_name INTO colName
+FROM information_schema.columns 
+WHERE table_schema = 'ohmage'
+  AND table_name = 'user'
+  AND column_name = 'plaintext_password';
+
+IF colName is null THEN 
+  ALTER TABLE user ADD COLUMN `plaintext_password` TEXT CHARACTER SET utf8 DEFAULT null;
+END IF; 
+
+END$$
+
+DELIMITER ;
+
+CALL add_plaintext_password;
+
+DROP PROCEDURE add_plaintext_password; 
     
 -- Renaming plaintext_password to original_password to appropriately reflect 
 -- the implementation    

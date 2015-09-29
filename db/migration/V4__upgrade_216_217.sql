@@ -13,19 +13,31 @@ ALTER TABLE class
     	`last_modified_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     	);
 
-ALTER TABLE user
-    CHANGE COLUMN `plaintext_password` `initial_password` text CHARACTER SET utf8 DEFAULT NULL;
+DROP PROCEDURE IF EXISTS add_plaintext_password;
+DELIMITER $$
+CREATE DEFINER=CURRENT_USER PROCEDURE add_plaintext_password ( ) 
+  BEGIN
+  DECLARE colName TEXT;
+  SELECT column_name INTO colName
+  FROM information_schema.columns 
+  WHERE table_schema = 'ohmage'
+    AND table_name = 'user'
+    AND column_name = 'plaintext_password';
+
+  IF colName is null THEN 
+    ALTER TABLE user ADD COLUMN `plaintext_password` TEXT CHARACTER SET utf8 DEFAULT null;
+  END IF; 
+END$$
+DELIMITER ;
+CALL add_plaintext_password;
+DROP PROCEDURE add_plaintext_password;     
     	
-CREATE TRIGGER `class_insert` BEFORE INSERT ON `class`
-	FOR EACH ROW SET new.creation_timestamp = NOW();
-	
+ALTER TABLE user
+    CHANGE COLUMN `plaintext_password` `initial_password` text CHARACTER SET utf8 DEFAULT NULL;	
 	
 ALTER TABLE user
     ADD COLUMN `creation_timestamp` datetime DEFAULT null;
     	
-CREATE TRIGGER `user_insert` BEFORE INSERT ON `user`
-	FOR EACH ROW SET new.creation_timestamp = NOW();
-
 ALTER TABLE campaign 
     ADD COLUMN (
        	`last_modified_timestamp` timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
