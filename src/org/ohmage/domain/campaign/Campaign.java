@@ -3360,26 +3360,28 @@ public class Campaign {
 		}
 		
 		for(String promptId : promptIdAndConditionValues.keySet()) {
-			// Validate that the prompt exists and comes before this prompt. 
+			// Validate that the prompt/message exists and comes before this prompt/message. 
 			// This can only, and must, be true if we have already validated 
 			// it.
 			SurveyItem conditionSurveyItem = null;
 			for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
 				if(surveyItem.getId().equals(promptId)) {
-					if(surveyItem instanceof Prompt) {
+					// allow both prompt and message to be in the condition
+					if( (surveyItem instanceof Prompt) ||
+						(surveyItem instanceof Message)) {
 						conditionSurveyItem = surveyItem;
 						break;
 					}
 					else {
 						throw new DomainException(
-							"Only prompts values may be part of a condition. The offending ID is " 
+							"Only prompts or messages may be part of a condition. The offending ID is " 
 							    + promptId + " and the parent id is " + surveyItemContainerId);
 					}
 				}
 			}
 			if(conditionSurveyItem == null) {
 				throw new DomainException(
-						"The prompt is unknown: " + promptId);
+						"The survey item is unknown: " + promptId);
 			}
 			
 			// Validate all of the condition-valid pairs for the prompt.
@@ -3389,7 +3391,7 @@ public class Campaign {
 				}
 				catch(DomainException e) {
 					throw new DomainException(
-							"The condition was invalid for the prompt '" +
+							"The condition was invalid for the survey item '" +
 								surveyItemId +
 								"' in the prompt group '" +
 								surveyItemContainerId +
