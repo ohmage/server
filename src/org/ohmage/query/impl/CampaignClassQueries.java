@@ -187,4 +187,7 @@ public final class CampaignClassQueries extends Query implements ICampaignClassQ
 					e);
 		}
 	}
+	
+
+	
 }
