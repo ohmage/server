@@ -17,6 +17,7 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -656,6 +657,7 @@ public class ClassQueries extends Query implements IClassQueries {
 		}
 	}
 	
+	
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IClassQueries#updateClass(java.lang.String, java.lang.String, java.lang.String, java.util.Map, java.util.Collection)
 	 */
@@ -1013,6 +1015,156 @@ public class ClassQueries extends Query implements IClassQueries {
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IClassQueries#checkDeleteClassCauseOrphanCampaigns(java.lang.String)
+	 */
+	//@Override
+	public void checkDeleteClassCauseOrphanCampaigns(String classId) throws DataAccessException {
+
+		// Get the number of campaigns that are only associated with this class. 
+		// If these campaigns exist, we will have orphan campaigns if the class is deleted.
+		String sqlStmt = 
+				"SELECT COUNT(grp.id) " +
+				"FROM ( " +
+				"  SELECT cc.campaign_id as id " +
+				"  FROM campaign_class cc JOIN class c ON (cc.class_id = c.id) " +
+				"  WHERE cc.campaign_id IN ( " + 
+				"    SELECT cc.campaign_id " +
+				"    FROM campaign_class cc join class c on (c.id = cc.class_id) " +
+				"    WHERE c.urn = ? " +  // class_id 
+				"  ) " +
+				"  GROUP BY cc.campaign_id " +
+				"  HAVING count(distinct c.id) = 1 " + 
+				") AS grp ";
+
+		try {
+			int numPotentialOrphanCampaigns = 
+					getJdbcTemplate().queryForInt(
+							sqlStmt,
+							new Object[] { classId });
+			if (numPotentialOrphanCampaigns > 0)
+				throw new DataAccessException("Deleting class will lead to " + 
+						numPotentialOrphanCampaigns + " orphan campaigns");
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + sqlStmt + 
+					"' with parameters: " + classId ,
+					e);
+		}
+	}
+
+	/** 
+	 * Detach users from a class, if applicable, update users' roles associated with the 
+	 * campaigns in this class (e.g. for all campaigns associated with this class, if users are 
+	 * associated with them through this class only, then also detach users from those campaigns.)
+	 *  
+	 * @param usersToRemove A list of users to be detached from a class 
+	 * 
+	 * @param classId The class id that we want to detach users from
+	 * 
+	 * @param campaignIds Campaigns associated with the above classId. If campaignIds is null,
+	 * 					  we will look up the list from the db. 
+	 * 
+	 * @param transactionManager Transaction manager to be used as this operation is a part
+	 * 							 of a bigger transaction.
+	 * 
+	 * @param status Transaction status to be used for roll back
+	 * 
+	 */
+	public void detachUsersFromClassCampaigns(String classId)
+		throws DataAccessException { 
+				 
+		// get a list of campaigns associated with this class 
+		Collection<String> campaignIds = new LinkedList<String>();
+		try {
+			campaignIds = campaignClassQueries.getCampaignsAssociatedWithClass(classId);
+		}
+		catch(DataAccessException e) {
+			throw new DataAccessException("Error retriving campaigns associated with " + classId, e); 
+		}
+		
+		// check whether students are associated with these campaigns through other classes.
+		// get a list of users that have only one class associated with the campaign.  	
+		
+		// if there is no other association, remove students default roles from campaigns. 		
+		List<Object> parameters = new ArrayList<Object>(7);
+		
+		// Get default campaign roles associated with the class roles. 
+		// The campaign_class_default_role maintains the mapping from class role to campaign roles
+		// for each pair of campaign and class.
+		String sqlGetDefaultCampaignRoles = 
+				"SELECT ur.id " +
+				"FROM campaign_class_default_role ccdr JOIN user_class_role ucr ON (ccdr.user_class_role_id = ucr.id) " +
+				"  JOIN campaign_class cc on (ccdr.campaign_class_id = cc.id) " +
+				"  JOIN class cl on (cc.class_id = cl.id) " +
+				"  JOIN campaign cp on (cc.campaign_id = cp.id) " +
+				"  JOIN user_role ur on (ccdr.user_role_id = ur.id) " +
+				"WHERE cp.urn = ? " +      	// campaign_id 
+				"  AND cl.urn = ? " +		// class_id 
+				"  AND ucr.role = ? "; 		//user_class_role
+
+		// get a list of users in a class with specific class role
+		String sqlGetUsersWithSepcificRoleInClass =  
+				"SELECT uc.user_id " +
+			    "FROM user_class uc JOIN class c on (uc.class_id = c.id) " +
+				" JOIN user_class_role ucr on (uc.user_class_role_id = ucr.id) " +
+			    "WHERE c.urn = ? " +  	// class_id
+				" AND ucr.role = ? "; 	// user_class_role
+		
+		// For a class role, get a list of detachable users for each campaign . 
+		// A user is detachable if there is only class associated with the campaign 
+		// that the user is attached to. 
+		String sqlGetDetachableUsers = 
+				"SELECT u.id " + 
+				"FROM user u join user_class uc ON (u.id = uc.user_id) " +
+				"  JOIN campaign_class cc ON (uc.class_id = cc.class_id) " +
+				"  JOIN campaign cp ON (cc.campaign_id = cp.id) " +
+				"WHERE cp.urn = ? " +  // campaign_id 
+				"  AND u.id IN ( " + sqlGetUsersWithSepcificRoleInClass +
+				" ) " +
+				"GROUP BY u.id HAVING count(distinct uc.class_id) = 1";
+		
+		// for each campaign associated with the class
+		for (String campaignId : campaignIds){
+			// For each class role
+			for(Clazz.Role classRole : Clazz.Role.values()) {
+				// clear the parameter list
+				parameters.clear();
+				
+				// delete the campaign roles associated with users if 
+				// there is no other classes associated with this campaign and user.
+				StringBuilder sqlStmt = new StringBuilder();
+				sqlStmt.append(
+						"DELETE FROM user_role_campaign " +
+				        "WHERE campaign_id = (SELECT id FROM campaign WHERE urn = ?) ");
+				parameters.add(campaignId);
+				
+				sqlStmt.append(
+						"  AND user_role_id IN ( " + sqlGetDefaultCampaignRoles + ")" );
+				parameters.add(campaignId);
+				parameters.add(classId);
+				parameters.add(classRole.toString());
+				
+				sqlStmt.append(
+						"  AND user_id IN ( " + sqlGetDetachableUsers + ")" );
+				parameters.add(campaignId);
+				parameters.add(classId);
+				parameters.add(classRole.toString());
+				
+				try {
+					getJdbcTemplate().update(
+							sqlStmt.toString(),
+							parameters.toArray());
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					throw new DataAccessException("Error executing SQL '" + sqlStmt + "' with " + parameters.size() + 
+							"parameters: " + parameters.toString(), e);
+				}
+			}
+		}			
+	}
+	
+	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IClassQueries#deleteClass(java.lang.String)
 	 */
 	@Override
@@ -1026,6 +1178,16 @@ public class ClassQueries extends Query implements IClassQueries {
 			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 			TransactionStatus status = transactionManager.getTransaction(def);
 			
+			// detach users from campaigns associated with this class
+			try {
+				detachUsersFromClassCampaigns(classId);
+			}
+			catch(DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while attempting to detach users from class.", e);
+			}
+	
+			// delete the class 
 			try {
 				getJdbcTemplate().update(SQL_DELETE_CLASS, new Object[] { classId });
 			}
