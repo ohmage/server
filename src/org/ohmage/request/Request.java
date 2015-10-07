@@ -203,7 +203,7 @@ public abstract class Request {
 					tParameters = parameters;
 				}
 				// HT iterates through the param map
-				LOGGER.debug("HT: About to iterate through the param map");	
+				//LOGGER.debug("HT: About to iterate through the param map");	
 				for (Map.Entry<String,String[]> entry : tParameters.entrySet()) {
 				    String key = entry.getKey();
 				    String[] value = entry.getValue();
@@ -411,7 +411,7 @@ public abstract class Request {
 			final HttpServletRequest httpRequest, 
 			final HttpServletResponse httpResponse, 
 			final JSONObject response) {
-		
+				
 		// Create a writer for the HTTP response object.
 		Writer writer = null;
 		String responseText = "";

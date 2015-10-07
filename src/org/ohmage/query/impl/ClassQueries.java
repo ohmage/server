@@ -59,6 +59,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public class ClassQueries extends Query implements IClassQueries {
 	
@@ -1018,32 +1019,27 @@ public class ClassQueries extends Query implements IClassQueries {
 	 * @see org.ohmage.query.impl.IClassQueries#checkDeleteClassCauseOrphanCampaigns(java.lang.String)
 	 */
 	//@Override
-	public void checkDeleteClassCauseOrphanCampaigns(String classId) throws DataAccessException {
+	public Collection<String> getOrphanCampaignsIfClassIsDeleted(String classId) throws DataAccessException {
 
 		// Get the number of campaigns that are only associated with this class. 
 		// If these campaigns exist, we will have orphan campaigns if the class is deleted.
 		String sqlStmt = 
-				"SELECT COUNT(grp.id) " +
-				"FROM ( " +
-				"  SELECT cc.campaign_id as id " +
-				"  FROM campaign_class cc JOIN class c ON (cc.class_id = c.id) " +
-				"  WHERE cc.campaign_id IN ( " + 
-				"    SELECT cc.campaign_id " +
-				"    FROM campaign_class cc join class c on (c.id = cc.class_id) " +
-				"    WHERE c.urn = ? " +  // class_id 
-				"  ) " +
-				"  GROUP BY cc.campaign_id " +
-				"  HAVING count(distinct c.id) = 1 " + 
-				") AS grp ";
+				"SELECT cp.urn " +
+				"FROM campaign_class cc JOIN class c ON (cc.class_id = c.id) " +
+				"  JOIN campaign cp on (cc.campaign_id = cp.id) " +
+				"WHERE cc.campaign_id IN ( " + 
+				"  SELECT cc.campaign_id " +
+				"  FROM campaign_class cc join class c on (c.id = cc.class_id) " +
+				"  WHERE c.urn = ? " +  // class_id 
+				") " +
+				"GROUP BY cc.campaign_id " +
+				"HAVING count(distinct c.id) = 1 ";
 
 		try {
-			int numPotentialOrphanCampaigns = 
-					getJdbcTemplate().queryForInt(
-							sqlStmt,
-							new Object[] { classId });
-			if (numPotentialOrphanCampaigns > 0)
-				throw new DataAccessException("Deleting class will lead to " + 
-						numPotentialOrphanCampaigns + " orphan campaigns");
+			return getJdbcTemplate().query(
+					sqlStmt,
+					new Object[] { classId },
+					new SingleColumnRowMapper<String>());
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException(

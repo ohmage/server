@@ -107,14 +107,11 @@ public class UserInfoReadRequest extends UserRequest {
 				e.failRequest(this);
 				e.logException(LOGGER);
 			}
-		} else {
-			LOGGER.debug("The request failed");
-		}
+		} 
 		
 		gUsername = tUsername;
 		result = null;
 		
-		LOGGER.debug("HT: End of userInfoReadRequest: username = " + gUsername);
 	}
 
 	/**
@@ -136,7 +133,7 @@ public class UserInfoReadRequest extends UserRequest {
 				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			}
 			
-			LOGGER.info("!!Gathering the information about the user " + gUsername);
+			LOGGER.info("Gathering the information about the user " + gUsername);
 			result = UserServices.instance().getUserSummary(gUsername);
 		}
 		catch(ServiceException e) {

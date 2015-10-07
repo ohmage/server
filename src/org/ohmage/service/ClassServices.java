@@ -33,6 +33,7 @@ import org.ohmage.query.IClassQueries;
  * This class contains the services that pertain to classes.
  * 
  * @author John Jenkins
+ * @author Hongsuda T.
  */
 public final class ClassServices {
 	private static ClassServices instance;
@@ -472,6 +473,32 @@ public final class ClassServices {
 			return warningMessages;
 		}
 		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	
+	/**
+	 * Check whether deleting this class will result in orphan campaigns.
+	 * 
+	 * @param classId The unique identifier or the class to be deleted.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public void checkDeleteClassCauseOrphanCampaigns(final String classId) 
+			throws ServiceException {
+		
+		try {
+			// get a list of orphan campaigns if a class is to be deleted.
+			Collection<String> orphanCampaigns = classQueries.getOrphanCampaignsIfClassIsDeleted(classId); 
+			
+			if (! orphanCampaigns.isEmpty()){	
+				throw new ServiceException(ErrorCode.CLASS_ORPHAN_CAMPAIGNS, 
+						"Deleting class " + classId + 
+						" will resulting in " + orphanCampaigns.size() + 
+						" orphan campaigns: " + orphanCampaigns.toString());
+			}
+		} catch (DataAccessException e) {
 			throw new ServiceException(e);
 		}
 	}

@@ -80,6 +80,7 @@ public final class InputKeys {
 	public static final String ROSTER = "roster";
 	public static final String CLASS_WITH_USER_LIST = "with_user_list";
 	public static final String CLASS_ROLE = "class_role";
+	public static final String CLASS_NO_ORPHAN_CAMPAIGNS = "no_orphan_campaigns";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";

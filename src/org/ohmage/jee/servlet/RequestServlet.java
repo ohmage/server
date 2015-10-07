@@ -468,7 +468,13 @@ public class RequestServlet extends HttpServlet {
 		catch(InvalidRequestException e) {
 			LOGGER.info("The request was invalid.", e);
 			respondFailure(httpResponse, e.getHttpErrorCode(), e.getErrorCode(), e.getErrorText());
-		}	 
+		} 
+		catch (Exception e) {
+			LOGGER.info("There was an issue executing the request.", e);
+			respondFailure(httpResponse, 200, ErrorCode.SYSTEM_GENERAL_ERROR, 
+					"General server errors occured while executing the request");
+		
+		}
 	}
 
 	/**
