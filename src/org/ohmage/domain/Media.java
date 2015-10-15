@@ -260,8 +260,11 @@ public class Media implements IMedia {
 	 * @param id
 	 *        The ID of the Media.
 	 * 
-	 * @param type
+	 * @param contentType
 	 *        The content type of the media.
+	 * 
+	 * @param fileName
+	 * 		  The filename associated with the media.
 	 * 
 	 * @param content
 	 *        The content of the media.
@@ -306,10 +309,16 @@ public class Media implements IMedia {
 	 * @param id
 	 *        The ID of the Media.
 	 * 
-	 * @param type
+	 * @param contentType
 	 *        The content type of the media.
 	 * 
-	 * @param content
+ 	 * @param fileName
+	 * 		  The filename associated with the media.
+	 * 
+	 * @param fileSize
+	 * 		  The size of the media. 
+	 * 
+	 * @param contentStream
 	 *        The content of the media.
 	 * 
 	 * @throws DomainException
@@ -529,15 +538,13 @@ public class Media implements IMedia {
 	
 
 	/**
-	 * Writes the media data to the given file. This file *should* end with
-	 * the string given by the {@link #getExtension()} function.
+	 * Writes the media data to the given file. 
 	 * 
 	 * @param destination The file to write the image to.
 	 * 
 	 * @throws DomainException There was an error reading the data
 	 * 						   or writing the file.
 	 * 
-	 * @see {@link #getExtension()}
 	 */
 	public final void writeFile(final File destination)
 		throws DomainException {

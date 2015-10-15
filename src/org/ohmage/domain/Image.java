@@ -709,7 +709,9 @@ public class Image implements IMedia{
 	/**
 	 * Creates a new Image object from a URL object.
 	 * 
-	 * @param url The URL object to use to retrieve the image.
+	 * @param id The image id.
+	 * 
+	 * @param sizeToUrlMap The Map from Size to URL.
 	 * 
 	 * @throws DomainException The URL is null.
 	 */
@@ -748,17 +750,15 @@ public class Image implements IMedia{
 	/**
 	 * Creates an original image from the image's byte[]
 	 * 
-	 * @param imageId The ID for this image.
+	 * @param id The ID of this image.
 	 *  
-	 * @param imageContents The image's contents as a byte array.
+	 * @param contentType The mime type associated with this image
 	 * 
-	 * @return Returns null if the image's contents are null or have a length 
-	 * 		   of zero; otherwise, a BufferedImage representing a decoded  
-	 * 		   version of the image are returned.
-	 * 
-	 * @throws ValidationException Thrown if the image is not null, has a 
-	 * 							   length greater than 0, and isn't decodable 
-	 * 							   as any type of known image.
+	 * @param fileName The fileName associated with this image. 
+	 *  
+	 * @throws DomainException The exception is thrown if the id is null
+	 * 						or the byte array is null.
+	 * 	 
 	 */
 	public Image (final UUID id, String contentType, String fileName,
 			final byte[] imageByteArray) throws DomainException {
@@ -1034,7 +1034,7 @@ public class Image implements IMedia{
 	 * save only a specific file size, use the
 	 * {@link #saveImage(Size, File, boolean)} function. 
 	 * 
-	 * @param rootFile The location to save the original file. The different
+	 * @param directory The location to save the original file. The different
 	 * 				   file sizes will be saved in the same directory with a
 	 * 				   filename of their {@link #getId() ID} and their 
 	 * 				   respective {@link Size#getExtension() extensions}
@@ -1253,17 +1253,14 @@ public class Image implements IMedia{
 	}
 	
 	/**
-	 * Writes the image data to the given file. This file *should* end with
-	 * the string given by the {@link #getExtension()} function.
+	 * Writes the image data to the given file. 
 	 * 
 	 * @param imageData The image data to be written.
 	 * 
 	 * @param destination The file to write the image to.
 	 * 
 	 * @throws DomainException There was an error reading the image data
-	 * 						   or writing the file.
-	 * 
-	 * @see {@link #getExtension()}
+	 * 						   or writing the file. 
 	 */
 	private final void writeFile(
 		final ImageData imageData,
