@@ -80,6 +80,7 @@ public class UserSetupRequest extends UserRequest {
 		Set<String> tClassIds = null;
 		String tUsernamePrefix = DEFAULT_USERNAME_PREFIX;
 		int tUsernameDigits = DEFAULT_USERNAME_DIGITS;
+		String tEmailAddress = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user setup request.");
@@ -180,6 +181,24 @@ public class UserSetupRequest extends UserRequest {
 							e);
 				}
 				
+				// get and validate the email address
+				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_EMAIL_ADDRESS,
+							"Multiple email address parameters were given: " +
+								InputKeys.EMAIL_ADDRESS);
+				}
+				else if(t.length == 1) {
+					tEmailAddress = UserValidators.validateEmailAddress(t[0]);
+					
+					if(tEmailAddress == null) {
+						throw new ValidationException(
+								ErrorCode.USER_INVALID_EMAIL_ADDRESS,
+								"The email address is invalid: " + t[0]);
+					}
+				}				
+				
 				// Get and validate the class ID.
 				t = getParameterValues(InputKeys.CLASS_URN_LIST);
 				if(t.length > 1) {
@@ -248,6 +267,7 @@ public class UserSetupRequest extends UserRequest {
 		classIds = tClassIds;
 		usernamePrefix = tUsernamePrefix;
 		usernameDigits = tUsernameDigits;
+		emailAddress = tEmailAddress;
 	}
 
 	/*
@@ -293,11 +313,13 @@ public class UserSetupRequest extends UserRequest {
 				LOGGER.info("Generating a random password.");
 				password = getRandomPassword();
 				
-				LOGGER.info("Retrieving the requesting user's email address.");
-				emailAddress =
-					UserServices
-						.instance()
-						.getUserEmail(getUser().getUsername());
+				if (emailAddress == null) {
+					LOGGER.info("No email address. Will retrieve the requesting user's email address.");
+					emailAddress =
+							UserServices
+							.instance()
+							.getUserEmail(getUser().getUsername());
+				}
 				
 				// For security reason, only set storedPlainText password to true 
 				// only if the newAccount is set to true to enforce password change 
@@ -314,7 +336,7 @@ public class UserSetupRequest extends UserRequest {
 							true,   // enable
 							true,   // new account
 							true,   // campaign creation privilege
-							true,   // storedPlainTextPassword
+							true,   // storeInitialPassword
 							personalInfo);
 			}
 			
