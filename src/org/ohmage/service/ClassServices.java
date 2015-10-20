@@ -495,7 +495,7 @@ public final class ClassServices {
 			if (! orphanCampaigns.isEmpty()){	
 				throw new ServiceException(ErrorCode.CLASS_ORPHAN_CAMPAIGNS, 
 						"Deleting class " + classId + 
-						" will resulting in " + orphanCampaigns.size() + 
+						" will result in " + orphanCampaigns.size() + 
 						" orphan campaigns: " + orphanCampaigns.toString());
 			}
 		} catch (DataAccessException e) {
