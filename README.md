@@ -1,5 +1,7 @@
 # Welcome
 
+[![Join the chat at https://gitter.im/ohmage/server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ohmage/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ohmage is a mobile data collection system for collecting data given explicitly
 by a user (active data) and data that is collected by backgrounded applications
 (passive data). This repository houses the server-side application. The Android
@@ -30,15 +32,12 @@ serving up static content and better SSL performance. Apache httpd is shipped wi
 ## Setting Up the Database
 
 ohmage depends on a MySQL instance. To update the database configuration,
-update the appropriate `web/WEB-INF/config/default.properties` options. The default is a
+update the appropriate `web/WEB-INF/config/default.properties` options (or use the `/etc/ohmage.conf` file). The default is a
 server on the local machine at the standard port of '3306' and a user named
 'ohmage' with a password '&!sickly' that has full permissions on a database
 named 'ohmage'.
 
-In this database, several scripts will need to be run, which are all located
-under the `db/sql/` directory. First must be `base/ohmage-ddl.sql`. Next must
-be all of the files under `settings`. Finally, run the
-`preferences/default_preferences.sql`.
+Please see the `db/migrations` dir for more information on migrating the database.
 
 ## Setting Up the Directory Structure
 
@@ -58,10 +57,6 @@ file should then be copied to the servlet container's web applications
 directory.
 
 # Collaboration
-
-The source is currently undergoing a major overhaul, so, unless a patch is
-already in the works, it might be best to wait until the 3.0 version is
-released.
 
 The coding rules are loose, and the best reference would be other parts of the
 code. A few rules we do have are:

@@ -134,7 +134,10 @@ public class ConfigurationFileImport
 		
 		// Get a handler for the properties file based on the operating system.
 		File propertiesFile;
-		if(System.getProperty("os.name").contains("Windows")) {
+		if(System.getProperty("ohmage.config") != null) {
+			propertiesFile = new File(System.getProperty("ohmage.config"));
+		}
+		else if(System.getProperty("os.name").contains("Windows")) {
 			propertiesFile = new File(CONFIG_FILE_DEFAULT_WINDOWS);
 		}
 		else {
