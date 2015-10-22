@@ -66,7 +66,9 @@ public abstract class Prompt extends SurveyItem {
 		PHOTO,
 		REMOTE_ACTIVITY,
 		VIDEO,
-		AUDIO;
+		AUDIO,
+		DOCUMENT, // HT: Change from DOCUMENT to FILE. will remove this when 2.17 is released
+		FILE; 
 		
 		/**
 		 * Returns an all-lower-case version of the type.

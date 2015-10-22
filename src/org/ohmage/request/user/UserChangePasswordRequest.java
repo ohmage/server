@@ -61,7 +61,8 @@ import org.ohmage.validator.UserValidators;
  * @author John Jenkins
  */
 public class UserChangePasswordRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(UserChangePasswordRequest.class);
+	private static final Logger LOGGER =
+		Logger.getLogger(UserChangePasswordRequest.class);
 	
 	private final String newPassword;
 	private final String username;
@@ -80,7 +81,10 @@ public class UserChangePasswordRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserChangePasswordRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public UserChangePasswordRequest(
+		final HttpServletRequest httpRequest)
+		throws IOException, InvalidRequestException {
+		
 		super(httpRequest, true, null, null);
 		
 		String tNewPassword = null;
@@ -105,7 +109,8 @@ public class UserChangePasswordRequest extends UserRequest {
 							"Multiple new password parameters were given.");
 				}
 				else {
-					tNewPassword = UserValidators.validatePlaintextPassword(t[0]);
+					tNewPassword =
+						UserValidators.validatePlaintextPassword(t[0]);
 
 					if(tNewPassword == null) {
 						throw new ValidationException(
@@ -170,9 +175,20 @@ public class UserChangePasswordRequest extends UserRequest {
 		
 		try {
 			if((username != null) && (! username.equals(getUser().getUsername()))) {
-				LOGGER.info("The requester is attempting to change another user's password: " + username);
-				LOGGER.info("Verfying that the requesting user is an admin.");
-				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+				LOGGER
+					.info(
+						"The requester is attempting to change another " +
+							"user's password: " +
+							username);
+				LOGGER
+					.info(
+						"Verfying that the requesting user is allowed to " +
+							"change the other user's password.");
+				UserServices
+					.instance()
+					.verifyUserCanChangeOtherUsersPassword(
+						getUser().getUsername(),
+						username);
 			}
 			
 			LOGGER.info("Updating the user's password.");

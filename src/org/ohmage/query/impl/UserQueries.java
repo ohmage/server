@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.UserInformation;
@@ -215,8 +216,8 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, password, email_address, admin, enabled, new_account, campaign_creation_privilege) " +
-		"VALUES (?,?,?,?,?,?,?)";
+		"INSERT INTO user(username, password, initial_password, email_address, admin, enabled, new_account, campaign_creation_privilege, creation_timestamp) " +
+		"VALUES (?,?,?,?,?,?,?,?,NOW())";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
 	// insert the email address or JSON data; to add these, update the record
@@ -381,8 +382,10 @@ public class UserQueries extends Query implements IUserQueries {
 	 * (non-Javadoc)
 	 * @see org.ohmage.query.IUserQueries#createUser(java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean)
 	 */
+	@Override
 	public void createUser(
 			final String username, 
+			final String initialPassword,
 			final String hashedPassword, 
 			final String emailAddress, 
 			final Boolean admin, 
@@ -427,12 +430,20 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+			}
+			catch(org.springframework.dao.DuplicateKeyException e) {
+				transactionManager.rollback(status);
+				throw
+					new DataAccessException(
+						ErrorCode.USER_INVALID_USERNAME,
+						"The user already exists.",
+						e);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
 			}
 			
 			// Commit the transaction.
@@ -447,6 +458,124 @@ public class UserQueries extends Query implements IUserQueries {
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#createUser(java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, org.ohmage.domain.UserInformation.UserPersonal)
+	 */
+	@Override
+	public boolean createUser(
+			final String username, 
+			final String initialPassword,
+			final String hashedPassword, 
+			final String emailAddress, 
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final UserPersonal personalInfo) 
+			throws DataAccessException {
+		
+		Boolean tAdmin = admin;
+		if(tAdmin == null) {
+			tAdmin = false;
+		}
+		
+		Boolean tEnabled = enabled;
+		if(tEnabled == null) {
+			tEnabled = false;
+		}
+		
+		Boolean tNewAccount = newAccount;
+		if(tNewAccount == null) {
+			tNewAccount = true;
+		}
+		
+		Boolean tCampaignCreationPrivilege = campaignCreationPrivilege;
+		if(tCampaignCreationPrivilege == null) {
+			try {
+				tCampaignCreationPrivilege = PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE).equals("true");
+			}
+			catch(CacheMissException e) {
+				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
+			}
+		}
+		
+		boolean result = true;
+		
+		// Create the transaction.
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+		def.setName("Creating a new user.");
+		
+		try {
+			// Begin the transaction.
+			PlatformTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
+			TransactionStatus status = transactionManager.getTransaction(def);
+			
+			// Insert the new user.
+			try {
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+			}
+			catch(org.springframework.dao.DuplicateKeyException e) {
+				transactionManager.rollback(status);
+				throw
+					new DataAccessException(
+						ErrorCode.USER_INVALID_USERNAME,
+						"The user already exists.",
+						e);
+			}
+			catch(org.springframework.dao.DataAccessException e) {
+				transactionManager.rollback(status);
+				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
+						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+			}
+			
+			if(personalInfo != null) {
+				try {
+					getJdbcTemplate().update(
+							SQL_INSERT_USER_PERSONAL, 
+							username, 
+							personalInfo.getFirstName(), 
+							personalInfo.getLastName(), 
+							personalInfo.getOrganization(), 
+							personalInfo.getPersonalId());
+				}
+				catch(org.springframework.dao.DuplicateKeyException e) {
+					transactionManager.rollback(status);
+					result = false;
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException(
+							"Error executing SQL '" +
+								SQL_INSERT_USER_PERSONAL +
+								"' with parameters: " +
+								username + ", " + 
+								personalInfo.getFirstName() + ", " + 
+								personalInfo.getLastName() + ", " + 
+								personalInfo.getOrganization() + ", " + 
+								personalInfo.getPersonalId(), 
+							e);
+				}
+			}
+			
+			// Commit the transaction if necessary.
+			if(result) {
+				try {
+					transactionManager.commit(status);
+				}
+				catch(TransactionException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException("Error while committing the transaction.", e);
+				}
+			}
+		}
+		catch(TransactionException e) {
+			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+		
+		return result;
 	}
 	
 	/*
@@ -512,6 +641,7 @@ public class UserQueries extends Query implements IUserQueries {
 						new Object[] { 
 								username, 
 								hashedPassword, 
+								//null,
 								emailAddress, 
 								false, 
 								false, 
@@ -683,6 +813,44 @@ public class UserQueries extends Query implements IUserQueries {
 			throws DataAccessException {
 		
 		String sql = "SELECT email_address FROM user WHERE username = ?";
+		
+		try {
+			return getJdbcTemplate().queryForObject(
+				sql,
+				new Object[] { username },
+				String.class
+				);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			// If the user doesn't exist, return null.
+			if(e.getActualSize() == 0) {
+				return null;
+			}
+			
+			throw new DataAccessException(
+					"Multiple users have the same username: " + username, 
+					e);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing '" + 
+						sql + 
+						"' with parameter: " + 
+						username,
+					e);
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getInitialPassword(java.lang.String)
+	 */
+	@Override
+	public String getInitialPassword(
+			final String username) 
+			throws DataAccessException {
+		
+		String sql = "SELECT initial_password FROM user WHERE username = ?";
 		
 		try {
 			return getJdbcTemplate().queryForObject(
@@ -1274,10 +1442,11 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
+	 * @see org.ohmage.query.IUserQueries#getVisibleUsersSql(java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
 	 */
 	@Override
-	public QueryResultsList<UserInformation> getUserInformation(
+	public String getVisibleUsersSql(
+		final Collection<Object> parameters,
 		final String requesterUsername,
 		final Collection<String> usernames,
 		final Collection<String> emailAddresses,
@@ -1292,26 +1461,15 @@ public class UserQueries extends Query implements IUserQueries {
 		final Collection<String> personalIds,
 		final Collection<String> campaignIds,
 		final Collection<String> classIds,
+		final boolean settingUpUser,
 		final long numToSkip,
-		final long numToReturn,
-		final boolean settingUpUser)
+		final long numToReturn)
 		throws DataAccessException {
 		
 		// The initial SELECT selects everything.
 		StringBuilder sql = 
 				new StringBuilder(
-						"SELECT u.username, " +
-							"u.email_address, " +
-							"u.admin, " +
-							"u.enabled, " +
-							"u.new_account, " +
-							"u.campaign_creation_privilege, " +
-							"u.class_creation_privilege, " +
-							"u.user_setup_privilege, " +
-							"up.first_name, " +
-							"up.last_name, " +
-							"up.organization, " +
-							"up.personal_id " +
+						"SELECT u.id " +
 						"FROM user u " +
 							"LEFT JOIN user_personal up ON " +
 								"u.id = up.user_id, " +
@@ -1375,19 +1533,12 @@ public class UserQueries extends Query implements IUserQueries {
 				);
 		
 		// The initial parameter list doesn't have any items.
-		Collection<Object> parameters = new LinkedList<Object>();
 		parameters.add(requesterUsername);
 		
 		// If the list of usernames is present, add a WHERE clause component
 		// that limits the results to only those users whose exact username is
 		// in the list.
-		if(usernames != null) {
-			if(usernames.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(usernames != null && usernames.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1409,13 +1560,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of email addresses is present, add a WHERE clause that
 		// that contains all of the tokens in their own OR.
-		if(emailAddresses != null) {
-			if(emailAddresses.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(emailAddresses != null && emailAddresses.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1482,13 +1627,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of first name tokens is present, add a WHERE clause that
 		// contains all of the tokens in their own OR.
-		if(firstNames != null) {
-			if(firstNames.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(firstNames != null && firstNames.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1510,13 +1649,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of last name tokens is present, add a WHERE clause that
 		// contains all of the tokens in their own OR.
-		if(lastNames != null) {
-			if(lastNames.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(lastNames != null && lastNames.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1538,13 +1671,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of organization tokens is present, add a WHERE clause
 		// that contains all of the tokens in their own OR.
-		if(organizations != null) {
-			if(organizations.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(organizations != null && organizations.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1566,13 +1693,7 @@ public class UserQueries extends Query implements IUserQueries {
 		
 		// If the list of personal ID tokens is present, add a WHERE clause 
 		// that contains all of the tokens in their own OR.
-		if(personalIds != null) {
-			if(personalIds.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(personalIds != null && personalIds.size() > 0) {
 			sql.append(" AND (");
 			
 			boolean firstPass = true;
@@ -1595,13 +1716,7 @@ public class UserQueries extends Query implements IUserQueries {
 		// If a collection of campaign IDs is present, add a WHERE clause 
 		// component that limits the results to only those in any of the  
 		// campaigns.
-		if(campaignIds != null) {
-			if(campaignIds.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(campaignIds != null && campaignIds.size() > 0) {
 			sql.append(
 					" AND u.id IN (" +
 						"SELECT urc.user_id " +
@@ -1617,13 +1732,7 @@ public class UserQueries extends Query implements IUserQueries {
 		// If a collection of class IDs is present, add a WHERE clause 
 		// component that limits the results to only those in any of the 
 		// classes.
-		if(classIds != null) {
-			if(classIds.size() == 0) {
-				return
-					(new QueryResultListBuilder<UserInformation>())
-						.getQueryResult();
-			}
-			
+		if(classIds != null && classIds.size() > 0) {			
 			sql.append(
 					" AND u.id IN (" +
 						"SELECT uc.user_id " +
@@ -1639,11 +1748,87 @@ public class UserQueries extends Query implements IUserQueries {
 		// Always order the results by username to facilitate paging.
 		sql.append(" ORDER BY u.username");
 		
+		return sql.toString();
+	}
+	
+	/**
+	 * Retrieve total number of visiable users. This number is always greater
+	 * than or equal to the sql stmt with the LIMIT x,y attached to limit the 
+	 * returned rows.  
+	 * 
+	 * @param userSqlStmt 
+	 * 		  The sql statement representing visible user list. 
+	 * 
+	 * @param userSqlParameters
+	 * 		  The list of parameters to be used with the userSubSelectStmt. 
+	 *  
+	 * @return Total number of users based on the provided sql statement. 
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error aggregating the information.
+	 */
+	public Long getTotalUsers(
+			final String userSqlStmt, 
+			final Collection<Object> userSqlParameters) 
+		throws DataAccessException {
+		
+		String userCountSql = userSqlStmt.replace("select u.id", "select count(u.id)"); 
+		try {
+			return getJdbcTemplate().queryForLong(
+					userCountSql,
+					userSqlParameters);
+			
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + userCountSql +
+						"' with parameter: " + userSqlParameters,
+					e);
+		}
+		
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#getUserInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.lang.Boolean, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection, long, long)
+	 */
+	@Override
+	public QueryResultsList<UserInformation> getUserInformation(
+			final String userSubSelectStmt,
+			final Collection<Object> userSubSelectParameters,
+			final long numToSkip,
+			final long numToReturn)
+			throws DataAccessException {
+	
+
+		// The initial SELECT selects everything.
+		StringBuilder sql = 
+				new StringBuilder(
+						"SELECT u.username, " +
+							"u.email_address, " +
+							"u.admin, " +
+							"u.enabled, " +
+							"u.new_account, " +
+							"u.campaign_creation_privilege, " +
+							"u.class_creation_privilege, " +
+							"u.user_setup_privilege, " +
+							"up.first_name, " +
+							"up.last_name, " +
+							"up.organization, " +
+							"up.personal_id " +
+						"FROM user u " +
+							"LEFT JOIN user_personal up ON " +
+								"u.id = up.user_id " +
+						"WHERE u.id IN ");
+		sql.append(" ( " + userSubSelectStmt + " ) ");		
+			
 		// Returns the results as queried by the database.
+		// Note: A different implementation is to only retrieve what's needed from 
+		// DB using LIMTI x,y and execute another query to get # of results
 		try {
 			return getJdbcTemplate().query(
 					sql.toString(), 
-					parameters.toArray(),
+					userSubSelectParameters.toArray(),
 					new ResultSetExtractor<QueryResultsList<UserInformation>>() {
 						/**
 						 * Extracts the data into the results and then returns
@@ -1767,7 +1952,7 @@ public class UserQueries extends Query implements IUserQueries {
 					"Error executing the following SQL '" + 
 						sql.toString() + 
 						"' with parameter(s): " + 
-						parameters);
+						userSubSelectParameters);
 		}
 	}
 	

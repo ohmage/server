@@ -169,7 +169,7 @@ public class ImageReadRequest extends UserRequest {
 			ImageServices.instance().verifyImageExistance(imageId, true);
 			
 			try {
-				LOGGER.info("Checking if the user is an admin.");
+				LOGGER.info("Checking if the user is an admin."); 
 				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
 			}
 			catch(ServiceException e) {
@@ -235,7 +235,7 @@ public class ImageReadRequest extends UserRequest {
 				// FIXME: This isn't necessarily the case. We might want to do
 				// some sort of image inspection to figure out what this should
 				// be.
-				httpResponse.setContentType(image.getType(size));
+				httpResponse.setContentType(image.getContentType(size));
 				httpResponse.setHeader(
 						"Content-Length", 
 						new Long(image.getSizeBytes(size)).toString());

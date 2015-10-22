@@ -1,12 +1,12 @@
 package org.ohmage.domain.campaign.response;
 
-import java.util.UUID;
+//import java.util.UUID;
 
-import org.ohmage.domain.campaign.PromptResponse;
+// import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 
-public class VideoPromptResponse extends PromptResponse {
+public class VideoPromptResponse extends MediaPromptResponse {
 	/**
 	 * Creates a video prompt response.
 	 * 
@@ -37,21 +37,5 @@ public class VideoPromptResponse extends PromptResponse {
 		super(prompt, repeatableSetIteration, response);
 	}
 	
-	/**
-	 * Returns the UUID.
-	 * 
-	 * @return The UUID.
-	 * 
-	 * @throws DomainException The prompt does not have a response.
-	 */
-	public UUID getUuid() throws DomainException {
-		if(wasNotDisplayed()) {
-			throw new DomainException("The prompt was not displayed.");
-		}
-		else if(wasSkipped()) {
-			throw new DomainException("The prompt was skipped.");
-		}
-		
-		return (UUID) getResponse();
-	}
+
 }

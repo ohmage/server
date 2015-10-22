@@ -17,7 +17,11 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -107,6 +111,56 @@ public final class CampaignClassQueries extends Query implements ICampaignClassQ
 	}
 	
 	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignClassQueries#getClassesAssociatedWithCampaignList(java.lang.String)
+	 */
+	@Override
+	public Map<String, Collection<String>> getClassesAssociatedWithCampaigns(
+			final String subSelectStmt, 
+			final Collection<Object> subSelectParameters) 
+			throws DataAccessException {
+		
+		StringBuilder sql = new StringBuilder(
+			 	"SELECT ca.urn, cl.urn class_urn " + 
+			 	"FROM campaign ca JOIN campaign_class cc on (ca.id = cc.campaign_id) " +
+			 	"  JOIN class cl ON (cl.id = cc.class_id) " +
+		     	"WHERE ca.id in ");
+		sql.append("( " + subSelectStmt + " )");
+				
+		final Map<String, Collection<String>> campaignClasses = new HashMap<String, Collection<String>>();
+
+		try {			
+			getJdbcTemplate().query(
+					sql.toString(),
+					subSelectParameters.toArray(),
+					new RowMapper<Object> () {
+						@Override
+						public Object mapRow(ResultSet rs, int rowNum) throws SQLException {				
+					
+							String campaignUrn = rs.getString("urn");
+							String classUrn = rs.getString("class_urn");
+							Collection<String> classes = campaignClasses.get(campaignUrn);
+							if (classes == null) {
+								classes = new LinkedList<String>();
+								campaignClasses.put(campaignUrn, classes);
+							}
+							classes.add(classUrn);
+							return null;
+						}
+					}
+		);
+		
+		return campaignClasses;
+		} 
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" + sql + 
+					"' with parameters: " + subSelectStmt, 
+					e);
+		}
+	
+	}
+
+	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignClassQueries#getDefaultCampaignRolesForCampaignClass(java.lang.String, java.lang.String, org.ohmage.domain.Clazz.Role)
 	 */
 	@Override
@@ -133,4 +187,7 @@ public final class CampaignClassQueries extends Query implements ICampaignClassQ
 					e);
 		}
 	}
+	
+
+	
 }

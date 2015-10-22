@@ -223,7 +223,7 @@ public abstract class UserRequest extends Request {
 	public final boolean authenticate(AllowNewAccount newAccountsAllowed) {
 		try {
 			// Validate that the username and password are valid.
-			LOGGER.info("Authenticating the user.");
+			LOGGER.debug("Authenticating the user: " + getUser().getUsername());
 			return
 				AuthenticationService
 					.instance()

@@ -8,16 +8,9 @@ import java.util.regex.Pattern;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 
-/**
- * <p>
- * A manager for the current directory that should be used to write audio
- * files.
- * </p>
- *
- * @author John Jenkins
- */
-public class AudioDirectoryCache {
-	private static File currAudioDirectory = null;
+public class XOFileDirectoryCache {
+	private static File currFileDirectory = null;
+	private static String KEY_FILE_DIRECTORY = PreferenceCache.KEY_FILE_DIRECTORY;
 	
 	/**
 	 * Filters the sub-directories in a directory to only return those that
@@ -42,15 +35,15 @@ public class AudioDirectoryCache {
 	 * Default constructor, made private because this class should be 
 	 * referenced statically.
 	 */
-	private AudioDirectoryCache() {};
+	private XOFileDirectoryCache() {};
 	
 	/**
-	 * Retrieves the file to use to store an audio file. Each call to this
-	 * function has the implicit expectation that an audio file will be stored
-	 * in the resulting directory; however, this is not required and is not a 
+	 * Retrieves the file to use to store a video. Each call to this function
+	 * has the implicit expectation that a documentp file will be stored in the
+	 * resulting directory; however, this is not required and is not a 
 	 * necessity.
 	 * 
-	 * @return A File object where an audio file should be written.
+	 * @return A File object where a documentp file should be written.
 	 */
 	public static File getDirectory() throws DomainException {
 		// Get the maximum number of items in a directory.
@@ -79,18 +72,18 @@ public class AudioDirectoryCache {
 		// that. Note that the initialization is dumb in that it will get to
 		// the end of the structure and not check to see if the leaf node is
 		// full.
-		if(currAudioDirectory == null) {
+		if(currFileDirectory == null) {
 			init(numFilesPerDirectory);
 		}
 		
-		File[] documents = currAudioDirectory.listFiles();
+		File[] documents = currFileDirectory.listFiles();
 		// If the 'imageLeafDirectory' directory is full, traverse the tree and
 		// find a new directory.
 		if(documents.length >= numFilesPerDirectory) {
 			getNewDirectory(numFilesPerDirectory);
 		}
 		
-		return currAudioDirectory;
+		return currFileDirectory;
 	}
 	
 	/**
@@ -105,7 +98,7 @@ public class AudioDirectoryCache {
 		try {
 			// If the current leaf directory has been set, we weren't the first
 			// to call init(), so we can just back out.
-			if(currAudioDirectory != null) {
+			if(currFileDirectory != null) {
 				return;
 			}
 			
@@ -114,13 +107,12 @@ public class AudioDirectoryCache {
 			String rootFile;
 			try {
 				rootFile = 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_AUDIO_DIRECTORY);
+					PreferenceCache.instance().lookup(KEY_FILE_DIRECTORY);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_AUDIO_DIRECTORY,
+					KEY_FILE_DIRECTORY,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -217,7 +209,7 @@ public class AudioDirectoryCache {
 			}
 			
 			// After we have found a suitable directory, set it.
-			currAudioDirectory = currDirectory;
+			currFileDirectory = currDirectory;
 		}
 		catch(SecurityException e) {
 			throw new DomainException(
@@ -244,7 +236,7 @@ public class AudioDirectoryCache {
 			// Make sure that this hasn't changed because another thread may
 			// have preempted us and already changed the current leaf
 			// directory.
-			File[] files = currAudioDirectory.listFiles();
+			File[] files = currFileDirectory.listFiles();
 			if(files.length < numFilesPerDirectory) {
 				return;
 			}
@@ -255,12 +247,12 @@ public class AudioDirectoryCache {
 			try {
 				rootFile = 
 					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_VIDEO_DIRECTORY);
+						PreferenceCache.KEY_FILE_DIRECTORY);
 			}
 			catch(CacheMissException e) {
 				throw new DomainException(
 					"Preference cache doesn't know about 'known' key: " + 
-						PreferenceCache.KEY_VIDEO_DIRECTORY,
+						PreferenceCache.KEY_FILE_DIRECTORY,
 					e);
 			}
 			File rootDirectory = new File(rootFile);
@@ -279,7 +271,7 @@ public class AudioDirectoryCache {
 			
 			// A local File to use while we are searching to not confuse other
 			// threads.
-			File newDirectory = currAudioDirectory;
+			File newDirectory = currFileDirectory;
 			
 			// A flag to indicate when we are done looking for a directory.
 			boolean lookingForDirectory = true;
@@ -356,8 +348,8 @@ public class AudioDirectoryCache {
 					}
 				}
 			}
-
-			currAudioDirectory = newDirectory;
+			
+			currFileDirectory = newDirectory;
 		}
 		catch(NumberFormatException e) {
 			throw new DomainException(
@@ -365,7 +357,7 @@ public class AudioDirectoryCache {
 				e);
 		}
 	}
-
+	
 	/**
 	 * Builds the name of a folder by prepending zeroes where necessary and
 	 * converting the name into a String.
@@ -382,17 +374,17 @@ public class AudioDirectoryCache {
 	private static String directoryNameBuilder(
 			final long name,
 			final int numFilesPerDirectory) {
-
+		
 		int nameLength = String.valueOf(name).length();
 		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
 		int numberOfZeros = maxLength - nameLength;
-
+		
 		StringBuilder builder = new StringBuilder();
 		for(int i = 0; i < numberOfZeros; i++) {
 			builder.append("0");
 		}
 		builder.append(String.valueOf(name));
-
+		
 		return builder.toString();
 	}
 	
@@ -412,7 +404,7 @@ public class AudioDirectoryCache {
 	 */
 	private static File getLargestSubfolder(File[] directories) {
 		Arrays.sort(directories);
-
+		
 		return directories[directories.length - 1];
 	}
 }

@@ -191,7 +191,8 @@ public class CampaignReadRequest extends UserRequest {
 	private final Campaign.Role role;
 	
 	// For short and long reads.
-	private Map<Campaign, Collection<Campaign.Role>> campaignResults;
+	//private Map<Campaign, Collection<Campaign.Role>> campaignResults;
+	private Collection<Campaign> campaignResults;
 	
 	// For XML reads.
 	//private String xmlResult;
@@ -380,7 +381,9 @@ public class CampaignReadRequest extends UserRequest {
 		
 		role = tRole;
 		
-		campaignResults = Collections.emptyMap();
+		//campaignResults = Collections.emptyMap();
+		campaignResults = null;
+		
 		//xmlResult = "";
 		//campaignNameResult = "";
 	}
@@ -410,8 +413,8 @@ public class CampaignReadRequest extends UserRequest {
 						privacyState, 
 						runningState, 
 						role, 
-						OutputFormat.LONG.equals(outputFormat), 
-						OutputFormat.LONG.equals(outputFormat));
+						OutputFormat.LONG.equals(outputFormat) || OutputFormat.SHORT.equals(outputFormat),  // class info 
+						OutputFormat.LONG.equals(outputFormat));  // user info
 			
 			// If this is a request for XML and there were no campaigns visible
 			// to the user based on the parameters, we need to report that
@@ -498,12 +501,11 @@ public class CampaignReadRequest extends UserRequest {
 					
 					// For each of the campaigns, process its information and
 					// place it in its respective object.
-					for(Campaign campaign : campaignResults.keySet()) {
+					for(Campaign campaign : campaignResults) {
 						// Get the campaign's ID for the metadata.
 						resultCampaignIds.add(campaign.getId());
 						
-						Collection<Campaign.Role> roles = 
-								campaignResults.get(campaign);
+						Collection<Campaign.Role> roles = campaign.getRequestUserRoles();
 						boolean supervisorOrAuthor = 
 							roles.contains(Campaign.Role.SUPERVISOR) || 
 							roles.contains(Campaign.Role.AUTHOR);
@@ -515,7 +517,7 @@ public class CampaignReadRequest extends UserRequest {
 								campaign
 									.toJson(
 										false,	// ID 
-										longOutput,	// Classes
+										true,	// Classes
 										longOutput,	// Any roles
 										supervisorOrAuthor,	// Participants
 										supervisorOrAuthor, // Analysts
@@ -559,7 +561,7 @@ public class CampaignReadRequest extends UserRequest {
 			else if(OutputFormat.XML.equals(outputFormat)) {
 				// Get the singular result.
 				Campaign campaign = 
-					campaignResults.keySet().iterator().next();
+					campaignResults.iterator().next();
 				
 				// Set the type and force the browser to download it as the 
 				// last step before beginning to stream the response.
@@ -622,7 +624,7 @@ public class CampaignReadRequest extends UserRequest {
 		
 		// Retrieve all of the campaign IDs from the result.
 		List<String> campaignIds = new LinkedList<String>();
-		for(Campaign campaign : campaignResults.keySet()) {
+		for(Campaign campaign : campaignResults) {
 			campaignIds.add(campaign.getId());
 		}
 		

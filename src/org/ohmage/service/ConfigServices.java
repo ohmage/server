@@ -17,6 +17,7 @@ package org.ohmage.service;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.ServerConfig;
@@ -33,6 +34,8 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class ConfigServices {
+	private static final Logger LOGGER = Logger.getLogger(ConfigServices.class);
+
 	/**
 	 * Default constructor. Made private so that it cannot be instantiated.
 	 */
@@ -117,18 +120,42 @@ public class ConfigServices {
 		catch(CacheMissException e) {
 			throw new ServiceException("Whether or not Mobility is enabled is missing from the database.", e);
 		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The mobility config was not a valid boolean.", e);
+		}
+
 		
 		boolean selfRegistrationAllowed;
 		try {
 			selfRegistrationAllowed =
 					StringUtils.decodeBoolean(
 							PreferenceCache.instance().lookup(
-									PreferenceCache.KEY_ALLOW_SELF_REGISTRATION));
+									PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED));
 		}
 		catch(CacheMissException e) {
-			throw new ServiceException("Whether or not self registration is allowed is missing from the database.", e);
+			selfRegistrationAllowed = ServerConfig.DEFAULT_USER_SETUP_ENABLED;
+			LOGGER.warn("self registration config is missing from the DB. Will default to " + selfRegistrationAllowed);
 		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The self restration config was not a valid boolean.", e);
+		}
+
 		
+		boolean userSetupEnabled;
+		try {
+			userSetupEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_USER_SETUP_ENABLED));
+		}
+		catch(CacheMissException e) {
+			userSetupEnabled = ServerConfig.DEFAULT_USER_SETUP_ENABLED;
+			LOGGER.warn("user_setup config is missing from the DB. Will default to " + userSetupEnabled);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The user setup config was not a valid boolean.", e);
+		}
+
 		try {
 			return
 				new ServerConfig(
@@ -142,7 +169,8 @@ public class ConfigServices {
 					UserBin.LIFETIME,
 					RequestServlet.MAX_REQUEST_SIZE,
 					RequestServlet.MAX_FILE_SIZE,
-					selfRegistrationAllowed);
+					selfRegistrationAllowed,
+					userSetupEnabled);
 		} 
 		catch(DomainException e) {
 			throw new ServiceException(e);

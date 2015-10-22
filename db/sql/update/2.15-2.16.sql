@@ -119,6 +119,19 @@ BEGIN
           ON DELETE CASCADE
           ON UPDATE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+    
+    -- Add the plaintext password to the database.
+    -- NOTE: THIS COLUMN SHOULD _NEVER_ BE USED UNDER ANY CIRCUMSTANCES.
+    IF (SELECT NOT EXISTS(
+        SELECT * FROM INFORMATION_SCHEMA.COLUMNS
+        WHERE TABLE_SCHEMA = 'ohmage'
+        AND TABLE_NAME = 'user'
+        AND COLUMN_NAME = 'plaintext_password'))
+    THEN
+        ALTER TABLE user
+            ADD COLUMN `plaintext_password`
+            text CHARACTER SET utf8 DEFAULT NULL;
+    END IF;
 
     -- Add the 'processed' flag to the URL-based resource table.
     IF (SELECT NOT EXISTS(

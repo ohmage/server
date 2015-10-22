@@ -17,11 +17,16 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
 import org.ohmage.domain.Document;
+import org.ohmage.domain.Document.UserContainerRole;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.ICampaignDocumentQueries;
 import org.springframework.jdbc.core.RowMapper;
@@ -79,6 +84,80 @@ public final class CampaignDocumentQueries extends Query implements ICampaignDoc
 						"' with parameter: " + documentId, 
 					e);
 		}
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignDocumentQueries#getCampaignsRolesForDocuments(java.lang.String, java.util.Collection, java.lang.String)
+	 */
+	@Override
+	public Map<String, Collection<Document.UserContainerRole>> 
+	getCampaignsAndRolesForDocuments(
+			final String docSqlStmt,
+			final Collection<Object> docSqlParameters,
+			final String username) throws DataAccessException {
+		
+		StringBuilder sql = 
+				new StringBuilder(
+						"SELECT d.uuid, c.urn, dr.role AS doc_role, " +
+							"GROUP_CONCAT(DISTINCT ur.role ORDER by ur.role ASC SEPARATOR ',') AS user_roles " +
+						"FROM document d " +
+						  "JOIN document_campaign_role dcr on (d.id = dcr.document_id) " +
+						  "JOIN document_role dr on (dcr.document_role_id=dr.id) " +
+						  "JOIN user_role_campaign urc on (dcr.campaign_id = urc.campaign_id) " +
+						  "JOIN user_role ur on (ur.id = urc.user_role_id) " +
+						  "JOIN campaign c on (c.id = dcr.campaign_id) " +
+						  "JOIN user u on (urc.user_id = u.id) " +
+						"WHERE u.username = ? " +
+						  "AND d.id in ");
+		sql.append(" ( " + docSqlStmt + " )");
+		sql.append(" GROUP BY d.id, dcr.campaign_id ");						 
+	
+		List<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		parameters.addAll(docSqlParameters);
+		
+		final Map<String, Collection<UserContainerRole>> docCampaignRoles = new HashMap<String, Collection<UserContainerRole>>();
+
+		try {
+			
+			getJdbcTemplate().query(
+					sql.toString(), 
+					parameters.toArray(), 
+					new RowMapper<Object>() {
+						@Override
+						public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+							try {
+								String docId = rs.getString("uuid");
+								String campaignId = rs.getString("urn");
+								Document.Role docRole = Document.Role.getValue(rs.getString("doc_role"));
+								String userCampaignRole = rs.getString("user_roles");
+								UserContainerRole containerRole =  new Document.UserContainerRole(
+										docId, campaignId, docRole, userCampaignRole);
+												
+								Collection<UserContainerRole> campaignRole = docCampaignRoles.get(docId);
+								if (campaignRole == null) {
+									campaignRole = new LinkedList<UserContainerRole>();
+									docCampaignRoles.put(docId,  campaignRole);
+								}
+								campaignRole.add(containerRole);
+									
+								return null;
+								
+							} catch (final Exception e) {
+								throw new SQLException("Can't create a role with parameter: " + rs.getString("uuid") + "," + rs.getString("urn"), e);
+							}
+						}
+					}
+				);
+			
+			return docCampaignRoles;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + username + ", " + docSqlParameters.toString(), e);
+		}
+
 	}
 	
 	/* (non-Javadoc)

@@ -1,17 +1,10 @@
 package org.ohmage.domain.campaign.prompt;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
-import org.ohmage.domain.campaign.Prompt;
 import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DomainException;
 
@@ -19,16 +12,21 @@ import org.ohmage.exception.DomainException;
  * This class represents a video prompt.
  *
  * @author John Jenkins
+ * @author Hongsuda T.
  */
-public class VideoPrompt extends Prompt {
+public class VideoPrompt extends MediaPrompt {
 	private static final String JSON_KEY_MAX_SECONDS = "max_seconds";
 	
 	/**
 	 * The key for the properties to retrieve the maximum seconds value.
 	 */
-	public static final String XML_MAX_SECONDS = "max_seconds";
+	public static final String XML_MAX_SECONDS = "maxSeconds";
 	
-	private final int maxSeconds;
+	/**
+	 * The maximum number of seconds that the recording may last.
+	 */
+	private final Integer maxSeconds;
+
 
 	/**
 	 * Creates a new video prompt.
@@ -70,8 +68,9 @@ public class VideoPrompt extends Prompt {
 			final boolean skippable,
 			final String skipLabel,
 			final String displayLabel,
+			final int index,
 			final Integer maxSeconds,
-			final int index) 
+			final Long maxFileSize	) 
 			throws DomainException {
 		
 		super(
@@ -84,13 +83,15 @@ public class VideoPrompt extends Prompt {
 			skipLabel,
 			displayLabel,
 			Type.VIDEO,
-			index);
+			index, 
+			maxFileSize);
 		
 		if((maxSeconds != null) && (maxSeconds <= 0)) {
 			throw new DomainException(
 				"The maximum number of seconds must be a positive integer.");
 		}
 		this.maxSeconds = maxSeconds;
+		
 	}
 	
 	/**
@@ -114,61 +115,7 @@ public class VideoPrompt extends Prompt {
 		throw new DomainException(
 			"Conditions are not allowed for video prompts.");
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#validateValue(java.lang.Object)
-	 */
-	@Override
-	public Object validateValue(
-			final Object value)
-			throws DomainException {
-		
-		if(value instanceof NoResponse) {
-			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new DomainException(
-					"The prompt, '" +
-						getId() +
-						"', was skipped, but it is not skippable.");
-			}
-			
-			return value;
-		}
-		else if(value instanceof UUID) {
-			return value;
-		}
-		else if(value instanceof String) {
-			String valueString = (String) value;
-			
-			try {
-				return NoResponse.valueOf(valueString);
-			}
-			catch(IllegalArgumentException notNoResponse) {
-				try {
-					return NoResponseMedia.valueOf(valueString);
-				}
-				catch(IllegalArgumentException noMediaNoResponse) {
-					try {
-						return UUID.fromString(valueString);
-					}
-					catch(IllegalArgumentException notUuid) {
-						throw new DomainException(
-								"The string response value was not decodable into a UUID for prompt '" +
-									getId() +
-									"': " +
-									valueString);
-					}
-				}
-			}
-		}
-		else {
-			throw new DomainException(
-					"The value is not decodable as a reponse value for prompt '" +
-						getId() + 
-						"'.");
-		}
-	}
-
+	
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#createResponse(java.lang.Integer, java.lang.Object)
@@ -189,6 +136,7 @@ public class VideoPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#toJson()
 	 */
+	
 	@Override
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
@@ -198,41 +146,7 @@ public class VideoPrompt extends Prompt {
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
-	 */
-	@Override
-	public void toConcordia(
-			final JsonGenerator generator)
-			throws JsonGenerationException, IOException {
-		
-		// The response is always an object.
-		generator.writeStartObject();
-		generator.writeStringField("type", "object");
-		
-		// The fields array.
-		generator.writeArrayFieldStart("schema");
-		
-		// The first field in the object is the prompt's ID.
-		generator.writeStartObject();
-		generator.writeStringField("name", PromptResponse.JSON_KEY_PROMPT_ID);
-		generator.writeStringField("type", "string");
-		generator.writeEndObject();
-		
-		// The second field in the object is the response's value.
-		generator.writeStartObject();
-		generator.writeStringField("name", PromptResponse.JSON_KEY_RESPONSE);
-		generator.writeStringField("type", "string");
-		generator.writeEndObject();
-		
-		// End the array of fields.
-		generator.writeEndArray();
-		
-		// End the object.
-		generator.writeEndObject();
-	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -240,7 +154,9 @@ public class VideoPrompt extends Prompt {
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + maxSeconds;
+		result = prime * result +
+				((maxSeconds == null) ? 0 : maxSeconds.hashCode());	
+
 		return result;
 	}
 
@@ -259,8 +175,13 @@ public class VideoPrompt extends Prompt {
 			return false;
 		}
 		VideoPrompt other = (VideoPrompt) obj;
-		if(maxSeconds != other.maxSeconds) {
-			return false;
+		if (maxSeconds == null) {
+			if (other.maxSeconds != null)
+				return false;
+		} else {
+			if(! maxSeconds.equals(other.maxSeconds)) {
+				return false;
+			}
 		}
 		return true;
 	}

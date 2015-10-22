@@ -15,13 +15,22 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -43,6 +52,8 @@ import net.tanesha.recaptcha.ReCaptchaImpl;
 import net.tanesha.recaptcha.ReCaptchaResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
@@ -183,13 +194,81 @@ public final class UserServices {
 			final Boolean admin, 
 			final Boolean enabled, 
 			final Boolean newAccount, 
-			final Boolean campaignCreationPrivilege)
+			final Boolean campaignCreationPrivilege,
+			final boolean storeInitialPassword)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword =
+				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
 			
-			userQueries.createUser(username, hashedPassword, emailAddress, admin, enabled, newAccount, campaignCreationPrivilege);
+			userQueries
+				.createUser(
+					username, 
+					((storeInitialPassword) ? password : null),
+					hashedPassword, 
+					emailAddress, 
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
+	 * Creates a new user.
+	 * 
+	 * @param username The username for the new user.
+	 * 
+	 * @param password The password for the new user.
+	 * 
+	 * @param emailAddress The user's email address or null.
+	 * 
+	 * @param admin Whether or not the user should initially be an admin.
+	 * 
+	 * @param enabled Whether or not the user should initially be enabled.
+	 * 
+	 * @param newAccount Whether or not the new user must change their password
+	 * 					 before using any other APIs.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the new user is allowed
+	 * 									to create campaigns.
+	 * 
+	 * @return Whether or not the user was successfully created.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public boolean createUser(
+			final String username, 
+			final String password, 
+			final String emailAddress,
+			final Boolean admin, 
+			final Boolean enabled, 
+			final Boolean newAccount, 
+			final Boolean campaignCreationPrivilege,
+			final boolean storeInitialPassword,
+			final UserPersonal personalInfo)
+			throws ServiceException {
+		
+		try {
+			String hashedPassword =
+				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			
+			return
+				userQueries
+					.createUser(
+						username, 
+						((storeInitialPassword) ? password : null),
+						hashedPassword, 
+						emailAddress, 
+						admin, 
+						enabled, 
+						newAccount, 
+						campaignCreationPrivilege,
+						personalInfo);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -422,12 +501,12 @@ public final class UserServices {
 			Boolean selfRegistrationAllowed =
 				StringUtils.decodeBoolean(
 					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION));
+						PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED));
 				
 			if(selfRegistrationAllowed == null) {
 				throw new ServiceException(
 					"The self-registration flag is not a valid boolean: " +
-						PreferenceCache.KEY_ALLOW_SELF_REGISTRATION);	
+						PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED);	
 			}
 			else if(! selfRegistrationAllowed) {
 				throw new ServiceException(
@@ -438,7 +517,7 @@ public final class UserServices {
 		catch(CacheMissException e) {
 			throw new ServiceException(
 				"Could not retrieve the 'known' key: " +
-					PreferenceCache.KEY_ALLOW_SELF_REGISTRATION,
+					PreferenceCache.KEY_SELF_REGISTRATION_ALLOWED,
 				e);
 		}
 	}
@@ -456,16 +535,70 @@ public final class UserServices {
 	 * 							response is invalid.
 	 */
 	public void verifyCaptcha(
+			final String version,
 			final String remoteAddr,
 			final String challenge,
 			final String response)
 			throws ServiceException {
 		
-		ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
-		try {
-			reCaptcha.setPrivateKey(
+		if (version.startsWith("1.")){
+		
+			ReCaptchaImpl reCaptcha = new ReCaptchaImpl();
+			try {
+				reCaptcha.setPrivateKey(
 					PreferenceCache.instance().lookup(
 							PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE));
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+						"The ReCaptcha key is missing from the preferences: " +
+								PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE,
+								e);
+			}
+		
+			ReCaptchaResponse reCaptchaResponse = 
+					reCaptcha.checkAnswer(remoteAddr, challenge, response);
+		
+			if(! reCaptchaResponse.isValid()) {
+				throw new ServiceException(
+						ErrorCode.SERVER_INVALID_CAPTCHA,
+						"The reCaptcha response was invalid.");
+			}
+		} else if (version.startsWith("2.")) {
+			verifyCaptchaV2(remoteAddr, response);
+		
+		} else {
+			throw new ServiceException(
+					ErrorCode.SERVER_INVALID_CAPTCHA,
+					"Invalid Captcha version: "+ version);	
+		}
+		
+	}
+	
+	/**
+	 * Verifies that the given captcha information is valid.
+	 * 
+	 * @param remoteAddr The address of the remote host.
+	 * 
+	 * @param challenge The challenge value.
+	 * 
+	 * @param response The response value.
+	 * 
+	 * @throws ServiceException Thrown if the private key is missing or if the
+	 * 							response is invalid.
+	 */
+	public void verifyCaptchaV2(
+			final String remoteAddr,
+			final String response)
+			throws ServiceException {
+		
+		String secretKey;
+		URL url = null;
+		String postData = null;
+		
+		try {
+			secretKey = PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_RECAPTCHA_KEY_PRIVATE);
 		}
 		catch(CacheMissException e) {
 			throw new ServiceException(
@@ -474,13 +607,75 @@ public final class UserServices {
 					e);
 		}
 		
-		ReCaptchaResponse reCaptchaResponse = 
-				reCaptcha.checkAnswer(remoteAddr, challenge, response);
-		
-		if(! reCaptchaResponse.isValid()) {
+		if ((response == null) || (response.length()==0))
 			throw new ServiceException(
 					ErrorCode.SERVER_INVALID_CAPTCHA,
 					"The reCaptcha response was invalid.");
+	    
+		try { 
+			// prepare post data
+			StringBuilder param = new StringBuilder();
+			param.append("secret=" + URLEncoder.encode(secretKey.toString(), "UTF-8"));
+			param.append("&response=" + URLEncoder.encode(response.toString(), "UTF-8"));
+			if ((remoteAddr != null) && (remoteAddr.length() > 0))
+				param.append("&remoteip=" + URLEncoder.encode(response.toString(), "UTF-8"));
+			postData = param.toString();
+		
+		    url = new URL("https://www.google.com/recaptcha/api/siteverify");
+		    HttpURLConnection connection = (HttpURLConnection) url.openConnection(); 
+		    connection.setDoOutput(true); 
+		    connection.setInstanceFollowRedirects(false);
+		    connection.setRequestMethod("POST"); 
+		    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded"); 
+		    connection.setRequestProperty("charset", "utf-8");
+		    connection.setRequestProperty("Content-Length", Integer.toString(postData.length()));
+		    connection.setUseCaches(false);
+
+		    OutputStreamWriter out = new OutputStreamWriter(connection.getOutputStream());
+		    out.write(postData); 
+		    out.close(); 
+	    
+		    BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		    StringBuilder strBuilder = new StringBuilder(); 
+		    String tmp_str; 
+
+		    while ((tmp_str = in.readLine()) != null)
+		    	strBuilder.append(tmp_str);
+		    in.close(); 
+		    
+		    String result = strBuilder.toString();
+	    	if (result.length() == 0) { 
+				throw new ServiceException(
+						ErrorCode.SERVER_INVALID_CAPTCHA,
+						"The reCaptcha response was invalid.");
+	    	}   
+		    //	    System.out.println(result); 
+	    	
+		    try {
+		    	JSONObject jsonResult = new JSONObject(result);
+				 
+		    	if (! jsonResult.getBoolean("success")) {
+					throw new JSONException("Recaptcha failed to verify");
+		    	}
+		    	
+		    } catch (JSONException e) { 
+				throw new ServiceException(
+						ErrorCode.SERVER_INVALID_CAPTCHA,
+						"The reCaptcha response was invalid.");
+		    }
+
+		} catch (MalformedURLException  e) {
+			throw new ServiceException(
+					"MalformedURL: " + url.toString(),
+					e);
+		} catch (UnsupportedEncodingException e) { 
+			throw new ServiceException(
+					"UnsupportedEncoding: Can't encode post-data: " + postData,
+					e);
+		} catch (IOException e) {
+			throw new ServiceException(
+					"IOEncoding: URL=" + url.toString() + ", post-data: " + postData,
+					e);
 		}
 	}
 	
@@ -592,6 +787,31 @@ public final class UserServices {
 	public String getUserEmail(final String username) throws ServiceException {
 		try {
 			return userQueries.getEmailAddress(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * THIS SHOULD NEVER BE USED.
+	 * 
+	 * @param username
+	 *        The user's username.
+	 * 
+	 * @return The user's plain-text password or null if the user is unknown or
+	 *         their plain-text password was not stored.
+	 * 
+	 * @throws ServiceException
+	 *         There was a problem getting the password.
+	 * 
+	 */
+	public String getInitialPassword(
+		final String username)
+		throws ServiceException {
+		
+		try {
+			return userQueries.getInitialPassword(username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -764,6 +984,98 @@ public final class UserServices {
 						ErrorCode.CLASS_INSUFFICIENT_PERMISSIONS, 
 						"The user does not have permission to setup a new " +
 							"user.");
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Aliens.
+	 * 
+	 * @param requester
+	 *        The user that is attempting to change another user's password.
+	 * 
+	 * @param requestee
+	 *        The user that whose password is being changed.
+	 * 
+	 * @throws ServiceException
+	 *         The requesting user cannot change the requestee user's password.
+	 */
+	public void verifyUserCanChangeOtherUsersPassword(
+		final String requester,
+		final String requestee)
+		throws ServiceException {
+		
+		try {
+			// If the user is not an admin, make sure they have the
+			// Mobilize-specific requirements.
+			if(! userQueries.userIsAdmin(requester)) {
+				// Get the list of class IDs where the requesting user is
+				// privileged.
+				Collection<String> requesterClassIds =
+					userClassQueries
+						.getClassIdsForUserWithRole(
+							requester,
+							Clazz.Role.PRIVILEGED);
+
+				// Get the map of class IDs and the requestee's role in that
+				// class.
+				Map<String, Clazz.Role> requesteeClassIds =
+					userClassQueries
+						.getClassesAndRolesForUser(requestee);
+				
+				// If there is no intersection between the two class lists,
+				// then fail out.
+				boolean requesterPrivilegedRequesteeRestricted = false;
+				for(String classId : requesterClassIds) {
+					if(
+						requesteeClassIds.containsKey(classId) &&
+						Clazz
+							.Role
+							.RESTRICTED
+							.equals(requesteeClassIds.get(classId))) {
+						
+						requesterPrivilegedRequesteeRestricted = true;
+						break;
+					}
+				}
+				if(! requesterPrivilegedRequesteeRestricted) {
+					throw
+						new ServiceException(
+							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user does not have permission to change " +
+								"another user's password.",
+							"The requesting user is not privileged in any " +
+								"class where the requestee user is" +
+								"restricted.");
+				}
+				
+				// The requestee user cannot be privileged in any class.
+				for(Clazz.Role role : requesteeClassIds.values()) {
+					if(Clazz.Role.PRIVILEGED.equals(role)) {				
+						throw
+							new ServiceException(
+								ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+								"The user does not have permission to " +
+									"change another user's password.",
+								"The requestee is privileged in a class.");
+					}
+				}
+				
+				// The user must have been setup via the user/setup call. If,
+				// and only if, this happened would their plain-text password
+				// be stored in the database.
+				if(userQueries.getInitialPassword(requestee) == null) {
+					throw
+						new ServiceException(
+							ErrorCode.USER_INSUFFICIENT_PERMISSIONS, 
+							"The user does not have permission to change " +
+								"another user's password.",
+							"The requestee was not setup via the user/setup " +
+								"API.");
+				}
 			}
 		}
 		catch(DataAccessException e) {
@@ -1092,26 +1404,34 @@ public final class UserServices {
 		}
 		
 		try {
+			Collection<Object> userSubSelectParameters = new LinkedList<Object>();
+			String userSubSelectStmt = userQueries.getVisibleUsersSql(
+					userSubSelectParameters,
+					requesterUsername,
+					usernameCompilation,
+					emailAddressCompilation, 
+					admin, 
+					enabled, 
+					newAccount, 
+					canCreateCampaigns, 
+					canCreateClasses,
+					firstNameCompilation, 
+					lastNameCompilation, 
+					organizationCompilation, 
+					personalIdCompilation,
+					campaignIds,
+					classIds,
+					false,
+					numToSkip, 
+					numToReturn);
+	
+			
 			QueryResultsList<UserInformation> result =
-					userQueries
-						.getUserInformation(
-							requesterUsername,
-							usernameCompilation,
-							emailAddressCompilation, 
-							admin, 
-							enabled, 
-							newAccount, 
-							canCreateCampaigns, 
-							canCreateClasses,
-							firstNameCompilation, 
-							lastNameCompilation, 
-							organizationCompilation, 
-							personalIdCompilation,
-							campaignIds,
-							classIds,
+					userQueries.getUserInformation(
+							userSubSelectStmt,
+							userSubSelectParameters,
 							numToSkip, 
-							numToReturn,
-							false);
+							numToReturn);
 			
 			results.addAll(result.getResults());
 			
@@ -1248,41 +1568,62 @@ public final class UserServices {
 				personalIdTokens.add('%' + partialPersonalId + '%');
 			}
 
+			Collection<Object> userSubSelectParameters = new LinkedList<Object>();
+			String userSubSelectStmt = userQueries.getVisibleUsersSql(
+					userSubSelectParameters,
+					requesterUsername,
+					usernameTokens,
+					emailAddressTokens, 
+					admin, 
+					enabled, 
+					newAccount, 
+					campaignCreationPrivilege, 
+					null,
+					firstNameTokens, 
+					lastNameTokens, 
+					organizationTokens, 
+					personalIdTokens,
+					null,
+					null,
+					false,
+					numToSkip, 
+					numToReturn);
+					
 			QueryResultsList<UserInformation> result =
-				userQueries
-					.getUserInformation(
-						requesterUsername,
-						usernameTokens,
-						emailAddressTokens, 
-						admin, 
-						enabled, 
-						newAccount, 
-						campaignCreationPrivilege, 
-						null,
-						firstNameTokens, 
-						lastNameTokens, 
-						organizationTokens, 
-						personalIdTokens,
-						null,
-						null,
-						numToSkip, 
-						numToReturn,
-						false);
+				userQueries.getUserInformation(
+						userSubSelectStmt, userSubSelectParameters, numToSkip, numToReturn);
 			
+			
+			// Retrieve campaign info (batch operation)
+			// Create a map of user and campaigns as well as roles associated with each user and campaign. 
+			Map<String, Map<String, Set<Campaign.Role>>> userCampaignMap = new HashMap<String, Map<String, Set<Campaign.Role>>>();
+			userCampaignMap = userCampaignQueries.getCampaignsAndRolesForUsers(userSubSelectStmt, userSubSelectParameters);	
+			// loop through the result, add campaign and role to each UserInformation
+			
+			// Retrieve class info (batch operation)
+			Map<String, Map<String, Clazz.Role>> userClassMap = new HashMap<String, Map<String, Clazz.Role>>();	
+			userClassMap = userClassQueries.getClassesAndRolesForUsers(userSubSelectStmt, userSubSelectParameters);
+
+			// loop through the result, add class and roles to each UserInformation
 			try {
-				for(UserInformation currResult : result.getResults()) {
-					currResult.addCampaigns(
-							userCampaignQueries.getCampaignAndRolesForUser(
-									currResult.getUsername()));
 				
-					currResult.addClasses(
-							userClassQueries.getClassAndRoleForUser(
-									currResult.getUsername()));
+				for(UserInformation currResult : result.getResults()) {
+					
+					// update campaign info 
+					Map<String, Set<Campaign.Role>> campaignRoles = userCampaignMap.get(currResult.getUsername());
+						if (campaignRoles != null)
+							currResult.addCampaigns(campaignRoles);
+					
+					// update class info
+					Map<String, Clazz.Role> classRoles = userClassMap.get(currResult.getUsername());
+					if (classRoles != null)
+						currResult.addClasses(classRoles);
 				}
 			}
 			catch(DomainException e) {
-				throw new ServiceException(e);
+				throw new ServiceException("Can't update campaign or class info to user list", e);
 			}
+
 			
 			results.addAll(result.getResults());
 
@@ -1329,27 +1670,36 @@ public final class UserServices {
 		
 		// Query for the users.
 		QueryResultsList<UserInformation> queryResult;
+		
+		Collection<Object> userSubSelectParameters = new LinkedList<Object>();
+
 		try {
+			String userSubSelectStmt = userQueries.getVisibleUsersSql(
+					userSubSelectParameters,
+					requesterUsername,
+					null,
+					null, 
+					null, 
+					null, 
+					null, 
+					null, 
+					null,
+					firstNameSet, 
+					lastNameSet, 
+					organizationSet, 
+					personalIdSet,
+					null,
+					null,
+					true,
+					0, 
+					2);
+
 			queryResult =
-				userQueries
-					.getUserInformation(
-						requesterUsername,
-						null,
-						null, 
-						null, 
-						null, 
-						null, 
-						null, 
-						null,
-						firstNameSet, 
-						lastNameSet, 
-						organizationSet, 
-						personalIdSet,
-						null,
-						null,
+				userQueries.getUserInformation(
+						userSubSelectStmt,
+						userSubSelectParameters,		
 						0, 
-						2,
-						true);
+						2);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -1383,26 +1733,29 @@ public final class UserServices {
 			throws ServiceException {
 		
 		try {
+			
+			// check whether it is a valid user
+			checkUserExistance(username, true);
+			
 			// Get the campaigns and their names for the requester.
-			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNameForUser(username);
-						
-			// Get the requester's campaign roles for each of the campaigns.
+			Map<String, String> campaigns = userCampaignQueries.getCampaignIdsAndNamesForUser(username);
+			
+			// Get the requester's campaign roles for each of the campaigns.	
 			Set<Campaign.Role> campaignRoles = new HashSet<Campaign.Role>();
-			for(String campaignId : campaigns.keySet()) {
-				campaignRoles.addAll(
-						userCampaignQueries.getUserCampaignRoles(
-								username, 
-								campaignId));
+			Map<String, Set<Campaign.Role>> campaignRolesMap = 
+					userCampaignQueries.getCampaignsAndRolesForUser(username);
+			for (String campaignId : campaignRolesMap.keySet()){
+				campaignRoles.addAll(campaignRolesMap.get(campaignId));	
 			}
-
+			
 			// Get the classes and their names for the requester.
 			Map<String, String> classes = userClassQueries.getClassIdsAndNameForUser(username);
 			
 			// Get the requester's class roles for each of the classes.
 			Set<Clazz.Role> classRoles = new HashSet<Clazz.Role>();
-			for(String classId : classes.keySet()) {
-				classRoles.add(
-						userClassQueries.getUserClassRole(classId, username));
+			Map<String, Clazz.Role> classRolesMap = userClassQueries.getClassesAndRolesForUser(username);
+			for(String classId : classRolesMap.keySet()) {
+				classRoles.add(classRolesMap.get(classId));
 			}
 			
 			// Get campaign creation privilege.

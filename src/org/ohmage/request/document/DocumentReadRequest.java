@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -38,6 +39,7 @@ import org.ohmage.service.UserDocumentServices;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.DocumentValidators;
+import org.ohmage.validator.SurveyResponseValidators;
 
 /**
  * <p>Creates a new class. The requester must be an admin.</p>
@@ -101,6 +103,8 @@ public class DocumentReadRequest extends UserRequest {
 	private final Collection<String> classIds;
 	private final Collection<String> nameTokens;
 	private final Collection<String> descriptionTokens;
+	private final DateTime startDate;
+	private final DateTime endDate;
 	
 	private List<Document> result;
 	
@@ -124,6 +128,9 @@ public class DocumentReadRequest extends UserRequest {
 		Set<String> tempClassIds = null;
 		Set<String> tempNameTokens = null;
 		Set<String> tempDescriptionTokens = null;
+		DateTime tStartDate = null;
+		DateTime tEndDate = null;
+		
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a document read request.");
@@ -188,6 +195,31 @@ public class DocumentReadRequest extends UserRequest {
 					tempDescriptionTokens =
 							DocumentValidators.validateDescriptionSearch(t[0]);
 				}
+				
+				// Start Date
+				t = getParameterValues(InputKeys.START_DATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple start dates were given: " + 
+								InputKeys.START_DATE);
+				}
+				else if(t.length == 1) {
+					tStartDate = 
+							SurveyResponseValidators.validateStartDate(t[0]);
+				}
+				
+				// End Date
+				t = getParameterValues(InputKeys.END_DATE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.SERVER_INVALID_DATE, 
+							"Multiple end dates were given: " + 
+								InputKeys.END_DATE);
+				}
+				else if(t.length == 1) {
+					tEndDate = SurveyResponseValidators.validateEndDate(t[0]);
+				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
@@ -200,6 +232,8 @@ public class DocumentReadRequest extends UserRequest {
 		classIds = tempClassIds;
 		nameTokens = tempNameTokens;
 		descriptionTokens = tempDescriptionTokens;
+		startDate = tStartDate;
+		endDate = tEndDate;
 		
 		result = new ArrayList<Document>(0);
 	}
@@ -224,7 +258,9 @@ public class DocumentReadRequest extends UserRequest {
 							campaignIds, 
 							classIds,
 							nameTokens,
-							descriptionTokens);
+							descriptionTokens,
+							startDate,
+							endDate);
 			
 			LOGGER.info("Found " + result.size() + " documents.");
 		}

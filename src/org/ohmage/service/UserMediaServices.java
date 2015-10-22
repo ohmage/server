@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.OFile;
+import org.ohmage.domain.Media;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.SurveyResponse;
@@ -174,57 +176,5 @@ public class UserMediaServices {
 		}
 	}
 	
-	/**
-	 * Returns an Audio object representing the media.
-	 * 
-	 * @param id The media's unique identifier.
-	 * 
-	 * @return An Audio object.
-	 * 
-	 * @throws ServiceException There was an error.
-	 */
-	public Audio getAudio(final UUID id) throws ServiceException {
-		try {
-			URL result = mediaQueries.getMediaUrl(id);
-			
-			if(result == null) {
-				throw new ServiceException("The media does not exist.");
-			}
-			
-			return new Audio(id, result);
-		}
-		catch(DomainException e) {
-			throw new ServiceException(e);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
-	
-	/**
-	 * Returns a Video object representing the media.
-	 * 
-	 * @param id The media's unique identifier.
-	 * 
-	 * @return A Video object.
-	 * 
-	 * @throws ServiceException There was an error.
-	 */
-	public Video getVideo(final UUID id) throws ServiceException {
-		try {
-			URL result = mediaQueries.getMediaUrl(id);
-			
-			if(result == null) {
-				throw new ServiceException("The media does not exist.");
-			}
-			
-			return new Video(id, result);
-		}
-		catch(DomainException e) {
-			throw new ServiceException(e);
-		}
-		catch(DataAccessException e) {
-			throw new ServiceException(e);
-		}
-	}
+
 }

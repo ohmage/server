@@ -38,6 +38,7 @@ import org.ohmage.request.UserRequest;
 import org.ohmage.service.CampaignServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
 
 /**
@@ -131,7 +132,7 @@ public class CampaignSearchRequest extends UserRequest {
 	private final Campaign.PrivacyState privacyState;
 	private final Campaign.RunningState runningState;
 	
-	private final Collection<Campaign> campaigns;
+	private Collection<Campaign> campaigns;
 	
 	/**
 	 * Builds this request based on the information in the HTTP request.
@@ -170,7 +171,7 @@ public class CampaignSearchRequest extends UserRequest {
 								InputKeys.CAMPAIGN_URN);
 				}
 				else if(t.length == 1) {
-					tCampaignId = t[0];
+					tCampaignId = StringUtils.validateString(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.CAMPAIGN_NAME);
@@ -181,7 +182,7 @@ public class CampaignSearchRequest extends UserRequest {
 								InputKeys.CAMPAIGN_NAME);
 				}
 				else if(t.length == 1) {
-					tCampaignName = t[0];
+					tCampaignName = StringUtils.validateString(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.DESCRIPTION);
@@ -192,7 +193,7 @@ public class CampaignSearchRequest extends UserRequest {
 								InputKeys.DESCRIPTION);
 				}
 				else if(t.length == 1) {
-					tDescription = t[0];
+					tDescription = StringUtils.validateString(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.XML);
@@ -203,7 +204,7 @@ public class CampaignSearchRequest extends UserRequest {
 								InputKeys.XML);
 				}
 				else if(t.length == 1) {
-					tXml = t[0];
+					tXml = StringUtils.validateString(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.CAMPAIGN_AUTHORED_BY);
@@ -214,7 +215,7 @@ public class CampaignSearchRequest extends UserRequest {
 								InputKeys.CAMPAIGN_AUTHORED_BY);
 				}
 				else if(t.length == 1) {
-					tAuthoredBy = t[0];
+					tAuthoredBy = StringUtils.validateString(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.START_DATE);
@@ -295,31 +296,19 @@ public class CampaignSearchRequest extends UserRequest {
 		try {
 			LOGGER.info("Checking that the user is an admin.");
 			UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
-
-			LOGGER.info("Searching for the campaigns that satisfy the parameters.");
-			Set<String> campaignIds =
-				CampaignServices.instance().campaignIdSearch(
-						campaignId,
-						campaignName,
-						description,
-						xml,
-						authoredBy,
-						startDate,
-						endDate,
-						privacyState,
-						runningState);
+				
+			campaigns = CampaignServices.instance().campaignSearch(
+					getUser().getUsername(), 
+					campaignId,
+					campaignName,
+					description,
+					xml,
+					authoredBy,
+					startDate,
+					endDate,
+					privacyState,
+					runningState);
 			
-			LOGGER.info("Gathering the information about each of the campaigns.");
-			campaigns.addAll(
-					UserCampaignServices
-						.instance()
-							.getCampaignAndUserRolesForCampaigns(
-									null, 
-									campaignIds, 
-									true
-								)
-								.keySet()
-				);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

@@ -1,17 +1,8 @@
 package org.ohmage.domain.campaign.prompt;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
-import org.ohmage.domain.campaign.Prompt;
-import org.ohmage.domain.campaign.PromptResponse;
-import org.ohmage.domain.campaign.Response.NoResponse;
-import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
 import org.ohmage.exception.DomainException;
 
@@ -21,8 +12,9 @@ import org.ohmage.exception.DomainException;
  * </p>
  *
  * @author John Jenkins
+ * @author Hongsuda T. 
  */
-public class AudioPrompt extends Prompt {
+public class AudioPrompt extends MediaPrompt {
 	/**
 	 * The JSON key for the maximum duration.
 	 */
@@ -36,6 +28,7 @@ public class AudioPrompt extends Prompt {
 	 * The maximum number of milliseconds that the recording may last.
 	 */
 	private final Long maxDuration;
+	
 	
 	/**
 	 * Creates an audio prompt.
@@ -71,6 +64,10 @@ public class AudioPrompt extends Prompt {
 	 *        This prompt's index in its container's list of survey items.
 	 *        
 	 * @param maxDuration
+	 * 		  The maxDuration of the audio object
+	 * 
+	 * @param maxFileSize 
+	 * 		  The maximum file size of the audio object
 	 * 
 	 * @throws DomainException
 	 *         Thrown if the maximum duration is negative.
@@ -85,7 +82,8 @@ public class AudioPrompt extends Prompt {
 		final String skipLabel,
 		final String displayLabel,
 		final int index,
-		final Long maxDuration)
+		final Long maxDuration, 
+		final Long maxFileSize)
 		throws DomainException {
 		
 		super(
@@ -98,7 +96,8 @@ public class AudioPrompt extends Prompt {
 			skipLabel,
 			displayLabel,
 			Type.AUDIO,
-			index);
+			index,
+			maxFileSize);
 		
 		// Validate the maximum duration.
 		if((maxDuration != null) && (maxDuration <= 0)) {
@@ -106,6 +105,7 @@ public class AudioPrompt extends Prompt {
 				new DomainException("The maximum duration must be positive.");
 		}
 		this.maxDuration = maxDuration;
+		
 	}
 	
 	/**
@@ -117,9 +117,9 @@ public class AudioPrompt extends Prompt {
 		return maxDuration;
 	}
 	
+		
 	/**
-	 * Conditions are not allowed for audio prompts unless they are
-	 * {@link NoResponse} values.
+	 * Conditions are not allowed for audio prompts. Use parent's method.
 	 * 
 	 * @param pair The pair to validate.
 	 * 
@@ -136,62 +136,7 @@ public class AudioPrompt extends Prompt {
 				"Conditions are not allowed for audio prompts.");
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.Prompt#validateValue(java.lang.Object)
-	 */
-	@Override
-	public Object validateValue(final Object value) throws DomainException {
-		// If it's already a NoResponse value, then return make sure that if it
-		// was skipped that it as skippable.
-		if(value instanceof NoResponse) {
-			if(NoResponse.SKIPPED.equals(value) && (! skippable())) {
-				throw new DomainException(
-						"The prompt, '" +
-							getId() +
-							"', was skipped, but it is not skippable.");
-			}
-			
-			return value;
-		}
-		// If it is already a UUID value, then return it.
-		else if(value instanceof UUID) {
-			return value;
-		}
-		// If it is a String value then attempt to decode it into a NoResponse
-		// value or a UUID value.
-		else if(value instanceof String) {
-			String valueString = (String) value;
-			
-			try {
-				return NoResponse.valueOf(valueString);
-			}
-			catch(IllegalArgumentException notNoResponse) {
-				try {
-					return NoResponseMedia.valueOf(valueString);
-				}
-				catch(IllegalArgumentException noImageNoResponse) {
-					try {
-						return UUID.fromString(valueString);
-					}
-					catch(IllegalArgumentException notUuid) {
-						throw new DomainException(
-								"The string response value was not decodable into a UUID for prompt '" +
-									getId() +
-									"': " +
-									valueString);
-					}
-				}
-			}
-		}
-		else {
-			throw new DomainException(
-					"The value is not decodable as a reponse value for prompt '" +
-						getId() + 
-						"'.");
-		}
-	}
-
+		
 	/*
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.Prompt#createResponse(java.lang.Integer, java.lang.Object)
@@ -224,41 +169,50 @@ public class AudioPrompt extends Prompt {
 			result.put(JSON_KEY_MAX_DURATION, maxDuration);
 		}
 		
+		if(maxFileSize != null) {
+			result.put(MediaPrompt.JSON_KEY_MAX_FILESIZE, maxFileSize);
+		}
+		
 		return result;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
+	
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
-	public void toConcordia(JsonGenerator generator)
-		throws JsonGenerationException,
-		IOException {
-		
-		// The response is always an object.
-		generator.writeStartObject();
-		generator.writeStringField("type", "object");
-		
-		// The fields array.
-		generator.writeArrayFieldStart("schema");
-		
-		// The first field in the object is the prompt's ID.
-		generator.writeStartObject();
-		generator.writeStringField("name", PromptResponse.JSON_KEY_PROMPT_ID);
-		generator.writeStringField("type", "string");
-		generator.writeEndObject();
-		
-		// The second field in the object is the response's value.
-		generator.writeStartObject();
-		generator.writeStringField("name", PromptResponse.JSON_KEY_RESPONSE);
-		generator.writeStringField("type", "string");
-		generator.writeEndObject();
-		
-		// End the array of fields.
-		generator.writeEndArray();
-		
-		// End the object.
-		generator.writeEndObject();
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result = prime * result +
+				((maxDuration == null) ? 0 : maxDuration.hashCode());
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if(this == obj) {
+			return true;
+		}
+		if(!super.equals(obj)) {
+			return false;
+		}
+		if(!(obj instanceof AudioPrompt)) {
+			return false;
+		}
+		AudioPrompt other = (AudioPrompt) obj;
+		if (maxDuration == null) {
+			if (other.maxDuration != null)
+				return false;
+		} else {
+			if(! maxDuration.equals(other.maxDuration)) {
+				return false;
+			}
+		}
+		return true;
 	}
 }

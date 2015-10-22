@@ -15,16 +15,9 @@
  ******************************************************************************/
 package org.ohmage.domain.campaign.prompt;
 
-import java.io.IOException;
-import java.util.UUID;
-
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.JsonGenerator;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.config.grammar.custom.ConditionValuePair;
-import org.ohmage.domain.campaign.Prompt;
-import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.exception.DomainException;
@@ -33,8 +26,9 @@ import org.ohmage.exception.DomainException;
  * This class represents a photo prompt.
  * 
  * @author John Jenkins
+ * @author Hongsuda T.
  */
-public class PhotoPrompt extends Prompt {
+public class PhotoPrompt extends MediaPrompt {
 	/**
 	 * <p>
 	 * Special NoRepsonse values for images.
@@ -42,6 +36,7 @@ public class PhotoPrompt extends Prompt {
 	 *
 	 * @author John Jenkins
 	 */
+	// TODO: This option might not be allowed anymore. 
 	public static enum NoResponseMedia {
 		/**
 		 * The image was not uploaded.
@@ -62,7 +57,7 @@ public class PhotoPrompt extends Prompt {
 	 */
 	public static final String XML_KEY_MAXIMUM_DIMENSION = "maxDimension";
 	
-	private final Integer maximumDimension;
+	private final Integer maxDimension;
 	
 	/**
 	 * Creates a photo prompt.
@@ -103,8 +98,10 @@ public class PhotoPrompt extends Prompt {
 			final boolean skippable, 
 			final String skipLabel,
 			final String displayLabel,
+			final int index,
 			final Integer maximumDimension,
-			final int index) 
+			final Long maxFileSize
+			) 
 			throws DomainException {
 		
 		super(
@@ -117,14 +114,15 @@ public class PhotoPrompt extends Prompt {
 			skipLabel,
 			displayLabel,
 			Type.PHOTO,
-			index);
+			index,
+			maxFileSize);
 		
 		if((maximumDimension != null) && (maximumDimension < 0)) {
 			throw new DomainException(
 					"The maximum dimension cannot be negative.");
 		}
 		
-		this.maximumDimension = maximumDimension;
+		this.maxDimension = maximumDimension;
 	}
 	
 	/**
@@ -134,7 +132,7 @@ public class PhotoPrompt extends Prompt {
 	 * 		   was not given.
 	 */
 	public Integer getMaximumDimension() {
-		return maximumDimension;
+		return maxDimension;
 	}
 	
 	/**
@@ -176,6 +174,7 @@ public class PhotoPrompt extends Prompt {
 	 * 
 	 * @throws DomainException The value is invalid.
 	 */
+	/*
 	@Override
 	public Object validateValue(final Object value) throws DomainException {
 		// If it's already a NoResponse value, then return make sure that if it
@@ -228,6 +227,7 @@ public class PhotoPrompt extends Prompt {
 						"'.");
 		}
 	}
+	*/
 	
 	/**
 	 * Creates a response to this prompt based on a response value.
@@ -268,8 +268,8 @@ public class PhotoPrompt extends Prompt {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		if(maximumDimension != null) {
-			result.put(JSON_KEY_MAXIMUM_DIMENSION, maximumDimension);
+		if(maxDimension != null) {
+			result.put(JSON_KEY_MAXIMUM_DIMENSION, maxDimension);
 		}
 		
 		return result;
@@ -279,6 +279,7 @@ public class PhotoPrompt extends Prompt {
 	 * (non-Javadoc)
 	 * @see org.ohmage.domain.campaign.SurveyItem#toConcordia(org.codehaus.jackson.JsonGenerator)
 	 */
+	/*
 	@Override
 	public void toConcordia(
 			final JsonGenerator generator)
@@ -309,7 +310,8 @@ public class PhotoPrompt extends Prompt {
 		// End the object.
 		generator.writeEndObject();
 	}
-
+*/
+	
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -320,7 +322,7 @@ public class PhotoPrompt extends Prompt {
 		result =
 			prime *
 				result +
-				((maximumDimension == null) ? 0 : maximumDimension.hashCode());
+				((maxDimension == null) ? 0 : maxDimension.hashCode());
 		return result;
 	}
 
@@ -339,12 +341,12 @@ public class PhotoPrompt extends Prompt {
 			return false;
 		}
 		PhotoPrompt other = (PhotoPrompt) obj;
-		if(maximumDimension == null) {
-			if(other.maximumDimension != null) {
+		if(maxDimension == null) {
+			if(other.maxDimension != null) {
 				return false;
 			}
 		}
-		else if(!maximumDimension.equals(other.maximumDimension)) {
+		else if(!maxDimension.equals(other.maxDimension)) {
 			return false;
 		}
 		return true;

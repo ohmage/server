@@ -30,6 +30,7 @@ import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.ClassValidators;
 
 /**
@@ -53,11 +54,16 @@ import org.ohmage.validator.ClassValidators;
  * </table>
  * 
  * @author John Jenkins
+ * @author Hongsuda T. 
  */
 public class ClassDeletionRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(ClassDeletionRequest.class);
 	
 	private final String classId;
+	
+	// a flag for the server to check whether the class deletion will lead 
+	// to orphan campaigns (i.e. campaign associated with no class)
+	private final Boolean checkOrphanCampaigns; 
 	
 	/**
 	 * Builds this request based on the information in the HttpServletRequest.
@@ -70,15 +76,17 @@ public class ClassDeletionRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public ClassDeletionRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public ClassDeletionRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {	
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
-		
-		LOGGER.info("Creating a class deletion request.");
-		
+
 		String tempClassId = null;
+		Boolean tCheckOrphanCampaigns = null;
 		
 		if(! isFailed()) {
 			try {
+				LOGGER.info("Creating a class deletion request.");
+				String t[];
+
 				tempClassId = ClassValidators.validateClassId(httpRequest.getParameter(InputKeys.CLASS_URN));
 				if(tempClassId == null) {
 					setFailed(ErrorCode.CLASS_INVALID_ID, "Missing the required class ID: " + InputKeys.CLASS_URN);
@@ -88,14 +96,33 @@ public class ClassDeletionRequest extends UserRequest {
 					setFailed(ErrorCode.CLASS_INVALID_ID, "Multiple class ID parameters were found.");
 					throw new ValidationException("Multiple class ID parameters were found.");
 				}
+				
+				// check_orphan_campaigns (optional)
+				t = getParameterValues(InputKeys.CLASS_NO_ORPHAN_CAMPAIGNS);
+				if (t.length > 1) {
+					setFailed(ErrorCode.CLASS_INVALID_FLAGS, "Multiple no_orphan_campaigns flags were found");
+					throw new ValidationException("Multiple no_orphan_campaigns flags were found.");
+				} else if (t.length == 1) {
+					tCheckOrphanCampaigns = StringUtils.decodeBoolean(t[0]);
+					if (tCheckOrphanCampaigns == null) {
+						setFailed(ErrorCode.CLASS_INVALID_FLAGS, 
+								"Invalid " + InputKeys.CLASS_NO_ORPHAN_CAMPAIGNS + " boolean value.");
+						throw new ValidationException("Invalid " + InputKeys.CLASS_NO_ORPHAN_CAMPAIGNS + " boolean value.");						
+					}
+				} else {
+					// default value
+					tCheckOrphanCampaigns = false;
+				}
+		
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
 				LOGGER.info(e.toString());
 			}
-		}
+		} 
 		
 		classId = tempClassId;
+		checkOrphanCampaigns = tCheckOrphanCampaigns;		
 	}
 
 	/**
@@ -120,12 +147,18 @@ public class ClassDeletionRequest extends UserRequest {
 			LOGGER.info("Checking that the class exists.");
 			ClassServices.instance().checkClassExistence(classId, true);
 			
+			if (checkOrphanCampaigns) {
+				LOGGER.info(("Check if orphan campaigns exist if class is deleted"));
+				ClassServices.instance().checkDeleteClassCauseOrphanCampaigns(classId);
+			}
+			
 			LOGGER.info("Deleting the class.");
 			ClassServices.instance().deleteClass(classId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
 			e.logException(LOGGER);
+			LOGGER.debug("failure message: " +  getFailureMessage());
 		}
 	}
 

@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.ohmage.annotator.Annotator;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.request.Request;
+import org.ohmage.request.survey.SurveyUploadRequest;
 
 /**
  * Abstract base class for checked Exceptions that may occur in various
@@ -31,6 +32,8 @@ public abstract class WorkflowException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
 	private final Annotator annotator;
+	private static final Logger LOGGER =
+			Logger.getLogger(WorkflowException.class);
 
 	/**
 	 * Creates a new service exception with only a message.

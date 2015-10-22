@@ -36,12 +36,8 @@ public class AudioValidators {
 		final String id)
 		throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
-			return null;
-		}
-
 		try {
-			return UUID.fromString(id);
+			return MediaValidators.validateId(id);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(

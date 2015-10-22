@@ -16,10 +16,15 @@
 package org.ohmage.service;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Document;
+import org.ohmage.domain.Document.UserContainerRole;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -34,6 +39,7 @@ import org.ohmage.query.IUserDocumentQueries;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public class UserDocumentServices {
 	private static UserDocumentServices instance;
@@ -299,6 +305,8 @@ public class UserDocumentServices {
 		}
 	}
 	
+	
+
 	/**
 	 * Retrieves the information about the documents that match any of the 
 	 * criteria. If all of the criteria are null, it will return all documents
@@ -342,18 +350,169 @@ public class UserDocumentServices {
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
-			final Collection<String> descriptionTokens)
+			final Collection<String> descriptionTokens,
+			final DateTime startDate, 
+			final DateTime endDate)
 			throws ServiceException {
-		
+			
 		try {
-			List<Document> result =
-				documentQueries.getDocumentInformation(
+			Collection<Object> docSqlParameters = new LinkedList<Object>();
+			
+			String docSqlStmt = documentQueries.getVisibleDocumentsSql(
+					docSqlParameters,
 					requesterUsername, 
 					personalDocuments, 
 					campaignIds, 
 					classIds,
 					nameTokens,
-					descriptionTokens);
+					descriptionTokens,
+					startDate,
+					endDate);
+			
+			// First get a list of all documents that are visible through the ACL rules.
+			List<Document> result = documentQueries.getDocumentInformation(
+					docSqlStmt,
+					docSqlParameters,
+					requesterUsername);
+	
+			if (result.size() == 0)
+				return result; 
+			
+			// Assuming that the list of doc have passed the ACL rules, 
+			// update the roles data associated with those document.
+			// 1. data derived from userDocument relationship
+			Map<String, Document.Role> userRoleMap = userDocumentQueries.
+					getDocumentRoleForDocumentsSpecificToUser(docSqlStmt, docSqlParameters, requesterUsername);
+
+			// 2. data derived from ClassDocument relationship
+			Map<String, Collection<UserContainerRole>> userClassRoles = classDocumentQueries.
+					getClassesAndRolesForDocuments(docSqlStmt, docSqlParameters, requesterUsername);
+
+			// 3. data derived from DocumentCampaign relationship
+			Map<String, Collection<UserContainerRole>> userCampaignRoles = campaignDocumentQueries.
+					getCampaignsAndRolesForDocuments(docSqlStmt, docSqlParameters, requesterUsername);
+		
+			
+			for (Document doc : result) {
+				String docId = doc.getDocumentId();
+				
+				// set user role
+				Document.Role role = userRoleMap.get(docId);
+				if (role != null)
+					doc.setUserRole(role);
+				
+				// set class role 
+				Collection<UserContainerRole> containers = userClassRoles.get(docId);
+				if (containers != null) {
+					for (UserContainerRole ucr : containers) {
+						// update class and document role
+						doc.addClassRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
+						// if a privileged user, upgrade the document role
+						if (ucr.isPrivilegedUser()) {
+							if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
+								// Automatically increase their privileges to writer.
+								doc.setMaxRole(Document.Role.WRITER);	
+							}
+						}
+					}
+				}
+				
+				// set campaign role
+				Collection<UserContainerRole> campaignContainers = userCampaignRoles.get(docId);
+				if (campaignContainers != null) {
+					for (UserContainerRole ucr : campaignContainers) {
+						// update class and document role
+						doc.addCampaignRole(ucr.getContainerId(), ucr.getDocumentContainerRole());
+						// if a privileged user, upgrade the document role
+						if (ucr.isPrivilegedUser()) {
+							if(Document.Role.WRITER.compare(doc.getMaxRole()) == -1) {
+								// Automatically increase their privileges to writer.
+								doc.setMaxRole(Document.Role.WRITER);	
+							}
+						}
+					}
+				}
+
+				
+			}
+									
+			return result;
+			}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+		catch(DomainException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Retrieves the information about the documents that match any of the 
+	 * criteria. If all of the criteria are null, it will return all documents
+	 * visible to the requesting user.
+	 * 
+	 * @param requesterUsername This is the username of the requesting user and
+	 * 							is required.
+	 * 
+	 * @param personalDocuments If true will include the documents directly 
+	 * 							associated with this user; if false, it will 
+	 * 							not return the documents directly associated 
+	 * 							with the user unless they also happen to be 
+	 * 							associated with any class or campaign to which
+	 * 							the user belongs. If null, it will be treated 
+	 * 							as false.
+	 * 
+	 * @param campaignIds A collection of campaign unique identifiers that will
+	 * 					  increase the results to include all documents in all
+	 * 					  of these campaigns.
+	 * 
+	 * @param classIds A collection of class unqiue identifiers that will
+	 * 				   increase the results to include all documents in all of
+	 * 				   these classes.
+	 * 
+	 * @param nameTokens A collection of tokens that limits the list to only
+	 * 					 those documents whose name contains any of the tokens.
+	 * 
+	 * @param descriptionTokens A collection of tokens that limits the list to
+	 * 							only those documents that have a description
+	 * 							and where that description contains any of 
+	 * 							these tokens.
+	 *  
+	 * @return A DocumentInformation object representing the information about
+	 * 		   this document.
+	 * 
+	 * @throws ServiceException There was an error.
+	 */
+	public List<Document> getDocumentInformationSlow(
+			final String requesterUsername,
+			final Boolean personalDocuments,
+			final Collection<String> campaignIds,
+			final Collection<String> classIds,
+			final Collection<String> nameTokens,
+			final Collection<String> descriptionTokens)
+			throws ServiceException {
+		
+		try {
+			Collection<Object> docSqlParameters = new LinkedList<Object>();
+			
+			String docSqlStmt = documentQueries.getVisibleDocumentsSql(
+					docSqlParameters,
+					requesterUsername, 
+					personalDocuments, 
+					campaignIds, 
+					classIds,
+					nameTokens,
+					descriptionTokens,
+					null,
+					null);
+			// First get a list of all documents that are visible through the ACL rules.
+
+			
+			List<Document> result =
+				documentQueries.getDocumentInformation(
+					docSqlStmt,
+					docSqlParameters,
+					requesterUsername);
 			
 			for(Document document : result) {
 				String documentId = document.getDocumentId();

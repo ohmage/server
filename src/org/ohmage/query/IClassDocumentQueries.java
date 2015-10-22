@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
@@ -32,6 +34,26 @@ public interface IClassDocumentQueries {
 	List<String> getClassesAssociatedWithDocument(String documentId)
 			throws DataAccessException;
 
+	/**
+	 * Retrieves the list of classes, document role, and user's class role 
+	 * associated with a set of document for a given user.
+	 * 
+	 * @param docSqlStmt SQL statement to retrieve a list of documents
+	 * 					 visible by the requesting user. 
+	 * 
+	 * @param docSqlParameters SQL parameters to be used with the above statement. 
+	 * 
+	 * @param username The username of the user whose personal documents are
+	 * 				   being checked.
+	 * 
+	 * @return A map of document id and classes and their roles associated with the document.
+	 */
+	public Map<String, Collection<Document.UserContainerRole>> getClassesAndRolesForDocuments(
+			final String docSqlStmt,
+			final Collection<Object> docSqlParameters,
+			final String username) throws DataAccessException;
+
+	
 	/**
 	 * Retrieves a class' document role if it is associated with a document.
 	 * 
