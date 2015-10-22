@@ -1,5 +1,7 @@
 # Welcome
 
+[![Join the chat at https://gitter.im/ohmage/server](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ohmage/server?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ohmage is a mobile data collection system for collecting data given explicitly
 by a user (active data) and data that is collected by backgrounded applications
 (passive data). This repository houses the server-side application. The Android
