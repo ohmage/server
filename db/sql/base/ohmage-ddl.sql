@@ -87,6 +87,8 @@ CREATE TABLE IF NOT EXISTS class (
   urn varchar(255) NOT NULL,
   name varchar(255) NOT NULL,
   description text,
+  creation_timestamp datetime DEFAULT null,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (urn)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -123,6 +125,7 @@ CREATE TABLE IF NOT EXISTS campaign (
   running_state_id int unsigned NOT NULL,
   privacy_state_id int unsigned NOT NULL,
   creation_timestamp datetime NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   icon_url varchar(255),
   authored_by varchar(255),
   PRIMARY KEY (id),
@@ -139,6 +142,7 @@ CREATE TABLE IF NOT EXISTS campaign_class (
   id int unsigned NOT NULL auto_increment,
   campaign_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (campaign_id, class_id),
   CONSTRAINT FOREIGN KEY (campaign_id) REFERENCES campaign (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -159,7 +163,9 @@ CREATE TABLE IF NOT EXISTS user (
   user_setup_privilege bit NOT NULL DEFAULT FALSE,
   email_address varchar(320),
   admin bit NOT NULL,
+  creation_timestamp datetime DEFAULT null,
   last_modified_timestamp timestamp DEFAULT now() ON UPDATE now(),
+  initial_password text,
   PRIMARY KEY (id),
   UNIQUE (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -222,6 +228,7 @@ CREATE TABLE IF NOT EXISTS user_role_campaign (
   user_id int unsigned NOT NULL,
   campaign_id int unsigned NOT NULL,
   user_role_id tinyint unsigned NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (user_id, campaign_id, user_role_id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -247,6 +254,7 @@ CREATE TABLE IF NOT EXISTS user_class (
   user_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
   user_class_role_id int unsigned NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (user_id, class_id),
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -340,6 +348,7 @@ CREATE TABLE IF NOT EXISTS url_based_resource (
     client tinytext NOT NULL,
     uuid char (36) NOT NULL, -- joined with prompt_response.response to retrieve survey context for an item
     url text,
+    metadata text CHARACTER SET utf8 DEFAULT NULL,
     audit_timestamp timestamp default current_timestamp on update current_timestamp,
     processed BOOLEAN NOT NULL DEFAULT FALSE,
     UNIQUE (uuid), -- disallow duplicates and index on UUID
@@ -453,6 +462,7 @@ CREATE TABLE IF NOT EXISTS document_class_role (
   document_id int unsigned NOT NULL,
   class_id int unsigned NOT NULL,
   document_role_id int unsigned NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (document_id, class_id),
   CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -467,6 +477,7 @@ CREATE TABLE IF NOT EXISTS document_campaign_role (
   document_id int unsigned NOT NULL,
   campaign_id int unsigned NOT NULL,
   document_role_id int unsigned NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (document_id, campaign_id),
   CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -481,6 +492,7 @@ CREATE TABLE IF NOT EXISTS document_user_role (
   document_id int unsigned NOT NULL,
   user_id int unsigned NOT NULL,
   document_role_id int unsigned NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (document_id, user_id),
   CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -494,6 +506,7 @@ CREATE TABLE IF NOT EXISTS document_user_creator (
   id int unsigned NOT NULL auto_increment,
   document_id int unsigned NOT NULL,
   username varchar(25) NOT NULL,
+  last_modified_timestamp timestamp DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE (document_id),
   CONSTRAINT FOREIGN KEY (document_id) REFERENCES document (id) ON DELETE CASCADE ON UPDATE CASCADE

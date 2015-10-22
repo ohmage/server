@@ -30,6 +30,8 @@ public interface IUserQueries {
 	 * 
 	 * @param username The username for the new user.
 	 * 
+	 * @param initialPassword This should ALWAYS be null!
+	 * 
 	 * @param hashedPassword The hashed password for the new user.
 	 * 
 	 * @param emailAddress The user's email address, which may be null.
@@ -46,12 +48,48 @@ public interface IUserQueries {
 	 */
 	void createUser(
 			final String username, 
+			final String initialPassword,
 			final String hashedPassword, 
 			final String emailAddress,
 			final Boolean admin,
 			final Boolean enabled, 
 			final Boolean newAccount,
 			final Boolean campaignCreationPrivilege) 
+			throws DataAccessException;
+	
+	/**
+	 * Creates a new user.
+	 * 
+	 * @param username The username for the new user.
+	 * 
+	 * @param initialPassword This should ALWAYS be null!
+	 * 
+	 * @param hashedPassword The hashed password for the new user.
+	 * 
+	 * @param emailAddress The user's email address, which may be null.
+	 * 
+	 * @param admin Whether or not the user should initially be an admin.
+	 * 
+	 * @param enabled Whether or not the user should initially be enabled.
+	 * 
+	 * @param newAccount Whether or not the new user must change their password
+	 * 					 before using any other APIs.
+	 * 
+	 * @param campaignCreationPrivilege Whether or not the new user is allowed
+	 * 									to create campaigns.
+	 * 
+	 * @param userPersonal Whether or not user creation was successful.
+	 */
+	boolean createUser(
+			final String username, 
+			final String initialPassword,
+			final String hashedPassword, 
+			final String emailAddress,
+			final Boolean admin,
+			final Boolean enabled, 
+			final Boolean newAccount,
+			final Boolean campaignCreationPrivilege,
+			final UserPersonal personalInfo) 
 			throws DataAccessException;
 	
 	/**
@@ -95,6 +133,22 @@ public interface IUserQueries {
 	 * @throws DataAccessException There was an error.
 	 */
 	String getEmailAddress(String username) throws DataAccessException;
+	
+	/**
+	 * THIS SHOULD NEVER BE USED.
+	 * 
+	 * @param username
+	 *        The user's username.
+	 * 
+	 * @return The user's initial password or null if the user is unknown or
+	 *         the initial password was not stored.
+	 * 
+	 * @throws DataAccessException
+	 *         There was a problem getting the password.
+	 */
+	public String getInitialPassword(
+		final String username)
+		throws DataAccessException;
 
 	/**
 	 * Gets whether or not the user is an admin.
@@ -382,10 +436,13 @@ public interface IUserQueries {
 			throws DataAccessException;
 	
 	/**
-	 * Gathers the information about a person including the classes and
-	 * campaigns to which they belong. Any of the Object parameters may be null
-	 * except 'requesterUsername'.
+	 * Return an SQL statement that Gathers the information about a person including 
+	 * the classes and campaigns to which they belong. Any of the Object parameters 
+	 * may be null except 'requesterUsername'.
 	 * 
+ 	 * @param parameters
+	 *        The parameter objects to be used with the generated sql statement. 
+	 *        
 	 * @param requesterUsername
 	 *        The username of the user that is requesting this information.
 	 * 
@@ -462,7 +519,8 @@ public interface IUserQueries {
 	 * @throws DataAccessException
 	 *         There was an error aggregating the information.
 	 */
-	public QueryResultsList<UserInformation> getUserInformation(
+	public String getVisibleUsersSql(
+			final Collection<Object> parameters,
 			final String requesterUsername,
 			final Collection<String> usernames,
 			final Collection<String> emailAddresses,
@@ -477,9 +535,42 @@ public interface IUserQueries {
 			final Collection<String> personalIds,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
+			final boolean settingUpUser,
 			final long numToSkip,
-			final long numToReturn,
-			final boolean settingUpUser)
+			final long numToReturn)
+			throws DataAccessException;
+
+	
+	/**
+	 * Gathers the information about a person including the classes and
+	 * campaigns to which they belong. Any of the Object parameters may be null
+	 * except 'requesterUsername'.
+	 * 
+	 * @param userSubSelectStmt 
+	 * 		  The sql statement representing visible user list. 
+	 * 
+	 * @param userSubSelectParameters
+	 * 		  The list of parameters to be used with the userSubSelectStmt. 
+	 * 
+	 * @param numToSkip
+	 *        The number of results to skip. The results are sorted
+	 *        alphabetically by username.
+	 * 
+	 * @param numToReturn
+	 *        The number of results to return. The results are sorted
+	 *        alphabetically by username.
+	 * 
+	 * @return A QueryResultsList object containing the users' information and
+	 *         the total number of results.
+	 * 
+	 * @throws DataAccessException
+	 *         There was an error aggregating the information.
+	 */
+	public QueryResultsList<UserInformation> getUserInformation(
+			final String userSubSelectStmt,
+			final Collection<Object> userSubSelectParameters,
+			final long numToSkip,
+			final long numToReturn)
 			throws DataAccessException;
 
 	/**

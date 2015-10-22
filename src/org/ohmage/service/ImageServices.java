@@ -129,7 +129,7 @@ public final class ImageServices {
 			}
 			
 			// Build the Image object.
-			Image result = new Image(imageId, imageUrl);
+			Image result = new Image(imageId, imageUrl, null);
 			
 			// If given, ensure that the desired size exists.
 			if((size != null) && (! result.sizeExists(size))) {

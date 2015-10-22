@@ -174,6 +174,27 @@
 								            </div>
 								        </div>
 								    </div>
+								    <div class="accordion-group">
+								       	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseAuth">
+								    	        <i class="icon-plus"></i> Authentication
+								    	    </a>
+								    	</div>
+								    	<div id="collapseAuth" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"   >
+								                <form action="user/auth" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Username</label>
+								                    <input type="text" name="user">
+								                    <label><span class="label label-info">required</span> Password</label>
+								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <br>
+								                    <input class="btn" type="submit" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
                                     <div class="accordion-group">
                                         <div class="accordion-heading pad-inner">
                                             <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-authentication" href="#collapseWhoAmI">
@@ -438,6 +459,35 @@
 								    </div>
 								    <div class="accordion-group">
 								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserSetup">
+								    	        <i class="icon-plus"></i> User Setup
+								    	    </a>
+								    	</div>
+								    	<div id="collapseUserSetup" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="user/setup" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> First Name</label>
+										            <input type="text" name="first_name">
+										            <label><span class="label label-info">required</span> Last Name</label>
+										            <input type="text" name="last_name">
+										            <label><span class="label label-info">required</span> Organization</label>
+										            <input type="text" name="organization">
+										            <label><span class="label label-info">required</span> Personal ID</label>
+										            <input type="text" name="personal_id">
+										            <label>User Name Prefix</label>
+								                    <input type="text" name="username_prefix">
+								                    <label>User Name Digits</label>
+								                    <input type="text" name="username_digits"> 
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								    <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
 								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-user" href="#collapseUserSearch">
 								    	        <i class="icon-plus"></i> User Search
 								    	    </a>
@@ -489,6 +539,8 @@
 								                <form action="user_info/read" method="post" class="well" target="outputframe">
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Username</label>
+								                    <input type="text" name="username">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
 								                </form>
@@ -659,6 +711,41 @@
 								                    <input type="text" name="running_state">
 								                    <label>Campaign Role</label>
 								                    <input type="text" name="user_role">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+								    </div>
+								     <div class="accordion-group">
+								    	<div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-campaign" href="#collapseCampaignSearch">
+								    	        <i class="icon-plus"></i> Campaign Search
+								    	    </a>
+								    	</div>
+								    	<div id="collapseCampaignSearch" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="campaign/search" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label>Campaign URN Search</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label>Campaign Name Search</label>
+								                    <input type="text" name="campaign_name">
+								                    <label>Description Search</label>
+            										<input type="text" name="description">
+            										 <label>Xml Search</label>
+            										<input type="text" name="xml">
+            										 <label>Authored By Search</label>
+            										<input type="text" name="authored_by">
+            										<label>Start Date</label>
+								                    <input type="text" name="start_date">
+								                    <label>End Date</label>
+								                    <input type="text" name="end_date">
+								                    <label>Privacy State</label>
+								                    <input type="text" name="privacy_state">
+								                    <label>Running State</label>
+								                    <input type="text" name="running_state">
 								                    <br>
 								                    <input type="submit" class="btn" value="Submit">
 								                </form>
@@ -1084,6 +1171,33 @@
 								                    <input type="text" name="user">
 								                    <label><span class="label label-info">required</span> Password</label>
 								                    <input type="text" name="password">
+								                    <label><span class="label label-info">required</span> Client</label>
+								                    <input type="text" name="client" value="ohmageEasyPost">
+								                    <label><span class="label label-info">required</span> Campaign URN</label>
+								                    <input type="text" name="campaign_urn">
+								                    <label><span class="label label-info">required</span> Campaign Creation Timestamp</label>
+								                    <input type="text" name="campaign_creation_timestamp">
+								                    <label><span class="label label-info">required</span> Surveys</label>
+								                    <input type="text" name="surveys">
+								                    <label>Images</label>
+								                    <input type="text" name="images">
+								                    <br>
+								                    <input type="submit" class="btn" value="Submit">
+								                </form>
+								            </div>
+								        </div>
+									</div>
+									<div class="accordion-group">    
+								        <div class="accordion-heading pad-inner">
+								    	    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion-survey" href="#collapseAuthTokenSurveyUpload">
+								    	        <i class="icon-plus"></i> Auth Token Survey Upload
+								    	    </a>
+								    	</div>
+								    	<div id="collapseAuthTokenSurveyUpload" class="accordion-body collapse" style="height: 0px; ">
+								    	    <div class="accordion-inner pad-inner"  >
+								                <form action="survey/upload" method="post" class="well" target="outputframe">
+								                    <label><span class="label label-info">required</span> Auth Token</label>
+								                    <input type="text" name="auth_token">								
 								                    <label><span class="label label-info">required</span> Client</label>
 								                    <input type="text" name="client" value="ohmageEasyPost">
 								                    <label><span class="label label-info">required</span> Campaign URN</label>

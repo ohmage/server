@@ -102,6 +102,12 @@
     </constructor-arg>
   </bean>
 
+  <bean name="mediaQueries" class="org.ohmage.query.impl.MediaQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+  
   <bean name="observerQueries" class="org.ohmage.query.impl.ObserverQueries">
     <constructor-arg>
       <ref bean="dataSource" />
@@ -204,10 +210,6 @@
     </constructor-arg>
   </bean>
   
-  <bean name="mediaQueries" class="org.ohmage.query.impl.MediaQueries">
-    <constructor-arg>
-      <ref bean="dataSource" />
-    </constructor-arg>
-  </bean>
+
 
 </beans>

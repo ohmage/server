@@ -187,6 +187,18 @@ public interface IClassQueries {
 			Collection<String> usersToRemove) throws DataAccessException;
 
 	/**
+	 * Return a list of orphan campaigns if the class is deleted. 
+	 * 
+	 * @param classId The unique identifier for the class to be deleted.
+	 * 
+	 * @return a list of orphan campaigns.
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+	Collection<String> getOrphanCampaignsIfClassIsDeleted(String classId) 
+	throws DataAccessException;
+	
+	/**
 	 * Deletes a class.
 	 * 
 	 * @param classId The unique identifier for the class to be deleted.

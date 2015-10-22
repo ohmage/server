@@ -11,12 +11,13 @@ import org.ohmage.exception.DomainException;
  * </p>
  *
  * @author John Jenkins
+ * @author Hongsuda T. 
  */
 public class Video extends Media {
 	/**
 	 * The root MIME type for any media of this type, {@value #MIME_TYPE}.
 	 */
-	public static final String MIME_TYPE = "video";
+	public static final String MIME_TYPE_ROOT = "video";
 	
 	/**
 	 * Constructs a new video object.
@@ -24,19 +25,19 @@ public class Video extends Media {
 	 * @param id
 	 *        The video's unique identifier.
 	 * 
-	 * @param type
-	 *        The video's extension.
+	 * @param contentType
+	 *        The media content-type.
+	 * 
+	 * @param fileName 
+	 * 		  The media file name. 
 	 * 
 	 * @param content
 	 *        The byte array of the video.
-	 */
-	public Video(
-		final UUID id, 
-		final String type, 
-		final byte[] content)
-		throws DomainException {
+	 */	
+	public Video(UUID id, String contentType, String fileName,
+			byte[] content) throws DomainException {
 		
-		super(id, type, content);
+		super(id, contentType, fileName, content);
 	}
 	
 	/**
@@ -48,17 +49,23 @@ public class Video extends Media {
 	 * @param url
 	 *        A URL to the video file.
 	 * 
+	 * @param info 
+	 * 		  Metadata about the media object stored in the DB.
+	 * 
 	 * @throws DomainException
 	 *         The URL was invalid or the object it points to does not exist.
 	 */
-	public Video(final UUID id, final URL url) throws DomainException {
-		super(id, url);
+	public Video(final UUID id, final URL url, final String info) throws DomainException {
+		super(id, url, info);
 	}
 	
+
 	/**
 	 * @return Always returns {@value #MIME_TYPE}.
-	 */
+	 *
+	 * Not used.
 	protected String getMimeTypeRoot() {
-		return MIME_TYPE;
+		return MIME_TYPE_ROOT;
 	}
+	*/
 }

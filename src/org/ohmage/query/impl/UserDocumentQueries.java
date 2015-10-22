@@ -17,10 +17,15 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.ohmage.domain.Clazz;
 import org.ohmage.domain.Document;
 import org.ohmage.domain.campaign.Campaign;
@@ -36,6 +41,8 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
  * @author John Jenkins
  */
 public final class UserDocumentQueries extends Query implements IUserDocumentQueries {
+	private static final Logger LOGGER = Logger.getLogger(UserDocumentQueries.class);
+	
 	// Gets the list of documents visible and specific to a user.
 	private static final String SQL_GET_DOCUMENTS_SPECIFIC_TO_REQUESTING_USER =
 		"SELECT distinct(d.uuid) " +
@@ -232,6 +239,56 @@ public final class UserDocumentQueries extends Query implements IUserDocumentQue
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_DOCUMENT_ROLES_FOR_DOCUMENT_SPECIFIC_TO_REQUESTING_USER + 
 					"' with parameters: " + username + ", " + documentId, e);
+		}
+	}
+	
+	
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.IUserDocumentQueries#getDocumentRoleForDocumentsSpecificToUser
+	 */
+	@Override
+	public Map<String, Document.Role> getDocumentRoleForDocumentsSpecificToUser(
+			final String docSqlStmt, 
+			final Collection<Object> docSqlParameters,
+			final String username) throws DataAccessException {
+		
+
+		StringBuilder sql = 
+				new StringBuilder(
+						"select d.uuid, dr.role " +
+						"from document d " +
+						  "join document_user_role dur on (d.id = dur.document_id) " +
+						  "join document_role dr on (dur.document_role_id = dr.id) " +
+						  "join user u on (dur.user_id = u.id) "+  
+						"where u.username = ? " +
+						  "and d.id in ");
+		sql.append(" ( " + docSqlStmt + " ) ");
+		Collection<Object> parameters = new LinkedList<Object>();
+		parameters.add(username);
+		parameters.addAll(docSqlParameters);
+		
+		try {
+			final Map<String, Document.Role> docRoleMap = new HashMap<String, Document.Role>();
+			getJdbcTemplate().query(
+					sql.toString(), 
+					parameters.toArray(), 
+					new RowMapper<Object>() {
+						@Override
+						public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+							try {
+								docRoleMap.put(rs.getString("uuid"), Document.Role.getValue(rs.getString("role")));
+								return null;
+							} catch (Exception e) {
+								throw new SQLException("Can't create a role with parameter: " + rs.getString("uuid") + "," + rs.getString("role"), e);
+							}
+						}
+					}
+				);
+			return docRoleMap;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + username + ", " + docSqlParameters.toString(), e);
 		}
 	}
 	

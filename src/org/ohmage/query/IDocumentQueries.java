@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.joda.time.DateTime;
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
 
@@ -83,9 +84,12 @@ public interface IDocumentQueries {
 	String getDocumentName(String documentId) throws DataAccessException;
 
 	/**
-	 * Retrieves the information about the documents that match any of the 
-	 * criteria. If all of the criteria are null, it will return all documents
-	 * visible to the requesting user.
+	 * Return an SQL statement to retrieve a list of document ids that match 
+	 * any of the criteria. If all of the criteria are null, it will return 
+	 * all documents visible to the requesting user.
+	 * 
+	 * @param sqlParameters The parameters to be used with the returned 
+	 * 						sql statement. 
 	 * 
 	 * @param username This is the username of the requesting user and is 
 	 * 				   required.
@@ -119,13 +123,34 @@ public interface IDocumentQueries {
 	 * 
 	 * @throws DataAccessException There was an error.
 	 */
-	List<Document> getDocumentInformation(
+	public String getVisibleDocumentsSql(
+			final Collection<Object> sqlParameters,
 			final String username,
 			final Boolean personalDocuments,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
 			final Collection<String> nameTokens,
-			final Collection<String> descriptionTokens) 
+			final Collection<String> descriptionTokens,
+			final DateTime startDate,
+			final DateTime endDate) 
+			throws DataAccessException;
+	
+	/**
+	 * Retrieves the information about the documents that match any of the 
+	 * criteria. If all of the criteria are null, it will return all documents
+	 * visible to the requesting user.
+	 * @param username This is the username of the requesting user and is 
+	 * 				   required.
+	 * 
+	 * @return A DocumentInformation object representing the information about
+	 * 		   this document.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+	List<Document> getDocumentInformation(
+			final String docSubSelectStmt,
+			final Collection<Object> docSqlParameters,
+			final String username) 
 			throws DataAccessException;
 
 	/**

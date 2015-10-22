@@ -15,7 +15,9 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.ohmage.domain.Document;
 import org.ohmage.exception.DataAccessException;
@@ -52,6 +54,28 @@ public interface IUserDocumentQueries {
 			String documentId) throws DataAccessException;
 
 	/**
+	 * Returns the document role map for a document list that is directly associated
+	 * with a user. If the user is not directly associated with the document or
+	 * it doesn't exist, null is returned.
+	 * 
+	 * @param docSqlStmt Sql statement to retrieve a list of valid doc ids. 
+	 * 
+	 * @param docSqlParameters Sql parameters to be used with the above sql.
+	 * 					
+	 * @param username The username of the user whose personal documents are
+	 * 				   being checked.
+	 * 
+	 * @return If the document exist and the user is directly associated with 
+	 * 		   it, then their document role with said document is returned.
+	 * 		   Otherwise, null is returned.
+	 */
+	public Map<String, Document.Role> getDocumentRoleForDocumentsSpecificToUser(
+			final String docSqlStmt, 
+			final Collection<Object> docSqlParameters, 
+			final String username)
+			throws DataAccessException;
+	
+	/**
 	 * Retrieves all of the document roles for a user across their personal
 	 * documents as well as documents with which they are associated in 
 	 * campaigns and classes.  
@@ -66,5 +90,8 @@ public interface IUserDocumentQueries {
 	 */
 	List<Document.Role> getDocumentRolesForDocumentForUser(String username,
 			String documentId) throws DataAccessException;
+
+
+
 
 }

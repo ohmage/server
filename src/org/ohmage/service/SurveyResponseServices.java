@@ -24,17 +24,23 @@ import java.util.UUID;
 import org.joda.time.DateTime;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
+import org.ohmage.domain.campaign.PromptResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
 import org.ohmage.domain.campaign.SurveyResponse.SortParameter;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
+import org.ohmage.domain.campaign.response.FilePromptResponse;
+import org.ohmage.domain.campaign.response.MediaPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IImageQueries;
 import org.ohmage.query.ISurveyResponseImageQueries;
@@ -50,6 +56,7 @@ import org.ohmage.query.ISurveyUploadQuery;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T. 
  */
 public final class SurveyResponseServices {
 	private static SurveyResponseServices instance;
@@ -127,6 +134,7 @@ public final class SurveyResponseServices {
 	 * 
 	 * @param audioContentsMap The map of the audio unique identifiers to their
 	 * 						   objects.
+	 * @param fileContentsMap 
 	 * 
 	 * @return A list of the indices of the survey responses that were 
 	 * 		   duplicates.
@@ -137,8 +145,9 @@ public final class SurveyResponseServices {
 			final String client, final String campaignUrn,
             final List<SurveyResponse> surveyUploadList,
             final Map<UUID, Image> bufferedImageMap,
-            final Map<String, Video> videoContentsMap,
-            final Map<String, Audio> audioContentsMap) 
+            final Map<UUID, Video> videoContentsMap,
+            final Map<UUID, Audio> audioContentsMap, 
+            final Map<UUID, IMedia> fileContentsMap) 
             throws ServiceException {
 		
 		try {
@@ -149,7 +158,8 @@ public final class SurveyResponseServices {
 				surveyUploadList, 
 				bufferedImageMap,
 				videoContentsMap,
-				audioContentsMap);
+				audioContentsMap,
+				fileContentsMap);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -176,7 +186,8 @@ public final class SurveyResponseServices {
 	
 	/**
 	 * Verifies that, for all photo prompt responses, a corresponding image
-	 * exists in the list of images.
+	 * exists in the list of images, and the file doesn't violate the
+	 * prompt definition.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -185,11 +196,13 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public void verifyImagesExistForPhotoPromptResponses(
+	public void verifyImagesFilesForPhotoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, Image> images) 
 			throws ServiceException {
 		
+		verifyMediaFilesForMediaPromptResponses(PhotoPromptResponse.class, surveyResponses, images);
+	/*	
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
 				if(promptResponse instanceof PhotoPromptResponse) {
@@ -203,11 +216,13 @@ public final class SurveyResponseServices {
 				}
 			}
 		}
+		*/
 	}
 	
 	/**
 	 * Verifies that, for all video prompt responses, a corresponding video
-	 * exists in the list of videos.
+	 * exists in the list of videos, and the file doesn't violate the
+	 * prompt definition.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -216,31 +231,18 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public void verifyVideosExistForVideoPromptResponses(
+	public void verifyVideosFilesForVideoPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, Video> videos) 
+			final Map<UUID, Video> videos) 
 			throws ServiceException {
 		
-		for(SurveyResponse surveyResponse : surveyResponses) {
-			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if(promptResponse instanceof VideoPromptResponse) {
-					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! videos.containsKey(responseValue.toString()))) {
-						
-						throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"A video was missing for a video prompt response: " + 
-								responseValue.toString());
-					}
-				}
-			}
-		}
+		verifyMediaFilesForMediaPromptResponses(VideoPromptResponse.class, surveyResponses, videos);
 	}
 	
 	/**
 	 * Verifies that, for all audio prompt responses, a corresponding audio
-	 * exists in the list of audio files.
+	 * exists in the list of audio files, and the file doesn't violate the
+	 * prompt definition.
 	 * 
 	 * @param surveyResponses The survey responses.
 	 * 
@@ -249,27 +251,88 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	public void verifyAudioFilesExistForAudioPromptResponses(
+	public void verifyAudioFilesForAudioPromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
-			final Map<String, Audio> audios) 
+			final Map<UUID, Audio> audios) 
+			throws ServiceException {
+		verifyMediaFilesForMediaPromptResponses(AudioPromptResponse.class, surveyResponses, audios);
+		
+	}
+	
+	/**
+	 * Verifies that, for all file prompt responses, a corresponding file
+	 * exists in the list of OFile objects.
+	 * 
+	 * @param surveyResponses The survey responses.
+	 * 
+	 * @param images A map of audio IDs to audio contents.
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	// TODO: HT generalize this for all media type
+	public void verifyOFilesForFilePromptResponses(
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<UUID, IMedia> oFiles) 
+			throws ServiceException {
+
+		verifyMediaFilesForMediaPromptResponses(FilePromptResponse.class, surveyResponses, oFiles);
+		
+	}
+	
+	/**
+	 * Verifies that, for each media prompt responses, a corresponding file/object
+	 * exists in the list of media files, and the file doesn't violate the 
+	 * prompt definition.
+	 * 
+	 * @param 	mediaClass The particular media class that we are checking against
+	 * 
+	 * @param	surveyResponses The survey responses.
+	 * 
+	 * @param	mediaMap A map of media ID to media content
+	 * 
+	 * @throws ServiceException Thrown if a prompt response exists but its
+	 * 							corresponding contents don't.
+	 */
+	
+	public void verifyMediaFilesForMediaPromptResponses(
+			final Class<? extends MediaPromptResponse> mediaClass,
+			final Collection<SurveyResponse> surveyResponses,
+			final Map<UUID, ? extends IMedia> mediaMap) 
 			throws ServiceException {
 		
+			
 		for(SurveyResponse surveyResponse : surveyResponses) {
 			for(Response promptResponse : surveyResponse.getResponses().values()) {
-				if(promptResponse instanceof AudioPromptResponse) {
+				if (mediaClass.isInstance(promptResponse))	{
 					Object responseValue = promptResponse.getResponse();
-					if((responseValue instanceof UUID) && 
-							(! audios.containsKey(responseValue.toString()))) {
-						
-						throw new ServiceException(
-								ErrorCode.SURVEY_INVALID_RESPONSES, 
-								"An audio file was missing for an audio prompt response: " + 
-								responseValue.toString());
+					if(responseValue instanceof UUID) {
+						if (mediaMap.containsKey(responseValue)) {
+							// validate the media against the xml
+							try {
+								PromptResponse pr = (PromptResponse)promptResponse;
+								MediaPrompt dp = (MediaPrompt) (pr.getPrompt());
+								dp.validateMediaFileSize(mediaMap.get(responseValue));
+							} catch (DomainException e){
+								throw new ServiceException(e);
+							} catch (Exception e) {
+								throw new ServiceException("Can't convert prompt to MediaPrompt", e);
+							}	
+							
+						} else { // no media content
+							throw new ServiceException(
+									ErrorCode.SURVEY_INVALID_RESPONSES, 
+									"A file was missing for a " + mediaClass.getSimpleName() + " prompt response: " + 
+											responseValue.toString());
+						}
 					}
-				}
+						
+				} 
 			}
 		}
+			
 	}
+
 	
 	/**
 	 * Generates a list of SurveyResponse objects where each object

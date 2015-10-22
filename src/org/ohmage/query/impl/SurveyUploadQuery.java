@@ -16,23 +16,17 @@
 package org.ohmage.query.impl;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.regex.Pattern;
 
 import javax.sql.DataSource;
 
@@ -40,10 +34,10 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.ohmage.cache.AudioDirectoryCache;
+import org.ohmage.cache.MediaDirectoryCache;
 import org.ohmage.cache.PreferenceCache;
-import org.ohmage.cache.VideoDirectoryCache;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
@@ -54,16 +48,18 @@ import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.Response.NoResponse;
 import org.ohmage.domain.campaign.SurveyResponse;
-import org.ohmage.domain.campaign.prompt.PhotoPrompt.NoResponseMedia;
 import org.ohmage.domain.campaign.response.AudioPromptResponse;
+import org.ohmage.domain.campaign.response.FilePromptResponse;
+import org.ohmage.domain.campaign.response.MediaPromptResponse;
 import org.ohmage.domain.campaign.response.MultiChoiceCustomPromptResponse;
 import org.ohmage.domain.campaign.response.PhotoPromptResponse;
 import org.ohmage.domain.campaign.response.VideoPromptResponse;
 import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.query.ISurveyUploadQuery;
-import org.ohmage.request.JsonInputKeys;
+import org.ohmage.service.MediaServices;
 import org.ohmage.util.DateTimeUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -81,31 +77,10 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author Joshua Selsky
  */
 public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUploadQuery {
-	// The current directory to which the next image should be saved.
-	private static File imageLeafDirectory;
-	
-	private static final Pattern IMAGE_DIRECTORY_PATTERN = 
-		Pattern.compile("[0-9]+");
 	
 	public static final String IMAGE_STORE_FORMAT = "jpg";
 	public static final String IMAGE_SCALED_EXTENSION = "-s";
 	
-	/**
-	 * Filters the sub-directories in a directory to only return those that
-	 * match the regular expression matcher for directories.
-	 * 
-	 * @author Joshua Selsky
-	 */
-	private static final class DirectoryFilter implements FilenameFilter {
-		/**
-		 * Returns true iff the filename is appropriate for the regular
-		 * expression. 
-		 */
-		public boolean accept(File f, String name) {
-			return IMAGE_DIRECTORY_PATTERN.matcher(name).matches();
-		}
-	}
-
 	private static final Logger LOGGER = 
 		Logger.getLogger(SurveyUploadQuery.class);
 	
@@ -131,7 +106,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
         "prompt_type, prompt_id, response) " +
         "VALUES (?,?,?,?,?,?)";
 	
-	// Inserts an images information into the url_based_resource table.
+	// Inserts an images/media information into the url_based_resource table.
 	private static final String SQL_INSERT_IMAGE = 
 		"INSERT INTO url_based_resource(user_id, client, uuid, url) " +
 		"VALUES (" +
@@ -145,6 +120,21 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			"?" +	// url
 		")";
 	
+	// Inserts an images/media information into the url_based_resource table.
+	private static final String SQL_INSERT_MEDIA = 
+		"INSERT INTO url_based_resource(user_id, client, uuid, url, metadata) " +
+		"VALUES (" +
+			"(" +	// user_id
+				"SELECT id " +
+				"FROM user " +
+				"WHERE username = ?" +
+			"), " +
+			"?, " +	// client
+			"?, " +	// uuid
+			"?, " +	// url
+			"?" +   // metadata
+		")";
+
 	/**
 	 * Creates this object.
 	 * 
@@ -165,8 +155,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final String campaignUrn,
 			final List<SurveyResponse> surveyUploadList,
 			final Map<UUID, Image> bufferedImageMap,
-			final Map<String, Video> videoContentsMap,
-			final Map<String, Audio> audioContentsMap)
+			final Map<UUID, Video> videoContentsMap,
+			final Map<UUID, Audio> audioContentsMap,
+			final Map<UUID, IMedia> documentContentsMap)
 			throws DataAccessException {
 		
 		List<Integer> duplicateIndexList = new ArrayList<Integer>();
@@ -177,7 +168,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		PromptResponse currentPromptResponse = null;
 		String currentSql = null;
 
-		List<File> fileList = new LinkedList<File>();
+		List<File> fileList = new LinkedList<File>();  // keep track of files created along the process
 		
 		// Wrap all of the inserts in a transaction 
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -186,7 +177,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		TransactionStatus status = transactionManager.getTransaction(def); // begin transaction
 		
 		// Use a savepoint to handle nested rollbacks if duplicates are found
-		Object savepoint = status.createSavepoint();
+		// Object savepoint = status.createSavepoint();
 		
 		try { // handle TransactionExceptions
 			
@@ -199,6 +190,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					currentSql = SQL_INSERT_SURVEY_RESPONSE;
 			
 					KeyHolder idKeyHolder = new GeneratedKeyHolder();
+					
+					// HT: Don't need this. If one fails, all fail. Rollback completely. 
+					// savepoint = status.createSavepoint();  
 					
 					// First, insert the survey
 					getJdbcTemplate().update(
@@ -266,7 +260,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						idKeyHolder
 					);
 					
-					savepoint = status.createSavepoint();
 					
 					final Number surveyResponseId = idKeyHolder.getKey(); // the primary key on the survey_response table for the 
 					                                                      // just-inserted survey
@@ -285,6 +278,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						bufferedImageMap,
 						videoContentsMap,
 						audioContentsMap,
+						documentContentsMap,
 						transactionManager,
 						status);
 					
@@ -292,10 +286,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					
 					if(isDuplicate(dive)) {
 						 
-						LOGGER.debug("Found a duplicate survey upload message for user " + username);
-						
-						duplicateIndexList.add(surveyIndex);
-						status.rollbackToSavepoint(savepoint);
+						LOGGER.debug("Found a duplicate survey upload message for user " + username);				
+						duplicateIndexList.add(surveyIndex);  // assume successful upload
+						// status.rollbackToSavepoint(savepoint);
 						
 					} 
 					else {
@@ -314,11 +307,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						throw new DataAccessException(dive);
 					}
 						
-				} catch (org.springframework.dao.DataAccessException dae) { 
-					
+				} catch (org.springframework.dao.DataAccessException|
+						DataAccessException dae) { 
 					// Some other database problem happened that prevented
-                    // the SQL from completing normally.
-					
+                    // the SQL from completing normally. 
+					// Or something is wrong with createPromptResponse e.g. duplicate UUID	
 					LOGGER.error("caught DataAccessException", dae);
 					logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
 					for(File f : fileList) {
@@ -326,9 +319,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					}
 					rollback(transactionManager, status);
 					throw new DataAccessException(dae);
-				} 
+				}
 				
-			}
+			} // for surveyIndex
 			
 			// Finally, commit the transaction
 			transactionManager.commit(status);
@@ -433,8 +426,9 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final Collection<Response> promptUploadList,
 			final Integer repeatableSetIteration,
             final Map<UUID, Image> bufferedImageMap,
-            final Map<String, Video> videoContentsMap, 
-            final Map<String, Audio> audioContentsMap, 
+            final Map<UUID, Video> videoContentsMap, 
+            final Map<UUID, Audio> audioContentsMap, 
+            final Map<UUID, IMedia> documentContentsMap,
             final DataSourceTransactionManager transactionManager,
             final TransactionStatus status) 
 			throws DataAccessException {
@@ -455,6 +449,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						bufferedImageMap,
 						videoContentsMap,
 						audioContentsMap,
+						documentContentsMap,
 						transactionManager,
 						status);
 				}
@@ -508,9 +503,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 				}
 			);
 			
+			/*
 			if(promptResponse instanceof PhotoPromptResponse) {
 				// Grab the associated image and save it
 				String imageId = promptResponse.getResponse().toString();
+				UUID id = UUID.fromString(imageId);
 				
 				// If it wasn't skipped and it was displayed, save the
 				// associated images.
@@ -518,558 +515,135 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					! JsonInputKeys.PROMPT_NOT_DISPLAYED.equals(imageId) &&
 					! JsonInputKeys.IMAGE_NOT_UPLOADED.equals(imageId)) {
 					
-					// Get the directory to save the image and save it.
-					File originalFile;
+
 					try {
-						originalFile =
-							bufferedImageMap
-								.get(UUID.fromString(imageId))
-								.saveImage(getDirectory());
+						MediaServices.instance().verifyMediaExistance(id, false);	
+					} catch (ServiceException e) {
+						LOGGER.debug("HT: The image UUID already exist" + imageId);
+						throw new DataAccessException(e);
+					}
+
+					// Get the directory to save the image and save it.
+					File originalFile = null;
+					Image image = bufferedImageMap.get(id);
+					try {					
+						//replace getDirectory(). 
+						originalFile = image.writeContent(MediaDirectoryCache.getImageDirectory());  
+						fileList.add(originalFile); // store file reference. 
 					}
 					catch(DomainException e) {
-						rollback(transactionManager, status);
-						throw
-							new DataAccessException(
-								"Error saving the images.",
-								e);
+						throw new DataAccessException(
+									"Error saving the images.",
+									e);
 					}
+					
+					String metadata = image.getMetadata();
 					
 					// Get the image's URL.
 					String url = "file://" + originalFile.getAbsolutePath();
 					// Insert the image URL into the database.
 					try {
 						getJdbcTemplate().update(
-								SQL_INSERT_IMAGE, 
-								new Object[] { username, client, imageId, url }
+								SQL_INSERT_MEDIA, 
+								new Object[] { username, client, imageId, url, metadata }
 							);
 					}
 					catch(org.springframework.dao.DataAccessException e) {
-						transactionManager.rollback(status);
 						throw new DataAccessException(
-							"Error executing SQL '" + 
-								SQL_INSERT_IMAGE + 
-								"' with parameters: " +
-								username + ", " + 
-								client + ", " + 
-								imageId + ", " + 
-								url,
+									"Error executing SQL '" + SQL_INSERT_MEDIA + 
+									"' with parameters: " + username + ", " + 
+									client + ", " + imageId + ", " + url + ", " + metadata,
 							e);
 					}
 				}
 			}
-			// Save the video.
-			else if(promptResponse instanceof VideoPromptResponse) {
-				// Make sure the response contains an actual video response.
-				Object responseValue = promptResponse.getResponse();
-				if(! 
-					(	(responseValue instanceof NoResponse) || 
-						(responseValue instanceof NoResponseMedia)
-					)) {
+			else
+			*/			
+				// Save other media files.
+			if( (promptResponse instanceof MediaPromptResponse)	) {
 					
+				// Make sure the response contains an actual media response. 
+				// Can also check this against JsonInputKeys
+				Object responseValue = promptResponse.getResponse();
+				if(! (responseValue instanceof NoResponse)) {	
+						
 					// Attempt to write it to the file system.
 					try {
-						// Get the current video directory.
-						File currVideoDirectory = 
-							VideoDirectoryCache.getDirectory();
-
-						// Get the video ID.
-						String responseValueString = responseValue.toString();
+						// Get the media ID.
+						String mediaId = responseValue.toString();
+						UUID id = UUID.fromString(mediaId);
+						IMedia media = null;
 						
-						// Get the video object.
-						Video video = 
-							videoContentsMap.get(responseValueString);
-						
-						// Get the file.
-						File videoFile = 
-							new File(
-								currVideoDirectory.getAbsolutePath() +
-								"/" +
-								responseValueString +
-								"." +
-								video.getType());
-						
-						// Get the video contents.
-						InputStream content = video.getContentStream();
-						if(content == null) {
-							transactionManager.rollback(status);
-							throw new DataAccessException(
-								"The video contents did not exist in the map.");
+						try {
+							MediaServices.instance().verifyMediaExistance(id, false);	
+						} catch (ServiceException e) {
+							LOGGER.debug("HT: The media UUID already exist" + mediaId);
+							throw new DataAccessException(e);
 						}
+	
+						// Get the current media directory.
+						File currMediaDirectory = null;
+						if (promptResponse instanceof PhotoPromptResponse) {
+							currMediaDirectory = MediaDirectoryCache.getImageDirectory();
+							media = bufferedImageMap.get(id);	
+						} else if (promptResponse instanceof AudioPromptResponse) {
+							currMediaDirectory = MediaDirectoryCache.getAudioDirectory();
+							media = audioContentsMap.get(id);		
+						} else if (promptResponse instanceof VideoPromptResponse) {							
+							currMediaDirectory = MediaDirectoryCache.getVideoDirectory();
+							media = videoContentsMap.get(id);	
+						} else if (promptResponse instanceof FilePromptResponse) {
+							currMediaDirectory = MediaDirectoryCache.getFileDirectory();
+							media = documentContentsMap.get(id);	
+						} else if (promptResponse instanceof PhotoPromptResponse) {
+							currMediaDirectory = MediaDirectoryCache.getImageDirectory();
+							media = bufferedImageMap.get(id);	
+						} 
+							
+											
+						// Get the file. Only use UUID to store file since all detail should 
+						// be stored in the db. 
+						// File mediaFile = new File(currMediaDirectory.getAbsolutePath() + "/" + mediaId);
+						// LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
 						
-						// Write the video contents to disk.
-						FileOutputStream fos = new FileOutputStream(videoFile);
+						File mediaFile = media.writeContent(currMediaDirectory);  // write the media content to mediaFile
+						fileList.add(mediaFile);	// Store the file reference. 
+			
+						// Get the media URL.
+						String url = "file://" + mediaFile.getAbsolutePath();
+						// LOGGER.debug("HT: Media file: " + url);
+						// LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
+							
+						// Get the contentInfo
+						String metadata = media.getMetadata();
 						
-						// Write the content to the output stream.
-						int bytesRead;
-						byte[] buffer = new byte[4096];
-						while((bytesRead = content.read(buffer)) != -1) {
-							fos.write(buffer, 0, bytesRead);
-						}
-						fos.close();
-
-						// Store the file reference in the video list.
-						fileList.add(videoFile);
-						
-						// Get the video's URL.
-						String url = "file://" + videoFile.getAbsolutePath();
-						
-						// Insert the video URL into the database.
+						// Insert the media URL into the database.
 						try {
 							getJdbcTemplate().update(
-									SQL_INSERT_IMAGE, 
-									new Object[] { 
-										username, 
-										client, 
-										responseValueString,
-										url }
-								);
+									SQL_INSERT_MEDIA, 
+									new Object[] { username, client, mediaId, url, metadata }
+									);
 						}
 						catch(org.springframework.dao.DataAccessException e) {
-							videoFile.delete();
-							transactionManager.rollback(status);
+							// transactionManager.rollback(status);
 							throw new DataAccessException(
-								"Error executing SQL '" + 
-									SQL_INSERT_IMAGE + 
-									"' with parameters: " +
-									username + ", " + 
-									client + ", " + 
-									responseValueString + ", " + 
-									url, 
-								e);
+									"Error executing SQL '" + SQL_INSERT_MEDIA + 
+									"' with parameters: " + username + ", " + 
+									client + ", " + mediaId + ", " + url + ", " + metadata,
+									e);
 						}
 					}
-					// If it fails, roll back the transaction.
+						// If it fails, roll back the transaction.
 					catch(DomainException e) {
-						transactionManager.rollback(status);
+						// transactionManager.rollback(status);
 						throw new DataAccessException(
-							"Could not get the video directory.",
-							e);
-					}
-					catch(IOException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException(
-							"Could not write the file.",
-							e);
-					}
-				}
-			}
-			else if(promptResponse instanceof AudioPromptResponse) {
-				// Make sure the response contains an actual audio response.
-				Object responseValue = promptResponse.getResponse();
-				if(! 
-					(	(responseValue instanceof NoResponse) || 
-						(responseValue instanceof NoResponseMedia)
-					)) {
-					
-					// Attempt to write it to the file system.
-					try {
-						// Get the current audio directory.
-						File currAudioDirectory = 
-							AudioDirectoryCache.getDirectory();
-
-						// Get the audio ID.
-						String responseValueString = responseValue.toString();
-						
-						// Get the audio object.
-						Audio audio = 
-							audioContentsMap.get(responseValueString);
-						
-						// Get the file.
-						File audioFile = 
-							new File(
-								currAudioDirectory.getAbsolutePath() +
-								"/" +
-								responseValueString +
-								"." +
-								audio.getType());
-						
-						// Get the video contents.
-						InputStream content = audio.getContentStream();
-						if(content == null) {
-							transactionManager.rollback(status);
-							throw new DataAccessException(
-								"The audio contents did not exist in the map.");
-						}
-						
-						// Write the video contents to disk.
-						FileOutputStream fos = new FileOutputStream(audioFile);
-						
-						// Write the content to the output stream.
-						int bytesRead;
-						byte[] buffer = new byte[4096];
-						while((bytesRead = content.read(buffer)) != -1) {
-							fos.write(buffer, 0, bytesRead);
-						}
-						fos.close();
-
-						// Store the file reference in the video list.
-						fileList.add(audioFile);
-						
-						// Get the video's URL.
-						String url = "file://" + audioFile.getAbsolutePath();
-						
-						// Insert the video URL into the database.
-						try {
-							getJdbcTemplate().update(
-									SQL_INSERT_IMAGE, 
-									new Object[] { 
-										username, 
-										client, 
-										responseValueString,
-										url }
-								);
-						}
-						catch(org.springframework.dao.DataAccessException e) {
-							audioFile.delete();
-							transactionManager.rollback(status);
-							throw new DataAccessException(
-								"Error executing SQL '" + 
-									SQL_INSERT_IMAGE + 
-									"' with parameters: " +
-									username + ", " + 
-									client + ", " + 
-									responseValueString + ", " + 
-									url, 
+								"Could not get or write to the media directory.",
 								e);
-						}
-					}
-					// If it fails, roll back the transaction.
-					catch(DomainException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException(
-							"Could not get the video directory.",
-							e);
-					}
-					catch(IOException e) {
-						transactionManager.rollback(status);
-						throw new DataAccessException(
-							"Could not write the file.",
-							e);
-					}
+					} 
 				}
-			}
-		}
+			} // end if
+			
+		} // end for loop
 	}
 	
-	/**
-	 * Copied directly from ImageQueries.
-	 * 
-	 * Gets the directory to which a image should be saved. This should be used
-	 * instead of accessing the class-level variable directly as it handles the
-	 * creation of new folders and the checking that the current
-	 * folder is not full.
-	 * 
-	 * @return A File object for where an image should be written.
-	 */
-	private File getDirectory() throws DataAccessException {
-		// Get the maximum number of items in a directory.
-		int numFilesPerDirectory;
-		try {
-			numFilesPerDirectory = 
-				Integer.decode(
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY));
-		}
-		catch(CacheMissException e) {
-			throw new DataAccessException(
-				"Preference cache doesn't know about 'known' key: " + 
-					PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY,
-				e);
-		}
-		catch(NumberFormatException e) {
-			throw new DataAccessException(
-				"Stored value for key '" + 
-					PreferenceCache.KEY_MAXIMUM_NUMBER_OF_FILES_PER_DIRECTORY +
-					"' is not decodable as a number.",
-				e);
-		}
-		
-		// If the leaf directory was never initialized, then we should do
-		// that. Note that the initialization is dumb in that it will get to
-		// the end of the structure and not check to see if the leaf node is
-		// full.
-		if(imageLeafDirectory == null) {
-			init(numFilesPerDirectory);
-		}
-		
-		File[] documents = imageLeafDirectory.listFiles();
-		// If the 'imageLeafDirectory' directory is full, traverse the tree and
-		// find a new directory.
-		if(documents.length >= numFilesPerDirectory) {
-			getNewDirectory(numFilesPerDirectory);
-		}
-		
-		return imageLeafDirectory;
-	}
-	
-	/**
-	 * Initializes the directory structure by drilling down to the leaf
-	 * directory with each step choosing the directory with the largest
-	 * integer value.
-	 */
-	private synchronized void init(int numFilesPerDirectory) throws DataAccessException {
-		try {
-			// If the current leaf directory has been set, we weren't the
-			// first to call init(), so we can just back out.
-			if(imageLeafDirectory != null) {
-				return;
-			}
-			
-			// Get the root directory from the preference cache based on the
-			// key.
-			String rootFile;
-			try {
-				rootFile = PreferenceCache.instance().lookup(PreferenceCache.KEY_IMAGE_DIRECTORY);
-			}
-			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_IMAGE_DIRECTORY, e);
-			}
-			File rootDirectory = new File(rootFile);
-			if(! rootDirectory.exists()) {
-				throw new DataAccessException("The root file doesn't exist suggesting an incomplete installation: " + rootFile);
-			}
-			else if(! rootDirectory.isDirectory()) {
-				throw new DataAccessException("The root file isn't a directory.");
-			}
-			
-			// Get the number of folders deep that documents are stored.
-			int fileDepth;
-			try {
-				fileDepth = Integer.decode(PreferenceCache.instance().lookup(PreferenceCache.KEY_FILE_HIERARCHY_DEPTH));
-			}
-			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_FILE_HIERARCHY_DEPTH, e);
-			}
-			catch(NumberFormatException e) {
-				throw new DataAccessException("Stored value for key '" + PreferenceCache.KEY_FILE_HIERARCHY_DEPTH + "' is not decodable as a number.", e);
-			}
-			
-			DirectoryFilter directoryFilter = new DirectoryFilter();
-			File currDirectory = rootDirectory;
-			for(int currDepth = 0; currDepth < fileDepth; currDepth++) {
-				// Get the list of directories in the current directory.
-				File[] currDirectories = currDirectory.listFiles(directoryFilter);
-				
-				// If there aren't any, create the first subdirectory in this
-				// directory.
-				if(currDirectories.length == 0) {
-					String newFolderName = directoryNameBuilder(0, numFilesPerDirectory);
-					currDirectory = new File(currDirectory.getAbsolutePath() + "/" + newFolderName);
-					currDirectory.mkdir();
-				}
-				// If the directory is overly full, step back up in the
-				// structure. This should never happen, as it indicates that
-				// there is an overflow in the structure.
-				else if(currDirectories.length > numFilesPerDirectory) {
-					LOGGER.warn("Too many subdirectories in: " + currDirectory.getAbsolutePath());
-					
-					// Take a step back in our depth.
-					currDepth--;
-					
-					// If, while backing up the tree, we back out of the root
-					// directory, we have filled up the space.
-					if(currDepth < 0) {
-						LOGGER.error("Image directory structure full!");
-						throw new DataAccessException("Image directory structure full!");
-					}
-
-					// Get the next parent and the current directory to it.
-					int nextDirectoryNumber = Integer.decode(currDirectory.getName()) + 1;
-					currDirectory = new File(currDirectory.getParent() + "/" + nextDirectoryNumber);
-					
-					// If the directory already exists, then there is either a
-					// concurrency issue or someone else is adding files.
-					// Either way, this shouldn't happen.
-					if(currDirectory.exists()) {
-						LOGGER.error("Somehow the 'new' directory already exists. This should be looked into: " + currDirectory.getAbsolutePath());
-					}
-					// Otherwise, create the directory.
-					else {
-						currDirectory.mkdir();
-					}
-				}
-				// Drill down to the directory with the largest, numeric value.
-				else {
-					currDirectory = getLargestSubfolder(currDirectories);
-				}
-			}
-			
-			// After we have found a suitable directory, set it.
-			imageLeafDirectory = currDirectory;
-		}
-		catch(SecurityException e) {
-			throw new DataAccessException("The current process doesn't have sufficient permiossions to create new directories.", e);
-		}
-	}
-	
-	/**
-	 * Checks again that the current leaf directory is full. If it is not, then
-	 * it will just back out under the impression someone else made the change.
-	 * If it is, it will go up and down the directory tree structure to find a
-	 * new leaf node in which to store new files.
-	 * 
-	 * @param numFilesPerDirectory The maximum allowed number of files in a
-	 * 							   leaf directory and the maximum allowed
-	 * 							   number of directories in the branches.
-	 */
-	private synchronized void getNewDirectory(int numFilesPerDirectory) throws DataAccessException {
-		try {
-			// Make sure that this hasn't changed because another thread may
-			// have preempted us and already changed the current leaf
-			// directory.
-			File[] files = imageLeafDirectory.listFiles();
-			if(files.length < numFilesPerDirectory) {
-				return;
-			}
-			
-			// Get the root directory from the preference cache based on the
-			// key.
-			String rootFile;
-			try {
-				rootFile = PreferenceCache.instance().lookup(PreferenceCache.KEY_IMAGE_DIRECTORY);
-			}
-			catch(CacheMissException e) {
-				throw new DataAccessException("Preference cache doesn't know about 'known' key: " + PreferenceCache.KEY_IMAGE_DIRECTORY, e);
-			}
-			File rootDirectory = new File(rootFile);
-			if(! rootDirectory.exists()) {
-				throw new DataAccessException("The root file doesn't exist suggesting an incomplete installation: " + rootFile);
-			}
-			else if(! rootDirectory.isDirectory()) {
-				throw new DataAccessException("The root file isn't a directory.");
-			}
-			String absoluteRootDirectory = rootDirectory.getAbsolutePath();
-			
-			// A filter when listing a set of directories for a file.
-			DirectoryFilter directoryFilter = new DirectoryFilter();
-			
-			// A local File to use while we are searching to not confuse other
-			// threads.
-			File newDirectory = imageLeafDirectory;
-			
-			// A flag to indicate when we are done looking for a directory.
-			boolean lookingForDirectory = true;
-			
-			// The number of times we stepped up in the hierarchy.
-			int depth = 0;
-			
-			// While we are still looking for a suitable directory,
-			while(lookingForDirectory) {
-				// Get the current directory's name which should be a Long
-				// value.
-				long currDirectoryName;
-				try {
-					String dirName = newDirectory.getName();
-					while(dirName.startsWith("0")) {
-						dirName = dirName.substring(1);
-					}
-					if("".equals(dirName)) {
-						currDirectoryName = 0;
-					}
-					else {
-						currDirectoryName = Long.decode(dirName);
-					}
-				}
-				catch(NumberFormatException e) {
-					if(newDirectory.getAbsolutePath().equals(absoluteRootDirectory)) {
-						throw new DataAccessException("Document structure full!", e);
-					}
-					else {
-						throw new DataAccessException("Potential breach of document structure.", e);
-					}
-				}
-				
-				// Move the pointer up a directory.
-				newDirectory = new File(newDirectory.getParent());
-				// Get the list of files in the parent.
-				File[] parentDirectoryFiles = newDirectory.listFiles(directoryFilter);
-				
-				// If this directory has room for a new subdirectory,
-				if(parentDirectoryFiles.length < numFilesPerDirectory) {
-					// Increment the name for the next subfolder.
-					currDirectoryName++;
-					
-					// Create the new subfolder.
-					newDirectory = new File(newDirectory.getAbsolutePath() + "/" + directoryNameBuilder(currDirectoryName, numFilesPerDirectory));
-					newDirectory.mkdir();
-					
-					// Continue drilling down to reach an appropriate leaf
-					// node.
-					while(depth > 0) {
-						newDirectory = new File(newDirectory.getAbsolutePath() + "/" + directoryNameBuilder(0, numFilesPerDirectory));
-						newDirectory.mkdir();
-						
-						depth--;
-					}
-					
-					lookingForDirectory = false;
-				}
-				// If the parent is full as well, increment the depth unless
-				// we are already at the parent. If we are at the parent, then
-				// we cannot go up any further and have exhausted the
-				// directory structure.
-				else
-				{
-					if(newDirectory.getAbsoluteFile().equals(absoluteRootDirectory)) {
-						throw new DataAccessException("Document structure full!");
-					}
-					else {
-						depth++;
-					}
-				}
-			}
-			
-			imageLeafDirectory = newDirectory;
-		}
-		catch(NumberFormatException e) {
-			throw new DataAccessException("Could not decode a directory name as an integer.", e);
-		}
-	}
-	
-	/**
-	 * Builds the name of a folder by prepending zeroes where necessary and
-	 * converting the name into a String.
-	 * 
-	 * @param name The name of the file as an integer.
-	 * 
-	 * @param numFilesPerDirectory The maximum number of files allowed in the
-	 * 							   directory used to determine how many zeroes
-	 * 							   to prepend.
-	 * 
-	 * @return A String representing the directory name based on the
-	 * 		   parameters.
-	 */
-	private String directoryNameBuilder(long name, int numFilesPerDirectory) {
-		int nameLength = String.valueOf(name).length();
-		int maxLength = new Double(Math.log10(numFilesPerDirectory)).intValue();
-		int numberOfZeros = maxLength - nameLength;
-		
-		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < numberOfZeros; i++) {
-			builder.append("0");
-		}
-		builder.append(String.valueOf(name));
-		
-		return builder.toString();
-	}
-	
-	/**
-	 * Sorts the directories and returns the one whose alphanumeric value is
-	 * the greatest.
-	 * 
-	 * This will work with any naming for directories, so it is the caller's
-	 * responsibility to ensure that the list of directories are what they
-	 * want them to be.
-	 *  
-	 * @param directories The list of directories whose largest alphanumeric
-	 * 					  value is desired.
-	 * 
-	 * @return Returns the File whose path and name has the largest
-	 * 		   alphanumeric value.
-	 */
-	private File getLargestSubfolder(File[] directories) {
-		Arrays.sort(directories);
-		
-		return directories[directories.length - 1];
-	}
 }

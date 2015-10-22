@@ -21,12 +21,14 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,14 +37,22 @@ import java.util.UUID;
 
 import javax.imageio.ImageIO;
 
+import org.apache.log4j.Logger;
+import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.exception.DomainException;
+import org.ohmage.exception.ValidationException;
 
 /**
  * A representation of an image.
  * 
  * @author John Jenkins
  */
-public class Image {
+public class Image implements IMedia{
+	
+	private static final Logger LOGGER = 
+			Logger.getLogger(Image.class);
+	
 	/**
 	 * These are the different possible values for an image's size. It also
 	 * defines the functionality for each size including how to store and read
@@ -231,9 +241,11 @@ public class Image {
 			final ImageData original)
 			throws DomainException {
 			
+			LOGGER.debug("HT: Start the transformation process");
 			// Get the BufferedImage from the image data.
 			BufferedImage imageContents = original.getBufferedImage();
 
+			LOGGER.debug("HT: Obtaining original data");
 			// Get the percentage to scale the image.
 			Double scalePercentage;
 			if(imageContents.getWidth() > imageContents.getHeight()) {
@@ -244,6 +256,10 @@ public class Image {
 				scalePercentage =
 					IMAGE_SCALED_MAX_DIMENSION / imageContents.getHeight();
 			}
+			LOGGER.debug("HT: original content (width,height) = " + imageContents.getWidth() + ", " + 
+					imageContents.getHeight());
+			LOGGER.debug("IAMGE_SCALED_MAX_DIMENSION: " + IMAGE_SCALED_MAX_DIMENSION);
+			LOGGER.debug("HT: calculating scalePercentage to be " + scalePercentage);
 			
 			// Calculate the scaled image's width and height.
 			int width = 
@@ -252,11 +268,15 @@ public class Image {
 			int height =
 				(new Double(
 					imageContents.getHeight() * scalePercentage)).intValue();
+		
+			LOGGER.debug("HT: width = " + width + " , height = " + height);
 			
 			// Create the new image of the same type as the original and of the
 			// scaled dimensions.
 			BufferedImage scaledContents =
 				new BufferedImage(width, height, imageContents.getType());
+			
+			LOGGER.debug("HT: Creating scaledContents");
 			
 			// Paint the original image onto the scaled canvas.
 			Graphics2D graphics2d = scaledContents.createGraphics();
@@ -268,6 +288,7 @@ public class Image {
 			
 			// Cleanup.
 			graphics2d.dispose();
+			LOGGER.debug("HT: Finished drawing images");
 			
 			// Create a buffer stream to read the result of the transformation.
 			ByteArrayOutputStream bufferStream = new ByteArrayOutputStream();
@@ -278,11 +299,14 @@ public class Image {
 				imageType = IMAGE_STORE_FORMAT;
 			}
 			
+			LOGGER.debug("HT: transforming to small with type: " + imageType);
 			// Write the scaled image to the buffer.
 			try {
 				ImageIO.write(scaledContents, imageType, bufferStream);
+				LOGGER.debug("HT: Writing ImageIO");
 			}
 			catch(IOException e) {
+				LOGGER.debug("HT: ERROR Writing ImageIO");	
 				throw new DomainException("Error writing the image.", e);
 			}
 			
@@ -432,7 +456,7 @@ public class Image {
 	 * @author John Jenkins
 	 */
 	private static class ImageData {
-		private final InputStream inputStream;
+		private InputStream inputStream;
 		private final URL url;
 		private final String imageType;
 		
@@ -581,7 +605,11 @@ public class Image {
 			// If we have a URL, get a new input stream and return it.
 			else if(url != null) {
 				try {
-					return url.openStream();
+					// HT: set inputStream
+					// inputStream = url.openStream();
+					inputStream = new FileInputStream(url.getPath());
+					LOGGER.debug("HT: creating an input stream from url: " + inputStream.toString());
+					return inputStream;
 				}
 				catch(IOException e) {
 					throw
@@ -643,6 +671,30 @@ public class Image {
 			
 			return bufferedImage;
 		}
+		
+		/**
+		 * Close the inputStream to the data.
+		 * 
+		 * @throws DomainException There was an error closing a connection to
+		 * 						   the data.
+		 */
+		public void closeInputStream() throws DomainException {
+			
+			try {
+				if(inputStream != null) {
+					LOGGER.info("Closing input stream: " + inputStream.toString());
+					inputStream.close();
+				}
+				bufferedImage = null;
+				
+			} catch(IOException e) {
+				if (url != null)
+					throw new DomainException("The input stream could not be close: " + url, e);
+				else 
+					throw new DomainException("The input stream could not be close. ", e);
+			}
+		}
+		
 	}
 	
 	// The unique identifier for this image.
@@ -652,10 +704,14 @@ public class Image {
 	private final Map<Size, ImageData> imageData =
 		new HashMap<Size, ImageData>();
 	
+	private final Media.ContentInfo contentInfo; 
+	
 	/**
 	 * Creates a new Image object from a URL object.
 	 * 
-	 * @param url The URL object to use to retrieve the image.
+	 * @param id The image id.
+	 * 
+	 * @param sizeToUrlMap The Map from Size to URL.
 	 * 
 	 * @throws DomainException The URL is null.
 	 */
@@ -688,10 +744,41 @@ public class Image {
 		for(Size size : sizeToUrlMap.keySet()) {
 			imageData.put(size, new ImageData(sizeToUrlMap.get(size)));
 		}
+		this.contentInfo = new Media.ContentInfo(null, null);
 	}
 	
 	/**
-	 * Creates an original image from the image's contents.
+	 * Creates an original image from the image's byte[]
+	 * 
+	 * @param id The ID of this image.
+	 *  
+	 * @param contentType The mime type associated with this image
+	 * 
+	 * @param fileName The fileName associated with this image. 
+	 *  
+	 * @throws DomainException The exception is thrown if the id is null
+	 * 						or the byte array is null.
+	 * 	 
+	 */
+	public Image (final UUID id, String contentType, String fileName,
+			final byte[] imageByteArray) throws DomainException {
+		
+		if(id == null) {
+			throw new DomainException("The image's ID is null.");
+		}
+
+		if((imageByteArray == null) || (imageByteArray.length == 0)) {
+			throw new DomainException(ErrorCode.IMAGE_INVALID_DATA, "The image's data is empty.");
+		}
+		InputStream contents = new ByteArrayInputStream(imageByteArray);
+		
+		this.id = id;
+		imageData.put(ORIGINAL, new ImageData(contents));
+		this.contentInfo = new Media.ContentInfo(contentType, fileName);
+	}
+	
+	/**
+	 * Creates an original image from the image's input stream.
 	 * 
 	 * @param id The unique identifier for this image.
 	 * 
@@ -713,10 +800,11 @@ public class Image {
 		
 		this.id = id;
 		imageData.put(ORIGINAL, new ImageData(contents));
+		this.contentInfo = new Media.ContentInfo(null,  null);
 	}
 	
 	/**
-	 * Creates an original image from the image's contents.
+	 * Creates an original image from the image's file.
 	 * 
 	 * @param id The unique identifier for this image.
 	 * 
@@ -726,7 +814,8 @@ public class Image {
 	 */
 	public Image(
 		final UUID id, 
-		final URL url)
+		final URL url, 
+		final String info)
 		throws DomainException {
 		
 		if(id == null) {
@@ -738,6 +827,7 @@ public class Image {
 		
 		this.id = id;
 		imageData.put(ORIGINAL, new ImageData(url));
+		this.contentInfo = Media.ContentInfo.createContentInfoFromUrl(url, info);
 	}
 	
 	/**
@@ -746,8 +836,48 @@ public class Image {
 	 * @throws DomainException
 	 *         The data could not be read or is not valid image data.
 	 */
-	public void validate() throws DomainException {
-		imageData.get(ORIGINAL).getBufferedImage();
+	public boolean validate() {
+		try {
+			imageData.get(ORIGINAL).getBufferedImage();
+			return true;
+		} catch (DomainException e) {
+			LOGGER.error(
+					"The image data is invalid: " + id.toString(),
+					e);
+			return false;
+		}
+	}
+	
+	/**
+	 * Check whether the URL endpoint exists. If it is the file protocol, 
+	 * manually check whether the file exists.
+	 * 
+	 * @throws DomainException
+	 *         The data could not be read or is not valid image data.
+	 */
+	public boolean urlExists(final URL url) {
+
+		// check for file protocol
+	    if (url.getProtocol().equals("file")) {
+	    	LOGGER.debug("check via a file protocol");
+	    	File file = new File(url.getPath());
+	    	if (file.exists())
+	    		return true; 
+	    	else return false;
+	    } else { 
+	    	// use the URL method
+			try {
+				url.openStream().close();
+				LOGGER.debug("Size.getURL exists: " + url.toString());
+				return true;
+			}
+			// The file does not exist.
+			catch(IOException e) {
+				LOGGER.debug("Size.getURL doesn't exists: " + url.toString());
+				return false;
+			}
+	    }
+
 	}
 	
 	/**
@@ -779,18 +909,27 @@ public class Image {
 					"This Image object was not built with a default URL.");
 		}
 		
+		if (urlExists(Size.getUrl(size,  originalUrl)))
+			return true;
+		else return false;
+	
+		/*
 		// Attempt to connect to the file. If it doesn't exist, an exception
 		// will be thrown.
 		try {
 			Size.getUrl(size, originalUrl).openStream().close();
+			LOGGER.debug("Size.getURL exists: " +size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return true;
 		}
 		// The file does not exist.
 		catch(IOException e) {
+			LOGGER.debug("Size.getURL doesn't exists: " + size.toString() + "," + Size.getUrl(size,originalUrl).toString());
 			return false;
 		}
+		*/
 	}
 	
+	// ==== beginning of iMedia implementation
 	/**
 	 * The ID of the image.
 	 * 
@@ -799,6 +938,36 @@ public class Image {
 	public UUID getId() {
 		return id;
 	}
+				
+	public InputStream getContentStream() throws DomainException {
+		return getInputStream(ORIGINAL);
+	}
+	
+	public long getFileSize() throws DomainException{
+		return getSizeBytes(ORIGINAL);
+	}
+	
+	//public Media.ContentInfo getContentInfo(){
+	//	return contentInfo;
+	//}
+
+	public String getContentType() {
+		return contentInfo.getContentType();
+	}
+	
+	public String getFileName() { 
+		return contentInfo.getFileName();
+	}
+	
+	public String getMetadata() { 
+		return contentInfo.toMetadata();
+	}
+	
+	public File writeContent(final File directory) throws DomainException{
+		return saveImage(directory);
+	}
+	
+	// ==== end of iMedia implementation
 	
 	/**
 	 * Returns the size of the image.
@@ -824,7 +993,7 @@ public class Image {
 	 * @throws DomainException There was an error reading the image's content
 	 * 						   type.
 	 */
-	public String getType(final Size size) throws DomainException {
+	public String getContentType(final Size size) throws DomainException {
 		return "image/" + getImageData(size).getImageType();
 	}
 	
@@ -841,6 +1010,23 @@ public class Image {
 		return getImageData(size).getInputStream();
 	}
 	
+	
+	/**
+	 * Close InputStreams of all Size connected to the image.
+	 * 
+	 * @throws DomainException There was an error closing the image streams.
+	 */
+	public void closeImageStreams() {
+		try { 
+			for (Size size : imageData.keySet()) {
+				LOGGER.info("HT: Closing Inputstream: " + size.toString());
+				imageData.get(size).closeInputStream();
+			}
+		} catch (DomainException e){
+			LOGGER.error("There was an error closing image streams associated with" + id);
+		}
+	}
+	
 	/**
 	 * <p>Saves the images contents to disk in the given directory. This
 	 * includes one file for each {@link Size}. The original file will be named
@@ -848,7 +1034,7 @@ public class Image {
 	 * save only a specific file size, use the
 	 * {@link #saveImage(Size, File, boolean)} function. 
 	 * 
-	 * @param rootFile The location to save the original file. The different
+	 * @param directory The location to save the original file. The different
 	 * 				   file sizes will be saved in the same directory with a
 	 * 				   filename of their {@link #getId() ID} and their 
 	 * 				   respective {@link Size#getExtension() extensions}
@@ -1041,18 +1227,25 @@ public class Image {
 			else {
 				// Check if this size's image exists as well.
 				URL sizeUrl = Size.getUrl(size, originalUrl);
+				if (urlExists(sizeUrl))
+					result = new ImageData(sizeUrl);
+				else result = size.transform(originalData);
+				/*
 				try {
 					sizeUrl.openStream().close();
 					result = new ImageData(sizeUrl);
 				}
 				// If this size's image does not exist, create it.
 				catch(IOException e) {
+					LOGGER.debug("HT: Transforming data to size " + size.getName());
 					result = size.transform(originalData);
 				}
+				*/
 			}
 			
 			// Save the new image data in the map.
 			imageData.put(size, result);
+			LOGGER.debug("HT: saving data to imageData " + size.getName());
 		}
 		
 		// Return the image data.
@@ -1060,23 +1253,21 @@ public class Image {
 	}
 	
 	/**
-	 * Writes the image data to the given file. This file *should* end with
-	 * the string given by the {@link #getExtension()} function.
+	 * Writes the image data to the given file. 
 	 * 
 	 * @param imageData The image data to be written.
 	 * 
 	 * @param destination The file to write the image to.
 	 * 
 	 * @throws DomainException There was an error reading the image data
-	 * 						   or writing the file.
-	 * 
-	 * @see {@link #getExtension()}
+	 * 						   or writing the file. 
 	 */
 	private final void writeFile(
 		final ImageData imageData,
 		final File destination)
 		throws DomainException {
-		
+	
+		LOGGER.debug("HT: Writing imageData to location: " + destination.toString());
 		if(imageData == null) {
 			throw new DomainException("The contents parameter is null.");
 		}
@@ -1122,4 +1313,39 @@ public class Image {
 			}
 		}
 	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = super.hashCode();
+		result =
+			prime *
+				result + id.hashCode();
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+
+		if(this == obj) {
+			return true;
+		}
+		if(!super.equals(obj)) {
+			return false;
+		}
+		if(!(obj instanceof Image)) {
+			return false;
+		}
+		Image other = (Image) obj;
+		if (id != other.id)
+			return false;
+		return true;
+	}
+
 }

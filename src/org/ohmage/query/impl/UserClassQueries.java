@@ -18,9 +18,11 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,6 +51,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * provides should pertain to user-class relationships only.
  * 
  * @author John Jenkins
+ * @author Hongsuda T.
  */
 public final class UserClassQueries extends Query implements IUserClassQueries {
 	private static final Logger LOGGER = Logger.getLogger(UserClassQueries.class);
@@ -81,7 +84,16 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 		"AND c.urn = ? " +
 		"AND u.id = uc.user_id " +
 		"AND c.id = uc.class_id " +
-		"AND uc.user_class_role_id = ucr.id";
+		"AND ucr.id = uc.user_class_role_id";
+	
+	// Returns the user's role in a class.
+	private static final String SQL_GET_USERS_AND_ROLES_IN_CLASS = 
+		"SELECT u.username, ucr.role " +
+		"FROM user u, class c, user_class uc, user_class_role ucr " +
+		"WHERE c.urn = ? " +
+		"AND u.id = uc.user_id " +
+		"AND c.id = uc.class_id " +
+		"AND ucr.id = uc.user_class_role_id";
 	
 	// Retrieves the class roles for some user in a list of classes. The user
 	// of this SQL, but append a comma-separated parenthetical with the number
@@ -188,6 +200,56 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 	}
 	
 	/**
+	 * Retrieves all users and their roles in a class.
+	 * @param classId
+	 * @return Returns a map of users and their roles in a class
+	 * @throws DataAccessException
+	 */
+	public Map<String, Clazz.Role> getUsersAndRolesInClass(String classId) throws DataAccessException {
+		try {
+			return getJdbcTemplate().query(SQL_GET_USERS_AND_ROLES_IN_CLASS, 
+					new Object[] { classId }, 
+					new ResultSetExtractor<Map<String, Clazz.Role>>() {
+						/**
+						 * Extracts the data creating the username to class 
+						 * role map.
+						 */
+						@Override
+						public Map<String, Role> extractData(
+								final ResultSet rs)
+								throws SQLException,
+								org.springframework.dao.DataAccessException {
+							
+							Map<String, Clazz.Role> result =
+									new HashMap<String, Clazz.Role>();
+							
+							while(rs.next()) {
+								Clazz.Role role;
+								try {
+									role = Clazz.Role.getValue(
+											rs.getString("role"));
+								}
+								catch(IllegalArgumentException e) {
+									throw new SQLException(
+											"The role is not a valid role.",
+											e);
+								}
+								
+								result.put(rs.getString("username"), role);
+							}
+							
+							return result;
+						}
+					}
+			);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_USERS_AND_ROLES_IN_CLASS + "' with parameters: " + classId, e);
+		}
+	}
+	
+	
+	/**
 	 * Queries the database to get the role of a user in a class. If a user 
 	 * doesn't have a role in a class, null is returned.
 	 * 
@@ -281,7 +343,7 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 	 * @see org.ohmage.query.IUserClassQueries#getClassAndRoleForUser(java.lang.String)
 	 */
 	@Override
-	public Map<String, Clazz.Role> getClassAndRoleForUser(
+	public Map<String, Clazz.Role> getClassesAndRolesForUser(
 			final String username)
 			throws DataAccessException {
 		
@@ -331,6 +393,74 @@ public final class UserClassQueries extends Query implements IUserClassQueries {
 						username, 
 					e);
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserClassQueries#getClassAndRoleForUserSet(java.lang.String)
+	 */
+	@Override
+	public Map<String, Map<String, Clazz.Role>> getClassesAndRolesForUsers(
+			final String userSubSelectStmt,
+			final Collection<Object> userSubSelectParameters)
+			throws DataAccessException {
+		
+		StringBuilder sql = 
+				new StringBuilder(
+						"SELECT u.username, c.urn, ucr.role " +
+						"FROM user u join user_class uc on (u.id = uc.user_id) " +
+						" JOIN class c on (c.id = uc.class_id) " + 
+						" JOIN user_class_role ucr on (ucr.id = uc.user_class_role_id) " +
+						"WHERE " +
+						  "u.username in ");
+		sql.append(" ( " + userSubSelectStmt + " )");
+		
+		try {
+			final Map<String, Map<String, Clazz.Role>> userClassRoleMap = 
+					new HashMap<String, Map<String, Clazz.Role>>();
+			
+			getJdbcTemplate().query(
+					sql.toString(), 
+					userSubSelectParameters.toArray(), 
+					new RowMapper<Object>() {
+						@Override
+						public Object mapRow(final ResultSet rs, final int rowNum) throws SQLException {
+							try {
+								
+								String username = rs.getString("username");
+								String urn = rs.getString("urn");
+								String role = rs.getString("role");
+								
+								// create Class.role
+								Map<String, Clazz.Role> classRoles = userClassRoleMap.get(username);
+								if (classRoles == null) {
+									classRoles = new HashMap<String, Clazz.Role>();
+									userClassRoleMap.put(username, classRoles);
+								} 
+								
+								try { 
+									Clazz.Role crole = Clazz.Role.getValue(role);
+									classRoles.put(urn, crole);								
+								} catch (IllegalArgumentException e) {
+									throw new SQLException("The role is invalid:" + role, e);
+								}
+								
+								return null;
+							} 
+							catch (Exception e) {
+								throw new SQLException("Can't create a role with parameter: " + 
+										rs.getString("username") + "," + rs.getString("urn") + "," + rs.getString("role"), e);
+							}
+						}
+					}
+				);
+			return userClassRoleMap;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + sql.toString() + 
+					"' with parameters: " + userSubSelectStmt, e);
+		}
+		
 	}
 	
 	/**

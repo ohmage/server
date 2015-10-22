@@ -46,6 +46,7 @@ import nu.xom.ParsingException;
 import nu.xom.ValidityException;
 import nu.xom.XMLException;
 
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -59,7 +60,9 @@ import org.ohmage.domain.campaign.Prompt.Type;
 import org.ohmage.domain.campaign.prompt.AudioPrompt;
 import org.ohmage.domain.campaign.prompt.ChoicePrompt;
 import org.ohmage.domain.campaign.prompt.CustomChoicePrompt;
+import org.ohmage.domain.campaign.prompt.FilePrompt;
 import org.ohmage.domain.campaign.prompt.HoursBeforeNowPrompt;
+import org.ohmage.domain.campaign.prompt.MediaPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoiceCustomPrompt;
 import org.ohmage.domain.campaign.prompt.MultiChoicePrompt;
 import org.ohmage.domain.campaign.prompt.NumberPrompt;
@@ -72,6 +75,7 @@ import org.ohmage.domain.campaign.prompt.TimestampPrompt;
 import org.ohmage.domain.campaign.prompt.VideoPrompt;
 import org.ohmage.exception.DomainException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.Request;
 import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
 
@@ -82,6 +86,8 @@ import org.ohmage.util.StringUtils;
  * @author John Jenkins
  */
 public class Campaign {
+	private static final Logger LOGGER = Logger.getLogger(Request.class);
+	
 	private static final String XML_ID = "/campaign/campaignUrn";
 	private static final String XML_NAME = "/campaign/campaignName";
 	
@@ -132,7 +138,7 @@ public class Campaign {
 	private static final String JSON_KEY_NAME = "name";
 	private static final String JSON_KEY_DESCRIPTION = "description";
 	private static final String JSON_KEY_ICON_URL = "icon_url";
-	private static final String JSON_KEY_AUTHORED_BY = "authored_by";
+	private static final String JSON_KEY_AUTHORED_BY = "authored_by";  // Deprecated. No longer in use in xml.
 	private static final String JSON_KEY_RUNNING_STATE = "running_state";
 	private static final String JSON_KEY_PRIVACY_STATE = "privacy_state";
 	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
@@ -140,6 +146,7 @@ public class Campaign {
 	private static final String JSON_KEY_SURVEYS = "surveys";
 	
 	private static final String JSON_KEY_CLASSES = "classes";
+	private static final String JSON_KEY_AUTHOR_LIST = "author_list";
 	
 	private static final String JSON_KEY_ROLES = "user_role_campaign";
 	private static final String JSON_KEY_SUPERVISOR = "supervisor";
@@ -192,9 +199,16 @@ public class Campaign {
 	
 	/**
 	 * Some identifying information about the user that authored this 
-	 * configuration.
+	 * configuration. This data is derived from the XML. 
+	 * Deprecated. 
 	 */
 	private final String authoredBy;
+	
+	/**
+	 * A list of authors that are associated with the campaign. 
+	 * This is derived from the database.
+	 */
+	private final List<String> authorList;
 	
 	/**
 	 * Campaign privacy states.
@@ -306,6 +320,10 @@ public class Campaign {
 			return name().toLowerCase();
 		}
 	}
+	// the role of the request user
+	private final Collection<Role> requestUserRoles;
+
+	// roles of all users associated with the campaign
 	private final Map<String, Collection<Role>> userRoles;
 
 	/**
@@ -419,14 +437,16 @@ public class Campaign {
 		this.runningState = runningState;
 		this.privacyState = privacyState;
 		
-		this.creationTimestamp = new DateTime(creationTimestamp);
+		this.creationTimestamp = new DateTime(creationTimestamp);  
 		
 		this.xml = xml;
 		
 		this.surveyMap = surveyMap; // TODO deep copy?
 		
+		requestUserRoles = new LinkedList<Role>();
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
+		authorList = new LinkedList<String>();
 	}
 	
 	/**
@@ -616,6 +636,9 @@ public class Campaign {
 		
 		xml = tXml;
 		surveyMap = tSurveyMap;
+		
+		requestUserRoles = new LinkedList<Role>();
+		authorList = new LinkedList<String>();
 	}
 	
 	/**
@@ -695,8 +718,10 @@ public class Campaign {
 		
 		this.xml = root.toXML();
 		
+		requestUserRoles = new LinkedList<Role>();
 		userRoles = new HashMap<String, Collection<Role>>();
 		classes = new LinkedList<String>();
+		authorList = new LinkedList<String>();
 	}
 	
 	/**
@@ -936,6 +961,45 @@ public class Campaign {
 	}
 	
 	/**
+	 * Adds a role of the request user associated with this campaign.
+	 * 
+	 * @param role A role of the request user in this campaign.
+	 * 
+	 * @throws DomainException Thrown if the role is null.
+	 */	
+	public void addRequestUserRole(final Role role) throws DomainException {
+		if (role == null) {
+			throw new DomainException("The request user's role is null");
+		}
+		
+		requestUserRoles.add(role);
+	}
+	/**
+	 * Adds a collection of roles of the request user associated with 
+	 * this campaign.
+	 * 
+	 * @param roles The request user's configuration role.
+	 * 
+	 * @throws DomainException Thrown if the roles is null.
+	 */
+	public void addRequestUserRoles(final Collection<Role> roles) throws DomainException { 
+		if (roles == null || roles.size() == 0) {
+			throw new DomainException("The request user's roles is null or empty");
+		}
+		requestUserRoles.addAll(roles);
+	}
+
+	/**
+	 * Retrieve the roles associated with the request user. 
+	 * 
+	 * @return the request user's roles associated with this campaign
+	 * 
+	 * @throws DomainException Thrown if the roles is null.
+	 */
+	public Collection<Role> getRequestUserRoles(){
+		return requestUserRoles;
+	}
+	/**
 	 * Adds a user and an associated role to the list of users and their roles.
 	 * 
 	 * @param username The username of the user.
@@ -1063,6 +1127,35 @@ public class Campaign {
 		}
 		
 		classes.addAll(classIds);
+	}
+	
+	/**
+	 * Adds a collection of classes to the already existing collection of 
+	 * classes.
+	 * 
+	 * @param classIds The collection of class IDs to add.
+	 * 
+	 * @throws DomainException Thrown if the class ID list is null.
+	 */
+	public void addAuthorList(
+			final Collection<String> authors) 
+			throws DomainException {
+		
+		if(authors == null) {
+			throw new DomainException("The author list is null.");
+		}
+		
+		authorList.addAll(authors);
+	}
+
+
+	/**
+	 * Returns the map of survey IDs to Survey objects.
+	 * 
+	 * @return The map of survey IDs to Survey objects.
+	 */
+	public List<String> getAuthorList() {
+		return authorList;
 	}
 	
 	/**
@@ -1822,6 +1915,8 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
+		result.put(JSON_KEY_AUTHOR_LIST, authorList);
+		// add request's user roles
 		
 		// If there is no mask, report the actual campaign creation timestamp.
 		if(masks.size() == 0) {
@@ -2271,11 +2366,13 @@ public class Campaign {
 		Nodes surveyNodes = surveysNode.query(XML_SURVEY);
 		List<Survey> surveys = processSurveys(surveyNodes);
 		
+		// Need at least 1 survey
 		int numSurveys = surveys.size();
 		if(numSurveys == 0) {
 			throw new DomainException("No surveys were found.");
 		}
 		
+		// check of surveyID uniqueness
 		Map<String, Survey> result = new HashMap<String, Survey>(numSurveys);
 		for(Survey survey : surveys) {
 			if(result.put(survey.getId(), survey) != null) {
@@ -2343,8 +2440,8 @@ public class Campaign {
 			final Node survey) 
 			throws DomainException {
 		
-		Nodes ids = survey.query(XML_SURVEY_ID);
-		if(ids.size() == 0) {
+		Nodes ids = survey.query(XML_SURVEY_ID);  // required
+		if(ids.size() == 0) {  
 			throw new DomainException("The survey ID is missing.");
 		}
 		else if(ids.size() > 1) {
@@ -2353,8 +2450,8 @@ public class Campaign {
 		}
 		String id = validateSurveyId(ids.get(0).getValue());
 		
-		Nodes titles = survey.query(XML_SURVEY_TITLE);
-		if(titles.size() == 0) {
+		Nodes titles = survey.query(XML_SURVEY_TITLE);  // required
+		if(titles.size() == 0) {  
 			throw new DomainException("The survey title is missing: " + id);
 		}
 		else if(titles.size() > 1) {
@@ -2370,7 +2467,7 @@ public class Campaign {
 		}
 		
 		String description = null;
-		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);
+		Nodes descriptions = survey.query(XML_SURVEY_DESCRIPTION);  // optional
 		if(descriptions.size() > 1) {
 			throw new DomainException(
 					"Multiple survey descriptions were found for the same survey: " + 
@@ -2387,7 +2484,7 @@ public class Campaign {
 		}
 		
 		String introText = null;
-		Nodes introTexts = survey.query(XML_SURVEY_INTRO_TEXT);
+		Nodes introTexts = survey.query(XML_SURVEY_INTRO_TEXT);  // optional
 		if(introTexts.size() > 1) {
 			throw new DomainException(
 					"Multiple survey intro texts were found for the same survey: " + 
@@ -2403,7 +2500,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes submitTexts = survey.query(XML_SURVEY_SUBMIT_TEXT);
+		Nodes submitTexts = survey.query(XML_SURVEY_SUBMIT_TEXT);  // required
 		if(submitTexts.size() == 0) {
 			throw new DomainException("The survey submit text is missing.");
 		}
@@ -2419,7 +2516,7 @@ public class Campaign {
 						id);
 		}
 		
-		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);
+		Nodes anytimes = survey.query(XML_SURVEY_ANYTIME);  // required
 		if(anytimes.size() == 0) {
 			throw new DomainException(
 					"The survey anytime value is missing: " + id);
@@ -2435,7 +2532,7 @@ public class Campaign {
 					"The anytime value is not a valid boolean value: " + id);
 		}
 		
-		Nodes contentLists = survey.query(XML_SURVEY_CONTENT_LIST);
+		Nodes contentLists = survey.query(XML_SURVEY_CONTENT_LIST);  // required
 		if(contentLists.size() == 0) {
 			throw new DomainException(
 					"The survey content list is missing: " + id);
@@ -2447,7 +2544,8 @@ public class Campaign {
 		Node contentList = contentLists.get(0);
 		List<SurveyItem> promptsList = 
 			processContentList(id, contentList.query(XML_CONTENT_LIST_ITEMS));
-		
+	
+		// check for promptID uniqueness within each survey
 		Map<Integer, SurveyItem> prompts = 
 			new HashMap<Integer, SurveyItem>(promptsList.size());
 		Set<String> promptIds = new HashSet<String>();
@@ -2493,7 +2591,7 @@ public class Campaign {
 			throws DomainException {
 		
 		int numItems = contentListItems.size();
-		List<SurveyItem> result = new ArrayList<SurveyItem>(numItems);
+		List<SurveyItem> result = new ArrayList<SurveyItem>(numItems);  // order matters
 		
 		for(int i = 0; i < numItems; i++) {
 			SurveyItem.Type contentListItem;
@@ -2569,7 +2667,7 @@ public class Campaign {
 			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
-		Nodes ids = message.query(XML_MESSAGE_ID);
+		Nodes ids = message.query(XML_MESSAGE_ID);  //required
 		if(ids.size() == 0) {
 			throw new DomainException(
 					"The message ID is missing: " + containerId);
@@ -2590,7 +2688,7 @@ public class Campaign {
 		}
 		
 		String condition = null;
-		Nodes conditions = message.query(XML_MESSAGE_CONDITION);
+		Nodes conditions = message.query(XML_MESSAGE_CONDITION);  // optional
 		if(conditions.size() > 1) {
 			throw new DomainException(
 					"Multiple message conditions were found: " + id);
@@ -2605,7 +2703,7 @@ public class Campaign {
 					alreadyProcessedItemsInSurveyItemGroup);
 		}
 		
-		Nodes texts = message.query(XML_MESSAGE_TEXT);
+		Nodes texts = message.query(XML_MESSAGE_TEXT);  // required
 		if(texts.size() == 0) {
 			throw new DomainException(
 					"The message text is missing: " + id);
@@ -2862,7 +2960,7 @@ public class Campaign {
 			final List<SurveyItem> alreadyProcessedItemsInSurveyItemGroup) 
 			throws DomainException {
 		
-		Nodes ids = prompt.query(XML_PROMPT_ID);
+		Nodes ids = prompt.query(XML_PROMPT_ID);  // required
 		if(ids.size() == 0) {
 			throw new DomainException(
 					"The prompt ID is missing: " + containerId);
@@ -2874,7 +2972,7 @@ public class Campaign {
 		String id = validatePromptId(ids.get(0).getValue(), containerId);
 		
 		String condition = null;
-		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);
+		Nodes conditions = prompt.query(XML_PROMPT_CONDITION);  //optional
 		if(conditions.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt conditions were found: " + id);
@@ -2890,7 +2988,7 @@ public class Campaign {
 		}
 		
 		String unit = null;
-		Nodes units = prompt.query(XML_PROMPT_UNIT);
+		Nodes units = prompt.query(XML_PROMPT_UNIT);  //optional
 		if(units.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt units were found: " + id);
@@ -2905,7 +3003,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes texts = prompt.query(XML_PROMPT_TEXT);
+		Nodes texts = prompt.query(XML_PROMPT_TEXT);  // required
 		if(texts.size() == 0) {
 			throw new DomainException(
 					"The prompt text is missing: " + id);
@@ -2921,7 +3019,7 @@ public class Campaign {
 		}
 		
 		String explanationText = null;
-		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);
+		Nodes explanationTexts = prompt.query(XML_PROMPT_EXPLANATION_TEXT);  // optional
 		if(explanationTexts.size() > 1) {
 			throw new DomainException(
 					"Multiple prompt explanation texts were found: " + id);
@@ -2936,7 +3034,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);
+		Nodes skippables = prompt.query(XML_PROMPT_SKIPPABLE);  // required
 		if(skippables.size() == 0) {
 			throw new DomainException(
 					"The prompt skippable is missing: " + id);
@@ -2953,7 +3051,7 @@ public class Campaign {
 		}
 		
 		String skipLabel = null;
-		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);
+		Nodes skipLabels = prompt.query(XML_PROMPT_SKIP_LABEL);  // reqired if skippable
 		if((skipLabels.size() == 0) && (skippable)) {
 			throw new DomainException(
 					"The skip label cannot be null if the prompt is skippable: " +
@@ -2973,7 +3071,7 @@ public class Campaign {
 			}
 		}
 		
-		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);
+		Nodes displayLabels = prompt.query(XML_PROMPT_DISPLAY_LABEL);  // required
 		if(displayLabels.size() == 0) {
 			throw new DomainException(
 					"The prompt display label is missing: " + id);
@@ -2990,7 +3088,7 @@ public class Campaign {
 		}
 		
 		String defaultValue = null;
-		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);
+		Nodes defaultValues = prompt.query(XML_PROMPT_DEFAULT);  // optional
 		if(defaultValues.size() > 1) {
 			throw new DomainException(
 					"Multiple default values were found: " + id);
@@ -3016,7 +3114,7 @@ public class Campaign {
 		}
 		
 		Map<String, LabelValuePair> properties;
-		Nodes propertiesNodes = prompt.query(XML_PROMPT_PROPERTIES);
+		Nodes propertiesNodes = prompt.query(XML_PROMPT_PROPERTIES);  // optional
 		if(propertiesNodes.size() > 1) {
 			throw new DomainException(
 					"Multiple properties groups found: " + id);
@@ -3043,6 +3141,21 @@ public class Campaign {
 				properties,
 				index);
 			
+		case FILE:	
+		case DOCUMENT:
+			return processOFile(
+				id,
+				condition,
+				unit,
+				text,
+				explanationText,
+				skippable,
+				skipLabel,
+				displayLabel,
+				defaultValue,
+				properties,
+				index);
+
 		case HOURS_BEFORE_NOW:
 			return processHoursBeforeNow(
 				id,
@@ -3247,26 +3360,28 @@ public class Campaign {
 		}
 		
 		for(String promptId : promptIdAndConditionValues.keySet()) {
-			// Validate that the prompt exists and comes before this prompt. 
+			// Validate that the prompt/message exists and comes before this prompt/message. 
 			// This can only, and must, be true if we have already validated 
 			// it.
 			SurveyItem conditionSurveyItem = null;
 			for(SurveyItem surveyItem : alreadyProcessedItemsInSurveyItemGroup) {
 				if(surveyItem.getId().equals(promptId)) {
-					if(surveyItem instanceof Prompt) {
+					// allow both prompt and message to be in the condition
+					if( (surveyItem instanceof Prompt) ||
+						(surveyItem instanceof Message)) {
 						conditionSurveyItem = surveyItem;
 						break;
 					}
 					else {
 						throw new DomainException(
-							"Only prompts values may be part of a condition. The offending ID is " 
+							"Only prompts or messages may be part of a condition. The offending ID is " 
 							    + promptId + " and the parent id is " + surveyItemContainerId);
 					}
 				}
 			}
 			if(conditionSurveyItem == null) {
 				throw new DomainException(
-						"The prompt is unknown: " + promptId);
+						"The survey item is unknown: " + promptId);
 			}
 			
 			// Validate all of the condition-valid pairs for the prompt.
@@ -3276,7 +3391,7 @@ public class Campaign {
 				}
 				catch(DomainException e) {
 					throw new DomainException(
-							"The condition was invalid for the prompt '" +
+							"The condition was invalid for the survey item '" +
 								surveyItemId +
 								"' in the prompt group '" +
 								surveyItemContainerId +
@@ -3315,7 +3430,7 @@ public class Campaign {
 		for(int i = 0; i < numProperties; i++) {
 			Node propertyNode = properties.get(i);
 			
-			Nodes keys = propertyNode.query(XML_PROPERTY_KEY);
+			Nodes keys = propertyNode.query(XML_PROPERTY_KEY);  // required
 			if(keys.size() == 0) {
 				throw new DomainException(
 						"The property key is missing: " + containerId);
@@ -3331,7 +3446,7 @@ public class Campaign {
 							containerId);
 			}
 			
-			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);
+			Nodes labels = propertyNode.query(XML_PROPERTY_LABEL);  // required
 			if(labels.size() == 0) {
 				throw new DomainException(
 						"The property label is missing: " + containerId);
@@ -3343,14 +3458,15 @@ public class Campaign {
 			String label = labels.get(0).getValue().trim();
 			
 			Number value = null;
-			Nodes values = propertyNode.query(XML_PROPERTY_VALUE);
+			Nodes values = propertyNode.query(XML_PROPERTY_VALUE);  // optional
 			if(values.size() > 1) {
 				throw new DomainException(
 						"Multiple property values found: " + containerId);
 			}
 			else if(values.size() == 1) {
 				String valueString = values.get(0).getValue().trim();
-				try {
+				// extract numerical value
+				try {   
 					value = Short.decode(valueString);
 				}
 				catch(NumberFormatException notShort) {
@@ -3465,12 +3581,43 @@ public class Campaign {
 					e);
 		}
 		
+		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+
 		if(defaultValue != null) {
 			throw new DomainException(
 					"Default values are not allowed for audio prompts: " +
 						id);
 		}
+		
+		if (maxDuration != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=" + maxDuration);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=NULL");
 
+		if (maxFileSize != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=" + maxFileSize);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=NULL");
+
+		
 		return new AudioPrompt(
 			id,
 			condition,
@@ -3481,7 +3628,8 @@ public class Campaign {
 			skipLabel,
 			displayLabel,
 			index,
-			maxDuration);
+			maxDuration,
+			maxFileSize);
 	}
 	
 	/**
@@ -3865,7 +4013,7 @@ public class Campaign {
 		BigDecimal min;
 		try {
 			LabelValuePair minVlp = 
-				properties.get(NumberPrompt.XML_KEY_MIN);
+				properties.get(NumberPrompt.XML_KEY_MIN);  // required
 			
 			if(minVlp == null) {
 				throw new DomainException(
@@ -3889,7 +4037,7 @@ public class Campaign {
 		BigDecimal max;
 		try {
 			LabelValuePair maxVlp = 
-				properties.get(NumberPrompt.XML_KEY_MAX);
+				properties.get(NumberPrompt.XML_KEY_MAX);  // required
 			
 			if(maxVlp == null) {
 				throw new DomainException(
@@ -3924,7 +4072,7 @@ public class Campaign {
 		
 		Boolean wholeNumber = null;
 		LabelValuePair wholeNumberVlp = 
-			properties.get(NumberPrompt.XML_KEY_WHOLE_NUMBER);
+			properties.get(NumberPrompt.XML_KEY_WHOLE_NUMBER);  // optional
 		
 		if(wholeNumberVlp != null) {
 			wholeNumber =
@@ -4002,7 +4150,7 @@ public class Campaign {
 		Integer maxDimension = null;
 		try {
 			LabelValuePair maxDimensionVlp =
-				properties.get(PhotoPrompt.XML_KEY_MAXIMUM_DIMENSION);
+				properties.get(PhotoPrompt.XML_KEY_MAXIMUM_DIMENSION);  // optional
 			
 			if(maxDimensionVlp != null) {
 				maxDimension = 
@@ -4018,12 +4166,32 @@ public class Campaign {
 					e);
 		}
 		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+	
 		if(defaultValue != null) {
 			throw new DomainException(
 					"Default values are not allowed for photo prompts: " +
 						id);
 		}
 
+		
 		return new PhotoPrompt(
 			id,
 			condition,
@@ -4033,10 +4201,101 @@ public class Campaign {
 			skippable,
 			skipLabel,
 			displayLabel,
+			index, 
 			maxDimension,
-			index);
+			maxFileSize);
+	}
+
+	/**
+	 * Processes a ohmage file prompt and returns a FilePrompt object.
+	 * 
+	 * @param id The prompt's unique identifier.
+	 * 
+	 * @param condition The condition value.
+	 * 
+	 * @param unit The prompt's visualization unit.
+	 * 
+	 * @param text The prompt's text value.
+	 * 
+	 * @param explanationText The prompt's explanation text value.
+	 * 
+	 * @param skippable Whether or not this prompt is skippable.
+	 * 
+	 * @param skipLabel The label to show to skip this prompt.
+	 * 
+	 * @param displayLabel The label for this display type.
+	 * 
+	 * @param defaultValue The default value given in the XML.
+	 * 
+	 * @param properties The properties defined in the XML for this prompt.
+	 * 
+	 * @param index The index of this prompt in its collection of survey items.
+	 * 
+	 * @return A FilePrompt object.
+	 * 
+	 * @throws DomainException Thrown if the required properties are missing or
+	 * 						   if any of the parameters are invalid.
+	 */
+	private static FilePrompt processOFile(
+			final String id,
+			final String condition, 
+			final String unit, 
+			final String text,
+			final String explanationText, 
+			final boolean skippable, 
+			final String skipLabel,
+			final String displayLabel,
+			final String defaultValue,
+			final Map<String, LabelValuePair> properties, 
+			final int index) 
+			throws DomainException {
+		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+		
+		if(defaultValue != null) {
+			throw new DomainException(
+					"Default values are not allowed for file prompts: " +
+						id);
+		}
+
+
+		if (maxFileSize != null)
+			LOGGER.debug("HT: Will create filePrompt with max_filesize=" + maxFileSize);
+		else 
+			LOGGER.debug("HT: Will create filePrompt with max_filesize=NULL");
+
+
+		return new FilePrompt(
+			id,
+			condition,
+			unit,
+			text,
+			explanationText,
+			skippable,
+			skipLabel,
+			displayLabel,
+			index,
+			maxFileSize);
 	}
 	
+
 	/**
 	 * Processes a remote activity prompt and returns a RemoteActivityPrompt
 	 * object.
@@ -4630,6 +4889,38 @@ public class Campaign {
 					e);
 		}
 		
+		Long maxFileSize = null;
+		try {
+			LabelValuePair maxFilesizeVlp =
+				properties.get(MediaPrompt.XML_KEY_MAX_FILESIZE);  // optional
+			
+			if(maxFilesizeVlp != null) {
+				maxFileSize = 
+					Long.decode(maxFilesizeVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						MediaPrompt.XML_KEY_MAX_FILESIZE +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+		
+		
+		if (maxSeconds != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=" + maxSeconds);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_seconds=NULL");
+
+		if (maxFileSize != null)
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=" + maxFileSize);
+		else 
+			LOGGER.debug("HT: Will create videoPrompt with max_filesize=NULL");
+		
+		LOGGER.debug("HT: about to create VideoPrompt");
+		
 		return new VideoPrompt(
 			id,
 			condition,
@@ -4639,7 +4930,8 @@ public class Campaign {
 			skippable,
 			skipLabel,
 			displayLabel,
+			index,
 			maxSeconds,
-			index);
+			maxFileSize);
 	}
 }

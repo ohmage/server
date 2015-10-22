@@ -13,15 +13,18 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.MediaServices;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.AudioValidators;
 
+// HT: Deprecated
 public class AudioReadRequest extends UserRequest {
 	/**
 	 * The logger for this class.
@@ -112,7 +115,7 @@ public class AudioReadRequest extends UserRequest {
 				audioId);
 			
 			LOGGER.info("Connecting to the audio stream.");
-			audio = UserMediaServices.instance().getAudio(audioId);
+			audio = MediaServices.instance().getAudio(audioId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -134,23 +137,21 @@ public class AudioReadRequest extends UserRequest {
 		// Sets the HTTP headers to disable caching
 		expireResponse(httpResponse);
 				
-		// Open the connection to the image if it is not null.
-		InputStream videoStream = null;
-		if((! isFailed()) && audio != null) {
-			videoStream = audio.getContentStream();
-		}
+		InputStream audioStream = null;
 		
 		try {
 			if(isFailed()) {
 				super.respond(httpRequest, httpResponse, (JSONObject) null);
 			}
 			else {
+				audioStream = audio.getContentStream();
+				
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + audio.getFilename());
+					"attachment; filename=" + audio.getFileName());
 				httpResponse.setHeader(
 					"Content-Length", 
-					new Long(audio.getSize()).toString());
+					new Long(audio.getFileSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {
@@ -180,12 +181,12 @@ public class AudioReadRequest extends UserRequest {
 				DataOutputStream dos = new DataOutputStream(os);
 				byte[] bytes = new byte[CHUNK_SIZE];
 				int currRead;
-				while((currRead = videoStream.read(bytes)) != -1) {
+				while((currRead = audioStream.read(bytes)) != -1) {
 					dos.write(bytes, 0, currRead);
 				}
 				
 				// Close the image's InputStream.
-				videoStream.close();
+				audioStream.close();
 				
 				// Flush and close the data output stream to which we were 
 				// writing.
@@ -197,6 +198,13 @@ public class AudioReadRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
+		} 
+		catch(DomainException e) {
+			LOGGER.error("Could not connect to the media file.", e);
+			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "File not found.");
+			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
+			return;
 		}
 		catch(IOException e) {
 			LOGGER.error(
@@ -207,9 +215,9 @@ public class AudioReadRequest extends UserRequest {
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
 		finally {
-			if(videoStream != null) {
+			if(audioStream != null) {
 				try {
-					videoStream.close();
+					audioStream.close();
 				}
 				catch(IOException e) {
 					LOGGER.info("Could not close the stream.");

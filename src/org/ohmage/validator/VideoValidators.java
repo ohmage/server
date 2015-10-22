@@ -31,20 +31,16 @@ public final class VideoValidators {
 	 * 							   whitespace only, and not a valid video ID.
 	 */
 	public static UUID validateId(
-			final String videoId) 
+			final String id) 
 			throws ValidationException {
 		
-		if(StringUtils.isEmptyOrWhitespaceOnly(videoId)) {
-			return null;
-		}
-		
 		try {
-			return UUID.fromString(videoId);
+			return MediaValidators.validateId(id);
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
 					ErrorCode.VIDEO_INVALID_ID, 
-					"The video ID is not a valid video ID: " + videoId);
+					"The video ID is not a valid video ID: " + id);
 		}
 	}
 }

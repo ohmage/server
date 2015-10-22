@@ -36,6 +36,8 @@ import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Audio;
+import org.ohmage.domain.OFile;
+import org.ohmage.domain.IMedia;
 import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
@@ -50,8 +52,8 @@ import org.ohmage.service.CampaignServices;
 import org.ohmage.service.SurveyResponseServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.util.DateTimeUtils;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
-import org.ohmage.validator.ImageValidators;
 import org.ohmage.validator.SurveyResponseValidators;
 
 /**
@@ -109,6 +111,7 @@ import org.ohmage.validator.SurveyResponseValidators;
  * </table>
  * 
  * @author Joshua Selsky
+ * @author Hongsuda T.
  */
 public class SurveyUploadRequest extends UserRequest {
 	private static final Logger LOGGER =
@@ -120,8 +123,9 @@ public class SurveyUploadRequest extends UserRequest {
 	private final DateTime campaignCreationTimestamp;
 	private List<JSONObject> jsonData;
 	private final Map<UUID, Image> imageContentsMap;
-	private final Map<String, Video> videoContentsMap;
-	private final Map<String, Audio> audioContentsMap;
+	private final Map<UUID, Video> videoContentsMap;
+	private final Map<UUID, Audio> audioContentsMap;
+	private final Map<UUID, IMedia> fileContentsMap;
 	private final String owner;
 	
 	private Collection<UUID> surveyResponseIds;
@@ -172,6 +176,7 @@ public class SurveyUploadRequest extends UserRequest {
 		imageContentsMap = Collections.emptyMap();
 		videoContentsMap = Collections.emptyMap();
 		audioContentsMap = Collections.emptyMap();
+		fileContentsMap = Collections.emptyMap();
 		this.owner = owner;
 	}
 	
@@ -195,8 +200,9 @@ public class SurveyUploadRequest extends UserRequest {
 		DateTime tCampaignCreationTimestamp = null;
 		List<JSONObject> tJsonData = null;
 		Map<UUID, Image> tImageContentsMap = null;
-		Map<String, Video> tVideoContentsMap = null;
-		Map<String, Audio> tAudioContentsMap = null;
+		Map<UUID, Video> tVideoContentsMap = null;
+		Map<UUID, Audio> tAudioContentsMap = null;
+		Map<UUID, IMedia> tFileContentsMap = null;
 		
 		if(! isFailed()) {
 			try {
@@ -257,6 +263,7 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
+				// Extract images from the post body
 				tImageContentsMap = new HashMap<UUID, Image>();
 				t = getParameterValues(InputKeys.IMAGES);
 				if(t.length > 1) {
@@ -275,11 +282,30 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
+				// TODO: HT add handling for document as inline base64
+				
+				// check for duplicate UUID in the tImageContentsMap 
+				if (StringUtils.hasDuplicate(tImageContentsMap.keySet()))
+					throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_MEDIA_UUIDS, 
+							"a duplicate uuid of resource key was detected in the multi-part upload");
+				
 				// Retrieve and validate images and videos.
-				List<UUID> imageIds = new ArrayList<UUID>();
-				tVideoContentsMap = new HashMap<String, Video>();
-				tAudioContentsMap = new HashMap<String, Audio>();
+				//List<UUID> imageIds = new ArrayList<UUID>();
+				Set<UUID> resourceIds = new HashSet<UUID>();
+				resourceIds.addAll(tImageContentsMap.keySet()); 	// add all inline images
+				
+				tVideoContentsMap = new HashMap<UUID, Video>();
+				tAudioContentsMap = new HashMap<UUID, Audio>();
+				tFileContentsMap = new HashMap<UUID, IMedia>();
 				Collection<Part> parts = null;
+				
+				// init the tDocumentContentsMap with inline images
+				tFileContentsMap.putAll(tImageContentsMap);
+				// for (UUID uuid : tImageContentsMap.keySet()){
+				//	Image image = tImageContentsMap.get(uuid);
+				//	tDocumentContentsMap.put(uuid, image);
+				//}
+				
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
 					parts = httpRequest.getParts();
@@ -293,37 +319,60 @@ public class SurveyUploadRequest extends UserRequest {
 							LOGGER.info("Ignoring part: " + name);
 							continue;
 						}
-							
+						
+						//imageIds.add(id);  // add all UUID					
+						// check for duplicate
+						if (!resourceIds.add(id)){
+							throw new ValidationException(ErrorCode.SURVEY_DUPLICATE_MEDIA_UUIDS, 
+									"a duplicate uuid of resource key was detected in the multi-part upload");
+						}
+
+						// what if contentType is not supplied e.g. null
 						String contentType = p.getContentType();
+						if (contentType == null){
+							throw new ValidationException(
+									ErrorCode.SERVER_MISSING_CONTENT_TYPE,
+									"Content-Type for the attachement is needed");
+						}
+						
+						// String fileType = contentType.split("/")[1]; // not the same as file extension 
+						String fileName = getPartFilename(p);				
+						LOGGER.debug("HT: id: " + name + " Content-type:" + contentType + " fileName:" + fileName);
+						
+						// TODO: pass fileType to image creation
 						if(contentType.startsWith("image")) {
-							imageIds.add(id);
+							/*
+							Image image = ImageValidators.validateImageContents(id,	getMultipartValue(httpRequest, name));
+							if(image == null) {
+								throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA,"The image data is missing: " + id);
+							}
+							*/
+							Image image = new Image(id,	contentType, fileName, 
+									getMultipartValue(httpRequest, name));						
+							tImageContentsMap.put(id, image);	
+							tFileContentsMap.put(id, image);
 						}
 						else if(contentType.startsWith("video/")) {
-							tVideoContentsMap.put(
-								name, 
-								new Video(
-									UUID.fromString(name),
-									contentType.split("/")[1],
-									getMultipartValue(httpRequest, name)));
-						}
+							Video video = new Video(id,	contentType, fileName,
+									getMultipartValue(httpRequest, name)); 
+							tVideoContentsMap.put(id, video); 
+							tFileContentsMap.put(id, video);
+						} 
 						else if(contentType.startsWith("audio/")) {
-							try {
-								tAudioContentsMap.put(
-									name,
-									new Audio(
-										UUID.fromString(name),
-										contentType.split("/")[1],
-										getMultipartValue(httpRequest, name)));
-							}
-							catch(DomainException e) {
-								throw
-									new ValidationException(
-										ErrorCode.SYSTEM_GENERAL_ERROR,
-										"Could not create the Audio object.",
-										e);
-							}
+							Audio audio = new Audio(id, contentType, fileName,
+									getMultipartValue(httpRequest, name));
+							tAudioContentsMap.put(id, audio);
+							tFileContentsMap.put(id, audio);
 						}
-					}
+						else if(contentType.startsWith("application/") ||
+								contentType.startsWith("text/")){ // HT: check this
+							OFile doc = new OFile(id, contentType, fileName,
+									getMultipartValue(httpRequest, name));
+							tFileContentsMap.put(id, doc);
+						}
+						if(LOGGER.isDebugEnabled()) 
+							LOGGER.debug("succesfully created a BufferedMedia for key " + id + "[" + contentType +"]");
+					} // for Part p
 				}
 				catch(ServletException e) {
 					LOGGER.info("This is not a multipart/form-post.");
@@ -334,40 +383,14 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 				catch(DomainException e) {
 					LOGGER.info("A Media object could not be built.", e);
-					throw new ValidationException(e);
-				}
-				
-				Set<UUID> stringSet = new HashSet<UUID>(imageIds);
-				
-				if(stringSet.size() != imageIds.size()) {
-					throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA, "a duplicate image key was detected in the multi-part upload");
-				}
-
-				for(UUID imageId : imageIds) {
-					Image image = 
-						ImageValidators
-							.validateImageContents(
-								imageId,
-								getMultipartValue(
-									httpRequest, 
-									imageId.toString()));
-					if(image == null) {
-						throw
-							new ValidationException(
-								ErrorCode.IMAGE_INVALID_DATA, 
-								"The image data is missing: " + imageId);
-					}
-					tImageContentsMap.put(imageId, image);
-					
-					if(LOGGER.isDebugEnabled()) {
-						LOGGER.debug("succesfully created a BufferedImage for key " + imageId);
-					}
+					throw new ValidationException("Could not create the media object.", e);
 				}
 			}
 			catch(ValidationException e) {
 				e.failRequest(this);
 				e.logException(LOGGER, true);
 			}
+
 		}
 
 		this.campaignUrn = tCampaignUrn;
@@ -376,11 +399,32 @@ public class SurveyUploadRequest extends UserRequest {
 		this.imageContentsMap = tImageContentsMap;
 		this.videoContentsMap = tVideoContentsMap;
 		this.audioContentsMap = tAudioContentsMap;
-		this.owner = null;
+		this.fileContentsMap = tFileContentsMap;
 		
+		this.owner = null;
 		surveyResponseIds = null;
 	}
 
+
+	/**
+	 * Get filename from Part header.
+	 *  
+	 * @return filename included in the Part header. 
+	 */
+	private String getPartFilename(final Part part){
+		if (part == null)
+			return null;
+		
+		for (String elm : part.getHeader("content-disposition").split(";")) { 
+		    if (elm.trim().startsWith("filename")) {
+		    	return elm.substring(elm.indexOf('=')+1).trim().replace("\"","");
+		    }
+		}
+		return null;
+	}
+	
+
+	
 	/**
 	 * Services the request.
 	 */
@@ -405,7 +449,7 @@ public class SurveyUploadRequest extends UserRequest {
 			Map<Campaign, Collection<Campaign.Role>> campaigns = 
 				UserCampaignServices
 					.instance()
-						.getCampaignInformation(
+						.getCampaignInformationAndRoles(
 							getUser().getUsername(),
 							campaignIds,
 							null,
@@ -449,16 +493,21 @@ public class SurveyUploadRequest extends UserRequest {
 				surveyResponseIds.add(surveyResponse.getSurveyResponseId());
 			}
 
+			// compliance of media file to the campaign definition is done in the verifyMediaFile... methods		
 			LOGGER.info("Validating that all photo prompt responses have their corresponding images attached.");
-			SurveyResponseServices.instance().verifyImagesExistForPhotoPromptResponses(surveyResponses, imageContentsMap);
+			SurveyResponseServices.instance().verifyImagesFilesForPhotoPromptResponses(surveyResponses, imageContentsMap);
 			
 			LOGGER.info("Validating that all video prompt responses have their corresponding videos attached.");
-			SurveyResponseServices.instance().verifyVideosExistForVideoPromptResponses(surveyResponses, videoContentsMap);
+			SurveyResponseServices.instance().verifyVideosFilesForVideoPromptResponses(surveyResponses, videoContentsMap);
 			
 			LOGGER.info("Validating that all audio prompt responses have their corresponding audio files attached.");
-			SurveyResponseServices.instance().verifyAudioFilesExistForAudioPromptResponses(surveyResponses, audioContentsMap);
+			SurveyResponseServices.instance().verifyAudioFilesForAudioPromptResponses(surveyResponses, audioContentsMap);
 			
-			LOGGER.info("Inserting " + surveyResponses.size() + " survey responses into the database.");
+			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
+			SurveyResponseServices.instance().verifyOFilesForFilePromptResponses(surveyResponses, fileContentsMap);
+			
+			
+			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");
 			List<Integer> duplicateIndexList = 
 				SurveyResponseServices.instance().createSurveyResponses(
 					((owner == null) ? getUser().getUsername() : owner), 
@@ -467,7 +516,8 @@ public class SurveyUploadRequest extends UserRequest {
 					surveyResponses, 
 					imageContentsMap,
 					videoContentsMap,
-					audioContentsMap);
+					audioContentsMap, 
+					fileContentsMap);
 
 			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
 		}
@@ -475,6 +525,8 @@ public class SurveyUploadRequest extends UserRequest {
 			e.failRequest(this);
 			e.logException(LOGGER, true);
 		}
+		
+		// HT: Don't we need to close InputStream
 	}
 
 	/**

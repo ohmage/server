@@ -158,6 +158,45 @@ public class Document {
 			return name().toLowerCase();
 		}
 	}
+	
+	
+	// a UserContainer can be either a class or a campaign. 
+	// This is used to keep track of data returned from the database.
+	public static class UserContainerRole{
+		private final String documentId;
+		private final String containerId;
+		private final Document.Role documentContainerRole; 
+		private final String userContainerRole;
+		
+		public UserContainerRole(
+				final String documentId, 
+				final String ContainerId, 
+				final Document.Role documentContainerRole, 
+				final String userContainerRole) {
+			this.documentId = documentId;
+			this.containerId = ContainerId; 
+			this.documentContainerRole = documentContainerRole;
+			this.userContainerRole = userContainerRole;
+		}
+		
+		public String getDocumentId() {
+			return documentId;
+		}
+		public String getContainerId(){
+			return containerId;
+		}
+		public Document.Role getDocumentContainerRole(){
+			return documentContainerRole;
+		}	
+		public boolean isPrivilegedUser(){
+			if (userContainerRole.contains("privileged") ||
+				userContainerRole.contains("supervisor"))
+				return true;
+			else return false;
+		}
+	}
+	
+	
 	private Role maxRole;
 	private Role userRole;
 	private final Map<String, Role> campaignAndRole;
@@ -238,6 +277,8 @@ public class Document {
 		campaignAndRole = new HashMap<String, Role>();
 		classAndRole = new HashMap<String, Role>();
 	}
+	
+
 	
 	/**
 	 * Creates a Document object from the data in the JSONObject.
@@ -422,8 +463,10 @@ public class Document {
 		catch(IllegalArgumentException e) {
 			throw new IllegalArgumentException("The user's maximum role is unknown.", e);
 		}
+		
+		
 	}
-	
+		
 	/**
 	 * Returns the unique ID for this document.
 	 * 

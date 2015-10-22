@@ -80,6 +80,7 @@ public final class InputKeys {
 	public static final String ROSTER = "roster";
 	public static final String CLASS_WITH_USER_LIST = "with_user_list";
 	public static final String CLASS_ROLE = "class_role";
+	public static final String CLASS_NO_ORPHAN_CAMPAIGNS = "no_orphan_campaigns";
 	
 	// Survey Constants
 	public static final String SURVEY_ID = "survey_id";
@@ -118,6 +119,9 @@ public final class InputKeys {
 	// Video Constants
 	public static final String AUDIO_ID = "audio_id";
 	
+	// media constants
+	public static final String MEDIA_ID = "id";
+	
 	// User Constants
 	public static final String USER = "user";
 	public static final String NEW_USERNAME = "new_username";
@@ -148,6 +152,9 @@ public final class InputKeys {
 	public static final String PERSONAL_ID_SEARCH = "personal_id_search";
 	public static final String USER_REGISTRATION_ID = "registration_id";
 	public static final String USER_DELETE_PERSONAL_INFO = "delete_personal_info";
+	// user setup
+	public static final String USERNAME_PREFIX = "username_prefix";
+	public static final String USERNAME_DIGITS = "username_digits";
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";
@@ -172,6 +179,7 @@ public final class InputKeys {
 	public static final String CAPTCHA_CHALLENGE = "recaptcha_challenge_field";
 	public static final String CAPTCHA_RESPONSE = "recaptcha_response_field";
 	public static final String REDIRECT = "redirect";
+	public static final String CAPTCHA_VERSION = "recaptcha_version";
 	
 	// Document Constants
 	public static final String DOCUMENT = "document";

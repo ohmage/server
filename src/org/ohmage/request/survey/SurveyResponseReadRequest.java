@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -726,6 +727,7 @@ public final class SurveyResponseReadRequest
 								((collapse != null) && collapse)
 							);
 						
+						
 						if(allColumns || columns.contains(ColumnKey.CONTEXT_DATE)) {
 							currResult.put(
 									"date", 
@@ -841,6 +843,7 @@ public final class SurveyResponseReadRequest
 					}
 					result.put(JSON_KEY_DATA, results);
 					
+					
 					// Metadata
 					if((suppressMetadata == null) || (! suppressMetadata)) {
 						JSONObject metadata = new JSONObject();
@@ -889,10 +892,12 @@ public final class SurveyResponseReadRequest
 					
 					if((prettyPrint != null) && prettyPrint) {
 						resultString = result.toString(4);
+						
 					}
 					else {
 						resultString = result.toString();
 					}
+					
 				}
 				else if(OutputFormat.JSON_COLUMNS.equals(outputFormat) || 
 						OutputFormat.CSV.equals(outputFormat)) {
@@ -1293,6 +1298,9 @@ public final class SurveyResponseReadRequest
 						for(int i = 0; i < keyLength; i++) {
 							String header = keysOrdered.getString(i);
 							if(header.startsWith("urn:ohmage:")) {
+								// TODO: HT: This is where we deal with truncating the 
+								// column header for mobilize
+								
 								header = header.substring(11);
 								
 								if(header.startsWith("prompt:id:")) {

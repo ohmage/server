@@ -24,6 +24,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.User;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
+import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -302,6 +303,37 @@ public final class UserValidators {
 			throw new ValidationException(
 					ErrorCode.USER_INVALID_EMAIL_ADDRESS, 
 					"The email address value for the user is invalid: " + 
+						value);
+		}
+	}
+	
+	/**
+	 * Validates that the captcha version to be used for captcha validation.
+	 * 
+	 * @param value The String value of the captcha version.
+	 * 
+	 * @return Returns null if the value is null or whitespace only; otherwise,
+	 * 		   it returns version number.
+	 * 
+	 * @throws ValidationException Thrown if the captcha version is not 1.0 or 2.0
+	 * 							   
+	 */
+	public static String validateCaptchaVersion(final String value) 
+			throws ValidationException {
+		
+		LOGGER.info("Validating that the captcha version number is valid.");
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(value)) {
+			return null;
+		}
+		
+		String version = value.trim();
+		if (version.equals("1.0") || version.equals("2.0")){
+			return version;
+		} else {
+			throw new ValidationException(
+					ErrorCode.SERVER_INVALID_CAPTCHA, 
+					"Invalid Captcha version (Expect 1.0 or 2.0): " + 
 						value);
 		}
 	}
@@ -910,4 +942,44 @@ public final class UserValidators {
 		
 		return result;
 	}
+	
+	/**
+	 * Validates that a given username prefix follows our conventions. If it is null 
+	 * or whitespace only, null is returned. If it doesn't follow our 
+	 * conventions, a ValidationException is thrown. Otherwise, the username prefix is
+	 * passed back to the caller.
+	 * 
+	 * @param username The username prefix to validate.
+	 * 
+	 * @return Returns null if the username is null or whitespace only. 
+	 * 		   Otherwise, it returns the username.
+	 * 
+	 * @throws ValidationException Thrown if the username isn't null or 
+	 * 							   whitespace only and doesn't follow our 
+	 * 							   conventions.
+	 */
+	public static String validateUsernamePrefix(final String usernamePrefix) 
+			throws ValidationException {
+		
+		// change minimum length to 2 instead of 4 in username
+		String usernamePrefixString = USERNAME_PATTERN_STRING.replace("4", 
+				String.valueOf(UserSetupRequest.MIN_USERNAME_PREFIX_LENGTH));
+		Pattern usernamePrefixPattern = Pattern.compile(usernamePrefixString);
+
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(usernamePrefix)) {
+			return null;
+		}
+		
+		if(usernamePrefixPattern.matcher(usernamePrefix).matches()) {
+			return usernamePrefix;
+		}
+		else {
+			throw new ValidationException(
+					ErrorCode.USER_INVALID_USERNAME, 
+					"The username prefix is invalid.");
+		}
+	}
+	
+
 }

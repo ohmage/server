@@ -4,7 +4,7 @@
          "http://www.springframework.org/schema/beans 
           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
   
-  <!-- Preference Cache -->
+  <!-- Preference Cache: value is cache period (is milliseconds) -->
   <bean id="preferenceCache" class="org.ohmage.cache.PreferenceCache">
     <constructor-arg><ref bean="dataSource" /></constructor-arg>
     <constructor-arg><value>60000</value></constructor-arg>

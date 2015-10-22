@@ -13,15 +13,18 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.Video;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.MediaServices;
 import org.ohmage.service.UserMediaServices;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.validator.VideoValidators;
 
+// HT: Deprecated
 public class VideoReadRequest extends UserRequest {
 	private static final Logger LOGGER = 
 		Logger.getLogger(VideoReadRequest.class);
@@ -99,7 +102,7 @@ public class VideoReadRequest extends UserRequest {
 				videoId);
 			
 			LOGGER.info("Connecting to the video stream.");
-			video = UserMediaServices.instance().getVideo(videoId);
+			video = MediaServices.instance().getVideo(videoId);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -123,21 +126,20 @@ public class VideoReadRequest extends UserRequest {
 				
 		// Open the connection to the image if it is not null.
 		InputStream videoStream = null;
-		if((! isFailed()) && video != null) {
-			videoStream = video.getContentStream();
-		}
 		
 		try {
 			if(isFailed()) {
 				super.respond(httpRequest, httpResponse, (JSONObject) null);
 			}
 			else {
+				videoStream = video.getContentStream();
+				
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + video.getFilename());
+					"attachment; filename=" + video.getFileName());
 				httpResponse.setHeader(
 					"Content-Length", 
-					new Long(video.getSize()).toString());
+					new Long(video.getFileSize()).toString());
 				
 				// If available, set the token.
 				if(getUser() != null) {
@@ -184,6 +186,13 @@ public class VideoReadRequest extends UserRequest {
 				os.flush();
 				os.close();
 			}
+		}
+		catch(DomainException e) {
+			LOGGER.error("Could not connect to the media file.", e);
+			this.setFailed(ErrorCode.SYSTEM_GENERAL_ERROR, "File not found.");
+			httpResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			super.respond(httpRequest, httpResponse, (JSONObject) null);
+			return;
 		}
 		catch(IOException e) {
 			LOGGER.error(

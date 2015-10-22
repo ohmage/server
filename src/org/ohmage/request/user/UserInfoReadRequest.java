@@ -23,11 +23,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserSummary;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
+import org.ohmage.exception.ValidationException;
+import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 
 /**
  * <p>Gathers information about a user including their campaign creation 
@@ -44,14 +48,23 @@ import org.ohmage.service.UserServices;
  *     <td>A string describing the client that is making this request.</td>
  *     <td>true</td>
  *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USERNAME}</td>
+ *     <td>Username. If a username is provided, it will be used instead of 
+ *         the requesting username. Only an admin can perform this operation. </td>
+ *     <td>true</td>
+ *   </tr>
+
  * </table>
  * 
  * @author John Jenkins
+ * @author Hongsuda T. 
  */
 public class UserInfoReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserInfoReadRequest.class);
 	
-	private UserSummary result;
+	private String gUsername;
+	private UserSummary result = null;
 	
 	/**
 	 * Creates a new user info read request.
@@ -65,11 +78,40 @@ public class UserInfoReadRequest extends UserRequest {
 	 * @throws IOException There was an error reading from the request.
 	 */
 	public UserInfoReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
-		super(httpRequest, null, TokenLocation.EITHER, null);
+		super(httpRequest, false, TokenLocation.EITHER, null);
+
+		String tUsername = null;
 		
-		LOGGER.info("Creating a user info read request.");
+		if(! isFailed()) {
+			LOGGER.info("Creating a user info read request.");
+	
+			String[] t;
+			try {
+				t = getParameterValues(InputKeys.USERNAME);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_INVALID_USERNAME,
+							"Multiple usernames were given: " +
+								InputKeys.USERNAME);
+					}		
+				else if(t.length == 1) {
+					if(! StringUtils.isEmptyOrWhitespaceOnly(t[0])) {
+						tUsername = t[0];
+					} 
+				}
+				// if username is not provided, assume username is the requesting user
+				if (tUsername == null)
+					tUsername = getUser().getUsername();
+			}
+			catch(ValidationException e) {
+				e.failRequest(this);
+				e.logException(LOGGER);
+			}
+		} 
 		
+		gUsername = tUsername;
 		result = null;
+		
 	}
 
 	/**
@@ -84,8 +126,15 @@ public class UserInfoReadRequest extends UserRequest {
 		}
 		
 		try {
-			LOGGER.info("Gathering the information about the requesting user.");
-			result = UserServices.instance().getUserSummary(getUser().getUsername());
+			
+			// Need to be an admin to look at other user's info
+			if (gUsername != getUser().getUsername()) {
+				LOGGER.info("Checking that the user is an admin: " + getUser().getUsername());
+				UserServices.instance().verifyUserIsAdmin(getUser().getUsername());
+			}
+			
+			LOGGER.info("Gathering the information about the user " + gUsername);
+			result = UserServices.instance().getUserSummary(gUsername);
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
@@ -105,7 +154,7 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		if(result != null) {
 			try {
-				jsonResult.put(getUser().getUsername(), result.toJsonObject());
+				jsonResult.put(gUsername, result.toJsonObject());
 			}
 			catch(JSONException e) {
 				LOGGER.error("There was an error building the JSONObject result.", e);

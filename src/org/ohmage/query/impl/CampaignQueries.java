@@ -1058,12 +1058,113 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		}
 	}
 
+	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
+	 * @see org.ohmage.query.ICampaignQueries#getvisiableCampaignSearchSql(java.lang.String, java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
 	 */
 	@Override
-	public QueryResultsList<Campaign> getCampaignInformation(
+	public String getVisibleCampaignSearchSql(
+			final Collection<Object> parameters,
+			final String username,
+			final String partialCampaignId,
+			final String partialCampaignName,
+			final String partialDescription,
+			final String partialXml,
+			final String partialAuthoredBy,
+			final DateTime startDate,
+			final DateTime endDate,
+			final Campaign.PrivacyState privacyState,
+			final Campaign.RunningState runningState) 
+			throws DataAccessException {
+					
+		try {
+			// Begin with a common set of elements to select, and the tables to
+			// which those elements belong.
+			StringBuilder builder = 
+				new StringBuilder(
+					"SELECT ca.id " +
+					"FROM " +
+						"user u, " +
+						"campaign ca, " +
+						"campaign_running_state crs, " +
+						"campaign_privacy_state cps " +
+					"WHERE u.username = ? " +
+					"AND ca.running_state_id = crs.id " +
+					"AND ca.privacy_state_id = cps.id " +
+					// ACL
+					"AND (" +
+						"(u.admin = true)" +
+						" OR " +
+						"EXISTS (" +
+							"SELECT id " +
+							"FROM user_role_campaign urc " +
+							"WHERE u.id = urc.user_id " +
+							"AND ca.id = urc.campaign_id " +
+						")" +
+					")");
+			
+			parameters.add(username);
+			
+			if(partialCampaignId != null) {			
+				builder.append(" AND ca.urn LIKE ?");
+				parameters.add("%" + partialCampaignId + "%");
+			}
+			
+			if(partialCampaignName != null) {			
+				builder.append(" AND ca.name LIKE ?");
+				parameters.add("%" + partialCampaignName + "%");
+			}
+	
+		
+			if(partialDescription != null) {			
+				builder.append(" AND ca.description LIKE ?");
+				parameters.add("%" + partialDescription + "%");
+			}
+
+			if(partialXml != null) {			
+				builder.append(" AND ca.xml LIKE ?");
+				parameters.add("%" + partialXml + "%");
+			}
+
+			if(partialAuthoredBy != null) {			
+				builder.append(" AND ca.authored_by LIKE ?");
+				parameters.add("%" + partialAuthoredBy + "%");
+			}
+
+			if(startDate != null) {
+				builder.append(" AND ca.creation_timestamp >= ?");
+				parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
+			}
+			
+			if(endDate != null) {
+				builder.append(" AND ca.creation_timestamp <= ?");
+				parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
+			}
+			
+			if(runningState != null) {
+				builder.append(" AND crs.running_state = ?");
+				parameters.add(runningState.toString());
+			}
+			
+			if(privacyState != null) {
+				builder.append(" AND cps.privacy_state = ?");
+				parameters.add(privacyState.toString());
+			}
+					
+			return builder.toString();
+		} catch (Exception e) {
+			throw new DataAccessException("Cannot build an sql statement", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignListSql(java.lang.String, java.util.Collection, java.lang.String, java.util.Collection, java.util.Collection, java.util.Date, java.util.Date, org.ohmage.domain.campaign.Campaign.PrivacyState, org.ohmage.domain.campaign.Campaign.RunningState, org.ohmage.domain.campaign.Campaign.Role)
+	 */
+	@Override
+	public String getVisibleCampaignsSql(
+			final Collection<Object> parameters,
 			final String username,
 			final Collection<String> campaignIds,
 			final Collection<String> classIds,
@@ -1075,22 +1176,18 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			final Campaign.RunningState runningState,
 			final Campaign.Role role)
 			throws DataAccessException {
-		
+					
 		try {
 			// Begin with a common set of elements to select, and the tables to
 			// which those elements belong.
 			StringBuilder builder = 
 				new StringBuilder(
-					"SELECT ca.urn, ca.name, ca.description, " +
-						"ca.icon_url, ca.authored_by, " +
-						"crs.running_state, cps.privacy_state, " +
-						"ca.creation_timestamp, " +
-						"ca.xml " +
+					"SELECT ca.id " +
 					"FROM " +
 						"user u, " +
 						"campaign ca, " +
-							"campaign_running_state crs, " +
-							"campaign_privacy_state cps " +
+						"campaign_running_state crs, " +
+						"campaign_privacy_state cps " +
 					"WHERE u.username = ? " +
 					"AND ca.running_state_id = crs.id " +
 					"AND ca.privacy_state_id = cps.id " +
@@ -1106,15 +1203,9 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 						")" +
 					")");
 			
-			List<Object> parameters = new LinkedList<Object>();
 			parameters.add(username);
 			
-			if(campaignIds != null) {
-				if(campaignIds.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(campaignIds != null && campaignIds.size() > 0) {			
 				builder
 					.append(" AND ca.urn IN ")
 					.append(StringUtils.generateStatementPList(
@@ -1123,12 +1214,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				parameters.addAll(campaignIds);
 			}
 			
-			if(classIds != null) {
-				if(classIds.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(classIds != null && classIds.size() > 0) {
 				builder.append(
 						" AND (" +
 							"ca.id IN (" +
@@ -1148,12 +1234,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				parameters.addAll(classIds);
 			}
 			
-			if(nameTokens != null) {
-				if(nameTokens.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(nameTokens != null && nameTokens.size() > 0) {	
 				boolean firstPass = true;
 				builder.append(" AND (");
 				for(String nameToken : nameTokens) {
@@ -1170,12 +1251,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				builder.append(")");
 			}
 			
-			if(descriptionTokens != null) {
-				if(descriptionTokens.size() == 0) {
-					return (new QueryResultListBuilder<Campaign>())
-							.getQueryResult();
-				}
-				
+			if(descriptionTokens != null && descriptionTokens.size() > 0 ) {		
 				boolean firstPass = true;
 				builder.append(" AND (");
 				for(String descriptionToken : descriptionTokens) {
@@ -1193,13 +1269,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			}
 			
 			if(startDate != null) {
-				builder.append(" AND creation_timestamp >= ?");
+				builder.append(" AND ca.creation_timestamp >= ?");
 				
 				parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
 			}
 			
 			if(endDate != null) {
-				builder.append(" AND creation_timestamp <= ?");
+				builder.append(" AND ca.creation_timestamp <= ?");
 				
 				parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
 			}
@@ -1231,27 +1307,64 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				
 				parameters.add(role.toString());
 			}
-			
+		
+			return builder.toString();
+		} catch (Exception e) {
+			throw new DataAccessException("Cannot build an sql statement", e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.ICampaignQueries#getCampaignInformation(java.lang.String, java.util.Collection)
+	 */
+	@Override
+	public Collection<Campaign> getCampaignInformation(
+			final String subSelectStmt,
+			final Collection<Object> subSelectParameters
+			)
+			throws DataAccessException {
+		
+		
+		if (subSelectStmt == null) {
+			throw new DataAccessException("The subSelectStmt cannot be null!");
+		}
+		
+		StringBuilder builder;
+		try {
+			builder = new StringBuilder( 
+					"SELECT ca.urn, ca.name, ca.description, " +
+						"crs.running_state, cps.privacy_state, " +
+						"ca.creation_timestamp, " +
+						"ca.xml " + 
+					"FROM campaign ca " +
+					  	"JOIN campaign_running_state crs on (ca.running_state_id = crs.id) " +
+						"JOIN campaign_privacy_state cps on (ca.privacy_state_id = cps.id) " +
+					"WHERE ca.id in "
+					);
+			builder.append("(" + subSelectStmt + " )");
+			Collection<Object> parameters = subSelectParameters;
+
 			return getJdbcTemplate().query(
 					builder.toString(),
 					parameters.toArray(),
-					new ResultSetExtractor<QueryResultsList<Campaign>>() {
+					new ResultSetExtractor<Collection<Campaign>>() {
 						/**
 						 * Counts the total number of results and converts each
 						 * of the actual results into a Campaign object.
 						 */
 						@Override
-						public QueryResultsList<Campaign> extractData(
+						public Collection<Campaign> extractData(
 								ResultSet rs)
 								throws SQLException,
 								org.springframework.dao.DataAccessException {
 							
 							try {
-								QueryResultListBuilder<Campaign> result = 
-										new QueryResultListBuilder<Campaign>();
+								Collection<Campaign> result = 
+										new LinkedList<Campaign>();
 								
 								while(rs.next()) {
-									result.addResult(
+									result.add(
 											new Campaign(
 													null,
 													null,
@@ -1262,7 +1375,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 													rs.getString("xml")));
 								}
 							
-								return result.getQueryResult();
+								return result;
 							}
 							catch(DomainException e) {
 								throw new SQLException(e);
@@ -1363,13 +1476,13 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		
 		// Add the start date if one was given.
 		if(startDate != null) {
-			sqlBuilder.append(" AND creation_timestamp >= ?");
+			sqlBuilder.append(" AND ca.creation_timestamp >= ?");
 			parameters.add(DateTimeUtils.getIso8601DateString(startDate, true));
 		}
 		
 		// Add the end date if one was given.
 		if(endDate != null) {
-			sqlBuilder.append(" AND creation_timestamp <= ?");
+			sqlBuilder.append(" AND ca.creation_timestamp <= ?");
 			parameters.add(DateTimeUtils.getIso8601DateString(endDate, true));
 		}
 		

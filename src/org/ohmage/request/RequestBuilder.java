@@ -48,6 +48,7 @@ import org.ohmage.request.document.DocumentReadRequest;
 import org.ohmage.request.document.DocumentUpdateRequest;
 import org.ohmage.request.image.ImageBatchZipReadRequest;
 import org.ohmage.request.image.ImageReadRequest;
+import org.ohmage.request.media.MediaReadRequest;
 import org.ohmage.request.mobility.MobilityAggregateReadRequest;
 import org.ohmage.request.mobility.MobilityDatesReadRequest;
 import org.ohmage.request.mobility.MobilityReadChunkedRequest;
@@ -89,6 +90,7 @@ import org.ohmage.request.user.UserPasswordResetRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserRegistrationRequest;
 import org.ohmage.request.user.UserSearchRequest;
+import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
 import org.ohmage.request.video.VideoReadRequest;
@@ -100,6 +102,7 @@ import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateRequest;
 import org.ohmage.request.visualization.VizSurveyResponsePrivacyStateTimeseriesRequest;
 import org.ohmage.request.visualization.VizTwoDDensityRequest;
 import org.ohmage.request.visualization.VizUserTimeseriesRequest;
+import org.ohmage.service.ConfigServices;
 import org.springframework.web.context.ServletContextAware;
 
 /**
@@ -166,6 +169,9 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiImageRead;
 	private String apiImageBatchZipRead;
 	
+	// Media  
+	private String apiMediaRead;
+	
 	// Mobility
 	private String apiMobilityUpload;
 	private String apiMobilityRead;
@@ -212,6 +218,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserUpdate;
 	private String apiUserChangePassword;
 	private String apiUserDelete;
+	private String apiUserSetup;
 	
 	// Registration
 	private String apiRegistrationRead;
@@ -267,7 +274,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiAnnotationDelete = apiRoot + "/annotation/delete";
 		
 		// Audio
-		apiAudioRead = apiRoot + "/audio/read";
+		apiAudioRead = apiRoot + "/audio/read";  // not needed
 		
 		// Audit
 		apiAuditRead = apiRoot + "/audit/read";
@@ -308,6 +315,9 @@ public final class RequestBuilder implements ServletContextAware {
 		// Image
 		apiImageRead = apiRoot + "/image/read";
 		apiImageBatchZipRead = apiRoot + "/image/batch/zip/read";
+		
+		// Media
+		apiMediaRead = apiRoot + "/media/read";
 		
 		// Mobility
 		apiMobilityUpload = apiRoot + "/mobility/upload";
@@ -355,12 +365,13 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserUpdate = apiRoot + "/user/update";
 		apiUserChangePassword = apiRoot + "/user/change_password";
 		apiUserDelete = apiRoot + "/user/delete";
+		apiUserSetup = apiRoot + "/user/setup";
 
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
 
 		// Video
-		apiVideoRead = apiRoot + "/video/read";
+		apiVideoRead = apiRoot + "/video/read";  // not needed
 
 		// Visualization
 		apiVisualization = apiRoot + "/viz";
@@ -435,6 +446,7 @@ public final class RequestBuilder implements ServletContextAware {
 		// Audio
 		else if(apiAudioRead.equals(requestUri)) {
 			return new AudioReadRequest(httpRequest);
+			// direct to mediaReadRequest(httpRequest);
 		}
 		// Audit
 		else if(apiAuditRead.equals(requestUri)) {
@@ -503,6 +515,10 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		else if(apiImageBatchZipRead.equals(requestUri)) {
 			return new ImageBatchZipReadRequest(httpRequest);
+		}
+		// apiMediaRead
+		else if(apiMediaRead.equals(requestUri)) {
+			return new MediaReadRequest(httpRequest);
 		}
 		// Mobility
 		else if(apiMobilityUpload.equals(requestUri)) {
@@ -620,12 +636,21 @@ public final class RequestBuilder implements ServletContextAware {
 		else if(apiUserDelete.equals(requestUri)) {
 			return new UserDeletionRequest(httpRequest);
 		}
+		else if(apiUserSetup.equals(requestUri)) {
+			try {
+				if (ConfigServices.readServerConfiguration().getUserSetupEnabled())
+					return new UserSetupRequest(httpRequest);
+			} catch (Exception e) {
+				LOGGER.info("Can't get user setup config. Will disable this API.");
+			}
+		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {
 			return new RegistrationReadRequest(httpRequest);
 		}
 		else if(apiVideoRead.equals(requestUri)) {
 			return new VideoReadRequest(httpRequest);
+			// direct to MediaReadRequest(httpRequest);
 		}
 		// Visualization
 		else if(apiVisualizationSurveyResponseCount.equals(requestUri)) {
@@ -706,6 +731,8 @@ public final class RequestBuilder implements ServletContextAware {
 				// Image
 				apiImageRead.equals(uri) ||
 				apiImageBatchZipRead.equals(uri) ||
+				// Media
+				apiMediaRead.equals(uri) ||			
 				// Mobility
 				apiMobilityUpload.equals(uri) ||
 				apiMobilityRead.equals(uri) ||
@@ -748,6 +775,7 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserUpdate.equals(uri) ||
 				apiUserChangePassword.equals(uri) ||
 				apiUserDelete.equals(uri) ||
+				apiUserSetup.equals(uri) ||
 				// Registration
 				apiRegistrationRead.equals(uri) ||
 				// Video
@@ -1081,6 +1109,15 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiImageBatchZipRead() {
 		return apiImageBatchZipRead;
+	}
+
+	/**
+	 * Returns apiMediaRead.
+	 *
+	 * @return The apiMediaRead.
+	 */
+	public String getApiMediaRead() {
+		return apiMediaRead;
 	}
 
 	/**

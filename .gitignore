@@ -9,3 +9,4 @@ thirdparty
 /nbproject/
 .settings
 .ant-targets-build.xml
+findBugs.xml
