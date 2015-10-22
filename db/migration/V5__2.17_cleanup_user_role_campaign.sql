@@ -19,7 +19,7 @@ WHERE id IN (
       AND cc.id IS NULL
     GROUP BY u.id, cp.id, ur.id
   ) t1
-)
+);
 
 -- delete the relationship between user and campaigns where the campaigns are in
 -- classes that users are not members of. Delete all roles except "author". 
