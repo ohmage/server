@@ -1,4 +1,12 @@
-# Ohmage - Mobile Data Collection System
+# [discontinued] Ohmage 3.0
+
+Development has been discontinued on this branch as of 9/2014. It will be kept for historical purposes, but is not production-ready, and will not continue to be contributed to by the core ohmage team. 
+
+If you have an interest in picking it up, please note that a few additional items have been commited to this branch to facilitate the branch's use as a storage point for all 3.0 info. A new `wiki/` directory has all of the 3.x content originally available from the ohmage/server wiki. For a list of pending issues, please see the [discontinued-3.0](https://github.com/ohmage/server/issues?q=label%3Adiscontinued-3.0+is%3Aclosed) tag, [ohmage 3.0](https://github.com/ohmage/server/milestones/ohmage%203.0) and [ohmage 3.1](https://github.com/ohmage/server/milestones/ohmage%203.1) milestones.
+
+The remaining contents are from the existing README:
+
+=========
 
 ohmage is a mobile data collection system for collecting data given explicitly
 by a user (active data) and data that is collected by backgrounded applications
