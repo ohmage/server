@@ -38,5 +38,5 @@ WHERE id IN (
     GROUP BY u.id, cp.id, ur.id
     HAVING count(cc.class_id) - SUM(IF(uc.class_id IS NULL, 1, 0)) = 0
   ) t1
-) 
+);
 

@@ -198,6 +198,12 @@
     </constructor-arg>
   </bean>
   
+  <bean name="userSetupRequestQueries" class="org.ohmage.query.impl.UserSetupRequestQueries">
+    <constructor-arg>
+      <ref bean="dataSource" />
+    </constructor-arg>
+  </bean>
+ 
   <bean name="userSurveyResponseQueries" class="org.ohmage.query.impl.UserSurveyResponseQueries">
     <constructor-arg>
       <ref bean="dataSource" />

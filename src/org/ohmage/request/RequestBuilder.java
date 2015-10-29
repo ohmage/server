@@ -93,6 +93,10 @@ import org.ohmage.request.user.UserSearchRequest;
 import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
+import org.ohmage.request.usersetuprequest.UserSetupRequestCreationRequest;
+import org.ohmage.request.usersetuprequest.UserSetupRequestDeletionRequest;
+import org.ohmage.request.usersetuprequest.UserSetupRequestReadRequest;
+import org.ohmage.request.usersetuprequest.UserSetupRequestUpdateRequest;
 import org.ohmage.request.video.VideoReadRequest;
 import org.ohmage.request.visualization.VizPromptDistributionRequest;
 import org.ohmage.request.visualization.VizPromptTimeseriesRequest;
@@ -220,6 +224,14 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserDelete;
 	private String apiUserSetup;
 	
+	// UserSetupRequest
+	private String apiUserSetupRequestCreate;
+	private String apiUserSetupRequestUpdate;
+	private String apiUserSetupRequestRead;
+	private String apiUserSetupRequestDelete;
+	
+		
+
 	// Registration
 	private String apiRegistrationRead;
 	
@@ -366,6 +378,12 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserChangePassword = apiRoot + "/user/change_password";
 		apiUserDelete = apiRoot + "/user/delete";
 		apiUserSetup = apiRoot + "/user/setup";
+
+		// UserSetupRequest
+		apiUserSetupRequestCreate = apiRoot + "/user_setup_request/create";
+		apiUserSetupRequestUpdate = apiRoot + "/user_setup_request/update";
+		apiUserSetupRequestRead = apiRoot + "/user_setup_request/read";
+		apiUserSetupRequestDelete = apiRoot + "/user_setup_request/delete";
 
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
@@ -644,6 +662,19 @@ public final class RequestBuilder implements ServletContextAware {
 				LOGGER.info("Can't get user setup config. Will disable this API.");
 			}
 		}
+		// UserSetupRequest
+		else if(apiUserSetupRequestCreate.equals(requestUri)) {
+			return new UserSetupRequestCreationRequest(httpRequest);
+		}
+		else if(apiUserSetupRequestUpdate.equals(requestUri)) {
+			return new UserSetupRequestUpdateRequest(httpRequest);
+		}
+		else if(apiUserSetupRequestRead.equals(requestUri)) {
+			return new UserSetupRequestReadRequest(httpRequest);
+		}
+		else if(apiUserSetupRequestDelete.equals(requestUri)) {
+			return new UserSetupRequestDeletionRequest(httpRequest);
+		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {
 			return new RegistrationReadRequest(httpRequest);
@@ -776,6 +807,11 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserChangePassword.equals(uri) ||
 				apiUserDelete.equals(uri) ||
 				apiUserSetup.equals(uri) ||
+				// UserSetupRequest
+				apiUserSetupRequestCreate.equals(uri) ||
+				apiUserSetupRequestUpdate.equals(uri) ||
+				apiUserSetupRequestRead.equals(uri) ||
+				apiUserSetupRequestDelete.equals(uri) ||
 				// Registration
 				apiRegistrationRead.equals(uri) ||
 				// Video
@@ -1379,6 +1415,42 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiRegistrationRead() {
 		return apiRegistrationRead;
+	}
+
+	/**
+	 * Returns apiUserSetupRequestCreate
+	 *
+	 * @return The apiUserSetupRequestCreate
+	 */
+	public String getApiUserSetupRequestCreate() {
+		return apiUserSetupRequestCreate;
+	}
+
+	/**
+	 * Returns apiUserSetupRequestUpdate
+	 *
+	 * @return The apiUserSetupRequestUpdate
+	 */
+	public String getApiUserSetupRequestUpdate() {
+		return apiUserSetupRequestUpdate;
+	}
+
+	/**
+	 * Returns apiUserSetupRequestRead
+	 *
+	 * @return The apiUserSetupRequestRead
+	 */
+	public String getApiUserSetupRequestRead() {
+		return apiUserSetupRequestRead;
+	}
+
+	/**
+	 * Returns apiUserSetupRequestDelete
+	 *
+	 * @return The apiUserSetupRequestDelete
+	 */
+	public String getApiUserSetupRequestDelete() {
+		return apiUserSetupRequestDelete;
 	}
 
 	/**

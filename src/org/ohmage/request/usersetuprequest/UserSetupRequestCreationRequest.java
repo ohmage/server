@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.request.user;
+package org.ohmage.request.usersetuprequest;
 
 import java.io.IOException;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,10 +30,12 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
+import org.ohmage.service.UserSetupRequestServices;
 import org.ohmage.validator.UserValidators;
+import org.ohmage.domain.UserSetupRequest;
 
 /**
- * <p>Creates a new user. The requester must be an admin.</p>
+ * <p>Creates a new userSetupRequest. </p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -45,60 +48,30 @@ import org.ohmage.validator.UserValidators;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER}</td>
- *     <td>The username for the new user.</td>
- *     <td>true</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#PASSWORD}</td>
- *     <td>The password for the new user.</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID}</td>
+ *     <td>The uuid of the user setup request.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
- *     <td>The user's email address.</td>
+ *     <td>The requester's email address.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ADMIN}</td>
- *     <td>Whether or not the new user should be an admin.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_ENABLED}</td>
- *     <td>Whether or not the new user's account should be enabled.</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#NEW_ACCOUNT}</td>
- *     <td>Whether or not the user must change their password before using any
- *       other APIs. The default value is "true".</td>
- *     <td>false</td>
- *   </tr>
- *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#CAMPAIGN_CREATION_PRIVILEGE}</td>
- *     <td>Whether or not the new user is allowed to create campaigns. The 
- *       default value is based on the current system and can be discovered
- *       through the /config/read API.</td>
- *     <td>false</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_CONTENT}</td>
+ *     <td>The content of the user setup request e.g. project name, objectives, etc.</td>
+ *     <td>true</td>
  *   </tr>
  * </table>
  * 
- * @author John Jenkins
+ * @author Hongsuda T.
  */
 public class UserSetupRequestCreationRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(UserSetupRequestCreationRequest.class);
 	
 	private final String emailAddress;
-	private final String requestContent; 
-	
-	private final String newUsername;
-	private final String newPassword;
-
-	private final Boolean newIsAdmin;
-	private final Boolean newIsEnabled;
-	private final Boolean newIsNewAccount;
-	private final Boolean newCampaignCreationPrivilege;
+	private final JSONObject requestContent; 	
+	private final String uuid;
 	
 	/**
 	 * Creates a user creation request.
@@ -115,15 +88,8 @@ public class UserSetupRequestCreationRequest extends UserRequest {
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
 
 		String tEmailAddress = null;
-		String tRequestContent = null; 
-
-		String tNewUsername = null;
-		String tNewPassword = null;
-
-		Boolean tNewIsAdmin = null;
-		Boolean tNewIsEnabled = null;
-		Boolean tNewIsNewAccount = null;
-		Boolean tNewCampaignCreationPrivilege = null;
+		JSONObject tRequestContent = null; 
+		String tUuid = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user creation request.");
@@ -131,6 +97,25 @@ public class UserSetupRequestCreationRequest extends UserRequest {
 			try {
 				String[] t;
 				
+				// request's uuid
+				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Multiple request_id parameters were given: " +
+								InputKeys.USER_SETUP_REQUEST_ID);
+				}
+				else if(t.length == 1) {
+					tUuid = UserSetupRequest.validateRequestId(t[0]);
+				} 
+				else {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Missing parameter: " +
+								InputKeys.USER_SETUP_REQUEST_ID);
+				}
+				
+				// notify email address
 				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
 				if(t.length > 1) {
 					throw new ValidationException(
@@ -140,18 +125,32 @@ public class UserSetupRequestCreationRequest extends UserRequest {
 				}
 				else if(t.length == 1) {
 					tEmailAddress = UserValidators.validateEmailAddress(t[0]);
+				} 
+				else {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Missing parameter: " +
+								InputKeys.EMAIL_ADDRESS);
 				}
 				
+				// request content
 				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_CONTENT);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PARAMETER,
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
 							"Multiple request content were given: " +
 								InputKeys.USER_SETUP_REQUEST_CONTENT);
 				}
 				else if(t.length == 1) {
-					tRequestContent = UserValidators.validateUserSetupRequestContent(t[0]);
+					tRequestContent = UserSetupRequest.validateRequestContent(t[0]);
 				}
+				else {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Missing parameter: " +
+								InputKeys.USER_SETUP_REQUEST_CONTENT);
+				}
+
 				
 			}
 			catch(ValidationException e) {
@@ -160,10 +159,12 @@ public class UserSetupRequestCreationRequest extends UserRequest {
 			}
 		}
 		
+		uuid = tUuid;
 		emailAddress = tEmailAddress;
 		requestContent = tRequestContent; 		
 	}
 
+	
 	/**
 	 * Services this request if an existing user is making the request.
 	 */
@@ -176,9 +177,12 @@ public class UserSetupRequestCreationRequest extends UserRequest {
 		}
 		
 		try {
-
+			
 			LOGGER.info("Creating the UserSetupRequest.");
-			UserSetupRequestServices.instance().createUserSetupRequest(this.getUser().getUsername(), emailAddress, requestContent);
+			UserSetupRequestServices.instance().createUserSetupRequest(uuid.toString(), this.getUser().getUsername(), emailAddress, requestContent);
+			
+			// TODO: if successful, send an email notification
+			
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
