@@ -22,21 +22,22 @@ import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
-import org.ohmage.domain.UserSetupRequest;
+import org.ohmage.domain.AccessRequest;
+import org.ohmage.domain.AccessRequest.Status;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
-import org.ohmage.query.impl.UserSetupRequestQueries;
+import org.ohmage.query.impl.AccessRequestQueries;
 
 /**
  * This class contains the services that pertain to UserSetupRequest.
  * 
  * @author Hongsuda T.
  */
-public final class UserSetupRequestServices {
-	private static final Logger LOGGER = Logger.getLogger(UserSetupRequestServices.class);
+public final class AccessRequestServices {
+	private static final Logger LOGGER = Logger.getLogger(AccessRequestServices.class);
 
-	private static UserSetupRequestServices instance;
-	private UserSetupRequestQueries userSetupRequestQueries;
+	private static AccessRequestServices instance;
+	private AccessRequestQueries userSetupRequestQueries;
 
 	/**
 	 * Default constructor. Privately instantiated via dependency injection
@@ -47,7 +48,7 @@ public final class UserSetupRequestServices {
 	 * 
 	 * @throws IllegalArgumentException if iClassQueries is null
 	 */	
-	private UserSetupRequestServices(UserSetupRequestQueries userSetupRequestQueries) {
+	private AccessRequestServices(AccessRequestQueries userSetupRequestQueries) {
 		if(instance != null) {
 			throw new IllegalStateException("An instance of this userSetupRequest already exists.");
 		}
@@ -60,7 +61,7 @@ public final class UserSetupRequestServices {
 	/**
 	 * @return  Returns the singleton instance of this class.
 	 */
-	public static UserSetupRequestServices instance() {
+	public static AccessRequestServices instance() {
 		return instance;
 	}
 	
@@ -79,32 +80,36 @@ public final class UserSetupRequestServices {
 	 */
 	public void createUserSetupRequest(
 			final String requestId, 
-			final String username, 
-			final String emailAddress, 
+			final String username,
+			final String emailAddress,
+			final String requestType,
 			final JSONObject requestContent) 
 			throws ServiceException {
 		
-		String defaultStatus = UserSetupRequest.getDefaultStatus().toString();
+		String defaultStatus = AccessRequest.getDefaultStatus().toString();
 		
 		try {			
 			// Check whether the request already exists
 			checkRequestExistence(requestId, false);
 			
 			// Check whether there are other pending request from the same user.
-			// There can only be one PENDING request. 
-			if (userSetupRequestQueries.getRequestExists(username, defaultStatus))
+			// There can only be one PENDING request per type. 
+			if (userSetupRequestQueries.getRequestExists(username, requestType, defaultStatus))
 				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
-						"There is already a pending request from the same user");
+						"There is already a pending request from the same user and type.");
 			
+			// user_setup request
+			if (requestType.equals(AccessRequest.Type.USER_SETUP.toString())) {
 			// Check whether the user already has the user setup privileges
 			// (i.e. both class creation and user setup)
-			if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
-				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
-						"The user already has the privileges");
-				
+				if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
+					throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+							"The user already has the privileges.");
+			}
+			
 			// Create a request with pending status
 			userSetupRequestQueries.createUserSetupRequest(requestId, username, emailAddress, 
-					requestContent.toString(), defaultStatus);
+					requestType, requestContent.toString(), defaultStatus);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -191,12 +196,13 @@ public final class UserSetupRequestServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Collection<UserSetupRequest> getUserSetupRequests(
+	public Collection<AccessRequest> getUserSetupRequests(
 			final String requester,
 			final Collection<String> requestIds,
 			final Collection<String> userIds,
 			final Collection<String> emailAddressTokens,
 			final Collection<String> requestContentTokens,
+			final String requestType,
 			final String requestStatus,
 			final DateTime fromDate,
 			final DateTime toDate,
@@ -205,7 +211,7 @@ public final class UserSetupRequestServices {
 			throws ServiceException {
 		
 		try {
-			Collection<UserSetupRequest> requests = 
+			Collection<AccessRequest> requests = 
 					userSetupRequestQueries
 						.getRequests(
 								requester, 
@@ -213,6 +219,7 @@ public final class UserSetupRequestServices {
 								userIds,
 								emailAddressTokens,
 								requestContentTokens,
+								requestType,
 								requestStatus,
 								null,
 								null);
@@ -291,27 +298,59 @@ public final class UserSetupRequestServices {
 			final String requestId, 
 			final String emailAddress, 
 			final JSONObject requestContent, 
+			final String requestType,
 			final String requestStatus) throws ServiceException {
-		
+
+		Boolean updateUserPrivileges = null;
+		String contentString = null;
 		try {
 			
 			// Check whether the request with the requestId exist
-			checkRequestExistence(requestId, true);
+			// checkRequestExistence(requestId, true);
 			
+			// get the existing request 
+			AccessRequest request = userSetupRequestQueries.getRequest(username,requestId); 
+			if (request == null)
+				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+						"Request doesn't exist.");
+				
 			if (requestStatus != null) {
 				// Only an admin can update the status
 				LOGGER.info("Checking that the user is an admin to change the user setup status.");
 				UserServices.instance().verifyUserIsAdmin(username);
 			} else {			
 				// otherwise, verify that the requester is the owner or an admin 
-				UserSetupRequestServices.instance().verifyUserCanAccessRequest(requestId, username);
+				AccessRequestServices.instance().verifyUserCanAccessRequest(requestId, username);
 			}
 			
-			// update the request's status and corresponding user's privileged 
-			if (requestContent == null)
-				userSetupRequestQueries.updateRequest(requestId, emailAddress, null, requestStatus);
-			else 
-				userSetupRequestQueries.updateRequest(requestId, emailAddress, requestContent.toString(), requestStatus);
+			// Check whether there are other pending request from the same user and type.
+			// There can only be one PENDING request per type. 
+			if (userSetupRequestQueries.getRequestExists(username, requestType, requestStatus))
+				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+						"There is already a pending request from the same user and type.");
+			
+			if (requestContent != null)
+				contentString = requestContent.toString();
+			
+			// user_setup request, check whether the user already has the user setup privileges
+			// (i.e. both class creation and user setup)
+			if (requestType.equals(AccessRequest.Type.USER_SETUP.toString())) {
+				if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
+					throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+							"The user already has the privileges.");
+				
+				if (requestStatus.equals(Status.APPROVED.toString())){
+					updateUserPrivileges  = true;
+				} else if (requestStatus.equals(Status.APPROVED.toString())){
+					updateUserPrivileges = false;
+				}
+								
+			} else { // other cases.. doesn't exist at the moment. 
+			
+			}
+
+			userSetupRequestQueries.updateRequest(requestId, emailAddress, contentString, requestType, requestStatus, updateUserPrivileges);
+
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

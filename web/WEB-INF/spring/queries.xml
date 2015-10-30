@@ -198,7 +198,7 @@
     </constructor-arg>
   </bean>
   
-  <bean name="userSetupRequestQueries" class="org.ohmage.query.impl.UserSetupRequestQueries">
+  <bean name="accessRequestQueries" class="org.ohmage.query.impl.AccessRequestQueries">
     <constructor-arg>
       <ref bean="dataSource" />
     </constructor-arg>

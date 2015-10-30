@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.request.usersetuprequest;
+package org.ohmage.request.accessrequest;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -30,9 +30,9 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
-import org.ohmage.service.UserSetupRequestServices;
+import org.ohmage.service.AccessRequestServices;
 import org.ohmage.validator.UserValidators;
-import org.ohmage.domain.UserSetupRequest;
+import org.ohmage.domain.AccessRequest;
 
 /**
  * <p>Creates a new userSetupRequest. </p>
@@ -66,13 +66,15 @@ import org.ohmage.domain.UserSetupRequest;
  * 
  * @author Hongsuda T.
  */
-public class UserSetupRequestUpdateRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(UserSetupRequestUpdateRequest.class);
+public class AccessRequestUpdateRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(AccessRequestUpdateRequest.class);
 	
 	private final String emailAddress;
 	private final JSONObject requestContent; 	
 	private final String uuid;
+	private final String requestType;
 	private final String requestStatus;
+
 	
 	/**
 	 * Creates a user creation request.
@@ -85,14 +87,15 @@ public class UserSetupRequestUpdateRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserSetupRequestUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public AccessRequestUpdateRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
 
 		String tEmailAddress = null;
 		JSONObject tRequestContent = null; 
 		String tUuid = null;
+		String tRequestType = null;
 		String tRequestStatus = null;
-		
+
 		if(! isFailed()) {
 			LOGGER.info("Creating a user creation request.");
 		
@@ -108,7 +111,7 @@ public class UserSetupRequestUpdateRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_ID);
 				}
 				else if(t.length == 1) {
-					tUuid = UserSetupRequest.validateRequestId(t[0]);
+					tUuid = AccessRequest.validateRequestId(t[0]);
 				}
 				else {
 					throw new ValidationException(
@@ -138,7 +141,19 @@ public class UserSetupRequestUpdateRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_CONTENT);
 				}
 				else if(t.length == 1) {
-					tRequestContent = UserSetupRequest.validateRequestContent(t[0]);
+					tRequestContent = AccessRequest.validateRequestContent(t[0]);
+				}
+
+				// type (optional)
+				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_TYPE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Multiple request status were given: " +
+								InputKeys.USER_SETUP_REQUEST_TYPE);
+				}
+				else if(t.length == 1) {
+					tRequestType = AccessRequest.validateRequestType(t[0]);
 				}
 				
 				// status (optional)
@@ -150,11 +165,12 @@ public class UserSetupRequestUpdateRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_STATUS);
 				}
 				else if(t.length == 1) {
-					tRequestStatus = UserSetupRequest.validateRequestStatus(t[0]);
+					tRequestStatus = AccessRequest.validateRequestStatus(t[0]);
 				}
 				
 				// one or more of the following parameters need to be present to update request
-				if ((tEmailAddress == null) && (tRequestContent == null) && (tRequestStatus == null)){
+				if ((tEmailAddress == null) && (tRequestContent == null) 
+						&& (tRequestStatus == null && (tRequestType == null))){
 					throw new ValidationException(
 							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
 							"Require one or more parameters to update the request : " +
@@ -173,6 +189,7 @@ public class UserSetupRequestUpdateRequest extends UserRequest {
 		uuid = tUuid;
 		emailAddress = tEmailAddress;
 		requestContent = tRequestContent;
+		requestType = tRequestType;
 		requestStatus = tRequestStatus;
 	}
 
@@ -191,7 +208,8 @@ public class UserSetupRequestUpdateRequest extends UserRequest {
 		try {
 			
 			LOGGER.info("Update the UserSetupRequest.");
-			UserSetupRequestServices.instance().updateUserSetupRequest(this.getUser().getUsername(), uuid, emailAddress, requestContent, requestStatus);
+			AccessRequestServices.instance().updateUserSetupRequest(this.getUser().getUsername(), uuid, emailAddress, 
+					requestContent, requestType, requestStatus);
 			
 			
 			// TODO: if successful, send an email notification

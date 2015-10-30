@@ -18,6 +18,7 @@ package org.ohmage.query.impl;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -26,10 +27,10 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
-import org.ohmage.domain.UserSetupRequest;
+import org.ohmage.domain.AccessRequest;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
-import org.ohmage.query.IUserSetupRequestQueries;
+import org.ohmage.query.IAccessRequestQueries;
 import org.ohmage.util.StringUtils;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -40,44 +41,44 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
  * This class contains all of the functionality for creating, reading, 
- * updating, and deleting user_setup_request. 
+ * updating, and deleting access_request. 
  * 
  * @author Hongsuda T.
  */
-public class UserSetupRequestQueries extends Query implements IUserSetupRequestQueries {	
-	private static Logger LOGGER = Logger.getLogger(UserSetupRequestQueries.class);
+public class AccessRequestQueries extends Query implements IAccessRequestQueries {	
+	private static Logger LOGGER = Logger.getLogger(AccessRequestQueries.class);
 		
 	// Inserts a new class.
 	private static final String SQL_INSERT_REQUEST =
-		"INSERT INTO user_setup_request(uuid, user_id, email_address, content, status, creation_timestamp) " +
-		"VALUES (?, (select id from user where username = ?), ?, ?, ?, NOW())";
+		"INSERT INTO access_request(uuid, user_id, email_address, type, content, status, creation_timestamp) " +
+		"VALUES (?, (select id from user where username = ?), ?, ?, ?, ?, NOW())";
 	
 
 	// Returns a boolean as to whether or not the given class exists.
 	private static final String SQL_EXISTS_REQUEST = 
 		"SELECT EXISTS(" +
 			"SELECT id " +
-			"FROM user_setup_request " +
+			"FROM access_request " +
 			"WHERE uuid = ?" +
 		")";
 			
 
 	private static final String SQL_GRANT_USER_SETUP_PRIVILEGES = 
-		"UPDATE user u JOIN user_setup_request usr ON (u.id = usr.user_id) " +
+		"UPDATE user u JOIN access_request ar ON (u.id = ar.user_id) " +
 		"SET class_creation_privilege = true, user_setup_privilege = true " +
-		"WHERE usr.uuid = ?";
+		"WHERE ar.uuid = ?";
 
 	private static final String SQL_REVOKE_USER_SETUP_PRIVILEGES = 
-			"UPDATE user u JOIN user_setup_request usr ON (u.id = usr.user_id) " +
+			"UPDATE user u JOIN access_request ar ON (u.id = ar.user_id) " +
 			"SET class_creation_privilege = false, user_setup_privilege = false " +
-			"WHERE usr.uuid = ?";
+			"WHERE ar.uuid = ?";
 
 	/**
 	 * Creates this object.
 	 * 
 	 * @param dataSource A DataSource object to use when querying the database.
 	 */
-	private UserSetupRequestQueries(DataSource dataSource) {
+	private AccessRequestQueries(DataSource dataSource) {
 		super(dataSource);		
 	}
 	
@@ -92,11 +93,12 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			final String username, 
 			final String emailAddress, 
 			final String requestContent, 
+			final String requestType,
 			final String requestStatus) throws DataAccessException {
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Creating a new user_setup_request.");
+		def.setName("Creating a new access_request.");
 		
 		try {
 			// Begin the transaction.
@@ -106,7 +108,7 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			// Insert the class.
 			try {
 				getJdbcTemplate().update(SQL_INSERT_REQUEST, 
-						new Object[] { requestId, username, emailAddress, requestContent, requestStatus} );
+						new Object[] { requestId, username, emailAddress, requestType, requestContent, requestStatus} );
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
@@ -149,11 +151,11 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 	 * @see org.ohmage.query.impl.IUserSetupRequestQueries#getRequestExists(java.lang.String, java.lang.String)
 	 */
 	@Override
-	public Boolean getRequestExists(String username, String requestStatus) throws DataAccessException {
+	public Boolean getRequestExists(String username, String requestType, String requestStatus) throws DataAccessException {
 		StringBuilder sql = new StringBuilder(
 				"SELECT EXISTS( " +
-				 "SELECT usr.id " +
-				 "FROM user_setup_request usr JOIN user u on (usr.user_id = u.id) " +
+				 "SELECT ar.id " +
+				 "FROM access_request ar JOIN user u on (ar.user_id = u.id) " +
 				 "WHERE ");
 		boolean firstPass = true;
 		List<Object>parameters = new ArrayList<Object>(2);
@@ -163,6 +165,15 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			firstPass = false;
 			parameters.add(username);
 		}
+		
+		if (requestType != null) {
+			if (firstPass)
+				sql.append("type = ? ");
+			else 
+				sql.append("AND type = ? ");	
+			parameters.add(requestType);
+		}
+		
 		if (requestStatus != null) {
 			if (firstPass)
 				sql.append("status = ? ");
@@ -187,7 +198,7 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 	@Override
 	public Boolean getRequestsExist(Collection<String> requestIds) throws DataAccessException {
 		
-		StringBuilder sql = new StringBuilder("SELECT count(*) from user_setup_request where uuid IN ");
+		StringBuilder sql = new StringBuilder("SELECT count(*) from access_request where uuid IN ");
 		sql.append(StringUtils.generateStatementPList(requestIds.size()));
 
 		try {
@@ -235,9 +246,9 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 	public Boolean getUserCanAccessRequest(final String requestId, final String username) throws DataAccessException {
 		// user can access request if the request belong to the user or the user is an admin
 		String sql = "SELECT EXISTS ( " + 
-					   "SELECT usr.id FROM user_setup_request usr, user u " +
-					   "WHERE usr.uuid = ? AND u.username = ? " + 
-					     "AND (u.admin = true OR usr.user_id = u.id) " +
+					   "SELECT ar.id FROM access_request ar, user u " +
+					   "WHERE ar.uuid = ? AND u.username = ? " + 
+					     "AND (u.admin = true OR ar.user_id = u.id) " +
 					 ")";
 
 		try {
@@ -259,10 +270,10 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 	public Boolean getUserCanAccessRequests(final Collection<String> requestIds, final String username) throws DataAccessException {
 		// user can access request if the request belong to the user or the user is an admin
 		StringBuilder sql = new StringBuilder(
-				"SELECT COUNT(usr.id) FROM user_setup_request usr, user u " +
+				"SELECT COUNT(ar.id) FROM access_request ar, user u " +
 				"WHERE u.username = ? " + 
-				  "AND (u.admin = true OR usr.user_id = u.id) " +
-				  "AND usr.uuid IN ");
+				  "AND (u.admin = true OR ar.user_id = u.id) " +
+				  "AND ar.uuid IN ");
 		sql.append(StringUtils.generateStatementPList(requestIds.size()));
 		
 		List<Object> parameters = new LinkedList<Object>();
@@ -290,12 +301,13 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 	 * org.ohmage.domain.UserSetupRequest.Status, org.joda.time.DateTime, org.joda.time.DateTime)
 	 */
 	@Override
-	public List<UserSetupRequest> getRequests(
+	public List<AccessRequest> getRequests(
 			final String requester,
 			final Collection<String> requestIds,
 			final Collection<String> userIds,
 			final Collection<String> emailAddressTokens,
 			final Collection<String> requestContentTokens,
+			final String requestType,
 			final String requestStatus,
 			final DateTime fromDate,
 			final DateTime toDate)
@@ -304,9 +316,9 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 		boolean firstPass = true;
 		List<Object> parameters = new LinkedList<Object>();
 		StringBuilder sql = new StringBuilder(
-				"SELECT usr.uuid, u.username, usr.email_address, " +
-				  "usr.content, usr.status, usr.creation_timestamp, usr.last_modified_timestamp " +
-				"FROM user_setup_request usr JOIN user u ON (usr.user_id = u.id), " +
+				"SELECT ar.uuid, u.username, ar.email_address, " +
+				  "ar.content, ar.status, ar.creation_timestamp, ar.last_modified_timestamp " +
+				"FROM access_request ar JOIN user u ON (ar.user_id = u.id), " +
 				"  user ru " +
 				"WHERE ru.username = ? " + // requester 
 				"  AND ( ru.admin = true OR u.username = ? ) "); // requester
@@ -315,7 +327,7 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 		
 		// filter by uuid
 		if ((requestIds != null) && (! requestIds.isEmpty())) {
-			sql.append("AND usr.uuid in ");
+			sql.append("AND ar.uuid in ");
 			sql.append("( " + StringUtils.generateStatementPList(requestIds.size()) + " )");
 			parameters.addAll(requestIds);
 		}
@@ -333,10 +345,10 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			firstPass = true;
 			for (String token : emailAddressTokens) {
 				if (firstPass) {
-					sql.append("usr.emailAddress LIKE ? ");
+					sql.append("ar.emailAddress LIKE ? ");
 					firstPass = false;
 				} else { 
-					sql.append("AND usr.emailAddress LIKE ? ");
+					sql.append("AND ar.emailAddress LIKE ? ");
 				}
 				parameters.add("%" + token + "%");
 			}
@@ -349,10 +361,10 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			firstPass = true;
 			for (String token : requestContentTokens) {
 				if (firstPass) {
-					sql.append("usr.content LIKE ? ");
+					sql.append("ar.content LIKE ? ");
 					firstPass = false;
 				} else {
-					sql.append("AND usr.content LIKE ? ");
+					sql.append("AND ar.content LIKE ? ");
 				}
 				parameters.add("%" + token + "%");
 			}
@@ -361,20 +373,27 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 
 		// status
 		// filter by status
+		if (requestType != null) {
+			sql.append("AND ar.type = ? ");
+			parameters.add(requestType);
+		}
+
+		// status
+		// filter by status
 		if (requestStatus != null) {
-			sql.append("AND usr.status = ? ");
+			sql.append("AND ar.status = ? ");
 			parameters.add(requestStatus);
 		}
 		
 		// filter by fromDate
 		if (fromDate != null) {
-			sql.append("AND usr.creation_timestamp > ? ");
+			sql.append("AND ar.creation_timestamp > ? ");
 			parameters.add(fromDate.toString());
 		}
 		
 		// filter by toDate
 		if (toDate != null) {
-			sql.append("AND usr.creation_timestamp < ? ");
+			sql.append("AND ar.creation_timestamp < ? ");
 			parameters.add(toDate.toString());
 		}
 		
@@ -382,18 +401,19 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			return getJdbcTemplate().query(
 					sql.toString(), 
 					parameters.toArray(),
-					new RowMapper<UserSetupRequest>() {
+					new RowMapper<AccessRequest>() {
 						@Override
-						public UserSetupRequest mapRow(
+						public AccessRequest mapRow(
 								final ResultSet rs, 
 								final int rowNum) 
 								throws SQLException {
 							
 							try {
-								return new UserSetupRequest(
+								return new AccessRequest(
 										rs.getString("uuid"),		
 										rs.getString("username"),
 										rs.getString("email_address"),
+										rs.getString("type"),
 										rs.getString("content"),
 										rs.getString("status"),
 										new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
@@ -416,16 +436,30 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 		}
 	}
 	
-	
+	public AccessRequest getRequest(final String requester, String requestId) throws DataAccessException {
+		if (requestId == null)
+			return null;
+
+		LinkedList<String> requestIds = new LinkedList<String>(); 
+		requestIds.add(requestId);
+		
+		Collection<AccessRequest> requests = getRequests(requester, requestIds, null, null, null, null, null, null, null);
+		if (! requests.isEmpty()) {
+			return requests.iterator().next();
+		} else 
+			return null;
+	}
+		
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.IUserSetupRequestQueries#updateRequest(
 	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String )
 	 */
 	@Override
-	public void updateRequest(String requestId, String emailAddress, String requestContent, String requestStatus)
+	public void updateRequest(String requestId, String emailAddress, String requestContent, 
+			String requestType, String requestStatus, Boolean updateUserPrivileges)
 		throws DataAccessException {
 
-		StringBuilder sql = new StringBuilder("UPDATE user_setup_request SET ");
+		StringBuilder sql = new StringBuilder("UPDATE access_request SET ");
 		boolean firstClause = true;
 		List<Object> parameters = new LinkedList<Object>();
 		String updateUserPrivilegesSql = null;
@@ -448,6 +482,15 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 				sql.append(", content = ? ");				
 			parameters.add(requestContent);
 		}
+
+		if (requestType != null) {
+			if (firstClause) {
+				sql.append(" type = ? ");
+				firstClause = false;
+			} else 
+				sql.append(", type = ? ");
+			parameters.add(requestType);
+		}
 		
 		if (requestStatus != null) {
 			if (firstClause) {
@@ -456,14 +499,14 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 			} else 
 				sql.append(", status = ? ");
 			parameters.add(requestStatus);
-
-			// if approved, update the user's user setup and class setup privileges
-			if (requestStatus.equalsIgnoreCase(UserSetupRequest.Status.APPROVED.toString())){
+		}
+		
+		// if the flag is null, don't do anything. 
+		if (updateUserPrivileges != null) {
+			if (updateUserPrivileges == true) 
 				updateUserPrivilegesSql = SQL_GRANT_USER_SETUP_PRIVILEGES; 
-			} // if rejected, revoke privileges
-			else if (requestStatus.equalsIgnoreCase(UserSetupRequest.Status.REJECTED.toString())){
-				updateUserPrivilegesSql = SQL_REVOKE_USER_SETUP_PRIVILEGES;
-			}
+			else // if false, revoke user' privileges		
+				updateUserPrivilegesSql = SQL_REVOKE_USER_SETUP_PRIVILEGES;	
 		}
 
 		sql.append("WHERE uuid = ? ");
@@ -471,7 +514,7 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Updating a user_setup_request.");
+		def.setName("Updating a access_request.");
 		
 		try {
 			// Begin the transaction.
@@ -522,13 +565,13 @@ public class UserSetupRequestQueries extends Query implements IUserSetupRequestQ
 	public void deleteRequests(Collection<String> requestIds) throws DataAccessException {
 		// Deletes a request
 		StringBuilder sql = new StringBuilder(
-				"DELETE FROM user_setup_request " + 
+				"DELETE FROM access_request " + 
 				"WHERE uuid IN ");
 		sql.append(StringUtils.generateStatementPList(requestIds.size()));
 
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-		def.setName("Deleting a user_setup_request");
+		def.setName("Deleting a access_request");
 		
 		try {
 			// Begin the transaction.

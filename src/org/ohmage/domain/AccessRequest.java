@@ -39,26 +39,30 @@ import org.ohmage.validator.UserValidators;
  * @author Hongsuda T.
  */
 
-public class UserSetupRequest {
+public class AccessRequest {
 
-	private static final Logger LOGGER = Logger.getLogger(UserSetupRequest.class);
+	private static final Logger LOGGER = Logger.getLogger(AccessRequest.class);
 	private static String JSON_KEY_UUID = "uuid";
 	private static String JSON_KEY_USERNAME = "user";
 	private static String JSON_KEY_EMAIL_ADDRESS = "email_address";
+	private static String JSON_KEY_REQUEST_TYPE = "type";
 	private static String JSON_KEY_REQUEST_CONTENT = "content";
 	private static String JSON_KEY_STATUS = "status";
 	private static String JSON_KEY_CREATION_TIME = "creation_time";
 	
 	// the keys expected from the content json object
-	private static String REQUEST_JSON_KEY_CONTENT = "content";
+	private static String REQUEST_JSON_KEY_CONTENT = "request";
 	
 	// default request status
 	private static Status DEFAULT_STATUS = Status.PENDING;
+	private static Type DEFAULT_TYPE = Type.USER_SETUP;
+
 	private static int MAX_LIST_LENGTH = 100; 
 	
 	private final String uuid;
 	private final String username;
 	private final String emailAddress;
+	private final String requestType;
 	private final String requestContent;
 	private final Status status;
 	private final DateTime creationTime;
@@ -101,6 +105,40 @@ public class UserSetupRequest {
 	}
 
 	/**
+	 * User Setup Request potential status
+	 * 
+	 * @author Hongsuda T.
+	 */
+	public static enum Type {
+		USER_SETUP;
+		
+		/**
+		 * Converts a String value into a Status or throws an exception if there
+		 * is no comparable status.
+		 * 
+		 * @param type The string to be converted into a status enum.
+		 * 
+		 * @return A comparable Status enum.
+		 * 
+		 * @throws IllegalArgumentException Thrown if there is no comparable
+		 * 									Status enum.
+		 */
+		public static Type getValue(String type) {
+			if (type == null)
+				return null;
+			return valueOf(type.toUpperCase());
+		}
+		
+		/**
+		 * Converts the role to a nice, human-readable format.
+		 */
+		@Override
+		public String toString() {
+			return name().toLowerCase();
+		}
+	}
+
+	/**
 	 * Creates a new UserSetupRequest object that contains information about
 	 * a user setup request. All values should be taken from the database.
 	 * 
@@ -121,10 +159,11 @@ public class UserSetupRequest {
 	 * @throws DomainException Thrown if any of the parameters are invalid.
 	 */
 
-	public UserSetupRequest(
+	public AccessRequest(
 			final String id,
 			final String username, 
-			final String emailAddress, 
+			final String emailAddress,
+			final String requestType,
 			final String requestContent, 
 			final String status,
 			final DateTime creationTime,
@@ -134,6 +173,7 @@ public class UserSetupRequest {
 		this.uuid = id;
 		this.username = username;
 		this.emailAddress = emailAddress;
+		this.requestType = requestType;
 		this.requestContent = requestContent;
 		this.status = Status.getValue(status);
 		this.creationTime = creationTime;
@@ -153,6 +193,7 @@ public class UserSetupRequest {
 		result.put(JSON_KEY_USERNAME, username);
 		// result.put(JSON_KEY_UUID, uuid.toString());
 		result.put(JSON_KEY_EMAIL_ADDRESS, emailAddress);
+		result.put(JSON_KEY_REQUEST_TYPE, requestType);
 		result.put(JSON_KEY_REQUEST_CONTENT, requestContent);
 		if (status != null)
 			result.put(JSON_KEY_STATUS, status.toString());
@@ -182,6 +223,14 @@ public class UserSetupRequest {
 		return DEFAULT_STATUS;
 	}
 	
+	/**
+	 *  Get the default status associated with a request.
+	 * 
+	 * @return default status of a new request.
+	 */
+	public static Type getDefaultType() {
+		return DEFAULT_TYPE;
+	}
 
 	/**
 	 *  Validate that the request id is a proper UUID. If the request id is inappropriate,
@@ -272,6 +321,31 @@ public class UserSetupRequest {
 		}
 	}
 
+	/**
+	 *  Validate the user setup status.
+	 * 
+	 * @param type The string representation of the request status. 
+	 * 
+	 * @return status string if the argument is a valid status. 
+	 * 
+	 */
+	public static String validateRequestType(
+			final String type) 
+			throws ValidationException {
+		
+		if(StringUtils.isEmptyOrWhitespaceOnly(type)) {
+			return null;
+		}
+		
+		try {
+			return Type.getValue(type).toString();
+		}
+		catch(IllegalArgumentException e) {
+			throw new ValidationException(
+					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					"The request type is not a valid type (i.e. USER_SETUP): " + type);
+		}
+	}
 
 	/**
 	 * Validates that all of the request identifiers in a list String are valid 

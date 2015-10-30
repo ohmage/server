@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.request.usersetuprequest;
+package org.ohmage.request.accessrequest;
 
 import java.io.IOException;
-import java.util.Collection;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -29,8 +29,10 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.UserSetupRequestServices;
-import org.ohmage.domain.UserSetupRequest;
+import org.ohmage.service.UserServices;
+import org.ohmage.service.AccessRequestServices;
+import org.ohmage.validator.UserValidators;
+import org.ohmage.domain.AccessRequest;
 
 /**
  * <p>Creates a new userSetupRequest. </p>
@@ -46,8 +48,13 @@ import org.ohmage.domain.UserSetupRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID_LIST}</td>
- *     <td>The list of user setup request UUIDs.</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID}</td>
+ *     <td>The uuid of the user setup request.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
+ *     <td>The requester's email address.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
@@ -59,10 +66,13 @@ import org.ohmage.domain.UserSetupRequest;
  * 
  * @author Hongsuda T.
  */
-public class UserSetupRequestDeletionRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(UserSetupRequestDeletionRequest.class);
+public class AccessRequestCreationRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(AccessRequestCreationRequest.class);
 	
-	private final Collection<String> requestIdList;
+	private final String emailAddress;
+	private final String requestType;
+	private final JSONObject requestContent; 	
+	private final String uuid;
 	
 	/**
 	 * Creates a user creation request.
@@ -75,10 +85,13 @@ public class UserSetupRequestDeletionRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserSetupRequestDeletionRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public AccessRequestCreationRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
 
-		Collection<String> tRequestIdList = null;
+		String tEmailAddress = null;
+		String tRequestType = null;
+		JSONObject tRequestContent = null; 
+		String tUuid = null;
 		
 		if(! isFailed()) {
 			LOGGER.info("Creating a user creation request.");
@@ -86,23 +99,78 @@ public class UserSetupRequestDeletionRequest extends UserRequest {
 			try {
 				String[] t;
 				
-				// request's uuid (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID_LIST);
+				// request's uuid
+				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID);
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
-							"Multiple request_id parameters were given: " +
-								InputKeys.USER_SETUP_REQUEST_ID_LIST);
+							"Multiple " + InputKeys.USER_SETUP_REQUEST_ID + 
+							" parameters were given: ");
 				}
 				else if(t.length == 1) {
-					tRequestIdList = UserSetupRequest.validateRequestIdList(t[0]);
+					tUuid = AccessRequest.validateRequestId(t[0]);
+				} 
+				else {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Missing parameter: " +
+								InputKeys.USER_SETUP_REQUEST_ID);
+				}
+				
+				// notify email address
+				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Multiple " + InputKeys.EMAIL_ADDRESS + 
+							" parameters were given: ");
+				}
+				else if(t.length == 1) {
+					tEmailAddress = UserValidators.validateEmailAddress(t[0]);
+				} 
+				else {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Missing parameter: " +
+								InputKeys.EMAIL_ADDRESS);
+				}
+	
+				// request type. Maybe if not provided, we can provide a default?
+				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_TYPE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Multiple " + InputKeys.USER_SETUP_REQUEST_TYPE + 
+							" parameters were given: ");
+				}
+				else if(t.length == 1) {
+					tRequestType = AccessRequest.validateRequestType(t[0]);
+				} 
+				else {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Missing parameter: " +
+								InputKeys.EMAIL_ADDRESS);
+				}
+
+				// request content
+				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_CONTENT);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Multiple " + InputKeys.USER_SETUP_REQUEST_CONTENT + 
+							" parameters were given: ");
+				}
+				else if(t.length == 1) {
+					tRequestContent = AccessRequest.validateRequestContent(t[0]);
 				}
 				else {
 					throw new ValidationException(
 							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
-								InputKeys.USER_SETUP_REQUEST_ID_LIST);
-				}			
+								InputKeys.USER_SETUP_REQUEST_CONTENT);
+				}
+
 				
 			}
 			catch(ValidationException e) {
@@ -111,7 +179,10 @@ public class UserSetupRequestDeletionRequest extends UserRequest {
 			}
 		}
 		
-		requestIdList = tRequestIdList;
+		uuid = tUuid;
+		emailAddress = tEmailAddress;
+		requestType = tRequestType;
+		requestContent = tRequestContent; 		
 	}
 
 	
@@ -127,10 +198,11 @@ public class UserSetupRequestDeletionRequest extends UserRequest {
 		}
 		
 		try {
-			LOGGER.info("Delete the UserSetupRequest.");
 			
-			// all validations are done in deleteUserSetupRequests
-			UserSetupRequestServices.instance().deleteUserSetupRequests(requestIdList, this.getUser().getUsername());
+			LOGGER.info("Creating the UserSetupRequest.");
+			AccessRequestServices.instance().createUserSetupRequest(
+					uuid.toString(), this.getUser().getUsername(), emailAddress, 
+					requestType, requestContent);
 			
 			// TODO: if successful, send an email notification
 			
