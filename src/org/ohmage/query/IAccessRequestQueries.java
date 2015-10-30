@@ -18,7 +18,7 @@ package org.ohmage.query;
 import java.util.Collection;
 import java.util.List;
 import org.joda.time.DateTime;
-import org.ohmage.domain.UserSetupRequest;
+import org.ohmage.domain.AccessRequest;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 
@@ -27,7 +27,7 @@ import org.ohmage.exception.ServiceException;
  * 
  * @author Hongsuda T.
  */
-public interface IUserSetupRequestQueries {
+public interface IAccessRequestQueries {
 
 	/**
 	 * Create a new user setup request record with specified properties 
@@ -50,6 +50,7 @@ public interface IUserSetupRequestQueries {
 			final String username, 
 			final String emailAddress, 
 			final String requestContent, 
+			final String requestType,
 			final String requestStatus) throws DataAccessException;
 	
 
@@ -70,13 +71,15 @@ public interface IUserSetupRequestQueries {
 	 * 
 	 * @param username The username associated with the request.
 	 * 
+	 * @param requestType The request type. 
+	 * 
 	 * @param requestStatus The status associated with the request. 
 	 * 
 	 * @return a Boolean indicating whether a request exists in the system.
 	 *
 	 * @throws ServiceException Thrown if there is an error.
 	 */	
-	Boolean getRequestExists(String username, String requestStatus)
+	Boolean getRequestExists(String username, String requestType, String requestStatus)
 			throws DataAccessException;
 
 
@@ -158,7 +161,9 @@ public interface IUserSetupRequestQueries {
 	 * 					to those requests with request content that 
 	 * 					contain the value. 
 	 * 
-	 * @param requestStatus Only return the requests with specified value.
+	 * @param requestType Only return the requests with specified type.
+	 * 
+	 * @param requestStatus Only return the requests with specified status.
 	 * 
 	 * @param fromDate A start date limiting the results only to 
 	 * 				those that were created after this date.
@@ -170,10 +175,11 @@ public interface IUserSetupRequestQueries {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	List<UserSetupRequest> getRequests(String requester,
+	List<AccessRequest> getRequests(String requester,
 			Collection<String> requestIds, Collection<String> userIds,
 			Collection<String> emailAddressTokens,
-			Collection<String> requestContentTokens, String requestStatus,
+			Collection<String> requestContentTokens, 
+			String requestType, String requestStatus,
 			DateTime fromDate, DateTime toDate) throws DataAccessException;
 
 	
@@ -190,13 +196,19 @@ public interface IUserSetupRequestQueries {
 	 * 
 	 * @param requestContent The request content to be updated.
 	 * 
+	 * @param requestType The request type to be updated.
+	 * 
 	 * @param requestStatus The request status to be updated.
+	 * 
+	 * @param updateUserPrivileges If true, grant access. If false, 
+	 * 				revoke access. If null, do nothing. 
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	void updateRequest(String requestId, String emailAddress,
-			String requestContent, String requestStatus)
-					throws DataAccessException;
+			String requestContent, String requestType, String requestStatus,
+			Boolean updateUserPrivileges)
+			throws DataAccessException;
 
 
 	/**

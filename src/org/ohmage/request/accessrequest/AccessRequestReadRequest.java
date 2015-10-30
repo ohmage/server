@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  ******************************************************************************/
-package org.ohmage.request.usersetuprequest;
+package org.ohmage.request.accessrequest;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -31,8 +31,8 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
-import org.ohmage.service.UserSetupRequestServices;
-import org.ohmage.domain.UserSetupRequest;
+import org.ohmage.service.AccessRequestServices;
+import org.ohmage.domain.AccessRequest;
 
 
 /**
@@ -93,17 +93,18 @@ import org.ohmage.domain.UserSetupRequest;
  * 
  * @author Hongsuda T.
  */
-public class UserSetupRequestReadRequest extends UserRequest {
-	private static final Logger LOGGER = Logger.getLogger(UserSetupRequestReadRequest.class);
+public class AccessRequestReadRequest extends UserRequest {
+	private static final Logger LOGGER = Logger.getLogger(AccessRequestReadRequest.class);
 	
 	private final Collection<String> requestIdList;
 	private final Collection<String> userList;
 	private final Collection<String> emailAddressSearchTokens;
 	private final Collection<String> contentSearchTokens;
+	private final String requestType;
 	private final String requestStatus;
 	private final DateTime startDate;
 	private final DateTime endDate;
-	private Collection<UserSetupRequest> results = null;
+	private Collection<AccessRequest> results = null;
 
 	
 	/**
@@ -117,7 +118,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 	 * 
 	 * @throws IOException There was an error reading from the request.
 	 */
-	public UserSetupRequestReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
+	public AccessRequestReadRequest(HttpServletRequest httpRequest) throws IOException, InvalidRequestException {
 		super(httpRequest, null, TokenLocation.PARAMETER, null);
 
 		
@@ -125,6 +126,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 		Collection<String> tUserList = null;
 		Collection<String> tEmailAddressSearchTokens = null;
 		Collection<String> tContentSearchTokens = null;
+		String tRequestType = null;
 		String tRequestStatus = null;
 		DateTime tStartDate = null;
 		DateTime tEndDate = null;
@@ -144,7 +146,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_ID_LIST);
 				}
 				else if(t.length == 1) {
-					tRequestIdList = UserSetupRequest.validateRequestIdList(t[0]);
+					tRequestIdList = AccessRequest.validateRequestIdList(t[0]);
 				}
 
 				// request's uuid (optional)
@@ -156,7 +158,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_USER_LIST);
 				}
 				else if(t.length == 1) {
-					tUserList = UserSetupRequest.validateUserList(t[0]);
+					tUserList = AccessRequest.validateUserList(t[0]);
 				}
 
 				// notify email address (optional)
@@ -168,7 +170,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.EMAIL_ADDRESS);
 				}
 				else if(t.length == 1) {
-					tEmailAddressSearchTokens = UserSetupRequest.validateEmailAddressSearch(t[0]);
+					tEmailAddressSearchTokens = AccessRequest.validateEmailAddressSearch(t[0]);
 				}
 				
 				// request content (optional)
@@ -180,7 +182,19 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_CONTENT_SEARCH);
 				}
 				else if(t.length == 1) {
-					tContentSearchTokens = UserSetupRequest.validateContentSearch(t[0]);
+					tContentSearchTokens = AccessRequest.validateContentSearch(t[0]);
+				}
+				
+				// request type (optional)
+				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_TYPE);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							"Multiple request type were given: " +
+								InputKeys.USER_SETUP_REQUEST_TYPE);
+				}
+				else if(t.length == 1) {
+					tRequestType = AccessRequest.validateRequestType(t[0]);
 				}
 				
 				// status (optional)
@@ -192,7 +206,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.USER_SETUP_REQUEST_STATUS);
 				}
 				else if(t.length == 1) {
-					tRequestStatus = UserSetupRequest.validateRequestStatus(t[0]);
+					tRequestStatus = AccessRequest.validateRequestStatus(t[0]);
 				}
 				
 				// Start Date (optional)
@@ -204,7 +218,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.START_DATE);
 				}
 				else if(t.length == 1) {
-					tStartDate = UserSetupRequest.validateDate(t[0]);
+					tStartDate = AccessRequest.validateDate(t[0]);
 				}
 				
 				// End Date
@@ -216,7 +230,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 								InputKeys.END_DATE);
 				}
 				else if(t.length == 1) {
-					tEndDate = UserSetupRequest.validateDate(t[0]);
+					tEndDate = AccessRequest.validateDate(t[0]);
 				}
 				
 				// add number to skip and num to retrieve
@@ -232,6 +246,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 		userList = tUserList;
 		emailAddressSearchTokens = tEmailAddressSearchTokens;
 		contentSearchTokens = tContentSearchTokens;
+		requestType = tRequestType;
 		requestStatus = tRequestStatus;
 		startDate = tStartDate;
 		endDate = tEndDate;
@@ -252,9 +267,9 @@ public class UserSetupRequestReadRequest extends UserRequest {
 		try {
 			
 			LOGGER.info("Read the UserSetupRequest.");
-			results = UserSetupRequestServices.instance().getUserSetupRequests(
+			results = AccessRequestServices.instance().getUserSetupRequests(
 					this.getUser().getUsername(), requestIdList, userList, emailAddressSearchTokens, 
-					contentSearchTokens, requestStatus, startDate, endDate, null, null);
+					contentSearchTokens, requestType, requestStatus, startDate, endDate, null, null);
 			
 			// TODO: if successful, send an email notification
 			
@@ -273,7 +288,7 @@ public class UserSetupRequestReadRequest extends UserRequest {
 		
 		JSONObject jsonResult = new JSONObject();
 		
-		for(UserSetupRequest request : results) {
+		for(AccessRequest request : results) {
 			try {
 				jsonResult.put(request.getRequestId(), request.toJsonObject());
 			}

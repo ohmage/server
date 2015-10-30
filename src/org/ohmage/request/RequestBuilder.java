@@ -22,6 +22,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.accessrequest.AccessRequestCreationRequest;
+import org.ohmage.request.accessrequest.AccessRequestDeletionRequest;
+import org.ohmage.request.accessrequest.AccessRequestReadRequest;
+import org.ohmage.request.accessrequest.AccessRequestUpdateRequest;
 import org.ohmage.request.audio.AudioReadRequest;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
@@ -93,10 +97,6 @@ import org.ohmage.request.user.UserSearchRequest;
 import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
-import org.ohmage.request.usersetuprequest.UserSetupRequestCreationRequest;
-import org.ohmage.request.usersetuprequest.UserSetupRequestDeletionRequest;
-import org.ohmage.request.usersetuprequest.UserSetupRequestReadRequest;
-import org.ohmage.request.usersetuprequest.UserSetupRequestUpdateRequest;
 import org.ohmage.request.video.VideoReadRequest;
 import org.ohmage.request.visualization.VizPromptDistributionRequest;
 import org.ohmage.request.visualization.VizPromptTimeseriesRequest;
@@ -114,6 +114,7 @@ import org.springframework.web.context.ServletContextAware;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T. 
  */
 public final class RequestBuilder implements ServletContextAware {
 	private static final Logger LOGGER = 
@@ -224,11 +225,11 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserDelete;
 	private String apiUserSetup;
 	
-	// UserSetupRequest
-	private String apiUserSetupRequestCreate;
-	private String apiUserSetupRequestUpdate;
-	private String apiUserSetupRequestRead;
-	private String apiUserSetupRequestDelete;
+	// AccessRequest
+	private String apiAccessRequestCreate;
+	private String apiAccessRequestUpdate;
+	private String apiAccessRequestRead;
+	private String apiAccessRequestDelete;
 	
 		
 
@@ -276,7 +277,13 @@ public final class RequestBuilder implements ServletContextAware {
 		singleton = this;
 		
 		apiRoot = servletContext.getContextPath();
-		
+
+		// AccessRequest
+		apiAccessRequestCreate = apiRoot + "/access_request/create";
+		apiAccessRequestUpdate = apiRoot + "/access_request/update";
+		apiAccessRequestRead = apiRoot + "/access_request/read";
+		apiAccessRequestDelete = apiRoot + "/access_request/delete";
+
 		// Annotation
 		apiAnnotationPromptResponseCreate = apiRoot + "/annotation/prompt_response/create";
 		apiAnnotationPromptResponseRead = apiRoot + "/annotation/prompt_response/read";
@@ -379,11 +386,6 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserDelete = apiRoot + "/user/delete";
 		apiUserSetup = apiRoot + "/user/setup";
 
-		// UserSetupRequest
-		apiUserSetupRequestCreate = apiRoot + "/user_setup_request/create";
-		apiUserSetupRequestUpdate = apiRoot + "/user_setup_request/update";
-		apiUserSetupRequestRead = apiRoot + "/user_setup_request/read";
-		apiUserSetupRequestDelete = apiRoot + "/user_setup_request/delete";
 
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
@@ -662,18 +664,18 @@ public final class RequestBuilder implements ServletContextAware {
 				LOGGER.info("Can't get user setup config. Will disable this API.");
 			}
 		}
-		// UserSetupRequest
-		else if(apiUserSetupRequestCreate.equals(requestUri)) {
-			return new UserSetupRequestCreationRequest(httpRequest);
+		// AccessRequest
+		else if(apiAccessRequestCreate.equals(requestUri)) {
+			return new AccessRequestCreationRequest(httpRequest);
 		}
-		else if(apiUserSetupRequestUpdate.equals(requestUri)) {
-			return new UserSetupRequestUpdateRequest(httpRequest);
+		else if(apiAccessRequestUpdate.equals(requestUri)) {
+			return new AccessRequestUpdateRequest(httpRequest);
 		}
-		else if(apiUserSetupRequestRead.equals(requestUri)) {
-			return new UserSetupRequestReadRequest(httpRequest);
+		else if(apiAccessRequestRead.equals(requestUri)) {
+			return new AccessRequestReadRequest(httpRequest);
 		}
-		else if(apiUserSetupRequestDelete.equals(requestUri)) {
-			return new UserSetupRequestDeletionRequest(httpRequest);
+		else if(apiAccessRequestDelete.equals(requestUri)) {
+			return new AccessRequestDeletionRequest(httpRequest);
 		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {
@@ -808,10 +810,10 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserDelete.equals(uri) ||
 				apiUserSetup.equals(uri) ||
 				// UserSetupRequest
-				apiUserSetupRequestCreate.equals(uri) ||
-				apiUserSetupRequestUpdate.equals(uri) ||
-				apiUserSetupRequestRead.equals(uri) ||
-				apiUserSetupRequestDelete.equals(uri) ||
+				apiAccessRequestCreate.equals(uri) ||
+				apiAccessRequestUpdate.equals(uri) ||
+				apiAccessRequestRead.equals(uri) ||
+				apiAccessRequestDelete.equals(uri) ||
 				// Registration
 				apiRegistrationRead.equals(uri) ||
 				// Video
@@ -1418,39 +1420,39 @@ public final class RequestBuilder implements ServletContextAware {
 	}
 
 	/**
-	 * Returns apiUserSetupRequestCreate
+	 * Returns apiAccessRequestCreate
 	 *
-	 * @return The apiUserSetupRequestCreate
+	 * @return The apiAccessRequestCreate
 	 */
-	public String getApiUserSetupRequestCreate() {
-		return apiUserSetupRequestCreate;
+	public String getApiAccessRequestCreate() {
+		return apiAccessRequestCreate;
 	}
 
 	/**
-	 * Returns apiUserSetupRequestUpdate
+	 * Returns apiAccessRequestUpdate
 	 *
-	 * @return The apiUserSetupRequestUpdate
+	 * @return The apiAccessRequestUpdate
 	 */
-	public String getApiUserSetupRequestUpdate() {
-		return apiUserSetupRequestUpdate;
+	public String getApiAccessRequestUpdate() {
+		return apiAccessRequestUpdate;
 	}
 
 	/**
-	 * Returns apiUserSetupRequestRead
+	 * Returns apiAccessRequestRead
 	 *
-	 * @return The apiUserSetupRequestRead
+	 * @return The apiAccessRequestRead
 	 */
-	public String getApiUserSetupRequestRead() {
-		return apiUserSetupRequestRead;
+	public String getApiAccessRequestRead() {
+		return apiAccessRequestRead;
 	}
 
 	/**
-	 * Returns apiUserSetupRequestDelete
+	 * Returns apiAccessRequestDelete
 	 *
-	 * @return The apiUserSetupRequestDelete
+	 * @return The apiAccessRequestDelete
 	 */
-	public String getApiUserSetupRequestDelete() {
-		return apiUserSetupRequestDelete;
+	public String getApiAccessRequestDelete() {
+		return apiAccessRequestDelete;
 	}
 
 	/**
