@@ -49,31 +49,31 @@ import org.ohmage.domain.AccessRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_ID_LIST}</td>
  *     <td>A list of user setup request UUIDs to be used to limit the requests 
  *     whose ids are in the list. </td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_USER_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_USER_LIST}</td>
  *     <td>A list of usernames to be used to limit the requests to 
  * 	              only requests with owners that are in the list.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_EMAIL_ADDRESS_SEARCH}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_EMAIL_ADDRESS_SEARCH}</td>
  *     <td>A list of search tokens to be used to limit the results to only those 
  *     requests with email addresses contain those tokens.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_CONTENT_SEARCH}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_CONTENT_SEARCH}</td>
  *     <td> A list of search tokens to be used to limit the results to only those 
  *     requests with content contain those tokens.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_STATUS}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_STATUS}</td>
  *     <td>The status of the requests to search for.</td>
  *     <td>true</td>
  *   </tr>
@@ -132,37 +132,37 @@ public class AccessRequestReadRequest extends UserRequest {
 		DateTime tEndDate = null;
 		
 		if(! isFailed()) {
-			LOGGER.info("Creating a user creation request.");
+			LOGGER.info("Creating a AccessRequestReadRequest.");
 		
 			try {
 				String[] t;
 				
 				// request's uuid (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID_LIST);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_ID_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request_id parameters were given: " +
-								InputKeys.USER_SETUP_REQUEST_ID_LIST);
+								InputKeys.USER_ACCESS_REQUEST_ID_LIST);
 				}
 				else if(t.length == 1) {
 					tRequestIdList = AccessRequest.validateRequestIdList(t[0]);
 				}
 
 				// request's uuid (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_USER_LIST);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_USER_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request_id parameters were given: " +
-								InputKeys.USER_SETUP_REQUEST_USER_LIST);
+								InputKeys.USER_ACCESS_REQUEST_USER_LIST);
 				}
 				else if(t.length == 1) {
 					tUserList = AccessRequest.validateUserList(t[0]);
 				}
 
 				// notify email address (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_EMAIL_ADDRESS_SEARCH);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_EMAIL_ADDRESS_SEARCH);
 				if(t.length > 1) {
 					throw new ValidationException(
 							ErrorCode.USER_INVALID_EMAIL_ADDRESS,
@@ -174,36 +174,36 @@ public class AccessRequestReadRequest extends UserRequest {
 				}
 				
 				// request content (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_CONTENT_SEARCH);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_CONTENT_SEARCH);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request content were given: " +
-								InputKeys.USER_SETUP_REQUEST_CONTENT_SEARCH);
+								InputKeys.USER_ACCESS_REQUEST_CONTENT_SEARCH);
 				}
 				else if(t.length == 1) {
 					tContentSearchTokens = AccessRequest.validateContentSearch(t[0]);
 				}
 				
 				// request type (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_TYPE);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_TYPE);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request type were given: " +
-								InputKeys.USER_SETUP_REQUEST_TYPE);
+								InputKeys.USER_ACCESS_REQUEST_TYPE);
 				}
 				else if(t.length == 1) {
 					tRequestType = AccessRequest.validateRequestType(t[0]);
 				}
 				
 				// status (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_STATUS);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_STATUS);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request status were given: " +
-								InputKeys.USER_SETUP_REQUEST_STATUS);
+								InputKeys.USER_ACCESS_REQUEST_STATUS);
 				}
 				else if(t.length == 1) {
 					tRequestStatus = AccessRequest.validateRequestStatus(t[0]);
@@ -258,7 +258,7 @@ public class AccessRequestReadRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the user read request.");
+		LOGGER.info("Servicing the AccessRequestReadRequest.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
@@ -267,7 +267,7 @@ public class AccessRequestReadRequest extends UserRequest {
 		try {
 			
 			LOGGER.info("Read the UserSetupRequest.");
-			results = AccessRequestServices.instance().getUserSetupRequests(
+			results = AccessRequestServices.instance().getAccessRequests(
 					this.getUser().getUsername(), requestIdList, userList, emailAddressSearchTokens, 
 					contentSearchTokens, requestType, requestStatus, startDate, endDate, null, null);
 			

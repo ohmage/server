@@ -35,7 +35,7 @@ import org.ohmage.validator.UserValidators;
 import org.ohmage.domain.AccessRequest;
 
 /**
- * <p>Creates a new userSetupRequest. </p>
+ * <p>Creates a new AccessRequestUpdateRequest. </p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -48,7 +48,7 @@ import org.ohmage.domain.AccessRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_ID}</td>
  *     <td>The uuid of the user setup request.</td>
  *     <td>true</td>
  *   </tr>
@@ -58,7 +58,7 @@ import org.ohmage.domain.AccessRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_CONTENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_CONTENT}</td>
  *     <td>The content of the user setup request e.g. project name, objectives, etc.</td>
  *     <td>true</td>
  *   </tr>
@@ -97,27 +97,27 @@ public class AccessRequestUpdateRequest extends UserRequest {
 		String tRequestStatus = null;
 
 		if(! isFailed()) {
-			LOGGER.info("Creating a user creation request.");
+			LOGGER.info("Creating an AccessRequestUpdateRequest.");
 		
 			try {
 				String[] t;
 				
 				// request's uuid
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_ID);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request_id parameters were given: " +
-								InputKeys.USER_SETUP_REQUEST_ID);
+								InputKeys.USER_ACCESS_REQUEST_ID);
 				}
 				else if(t.length == 1) {
 					tUuid = AccessRequest.validateRequestId(t[0]);
 				}
 				else {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
-								InputKeys.USER_SETUP_REQUEST_ID);
+								InputKeys.USER_ACCESS_REQUEST_ID);
 				}
 
 				// notify email address (optional)
@@ -133,36 +133,36 @@ public class AccessRequestUpdateRequest extends UserRequest {
 				}
 				
 				// request content (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_CONTENT);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_CONTENT);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request content were given: " +
-								InputKeys.USER_SETUP_REQUEST_CONTENT);
+								InputKeys.USER_ACCESS_REQUEST_CONTENT);
 				}
 				else if(t.length == 1) {
 					tRequestContent = AccessRequest.validateRequestContent(t[0]);
 				}
 
 				// type (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_TYPE);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_TYPE);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request status were given: " +
-								InputKeys.USER_SETUP_REQUEST_TYPE);
+								InputKeys.USER_ACCESS_REQUEST_TYPE);
 				}
 				else if(t.length == 1) {
 					tRequestType = AccessRequest.validateRequestType(t[0]);
 				}
 				
 				// status (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_STATUS);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_STATUS);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request status were given: " +
-								InputKeys.USER_SETUP_REQUEST_STATUS);
+								InputKeys.USER_ACCESS_REQUEST_STATUS);
 				}
 				else if(t.length == 1) {
 					tRequestStatus = AccessRequest.validateRequestStatus(t[0]);
@@ -172,11 +172,11 @@ public class AccessRequestUpdateRequest extends UserRequest {
 				if ((tEmailAddress == null) && (tRequestContent == null) 
 						&& (tRequestStatus == null && (tRequestType == null))){
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Require one or more parameters to update the request : " +
 							InputKeys.EMAIL_ADDRESS + ", " + 
-							InputKeys.USER_SETUP_REQUEST_CONTENT + ", " +
-							InputKeys.USER_SETUP_REQUEST_STATUS);					
+							InputKeys.USER_ACCESS_REQUEST_CONTENT + ", " +
+							InputKeys.USER_ACCESS_REQUEST_STATUS);					
 				}
 			
 			}
@@ -199,7 +199,7 @@ public class AccessRequestUpdateRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the user setup request update.");
+		LOGGER.info("Servicing the AccessRequestUpdateRequest.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
@@ -207,8 +207,8 @@ public class AccessRequestUpdateRequest extends UserRequest {
 		
 		try {
 			
-			LOGGER.info("Update the UserSetupRequest.");
-			AccessRequestServices.instance().updateUserSetupRequest(this.getUser().getUsername(), uuid, emailAddress, 
+			LOGGER.info("Update the AccessRequest.");
+			AccessRequestServices.instance().updateAccessRequest(this.getUser().getUsername(), uuid, emailAddress, 
 					requestContent, requestType, requestStatus);
 			
 			

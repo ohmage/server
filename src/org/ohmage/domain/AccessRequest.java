@@ -62,9 +62,9 @@ public class AccessRequest {
 	private final String uuid;
 	private final String username;
 	private final String emailAddress;
-	private final String requestType;
+	private final Type requestType;
 	private final String requestContent;
-	private final Status status;
+	private final Status requestStatus;
 	private final DateTime creationTime;
 	private final DateTime lastModifiedTime;
 	
@@ -162,9 +162,9 @@ public class AccessRequest {
 	public AccessRequest(
 			final String id,
 			final String username, 
-			final String emailAddress,
-			final String requestType,
+			final String emailAddress,	
 			final String requestContent, 
+			final String requestType,
 			final String status,
 			final DateTime creationTime,
 			final DateTime lastModifiedTime) 
@@ -173,9 +173,9 @@ public class AccessRequest {
 		this.uuid = id;
 		this.username = username;
 		this.emailAddress = emailAddress;
-		this.requestType = requestType;
+		this.requestType = Type.getValue(requestType);
 		this.requestContent = requestContent;
-		this.status = Status.getValue(status);
+		this.requestStatus = Status.getValue(status);
 		this.creationTime = creationTime;
 		this.lastModifiedTime = lastModifiedTime;
 	}
@@ -194,13 +194,10 @@ public class AccessRequest {
 		// result.put(JSON_KEY_UUID, uuid.toString());
 		result.put(JSON_KEY_EMAIL_ADDRESS, emailAddress);
 		result.put(JSON_KEY_REQUEST_TYPE, requestType);
+		result.put(JSON_KEY_STATUS, requestStatus.toString());
 		result.put(JSON_KEY_REQUEST_CONTENT, requestContent);
-		if (status != null)
-			result.put(JSON_KEY_STATUS, status.toString());
-		if (creationTime != null)
-			result.put(JSON_KEY_CREATION_TIME, DateTimeUtils.getIso8601DateString(creationTime, true));
-		if (lastModifiedTime != null)
-			result.put(JSON_KEY_CREATION_TIME, DateTimeUtils.getIso8601DateString(lastModifiedTime, true));
+		result.put(JSON_KEY_CREATION_TIME, DateTimeUtils.getIso8601DateString(creationTime, true));
+		result.put(JSON_KEY_CREATION_TIME, DateTimeUtils.getIso8601DateString(lastModifiedTime, true));
 		
 		return result;
 	}
@@ -231,6 +228,24 @@ public class AccessRequest {
 	public static Type getDefaultType() {
 		return DEFAULT_TYPE;
 	}
+	
+	/**
+	 *  Get request type.
+	 * 
+	 * @return the request type.
+	 */
+	public Type getType(){
+		return requestType;
+	}
+
+	/**
+	 *  Get request status.
+	 * 
+	 * @return the request status.
+	 */
+	public Status getStatus(){
+		return requestStatus;
+	}
 
 	/**
 	 *  Validate that the request id is a proper UUID. If the request id is inappropriate,
@@ -253,7 +268,7 @@ public class AccessRequest {
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The request ID is not a valid UUID: " + requestId);
 		}
 	}
@@ -283,13 +298,15 @@ public class AccessRequest {
 			
 			// check that the content is not empty
 			if ((contentArray == null) || (contentArray.length() == 0)) {
-				throw new ValidationException(ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
-						"Invalid user setup request format. Excpect a JSONObject with non-empty 'content' JSONArray element.");
+				throw new ValidationException(ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
+						"Invalid user setup request format. Excpect a JSONObject with non-empty '" 
+						+ REQUEST_JSON_KEY_CONTENT + "' JSONArray element.");
 			} 
 			
 		} catch (JSONException e) {
-			throw new ValidationException(ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
-					"Invalid user setup request format. Excpect a JSONObject with 'content' element.", 
+			throw new ValidationException(ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
+					"Invalid user setup request format. Excpect a JSONObject with '" +
+					REQUEST_JSON_KEY_CONTENT + "' element.", 
 					e);
 		}
 		return jsonContent;
@@ -316,7 +333,7 @@ public class AccessRequest {
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The request status is not a valid value (i.e. PENDING/APPROVED/REJECTED): " + status);
 		}
 	}
@@ -342,7 +359,7 @@ public class AccessRequest {
 		}
 		catch(IllegalArgumentException e) {
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The request type is not a valid type (i.e. USER_SETUP): " + type);
 		}
 	}
@@ -384,7 +401,7 @@ public class AccessRequest {
 		String[] requestListArray = requestIdListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 		if (requestListArray.length > MAX_LIST_LENGTH) {
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The list cannot exceed the maximum length of " + MAX_LIST_LENGTH);	
 		}
 		
@@ -399,7 +416,7 @@ public class AccessRequest {
 				} 
 			} catch (ValidationException e) {
 				throw new ValidationException(
-						ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+						ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 						"The lsit contains invalid uuid(s): " + requestId);
 				
 			}
@@ -443,7 +460,7 @@ public class AccessRequest {
 		String[] requestListArray = userListString.split(InputKeys.LIST_ITEM_SEPARATOR);
 		if (requestListArray.length > MAX_LIST_LENGTH) {
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The list cannot exceed the maximum length of " + MAX_LIST_LENGTH);	
 		}
 
@@ -458,7 +475,7 @@ public class AccessRequest {
 				} 
 			} catch (ValidationException e) {
 				throw new ValidationException(
-						ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+						ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 						"The lsit contains invalid username(s): " + user);
 			}
 		}
@@ -496,7 +513,7 @@ public class AccessRequest {
 		result = StringUtils.decodeSearchString(value);
 		if (result.size() > MAX_LIST_LENGTH)
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The list cannot exceed the maximum length of " + MAX_LIST_LENGTH);	
 		
 		return result;
@@ -531,7 +548,7 @@ public class AccessRequest {
 		result = StringUtils.decodeSearchString(value);
 		if (result.size() > MAX_LIST_LENGTH)
 			throw new ValidationException(
-					ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER, 
+					ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER, 
 					"The list cannot exceed the maximum length of " + MAX_LIST_LENGTH);	
 		
 		return result;

@@ -24,6 +24,7 @@ import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.AccessRequest;
 import org.ohmage.domain.AccessRequest.Status;
+import org.ohmage.domain.AccessRequest.Type;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.impl.AccessRequestQueries;
@@ -78,7 +79,7 @@ public final class AccessRequestServices {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	public void createUserSetupRequest(
+	public void createAccessRequest(
 			final String requestId, 
 			final String username,
 			final String emailAddress,
@@ -95,7 +96,7 @@ public final class AccessRequestServices {
 			// Check whether there are other pending request from the same user.
 			// There can only be one PENDING request per type. 
 			if (userSetupRequestQueries.getRequestExists(username, requestType, defaultStatus))
-				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 						"There is already a pending request from the same user and type.");
 			
 			// user_setup request
@@ -103,13 +104,13 @@ public final class AccessRequestServices {
 			// Check whether the user already has the user setup privileges
 			// (i.e. both class creation and user setup)
 				if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
-					throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+					throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 							"The user already has the privileges.");
 			}
 			
 			// Create a request with pending status
-			userSetupRequestQueries.createUserSetupRequest(requestId, username, emailAddress, 
-					requestType, requestContent.toString(), defaultStatus);
+			userSetupRequestQueries.createAccessRequest(requestId, username, emailAddress, 
+					requestContent.toString(), requestType, defaultStatus);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -140,7 +141,7 @@ public final class AccessRequestServices {
 			if((requestId != null) && userSetupRequestQueries.getRequestExists(requestId)) {
 				if(! shouldExist) {
 					throw new ServiceException(
-							ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+							ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 							"The setup request already exists: " + requestId
 						);
 				}
@@ -148,7 +149,7 @@ public final class AccessRequestServices {
 			else {
 				if(shouldExist) {
 					throw new ServiceException(
-							ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+							ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 							"The setup request does not exist: " + requestId
 						);
 				}
@@ -196,7 +197,7 @@ public final class AccessRequestServices {
 	 * 
 	 * @throws ServiceException There was an error.
 	 */
-	public Collection<AccessRequest> getUserSetupRequests(
+	public Collection<AccessRequest> getAccessRequests(
 			final String requester,
 			final Collection<String> requestIds,
 			final Collection<String> userIds,
@@ -213,7 +214,7 @@ public final class AccessRequestServices {
 		try {
 			Collection<AccessRequest> requests = 
 					userSetupRequestQueries
-						.getRequests(
+						.getAccessRequests(
 								requester, 
 								requestIds,
 								userIds,
@@ -221,8 +222,8 @@ public final class AccessRequestServices {
 								requestContentTokens,
 								requestType,
 								requestStatus,
-								null,
-								null);
+								fromDate,
+								toDate);
 			
 			return requests;
 		}
@@ -246,7 +247,7 @@ public final class AccessRequestServices {
 		try {
 			if (! userSetupRequestQueries.getUserCanAccessRequest(requestId, username)) {
 				throw new ServiceException(
-						ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+						ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 						"Access denied. The user can't access the user setup request: " + requestId
 					);
 			}
@@ -270,7 +271,7 @@ public final class AccessRequestServices {
 		try {
 			if (! userSetupRequestQueries.getUserCanAccessRequests(requestIds, username)) {
 				throw new ServiceException(
-						ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+						ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 						"Access denied. The user can't access the user setup request: " + requestIds
 					);
 			}
@@ -293,7 +294,7 @@ public final class AccessRequestServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	// only admin can do this
-	public void updateUserSetupRequest(
+	public void updateAccessRequest(
 			final String username,
 			final String requestId, 
 			final String emailAddress, 
@@ -303,53 +304,65 @@ public final class AccessRequestServices {
 
 		Boolean updateUserPrivileges = null;
 		String contentString = null;
+		AccessRequest.Type finalType = null;
 		try {
 			
 			// Check whether the request with the requestId exist
 			// checkRequestExistence(requestId, true);
 			
 			// get the existing request 
-			AccessRequest request = userSetupRequestQueries.getRequest(username,requestId); 
-			if (request == null)
-				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
+			AccessRequest request = userSetupRequestQueries.getAccessRequest(username,requestId); 
+			if (request == null) {
+				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 						"Request doesn't exist.");
-				
-			if (requestStatus != null) {
-				// Only an admin can update the status
-				LOGGER.info("Checking that the user is an admin to change the user setup status.");
-				UserServices.instance().verifyUserIsAdmin(username);
-			} else {			
-				// otherwise, verify that the requester is the owner or an admin 
-				AccessRequestServices.instance().verifyUserCanAccessRequest(requestId, username);
+			} else {
+				finalType = request.getType();
+			}
+
+			if (requestType == null) 
+				finalType = request.getType();
+			else finalType = AccessRequest.Type.getValue(requestType); 
+			
+			if (finalType.equals(Type.USER_SETUP)) {
+				// if status has changed
+				if ((requestStatus != null) &&
+					(! request.getStatus().toString().equals(requestStatus)))
+				{
+					// Only an admin can update the status.
+					LOGGER.info("Checking that the user is an admin to change the user setup status.");
+					UserServices.instance().verifyUserIsAdmin(username);
+					
+					if (requestStatus.equals(Status.APPROVED.toString())){
+						updateUserPrivileges  = true;
+					} else if (requestStatus.equals(Status.REJECTED.toString())){
+						updateUserPrivileges = false;
+					} else { // pending : 
+						// check whether it already exists
+						if (userSetupRequestQueries.getRequestExists(username, requestType, requestStatus)) {
+							throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+									"There is already a pending request from the same user and type.");
+						} 
+						// check whether the user already have the privileges
+						else {
+							if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
+								throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+										"The user already has the privileges.");							
+						}
+					}				
+				} else {			
+					// other changes excluding status: verify that the requester is the owner or an admin 
+					AccessRequestServices.instance().verifyUserCanAccessRequest(requestId, username);
+				}
+					
+			} else {
+				// other types.. doesn't exist yet
 			}
 			
-			// Check whether there are other pending request from the same user and type.
-			// There can only be one PENDING request per type. 
-			if (userSetupRequestQueries.getRequestExists(username, requestType, requestStatus))
-				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
-						"There is already a pending request from the same user and type.");
-			
+
 			if (requestContent != null)
 				contentString = requestContent.toString();
 			
-			// user_setup request, check whether the user already has the user setup privileges
-			// (i.e. both class creation and user setup)
-			if (requestType.equals(AccessRequest.Type.USER_SETUP.toString())) {
-				if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
-					throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR,
-							"The user already has the privileges.");
-				
-				if (requestStatus.equals(Status.APPROVED.toString())){
-					updateUserPrivileges  = true;
-				} else if (requestStatus.equals(Status.APPROVED.toString())){
-					updateUserPrivileges = false;
-				}
-								
-			} else { // other cases.. doesn't exist at the moment. 
-			
-			}
-
-			userSetupRequestQueries.updateRequest(requestId, emailAddress, contentString, requestType, requestStatus, updateUserPrivileges);
+			userSetupRequestQueries.updateAccessRequest(requestId, emailAddress, contentString, requestType, requestStatus, updateUserPrivileges);
 
 		}
 		catch(DataAccessException e) {
@@ -366,21 +379,21 @@ public final class AccessRequestServices {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	// only an admin can do this
-	public void deleteUserSetupRequests(final Collection<String> requestIds, final String username) 
+	public void deleteAccessRequests(final Collection<String> requestIds, final String username) 
 			throws ServiceException {
 		
 		try {
 			
 			// Check whether the request with the requestId exist
 			if (! userSetupRequestQueries.getRequestsExist(requestIds))
-				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR, "Some request ids do not exist!");
+				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR, "Some request ids do not exist!");
 
 			// check whether user can delete them all
 			if (! userSetupRequestQueries.getUserCanAccessRequests(requestIds, username))
-				throw new ServiceException(ErrorCode.USER_SETUP_REQUEST_EXECUTION_ERROR, "User doesn't have access to all requests!");
+				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR, "User doesn't have access to all requests!");
 						
 			
-			userSetupRequestQueries.deleteRequests(requestIds);
+			userSetupRequestQueries.deleteAccessRequests(requestIds);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

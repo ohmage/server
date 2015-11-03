@@ -48,7 +48,7 @@ import org.ohmage.domain.AccessRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_ID}</td>
  *     <td>The uuid of the user setup request.</td>
  *     <td>true</td>
  *   </tr>
@@ -58,7 +58,7 @@ import org.ohmage.domain.AccessRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_CONTENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_CONTENT}</td>
  *     <td>The content of the user setup request e.g. project name, objectives, etc.</td>
  *     <td>true</td>
  *   </tr>
@@ -94,17 +94,17 @@ public class AccessRequestCreationRequest extends UserRequest {
 		String tUuid = null;
 		
 		if(! isFailed()) {
-			LOGGER.info("Creating a user creation request.");
+			LOGGER.info("Creating a AccessRequestCreationRequest.");
 		
 			try {
 				String[] t;
 				
 				// request's uuid
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_ID);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
-							"Multiple " + InputKeys.USER_SETUP_REQUEST_ID + 
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
+							"Multiple " + InputKeys.USER_ACCESS_REQUEST_ID + 
 							" parameters were given: ");
 				}
 				else if(t.length == 1) {
@@ -112,16 +112,16 @@ public class AccessRequestCreationRequest extends UserRequest {
 				} 
 				else {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
-								InputKeys.USER_SETUP_REQUEST_ID);
+								InputKeys.USER_ACCESS_REQUEST_ID);
 				}
 				
 				// notify email address
 				t = getParameterValues(InputKeys.EMAIL_ADDRESS);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple " + InputKeys.EMAIL_ADDRESS + 
 							" parameters were given: ");
 				}
@@ -130,17 +130,17 @@ public class AccessRequestCreationRequest extends UserRequest {
 				} 
 				else {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
 								InputKeys.EMAIL_ADDRESS);
 				}
 	
 				// request type. Maybe if not provided, we can provide a default?
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_TYPE);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_TYPE);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
-							"Multiple " + InputKeys.USER_SETUP_REQUEST_TYPE + 
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
+							"Multiple " + InputKeys.USER_ACCESS_REQUEST_TYPE + 
 							" parameters were given: ");
 				}
 				else if(t.length == 1) {
@@ -148,17 +148,17 @@ public class AccessRequestCreationRequest extends UserRequest {
 				} 
 				else {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
-								InputKeys.EMAIL_ADDRESS);
+								InputKeys.USER_ACCESS_REQUEST_TYPE);
 				}
 
 				// request content
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_CONTENT);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_CONTENT);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
-							"Multiple " + InputKeys.USER_SETUP_REQUEST_CONTENT + 
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
+							"Multiple " + InputKeys.USER_ACCESS_REQUEST_CONTENT + 
 							" parameters were given: ");
 				}
 				else if(t.length == 1) {
@@ -166,9 +166,9 @@ public class AccessRequestCreationRequest extends UserRequest {
 				}
 				else {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
-								InputKeys.USER_SETUP_REQUEST_CONTENT);
+								InputKeys.USER_ACCESS_REQUEST_CONTENT);
 				}
 
 				
@@ -191,7 +191,7 @@ public class AccessRequestCreationRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the user creation request.");
+		LOGGER.info("Servicing the AccessRequestCreationRequest.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
@@ -199,8 +199,8 @@ public class AccessRequestCreationRequest extends UserRequest {
 		
 		try {
 			
-			LOGGER.info("Creating the UserSetupRequest.");
-			AccessRequestServices.instance().createUserSetupRequest(
+			LOGGER.info("Creating the AccessRequest.");
+			AccessRequestServices.instance().createAccessRequest(
 					uuid.toString(), this.getUser().getUsername(), emailAddress, 
 					requestType, requestContent);
 			
