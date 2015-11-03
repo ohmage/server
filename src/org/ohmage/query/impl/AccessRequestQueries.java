@@ -84,11 +84,11 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 	
 	
 	/* (non-Javadoc)
-	 * @see org.ohmage.query.impl.IUserSetupReqeustQueries#createUserSetupRequest(
+	 * @see org.ohmage.query.impl.IUserSetupReqeustQueries#createAccessRequest(
 	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String, java.lang.String)
 	 */
 	@Override
-	public void createUserSetupRequest(
+	public void createAccessRequest(
 			final String requestId, 
 			final String username, 
 			final String emailAddress, 
@@ -296,12 +296,12 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserSetupRequestQueries#getRequests(
+	 * @see org.ohmage.query.IUserSetupRequestQueries#getAccessRequests(
 	 * java.lang.String, java.util.Collection, java.util.Collection, java.util.Collection, java.util.Collection,
 	 * org.ohmage.domain.UserSetupRequest.Status, org.joda.time.DateTime, org.joda.time.DateTime)
 	 */
 	@Override
-	public List<AccessRequest> getRequests(
+	public List<AccessRequest> getAccessRequests(
 			final String requester,
 			final Collection<String> requestIds,
 			final Collection<String> userIds,
@@ -317,12 +317,11 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 		List<Object> parameters = new LinkedList<Object>();
 		StringBuilder sql = new StringBuilder(
 				"SELECT ar.uuid, u.username, ar.email_address, " +
-				  "ar.content, ar.status, ar.creation_timestamp, ar.last_modified_timestamp " +
+				  "ar.content, ar.type, ar.status, ar.creation_timestamp, ar.last_modified_timestamp " +
 				"FROM access_request ar JOIN user u ON (ar.user_id = u.id), " +
 				"  user ru " +
 				"WHERE ru.username = ? " + // requester 
-				"  AND ( ru.admin = true OR u.username = ? ) "); // requester
-		parameters.add(requester);
+				"  AND ( ru.admin = true OR u.username = ru.username ) "); // requester
 		parameters.add(requester);
 		
 		// filter by uuid
@@ -345,10 +344,10 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 			firstPass = true;
 			for (String token : emailAddressTokens) {
 				if (firstPass) {
-					sql.append("ar.emailAddress LIKE ? ");
+					sql.append("ar.email_address LIKE ? ");
 					firstPass = false;
 				} else { 
-					sql.append("AND ar.emailAddress LIKE ? ");
+					sql.append("AND ar.email_address LIKE ? ");
 				}
 				parameters.add("%" + token + "%");
 			}
@@ -413,8 +412,8 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 										rs.getString("uuid"),		
 										rs.getString("username"),
 										rs.getString("email_address"),
-										rs.getString("type"),
 										rs.getString("content"),
+										rs.getString("type"),
 										rs.getString("status"),
 										new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
 										new DateTime(rs.getTimestamp("last_modified_timestamp").getTime())
@@ -436,14 +435,28 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 		}
 	}
 	
-	public AccessRequest getRequest(final String requester, String requestId) throws DataAccessException {
+	
+	/**
+	 * get request information from the database
+	 * 
+	 * @param requester The requester's username.
+	 * 
+	 * @param requestId The request uuid to get the information for.
+	 * 
+	 * @return AccessRequest corresponding to the requestId. Return null 
+	 * 				if the request uuid doesn't exist or the user has 
+	 * 				no right to access it. 
+	 * 
+	 * @throws DataAccessException
+	 */
+	public AccessRequest getAccessRequest(final String requester, String requestId) throws DataAccessException {
 		if (requestId == null)
 			return null;
 
 		LinkedList<String> requestIds = new LinkedList<String>(); 
 		requestIds.add(requestId);
 		
-		Collection<AccessRequest> requests = getRequests(requester, requestIds, null, null, null, null, null, null, null);
+		Collection<AccessRequest> requests = getAccessRequests(requester, requestIds, null, null, null, null, null, null, null);
 		if (! requests.isEmpty()) {
 			return requests.iterator().next();
 		} else 
@@ -455,7 +468,7 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String )
 	 */
 	@Override
-	public void updateRequest(String requestId, String emailAddress, String requestContent, 
+	public void updateAccessRequest(String requestId, String emailAddress, String requestContent, 
 			String requestType, String requestStatus, Boolean updateUserPrivileges)
 		throws DataAccessException {
 
@@ -562,7 +575,7 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 	 * @see org.ohmage.query.impl.IUserSetupRequestQueries#deleteRequests()
 	 */
 	@Override
-	public void deleteRequests(Collection<String> requestIds) throws DataAccessException {
+	public void deleteAccessRequests(Collection<String> requestIds) throws DataAccessException {
 		// Deletes a request
 		StringBuilder sql = new StringBuilder(
 				"DELETE FROM access_request " + 

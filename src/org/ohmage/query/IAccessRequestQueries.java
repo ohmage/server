@@ -45,7 +45,7 @@ public interface IAccessRequestQueries {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */	
-	public void createUserSetupRequest(
+	public void createAccessRequest(
 			final String requestId, 
 			final String username, 
 			final String emailAddress, 
@@ -175,7 +175,7 @@ public interface IAccessRequestQueries {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	List<AccessRequest> getRequests(String requester,
+	List<AccessRequest> getAccessRequests(String requester,
 			Collection<String> requestIds, Collection<String> userIds,
 			Collection<String> emailAddressTokens,
 			Collection<String> requestContentTokens, 
@@ -205,7 +205,7 @@ public interface IAccessRequestQueries {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	void updateRequest(String requestId, String emailAddress,
+	void updateAccessRequest(String requestId, String emailAddress,
 			String requestContent, String requestType, String requestStatus,
 			Boolean updateUserPrivileges)
 			throws DataAccessException;
@@ -218,7 +218,7 @@ public interface IAccessRequestQueries {
 	 * 
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	void deleteRequests(Collection<String> requestIds)
+	void deleteAccessRequests(Collection<String> requestIds)
 			throws DataAccessException;
 	
 	

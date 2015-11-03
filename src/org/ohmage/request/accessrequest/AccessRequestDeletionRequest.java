@@ -33,7 +33,7 @@ import org.ohmage.service.AccessRequestServices;
 import org.ohmage.domain.AccessRequest;
 
 /**
- * <p>Creates a new userSetupRequest. </p>
+ * <p>Delete AccessRequest. </p>
  * <table border="1">
  *   <tr>
  *     <td>Parameter Name</td>
@@ -46,12 +46,12 @@ import org.ohmage.domain.AccessRequest;
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_ID_LIST}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_ID_LIST}</td>
  *     <td>The list of user setup request UUIDs.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
- *     <td>{@value org.ohmage.request.InputKeys#USER_SETUP_REQUEST_CONTENT}</td>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_CONTENT}</td>
  *     <td>The content of the user setup request e.g. project name, objectives, etc.</td>
  *     <td>true</td>
  *   </tr>
@@ -81,27 +81,27 @@ public class AccessRequestDeletionRequest extends UserRequest {
 		Collection<String> tRequestIdList = null;
 		
 		if(! isFailed()) {
-			LOGGER.info("Creating a user creation request.");
+			LOGGER.info("Creating a AccessRequestDeletionRequest.");
 		
 			try {
 				String[] t;
 				
 				// request's uuid (optional)
-				t = getParameterValues(InputKeys.USER_SETUP_REQUEST_ID_LIST);
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_ID_LIST);
 				if(t.length > 1) {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Multiple request_id parameters were given: " +
-								InputKeys.USER_SETUP_REQUEST_ID_LIST);
+								InputKeys.USER_ACCESS_REQUEST_ID_LIST);
 				}
 				else if(t.length == 1) {
 					tRequestIdList = AccessRequest.validateRequestIdList(t[0]);
 				}
 				else {
 					throw new ValidationException(
-							ErrorCode.USER_SETUP_REQUEST_INVALID_PRAMETER,
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
 							"Missing parameter: " +
-								InputKeys.USER_SETUP_REQUEST_ID_LIST);
+								InputKeys.USER_ACCESS_REQUEST_ID_LIST);
 				}			
 				
 			}
@@ -120,17 +120,17 @@ public class AccessRequestDeletionRequest extends UserRequest {
 	 */
 	@Override
 	public void service() {
-		LOGGER.info("Servicing the user creation request.");
+		LOGGER.info("Servicing the AccessRequestDeletionRequest.");
 		
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
 		
 		try {
-			LOGGER.info("Delete the UserSetupRequest.");
+			LOGGER.info("Delete the AccessRequest.");
 			
 			// all validations are done in deleteUserSetupRequests
-			AccessRequestServices.instance().deleteUserSetupRequests(requestIdList, this.getUser().getUsername());
+			AccessRequestServices.instance().deleteAccessRequests(requestIdList, this.getUser().getUsername());
 			
 			// TODO: if successful, send an email notification
 			
