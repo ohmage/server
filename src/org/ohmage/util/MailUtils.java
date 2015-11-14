@@ -15,7 +15,6 @@
  ******************************************************************************/
 package org.ohmage.util;
 
-import java.util.Collection;
 import java.util.Properties;
 
 import javax.mail.Message;
