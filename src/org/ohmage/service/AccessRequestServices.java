@@ -388,7 +388,6 @@ public final class AccessRequestServices {
 	 * @param requestStatus The new request status to be updated.
 	 * @throws ServiceException Thrown if there is an error.
 	 */
-	// only admin can do this
 	public void updateAccessRequest(
 			final String requester,
 			final String requestId, 
@@ -404,9 +403,6 @@ public final class AccessRequestServices {
 
 		try {
 			
-			// Check whether the request with the requestId exist
-			// checkRequestExistence(requestId, true);
-
 			// get the existing request.  
 			AccessRequest request = userSetupRequestQueries.getAccessRequest(requester,requestId); 
 			if (request == null) {
@@ -419,16 +415,19 @@ public final class AccessRequestServices {
 			// verify that the requester is the owner or an admin 
 			try {
 				LOGGER.info("Checking that the user is an admin to update the request.");
-				UserServices.instance().verifyUserIsAdmin(requester);
-				isAdmin = true;
-			} catch (ServiceException e) {
-				try {
-					LOGGER.info("Checking that the user has privilege to update the request.");
-					verifyUserCanAccessRequest(requestId, requester);
-				} catch (ServiceException e2) {
-					throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
-							"User has no privilege to update the request : " + requestId, e);	
+				isAdmin = UserServices.instance().isUserAnAdmin(requester);
+				if (isAdmin == false) {
+					try {
+						LOGGER.info("Checking that the user has privilege to update the request.");
+						verifyUserCanAccessRequest(requestId, requester);
+					} catch (ServiceException e) {
+						throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+								"User has no privilege to update the request : " + requestId, e);	
+					}
 				}
+			} catch (ServiceException e) {
+				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+						"Can't verify user privileges : " + requester, e);	
 			}			
 			
 			// regular user cannot update the non-pending request
@@ -482,6 +481,7 @@ public final class AccessRequestServices {
 				
 			}			
 			
+			// update the request
 			userSetupRequestQueries.updateAccessRequest(requestId, emailAddress, 
 					(requestContent == null) ? null : requestContent.toString(), 
 					requestType, requestStatus, updateUserPrivileges);

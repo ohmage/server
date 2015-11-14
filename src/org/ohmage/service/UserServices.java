@@ -406,6 +406,30 @@ public final class UserServices {
 			// Create the message.
 			MimeMessage message = new MimeMessage(smtpSession);
 			
+			try {
+				// set up properties
+				MailUtils.setMailMessageTo(message, emailAddress);
+				MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_REGISTRATION_SENDER);
+				MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_REGISTRATION_SUBJECT);	
+
+				try {
+					// Set the content of the message.
+					message.setContent(registrationText, "text/html");
+				}
+				catch(MessagingException e) {
+					throw new ServiceException(
+							"There was an error constructing the message.",
+							e);
+				}
+					
+				// send message
+				MailUtils.sendMailMessage(smtpSession, message);
+
+			} catch (ServiceException e) {
+				throw new ServiceException("Cannot successfully send the password recovery notification.", e);
+			}
+
+			/*
 			// Add the recipient.
 			try {
 				message.setRecipient(
@@ -485,6 +509,8 @@ public final class UserServices {
 			}
 			
 			MailUtils.sendMailMessage(smtpSession, message);
+			 */
+
 		}
 		catch(NoSuchAlgorithmException e) {
 			throw new ServiceException("The hashing algorithm is unknown.", e);
@@ -1968,7 +1994,40 @@ public final class UserServices {
 		// Create the message.
 		MimeMessage message = new MimeMessage(smtpSession);
 		
-		// Add the recipient.
+		try {
+			// set up properties
+			MailUtils.setMailMessageTo(message, emailAddress);
+			MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SENDER);
+			MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT);	
+
+			try {
+				message.setContent(
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_TEXT) +
+							"<br /><br />" +
+							newPassword, 
+						"text/html");
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT,
+						e);
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not set the HTML portion of the message.", 
+						e);
+			}
+			
+			// send message
+			MailUtils.sendMailMessage(smtpSession, message);
+
+		} catch (ServiceException e) {
+			throw new ServiceException("Cannot successfully send the password recovery notification.", e);
+		}
+		
+		/*// Add the recipient.
 		try {
 			message.setRecipient(
 					Message.RecipientType.TO, 
@@ -2057,6 +2116,7 @@ public final class UserServices {
 		}
 		
 		MailUtils.sendMailMessage(smtpSession, message);
+		*/
 	}
 	
 	/**
