@@ -18,16 +18,24 @@ package org.ohmage.service;
 
 import java.util.Collection;
 
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
+
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.AccessRequest;
 import org.ohmage.domain.AccessRequest.Status;
-import org.ohmage.domain.AccessRequest.Type;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.impl.AccessRequestQueries;
+import org.ohmage.util.MailUtils;
+
 
 /**
  * This class contains the services that pertain to UserSetupRequest.
@@ -39,6 +47,7 @@ public final class AccessRequestServices {
 
 	private static AccessRequestServices instance;
 	private AccessRequestQueries userSetupRequestQueries;
+	static private String LOCAL_ADMIN_ADDRESS = "root@localhost";
 
 	/**
 	 * Default constructor. Privately instantiated via dependency injection
@@ -111,6 +120,8 @@ public final class AccessRequestServices {
 			// Create a request with pending status
 			userSetupRequestQueries.createAccessRequest(requestId, username, emailAddress, 
 					requestContent.toString(), requestType, defaultStatus);
+			
+
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -279,6 +290,90 @@ public final class AccessRequestServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Send email notification to user or admin depending on the parameter.
+	 * If something is wrong during the notification process, will not throw
+	 * an exception, but will generate a warning message. 
+	 *  
+	 * @param requester The username of the requester.
+	 * 
+	 * @param requestId The request UUID. 
+	 *  
+	 * @param notifiedAdmin A flag indicating whether to notify the admin or user
+	 * 					on the request. If true, will send the notification to admin. 
+	 * 					If false, will send the notification to the owner of the request. 
+	 * 
+	 * 
+	 */
+	public void sendNotification(String requester, String requestId, Boolean notifiedAdmin) {
+
+		AccessRequest request = null;
+		String recipient = null;
+		
+		try {	
+			request = userSetupRequestQueries.getAccessRequest(requester, requestId); 
+		} catch (DataAccessException e) {
+			LOGGER.warn(requester + " can't access the request: " + requestId, e);
+			return;
+		}
+		
+		try {		
+			// Get the session.
+			Session smtpSession = MailUtils.getMailSession();
+			// Create the message.
+			MimeMessage message = new MimeMessage(smtpSession);
+
+			try {
+				if (notifiedAdmin) 
+					recipient = PreferenceCache.instance().lookup(PreferenceCache.KEY_MAIL_ADMIN_ADDRESS);
+				else 
+					recipient = request.getEmailAddress();
+			} catch(CacheMissException e) {
+				LOGGER.warn("Missing an entry in the preference table : " + PreferenceCache.KEY_MAIL_ADMIN_ADDRESS +
+						". Will use " + LOCAL_ADMIN_ADDRESS + "instead.", e);	
+				recipient = LOCAL_ADMIN_ADDRESS;
+			}	
+			
+			// set up properties
+			MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_ACCESS_REQUEST_SENDER);
+			MailUtils.setMailMessageTo(message, recipient);
+			MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_ACCESS_REQUEST_SUBJECT);
+			
+			StringBuilder content = new StringBuilder();
+
+			if (notifiedAdmin) {
+				content.append("<p>Dear admin,</p>\n");
+				content.append("<p>The following request has been submitted: </p>\n");
+			} else {
+				content.append("<p>Dear user,</p>\n");
+				content.append("<p>Below please find the status and information of your request: </p>\n");
+			}
+			
+			try {
+				content.append(request.toHTML());
+			} catch (DomainException e) {
+				throw new ServiceException(
+						"Can't generate the html content of the request",
+						e);				
+			}
+			try {
+				// Set the content of the message.
+				message.setContent(content.toString(), "text/html");
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"There was an error constructing the message.",
+						e);
+			}
+			
+			// send message
+			MailUtils.sendMailMessage(smtpSession, message);
+			
+		} catch (ServiceException e) {
+			LOGGER.warn("Unable to send notification to " + recipient, e);		
+		}
+	}
 
 	/**
 	 * update the user setup request in the system.
@@ -295,23 +390,25 @@ public final class AccessRequestServices {
 	 */
 	// only admin can do this
 	public void updateAccessRequest(
-			final String username,
+			final String requester,
 			final String requestId, 
 			final String emailAddress, 
 			final JSONObject requestContent, 
 			final String requestType,
-			final String requestStatus) throws ServiceException {
+			final String requestStatus,
+			final Boolean notifyUser) throws ServiceException {
 
 		Boolean updateUserPrivileges = null;
-		String contentString = null;
 		AccessRequest.Type finalType = null;
+		Boolean isAdmin = false;
+
 		try {
 			
 			// Check whether the request with the requestId exist
 			// checkRequestExistence(requestId, true);
-			
-			// get the existing request 
-			AccessRequest request = userSetupRequestQueries.getAccessRequest(username,requestId); 
+
+			// get the existing request.  
+			AccessRequest request = userSetupRequestQueries.getAccessRequest(requester,requestId); 
 			if (request == null) {
 				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 						"Request doesn't exist.");
@@ -319,50 +416,75 @@ public final class AccessRequestServices {
 				finalType = request.getType();
 			}
 
+			// verify that the requester is the owner or an admin 
+			try {
+				LOGGER.info("Checking that the user is an admin to update the request.");
+				UserServices.instance().verifyUserIsAdmin(requester);
+				isAdmin = true;
+			} catch (ServiceException e) {
+				try {
+					LOGGER.info("Checking that the user has privilege to update the request.");
+					verifyUserCanAccessRequest(requestId, requester);
+				} catch (ServiceException e2) {
+					throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+							"User has no privilege to update the request : " + requestId, e);	
+				}
+			}			
+			
+			// regular user cannot update the non-pending request
+			if ((! isAdmin) && 
+				(! request.getStatus().equals(AccessRequest.Status.PENDING)))
+			{
+				throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+						"User cannot update a non-PENDING request : " + requestId);	
+			}
+
+			
 			if (requestType == null) 
 				finalType = request.getType();
 			else finalType = AccessRequest.Type.getValue(requestType); 
 			
-			if (finalType.equals(Type.USER_SETUP)) {
-				// if status has changed
+			switch (finalType) {
+			case USER_SETUP:
+				// if (finalType.equals(Type.USER_SETUP)) {
+				// if status has changed				
 				if ((requestStatus != null) &&
 					(! request.getStatus().toString().equals(requestStatus)))
 				{
 					// Only an admin can update the status.
-					LOGGER.info("Checking that the user is an admin to change the user setup status.");
-					UserServices.instance().verifyUserIsAdmin(username);
-					
+					//UserServices.instance().verifyUserIsAdmin(requester);
+					if (isAdmin == false) {
+						throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+								"User has no privilege to update the request status : " + requestId);	
+					}
+						
 					if (requestStatus.equals(Status.APPROVED.toString())){
 						updateUserPrivileges  = true;
 					} else if (requestStatus.equals(Status.REJECTED.toString())){
 						updateUserPrivileges = false;
 					} else { // pending : 
-						// check whether it already exists
-						if (userSetupRequestQueries.getRequestExists(username, requestType, requestStatus)) {
+						// check whether the request of the same user already exists
+						if (userSetupRequestQueries.getRequestExists(request.getUsername(), requestType, requestStatus)) {
 							throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 									"There is already a pending request from the same user and type.");
 						} 
 						// check whether the user already have the privileges
 						else {
-							if (userSetupRequestQueries.getUserSetupPrivilegesExist(username))
+							if (userSetupRequestQueries.getUserSetupPrivilegesExist(request.getUsername()))
 								throw new ServiceException(ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
 										"The user already has the privileges.");							
 						}
 					}				
-				} else {			
-					// other changes excluding status: verify that the requester is the owner or an admin 
-					AccessRequestServices.instance().verifyUserCanAccessRequest(requestId, username);
-				}
-					
-			} else {
-				// other types.. doesn't exist yet
-			}
+				} 
+											
+				break;
+			default:
+				
+			}			
 			
-
-			if (requestContent != null)
-				contentString = requestContent.toString();
-			
-			userSetupRequestQueries.updateAccessRequest(requestId, emailAddress, contentString, requestType, requestStatus, updateUserPrivileges);
+			userSetupRequestQueries.updateAccessRequest(requestId, emailAddress, 
+					(requestContent == null) ? null : requestContent.toString(), 
+					requestType, requestStatus, updateUserPrivileges);
 
 		}
 		catch(DataAccessException e) {

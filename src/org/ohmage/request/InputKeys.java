@@ -166,6 +166,7 @@ public final class InputKeys {
 	public static final String USER_ACCESS_REQUEST_CONTENT_SEARCH = "content_search";
 	public static final String USER_ACCESS_REQUEST_START_DATE = "start_date";
 	public static final String USER_ACCESS_REQUEST_END_DATE = "end_date";
+	public static final String USER_ACCESS_REQUEST_NOTIFY_USER = "notify_user";
 	
 	
 	// State Constants

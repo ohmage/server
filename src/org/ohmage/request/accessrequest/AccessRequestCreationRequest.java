@@ -24,12 +24,15 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.service.AccessRequestServices;
 import org.ohmage.validator.UserValidators;
 import org.ohmage.domain.AccessRequest;
@@ -55,6 +58,11 @@ import org.ohmage.domain.AccessRequest;
  *   <tr>
  *     <td>{@value org.ohmage.request.InputKeys#EMAIL_ADDRESS}</td>
  *     <td>The requester's email address.</td>
+ *     <td>true</td>
+ *   </tr>
+ *   <tr>
+ *     <td>{@value org.ohmage.request.InputKeys#USER_ACCESS_REQUEST_TYPE}</td>
+ *     <td>The request type. Currently only user_setup is supported.</td>
  *     <td>true</td>
  *   </tr>
  *   <tr>
@@ -200,12 +208,27 @@ public class AccessRequestCreationRequest extends UserRequest {
 		try {
 			
 			LOGGER.info("Creating the AccessRequest.");
+			String requester = this.getUser().getUsername();
 			AccessRequestServices.instance().createAccessRequest(
-					uuid.toString(), this.getUser().getUsername(), emailAddress, 
-					requestType, requestContent);
+					uuid, requester, emailAddress, requestType, requestContent);
 			
-			// TODO: if successful, send an email notification
+			// if successful, send an email notification
+			Boolean notifyAdmin = null;
+			try {
+				// check default setting 
+				notifyAdmin = StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_MAIL_ACCESS_REQUEST_NOTIFY_ADMIN));
+			}
+			catch(CacheMissException e) {
+				LOGGER.info(PreferenceCache.KEY_MAIL_ACCESS_REQUEST_NOTIFY_ADMIN + "is not set. Will not send notification");
+				notifyAdmin = false;
+			}
 			
+			if (notifyAdmin) {
+				LOGGER.info("Sending notificaton to admin");				
+				AccessRequestServices.instance().sendNotification(requester, uuid, true); 
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
