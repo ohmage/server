@@ -17,6 +17,7 @@ package org.ohmage.domain;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
@@ -51,7 +52,7 @@ public class AccessRequest {
 	private static String JSON_KEY_CREATION_TIME = "creation_time";
 	
 	// the keys expected from the content json object
-	private static String REQUEST_JSON_KEY_CONTENT = "request";
+	public static String REQUEST_JSON_KEY_CONTENT = "request";
 	
 	// default request status
 	private static Status DEFAULT_STATUS = Status.PENDING;
@@ -203,6 +204,62 @@ public class AccessRequest {
 	}
 	
 	/**
+	 * Returns this UserSetupRequest object as an HTML String 
+	 *  
+	 * @return Returns a HTML String containing the user setup request information.
+	 * 
+	 * @throws JSONException Thrown if generating the object caused an error.
+	 */
+	public String toHTML() throws DomainException {
+		JSONObject jsonContent = null;
+		JSONArray detail = null;
+		StringBuilder result = new StringBuilder();
+			
+		try {
+			jsonContent = new JSONObject(requestContent);
+			detail = jsonContent.getJSONArray(REQUEST_JSON_KEY_CONTENT);
+		} catch (JSONException e) {
+			// this should never happen
+			throw new DomainException(
+					ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+					"Invalid request content: " + requestContent,
+					e);
+		}
+		
+		result.append("<ul>\n");
+		result.append("<li> Request Type: " + requestType.toString().toUpperCase() + " </li>\n");
+		result.append("<li> Request Status: " + requestStatus.toString().toUpperCase() + " </li>\n");
+		result.append("<li> Request username: " + username + " </li>\n");
+		result.append("<li> Request Email Address: " + emailAddress + " </li>\n");
+		result.append("<li> Request Information:</li>\n");
+		result.append("  <ul>\n");			
+
+		try {
+			for (int i = 0; i < detail.length(); i++) {
+				JSONObject elm = detail.getJSONObject(i);
+				@SuppressWarnings("unchecked")
+				Iterator<String> keys = elm.keys();
+				while(keys.hasNext()){
+					String key = (String) keys.next();
+					String val = elm.getString(key);
+					result.append("  <li> " + key + " : " + val + "</li>\n");
+				}
+			}
+		} catch (JSONException e){
+			throw new DomainException(
+					ErrorCode.USER_ACCESS_REQUEST_EXECUTION_ERROR,
+					"Cannot extract detail from the content: " + requestContent,
+					e);
+			
+		}
+		result.append("  </ul>\n");
+		result.append("</ul>\n");
+		
+	
+		return(result.toString());
+	}
+
+	/**
 	 *  Get the user setup request uuid.
 	 * 
 	 * @return uuid of the user setup request.
@@ -228,7 +285,34 @@ public class AccessRequest {
 	public static Type getDefaultType() {
 		return DEFAULT_TYPE;
 	}
-	
+
+	/**
+	 *  Get user name.
+	 * 
+	 * @return the user name.
+	 */
+	public String getUsername(){
+		return username;
+	}
+
+	/**
+	 *  Get email address.
+	 * 
+	 * @return the email address.
+	 */
+	public String getEmailAddress(){
+		return emailAddress;
+	}
+
+	/**
+	 *  Get request content.
+	 * 
+	 * @return the request content.
+	 */
+	public String getContent(){
+		return requestContent;
+	}
+
 	/**
 	 *  Get request type.
 	 * 

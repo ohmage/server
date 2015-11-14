@@ -30,6 +30,7 @@ import org.ohmage.exception.ValidationException;
 import org.ohmage.request.InputKeys;
 import org.ohmage.request.UserRequest;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.service.AccessRequestServices;
 import org.ohmage.validator.UserValidators;
 import org.ohmage.domain.AccessRequest;
@@ -74,6 +75,7 @@ public class AccessRequestUpdateRequest extends UserRequest {
 	private final String uuid;
 	private final String requestType;
 	private final String requestStatus;
+	private final Boolean notifyUser;
 
 	
 	/**
@@ -95,6 +97,7 @@ public class AccessRequestUpdateRequest extends UserRequest {
 		String tUuid = null;
 		String tRequestType = null;
 		String tRequestStatus = null;
+		Boolean tNotifyUser = false;
 
 		if(! isFailed()) {
 			LOGGER.info("Creating an AccessRequestUpdateRequest.");
@@ -168,6 +171,20 @@ public class AccessRequestUpdateRequest extends UserRequest {
 					tRequestStatus = AccessRequest.validateRequestStatus(t[0]);
 				}
 				
+				// notify_user (optional)
+				t = getParameterValues(InputKeys.USER_ACCESS_REQUEST_NOTIFY_USER);
+				if(t.length > 1) {
+					throw new ValidationException(
+							ErrorCode.USER_ACCESS_REQUEST_INVALID_PRAMETER,
+							"Multiple request status were given: " +
+								InputKeys.USER_ACCESS_REQUEST_NOTIFY_USER);
+				}
+				else if(t.length == 1) {
+					tNotifyUser = StringUtils.decodeBoolean(t[0]);
+					if (tNotifyUser == null)
+						tNotifyUser = false;
+				}
+				
 				// one or more of the following parameters need to be present to update request
 				if ((tEmailAddress == null) && (tRequestContent == null) 
 						&& (tRequestStatus == null && (tRequestType == null))){
@@ -191,6 +208,7 @@ public class AccessRequestUpdateRequest extends UserRequest {
 		requestContent = tRequestContent;
 		requestType = tRequestType;
 		requestStatus = tRequestStatus;
+		notifyUser = tNotifyUser;
 	}
 
 	
@@ -204,16 +222,24 @@ public class AccessRequestUpdateRequest extends UserRequest {
 		if(! authenticate(AllowNewAccount.NEW_ACCOUNT_DISALLOWED)) {
 			return;
 		}
-		
+	
 		try {
-			
+
 			LOGGER.info("Update the AccessRequest.");
-			AccessRequestServices.instance().updateAccessRequest(this.getUser().getUsername(), uuid, emailAddress, 
-					requestContent, requestType, requestStatus);
 			
+			String requester = this.getUser().getUsername();
+			AccessRequestServices.instance().updateAccessRequest(requester, uuid, emailAddress, 
+					requestContent, requestType, requestStatus, notifyUser);
+					
 			
-			// TODO: if successful, send an email notification
-			
+			// if successful, send an email notification
+			if (notifyUser == true) {
+				LOGGER.info("Sending notification to user.");
+				AccessRequestServices.instance().sendNotification(requester, uuid, false); 
+			} else {
+				LOGGER.info("Will not notify user since notifyUser = " + notifyUser.toString());	
+			}
+
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);

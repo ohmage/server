@@ -127,6 +127,18 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_MAIL_PASSWORD_RECOVERY_TEXT = 
 			"mail_password_reset_text";
 	
+	// Mail Access Request notification
+	public static final String KEY_MAIL_ACCESS_REQUEST_SENDER = 
+			"mail_access_request_sender_address";
+	public static final String KEY_MAIL_ACCESS_REQUEST_SUBJECT = 
+			"mail_access_request_subject";
+	public static final String KEY_MAIL_ADMIN_ADDRESS = 
+			"mail_admin_address";
+	public static final String KEY_MAIL_ACCESS_REQUEST_NOTIFY_ADMIN = 
+			"mail_access_request_notify_admin";
+	
+	
+	
 	// CORS leniency mode
 	public static final String KEY_CORS_LENIENT_MODE = "cors-lenient-mode";
 	

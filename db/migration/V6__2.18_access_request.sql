@@ -19,6 +19,9 @@ CREATE TABLE IF NOT EXISTS access_request (
   CONSTRAINT FOREIGN KEY (user_id) REFERENCES user (id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO preference VALUES 
-    ('access_request_notify_admin', 'true'),
-    ('admin_email_address', 'root@localhost');
+INSERT INTO preference (p_key, p_value) VALUES 
+ 	('mail_admin_address', 'root@localhost'),
+    ('mail_access_request_notify_admin', 'false'),
+    ('mail_access_request_sender_address', 'no-reply@ohmage.org'),
+    ('mail_access_request_subject', 'ohmage: Access Request Status')
+    ON DUPLICATE KEY UPDATE p_value=VALUES(p_value);
