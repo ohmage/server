@@ -22,6 +22,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.request.accessrequest.AccessRequestCreationRequest;
+import org.ohmage.request.accessrequest.AccessRequestDeletionRequest;
+import org.ohmage.request.accessrequest.AccessRequestReadRequest;
+import org.ohmage.request.accessrequest.AccessRequestUpdateRequest;
 import org.ohmage.request.audio.AudioReadRequest;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
@@ -110,6 +114,7 @@ import org.springframework.web.context.ServletContextAware;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T. 
  */
 public final class RequestBuilder implements ServletContextAware {
 	private static final Logger LOGGER = 
@@ -220,6 +225,14 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserDelete;
 	private String apiUserSetup;
 	
+	// AccessRequest
+	private String apiAccessRequestCreate;
+	private String apiAccessRequestUpdate;
+	private String apiAccessRequestRead;
+	private String apiAccessRequestDelete;
+	
+		
+
 	// Registration
 	private String apiRegistrationRead;
 	
@@ -264,7 +277,13 @@ public final class RequestBuilder implements ServletContextAware {
 		singleton = this;
 		
 		apiRoot = servletContext.getContextPath();
-		
+
+		// AccessRequest
+		apiAccessRequestCreate = apiRoot + "/access_request/create";
+		apiAccessRequestUpdate = apiRoot + "/access_request/update";
+		apiAccessRequestRead = apiRoot + "/access_request/read";
+		apiAccessRequestDelete = apiRoot + "/access_request/delete";
+
 		// Annotation
 		apiAnnotationPromptResponseCreate = apiRoot + "/annotation/prompt_response/create";
 		apiAnnotationPromptResponseRead = apiRoot + "/annotation/prompt_response/read";
@@ -366,6 +385,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserChangePassword = apiRoot + "/user/change_password";
 		apiUserDelete = apiRoot + "/user/delete";
 		apiUserSetup = apiRoot + "/user/setup";
+
 
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
@@ -644,6 +664,19 @@ public final class RequestBuilder implements ServletContextAware {
 				LOGGER.info("Can't get user setup config. Will disable this API.");
 			}
 		}
+		// AccessRequest
+		else if(apiAccessRequestCreate.equals(requestUri)) {
+			return new AccessRequestCreationRequest(httpRequest);
+		}
+		else if(apiAccessRequestUpdate.equals(requestUri)) {
+			return new AccessRequestUpdateRequest(httpRequest);
+		}
+		else if(apiAccessRequestRead.equals(requestUri)) {
+			return new AccessRequestReadRequest(httpRequest);
+		}
+		else if(apiAccessRequestDelete.equals(requestUri)) {
+			return new AccessRequestDeletionRequest(httpRequest);
+		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {
 			return new RegistrationReadRequest(httpRequest);
@@ -776,6 +809,11 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserChangePassword.equals(uri) ||
 				apiUserDelete.equals(uri) ||
 				apiUserSetup.equals(uri) ||
+				// UserSetupRequest
+				apiAccessRequestCreate.equals(uri) ||
+				apiAccessRequestUpdate.equals(uri) ||
+				apiAccessRequestRead.equals(uri) ||
+				apiAccessRequestDelete.equals(uri) ||
 				// Registration
 				apiRegistrationRead.equals(uri) ||
 				// Video
@@ -1379,6 +1417,42 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiRegistrationRead() {
 		return apiRegistrationRead;
+	}
+
+	/**
+	 * Returns apiAccessRequestCreate
+	 *
+	 * @return The apiAccessRequestCreate
+	 */
+	public String getApiAccessRequestCreate() {
+		return apiAccessRequestCreate;
+	}
+
+	/**
+	 * Returns apiAccessRequestUpdate
+	 *
+	 * @return The apiAccessRequestUpdate
+	 */
+	public String getApiAccessRequestUpdate() {
+		return apiAccessRequestUpdate;
+	}
+
+	/**
+	 * Returns apiAccessRequestRead
+	 *
+	 * @return The apiAccessRequestRead
+	 */
+	public String getApiAccessRequestRead() {
+		return apiAccessRequestRead;
+	}
+
+	/**
+	 * Returns apiAccessRequestDelete
+	 *
+	 * @return The apiAccessRequestDelete
+	 */
+	public String getApiAccessRequestDelete() {
+		return apiAccessRequestDelete;
 	}
 
 	/**

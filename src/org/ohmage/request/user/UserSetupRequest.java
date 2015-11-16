@@ -321,7 +321,7 @@ public class UserSetupRequest extends UserRequest {
 							.getUserEmail(getUser().getUsername());
 				}
 				
-				// For security reason, only set storedPlainText password to true 
+				// For security reason, only set initial password to true 
 				// only if the newAccount is set to true to enforce password change 
 				// upon first login. 
 				LOGGER.info("Creating the user.");
@@ -335,12 +335,12 @@ public class UserSetupRequest extends UserRequest {
 							false,  // admin
 							true,   // enable
 							true,   // new account
-							true,   // campaign creation privilege
+							true,   // campaign creation privilege. should read from config
 							true,   // storeInitialPassword
 							personalInfo);
 			}
 			
-			// If the user does exist, store their username and the email
+			// If the user does exist, retrieve their username and the email
 			// address associated with their account.
 			if(! haveUserInfo) {
 				LOGGER.info("The user already exists.");
@@ -362,6 +362,10 @@ public class UserSetupRequest extends UserRequest {
 			
 			// Add them to the class, if given.
 			if(classIds != null) {
+				// need to check that the requester is a privileged
+				// user in the class 
+				
+				
 				// For each class, reset the user's role in that class to
 				// restricted.
 				for(String classId : classIds) {

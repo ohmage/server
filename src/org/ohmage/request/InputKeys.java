@@ -155,6 +155,19 @@ public final class InputKeys {
 	// user setup
 	public static final String USERNAME_PREFIX = "username_prefix";
 	public static final String USERNAME_DIGITS = "username_digits";
+	// user setup_request
+	public static final String USER_ACCESS_REQUEST_ID = "uuid";
+	public static final String USER_ACCESS_REQUEST_TYPE = "type";
+	public static final String USER_ACCESS_REQUEST_CONTENT = "content";
+	public static final String USER_ACCESS_REQUEST_STATUS = "status";
+	public static final String USER_ACCESS_REQUEST_ID_LIST = "request_uuid_list";
+	public static final String USER_ACCESS_REQUEST_USER_LIST = "user_list";
+	public static final String USER_ACCESS_REQUEST_EMAIL_ADDRESS_SEARCH = "email_address_search";
+	public static final String USER_ACCESS_REQUEST_CONTENT_SEARCH = "content_search";
+	public static final String USER_ACCESS_REQUEST_START_DATE = "start_date";
+	public static final String USER_ACCESS_REQUEST_END_DATE = "end_date";
+	public static final String USER_ACCESS_REQUEST_NOTIFY_USER = "notify_user";
+	
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";

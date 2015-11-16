@@ -46,6 +46,7 @@ import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import com.sun.mail.smtp.SMTPTransport;
 
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
@@ -76,8 +77,9 @@ import org.ohmage.query.impl.QueryResultsList;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.MailUtils;
 
-import com.sun.mail.smtp.SMTPTransport;
+
 
 /**
  * This class contains the services for users.
@@ -86,6 +88,7 @@ import com.sun.mail.smtp.SMTPTransport;
  */
 public final class UserServices {
 	private static final Logger LOGGER = Logger.getLogger(UserServices.class);
+	/* HT
 	private static final String MAIL_PROTOCOL = "smtp";
 	private static final String MAIL_PROPERTY_HOST = 
 			"mail." + MAIL_PROTOCOL + ".host";
@@ -93,6 +96,7 @@ public final class UserServices {
 			"mail." + MAIL_PROTOCOL + ".port";
 	private static final String MAIL_PROPERTY_SSL_ENABLED =
 			"mail." + MAIL_PROTOCOL + ".ssl.enable";
+	*/
 	
 	private static final String MAIL_REGISTRATION_TEXT_TOS = "<_TOS_>";
 	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_LINK =
@@ -398,10 +402,34 @@ public final class UserServices {
 					.replace(MAIL_REGISTRATION_TEXT_TOS, termsOfService);
 			
 			// Get the session.
-			Session smtpSession = getMailSession();
+			Session smtpSession = MailUtils.getMailSession();
 			// Create the message.
 			MimeMessage message = new MimeMessage(smtpSession);
 			
+			try {
+				// set up properties
+				MailUtils.setMailMessageTo(message, emailAddress);
+				MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_REGISTRATION_SENDER);
+				MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_REGISTRATION_SUBJECT);	
+
+				try {
+					// Set the content of the message.
+					message.setContent(registrationText, "text/html");
+				}
+				catch(MessagingException e) {
+					throw new ServiceException(
+							"There was an error constructing the message.",
+							e);
+				}
+					
+				// send message
+				MailUtils.sendMailMessage(smtpSession, message);
+
+			} catch (ServiceException e) {
+				throw new ServiceException("Cannot successfully send the password recovery notification.", e);
+			}
+
+			/*
 			// Add the recipient.
 			try {
 				message.setRecipient(
@@ -480,7 +508,9 @@ public final class UserServices {
 						e);
 			}
 			
-			sendMailMessage(smtpSession, message);
+			MailUtils.sendMailMessage(smtpSession, message);
+			 */
+
 		}
 		catch(NoSuchAlgorithmException e) {
 			throw new ServiceException("The hashing algorithm is unknown.", e);
@@ -1960,11 +1990,44 @@ public final class UserServices {
 		}
 		
 		// Get the session.
-		Session smtpSession = getMailSession();
+		Session smtpSession = MailUtils.getMailSession();
 		// Create the message.
 		MimeMessage message = new MimeMessage(smtpSession);
 		
-		// Add the recipient.
+		try {
+			// set up properties
+			MailUtils.setMailMessageTo(message, emailAddress);
+			MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SENDER);
+			MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT);	
+
+			try {
+				message.setContent(
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_TEXT) +
+							"<br /><br />" +
+							newPassword, 
+						"text/html");
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT,
+						e);
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not set the HTML portion of the message.", 
+						e);
+			}
+			
+			// send message
+			MailUtils.sendMailMessage(smtpSession, message);
+
+		} catch (ServiceException e) {
+			throw new ServiceException("Cannot successfully send the password recovery notification.", e);
+		}
+		
+		/*// Add the recipient.
 		try {
 			message.setRecipient(
 					Message.RecipientType.TO, 
@@ -2052,7 +2115,8 @@ public final class UserServices {
 					e);
 		}
 		
-		sendMailMessage(smtpSession, message);
+		MailUtils.sendMailMessage(smtpSession, message);
+		*/
 	}
 	
 	/**
@@ -2158,161 +2222,4 @@ public final class UserServices {
 		return passwordBuilder.toString();
 	}
 	
-	/**
-	 * Creates and returns a new mail Session.
-	 * 
-	 * @return The mail session based on the current state of the preferences
-	 * 		   in the database.
-	 * 
-	 * @throws ServiceException There was a problem creating the session.
-	 */
-	private Session getMailSession() throws ServiceException {	
-		// Get the email properties.
-		Properties sessionProperties = new Properties();
-		try {
-			String host = 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_HOST);
-			
-			sessionProperties.put(MAIL_PROPERTY_HOST, host);
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		try {
-			sessionProperties.put(
-					MAIL_PROPERTY_PORT, 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_PORT));
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		try {
-			sessionProperties.put(
-					MAIL_PROPERTY_SSL_ENABLED, 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_SSL));
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		// Create the session and return it.
-		return Session.getInstance(sessionProperties);
-	}
-	
-	/**
-	 * Sends a mail message.
-	 * 
-	 * @param smtpSession The session used to create the message.
-	 * 
-	 * @param message The message to be sent.
-	 * 
-	 * @throws ServiceException There was a problem creating the connection to
-	 * 							the mail server or sending the message.
-	 */
-	private void sendMailMessage(Session smtpSession, Message message) throws ServiceException {
-		// Get the transport from the session.
-		SMTPTransport transport;
-		try {
-			transport = 
-					(SMTPTransport) smtpSession.getTransport(MAIL_PROTOCOL);
-		}
-		catch(NoSuchProviderException e) {
-			throw new ServiceException(
-					"There is no provider for SMTP. " +
-						"This means the library has changed as it has built-in support for SMTP.",
-					e);
-		}
-
-		Boolean auth = null;
-		try {
-			auth = StringUtils.decodeBoolean(
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_AUTH));
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		if((auth != null) && auth) {
-			String mailUsername;
-			try {
-				mailUsername = 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_USERNAME);
-			}
-			catch(CacheMissException e) {
-				throw new ServiceException(
-					"The mail property is not in the preference table: " +
-						PreferenceCache.KEY_MAIL_USERNAME,
-					e);
-			}
-			
-			String mailPassword;
-			try {
-				mailPassword = 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_PASSWORD);
-			}
-			catch(CacheMissException e) {
-				throw new ServiceException(
-					"The mail property is not in the preference table: " +
-						PreferenceCache.KEY_MAIL_PASSWORD,
-					e);
-			}
-			
-			try {
-				transport.connect(
-						smtpSession.getProperty(MAIL_PROPERTY_HOST), 
-						mailUsername, 
-						mailPassword);
-			}
-			catch(MessagingException e) {
-				throw new ServiceException(
-						"Could not authenticate with or connect to the mail server.",
-						e);
-			}
-		}
-		else {
-			try {
-				transport.connect();
-			}
-			catch(MessagingException e) {
-				throw new ServiceException(
-						"Could not connect to the mail server.",
-						e);
-			}
-		}
-		
-		try {
-			transport.sendMessage(message, message.getAllRecipients());
-		}
-		catch(SendFailedException e) {
-			throw new ServiceException(
-					"Failed to send the message.",
-					e);
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"There was a problem while sending the message.",
-					e);
-		}
-		
-		try {
-			transport.close();
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"After sending the message there was an error closing the connection.",
-					e);
-		}
-	}
 }
