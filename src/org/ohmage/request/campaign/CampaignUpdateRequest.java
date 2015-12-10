@@ -310,7 +310,7 @@ public class CampaignUpdateRequest extends UserRequest {
 			
 			if(xml != null) {
 				LOGGER.info("Verifying that the user is allowed to update the campaign.");
-				UserCampaignServices.instance().verifyUserCanUpdateCampaignXml(getUser().getUsername(), campaignId, id, name);
+				UserCampaignServices.instance().verifyCampaignXmlCanBeUpdated(getUser().getUsername(), campaignId, id, name);
 			}
 			
 			if((classesToAdd != null) && (classesToRemove != null)) {

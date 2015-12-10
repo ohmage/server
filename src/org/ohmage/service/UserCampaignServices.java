@@ -38,8 +38,6 @@ import org.ohmage.query.ICampaignQueries;
 import org.ohmage.query.ICampaignSurveyResponseQueries;
 import org.ohmage.query.IUserCampaignQueries;
 import org.ohmage.query.IUserQueries;
-import org.ohmage.query.impl.QueryResultsList;
-import org.ohmage.request.campaign.CampaignReadRequest;
 import org.ohmage.util.StringUtils;
 
 /**
@@ -278,8 +276,11 @@ public class UserCampaignServices {
 			final String campaignId) throws ServiceException {
 		
 		try {
+		    	// Get the user's roles for this campaign.
 			List<Campaign.Role> roles = userCampaignQueries.getUserCampaignRoles(username, campaignId);
 			
+			// If the user isn't a supervisor or an author, then they aren't 
+			// allowed to update it.
 			if(roles.contains(Campaign.Role.SUPERVISOR) ||
 			   roles.contains(Campaign.Role.AUTHOR)) {
 				return;
@@ -310,7 +311,7 @@ public class UserCampaignServices {
 	 * 							campaign but responses exist, or if there is an
 	 * 							error.
 	 */
-	public void verifyUserCanUpdateCampaignXml(
+	public void verifyCampaignXmlCanBeUpdated(
 			final String username,
 			final String campaignId,
 			final String id,
@@ -318,23 +319,7 @@ public class UserCampaignServices {
 			throws ServiceException {
 		
 		try {
-			// Get the user's roles for this campaign.
-			List<Campaign.Role> roles = 
-				userCampaignQueries
-					.getUserCampaignRoles(username, campaignId);
-			
-			// If the user isn't a supervisor or an author, then they aren't 
-			// allowed to update it.
-			if(!
-				(roles.contains(Campaign.Role.SUPERVISOR) ||
-				roles.contains(Campaign.Role.AUTHOR))) {
-
-				throw new ServiceException(
-					ErrorCode.CAMPAIGN_INSUFFICIENT_PERMISSIONS, 
-					"The user is not allowed to modify the campaign's XML.");
-			}
-			
-			// If the campaign already has survey responses, then it cannot be
+		    	// If the campaign already has survey responses, then it cannot be
 			// updated by anyone.
 			if(campaignSurveyResponseQueries
 				.getNumberOfSurveyResponsesForCampaign(campaignId) != 0) {
