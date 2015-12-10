@@ -50,14 +50,21 @@ public class PhotoPrompt extends MediaPrompt {
 	}
 	
 	private static final String JSON_KEY_MAXIMUM_DIMENSION = "max_dimension";
+	private static final String JSON_KEY_JPEG_QUALITY = "jpeg_quality";
+
 	
 	/**
 	 * The campaign configuration property key for the maximum allowed
 	 * dimension for a photo.
 	 */
 	public static final String XML_KEY_MAXIMUM_DIMENSION = "maxDimension";
+	/**
+	 * The campaign configuration property key for the jpegQuality. 
+	 */
+	public static final String XML_KEY_JPEG_QUALITY = "jpegQuality";
 	
 	private final Integer maxDimension;
+	private final Integer jpegQuality;
 	
 	/**
 	 * Creates a photo prompt.
@@ -100,6 +107,7 @@ public class PhotoPrompt extends MediaPrompt {
 			final String displayLabel,
 			final int index,
 			final Integer maximumDimension,
+			final Integer jpegQuality,
 			final Long maxFileSize
 			) 
 			throws DomainException {
@@ -121,8 +129,14 @@ public class PhotoPrompt extends MediaPrompt {
 			throw new DomainException(
 					"The maximum dimension cannot be negative.");
 		}
-		
+
+		if((jpegQuality != null) && ((jpegQuality < 0) || jpegQuality > 100)) {
+			throw new DomainException(
+					"The jpeg quality must be a number between 0 and 100.");
+		}
+
 		this.maxDimension = maximumDimension;
+		this.jpegQuality = jpegQuality;
 	}
 	
 	/**
@@ -135,6 +149,16 @@ public class PhotoPrompt extends MediaPrompt {
 		return maxDimension;
 	}
 	
+	/**
+	 * Returns the jpegQuality of an image.
+	 * 
+	 * @return The jpeg quality of an image or null if it
+	 * 		   was not given.
+	 */
+	public Integer getJpegQuality() {
+		return jpegQuality;
+	}
+
 	/**
 	 * Conditions are not allowed for photo prompts unless they are
 	 * {@link NoResponse} values.
@@ -271,7 +295,10 @@ public class PhotoPrompt extends MediaPrompt {
 		if(maxDimension != null) {
 			result.put(JSON_KEY_MAXIMUM_DIMENSION, maxDimension);
 		}
-		
+		if(jpegQuality != null) {
+			result.put(JSON_KEY_JPEG_QUALITY, jpegQuality);
+		}
+
 		return result;
 	}
 
@@ -323,6 +350,11 @@ public class PhotoPrompt extends MediaPrompt {
 			prime *
 				result +
 				((maxDimension == null) ? 0 : maxDimension.hashCode());
+		result =
+			prime *
+				result +
+				((jpegQuality == null) ? 0 : jpegQuality.hashCode());
+		
 		return result;
 	}
 
@@ -349,6 +381,15 @@ public class PhotoPrompt extends MediaPrompt {
 		else if(!maxDimension.equals(other.maxDimension)) {
 			return false;
 		}
+		if(jpegQuality == null) {
+			if(other.jpegQuality != null) {
+				return false;
+			}
+		}
+		else if(!jpegQuality.equals(other.jpegQuality)) {
+			return false;
+		}
+
 		return true;
 	}
 }

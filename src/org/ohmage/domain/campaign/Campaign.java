@@ -4148,6 +4148,7 @@ public class Campaign {
 			throws DomainException {
 		
 		Integer maxDimension = null;
+		
 		try {
 			LabelValuePair maxDimensionVlp =
 				properties.get(PhotoPrompt.XML_KEY_MAXIMUM_DIMENSION);  // optional
@@ -4166,6 +4167,25 @@ public class Campaign {
 					e);
 		}
 		
+		Integer jpegQuality = null;
+		try {
+			LabelValuePair jpegQualityVlp =
+				properties.get(PhotoPrompt.XML_KEY_JPEG_QUALITY);  // optional
+			
+			if(jpegQualityVlp != null) {
+				jpegQuality = 
+					Integer.decode(jpegQualityVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						PhotoPrompt.XML_KEY_JPEG_QUALITY +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+
 		Long maxFileSize = null;
 		try {
 			LabelValuePair maxFilesizeVlp =
@@ -4203,6 +4223,7 @@ public class Campaign {
 			displayLabel,
 			index, 
 			maxDimension,
+			jpegQuality,
 			maxFileSize);
 	}
 
