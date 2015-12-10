@@ -3829,17 +3829,23 @@ public class Campaign {
 			String[] values = defaultValue.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			defaultValues = new ArrayList<Integer>(values.length);
+			Integer defaultKey;
+
 			for(int i = 0; i < values.length; i++) {
 				String currValue = values[i];
 				
 				if(! "".equals(currValue)) {
-					try {
-						defaultValues.add(Integer.decode(currValue));
+				    try {
+					defaultKey = Integer.decode(currValue);
+					defaultValues.add(defaultKey);
+					if(defaultKey < 0) {
+					    throw new DomainException("The default key value cannot be negative: " + id);
 					}
-					catch(NumberFormatException e) {
-						throw new DomainException(
+				    }
+				    catch(NumberFormatException e) {
+					throw new DomainException(
 							"One of the default values was not an integer.");
-					}
+				    }
 				}
 			}
 		}
@@ -3932,12 +3938,18 @@ public class Campaign {
 			String[] values = defaultValue.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			defaultValues = new ArrayList<Integer>(values.length);
+			Integer defaultKey;
+			
 			for(int i = 0; i < values.length; i++) {
 				String currValue = values[i];
 				
 				if(! "".equals(currValue)) {
 					try {
-						defaultValues.add(Integer.decode(currValue));
+						defaultKey = Integer.decode(currValue);
+						defaultValues.add(defaultKey);
+						if(defaultKey < 0) {
+						    throw new DomainException("The default key value cannot be negative: " + id);
+						}
 					}
 					catch(NumberFormatException e) {
 						throw new DomainException(
@@ -4296,13 +4308,6 @@ public class Campaign {
 						id);
 		}
 
-
-		if (maxFileSize != null)
-			LOGGER.debug("HT: Will create filePrompt with max_filesize=" + maxFileSize);
-		else 
-			LOGGER.debug("HT: Will create filePrompt with max_filesize=NULL");
-
-
 		return new FilePrompt(
 			id,
 			condition,
@@ -4562,6 +4567,10 @@ public class Campaign {
 		if(defaultValue != null) {
 			try {
 				defaultKey = Integer.decode(defaultValue);
+				
+				if(defaultKey < 0) {
+					throw new DomainException("The default key value cannot be negative: " + id);
+				}
 			}
 			catch(NumberFormatException e) {
 				throw new DomainException("The default key is not an integer.");
@@ -4655,6 +4664,11 @@ public class Campaign {
 		if(defaultValue != null) {
 			try {
 				defaultKey = Integer.decode(defaultValue);
+				
+				if(defaultKey < 0) {
+					throw new DomainException("The default key value cannot be negative: " + id);
+				}
+
 			}
 			catch(NumberFormatException e) {
 				throw new DomainException("The default key is not an integer.");
