@@ -96,10 +96,14 @@ public class SingleChoicePrompt extends ChoicePrompt {
 			choices,
 			Type.SINGLE_CHOICE,
 			index);
+	
+		// at least one choice is defined
+		if (choices.size() == 0)
+		    throw new DomainException("At least one choice has to be defined: " + id);
 		
 		if((defaultKey != null) &&
 				(! getChoices().containsKey(defaultKey))) {
-			throw new DomainException("The default key does not exist.");
+			throw new DomainException("The default key does not exist: " + id);
 		}
 		this.defaultKey = defaultKey;
 	}
