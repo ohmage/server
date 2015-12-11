@@ -103,12 +103,16 @@ public class MultiChoicePrompt extends ChoicePrompt {
 			Type.MULTI_CHOICE,
 			index);
 
+		// at least one choice is defined
+		if (choices.size() == 0)
+		    throw new DomainException("At least one choice has to be defined: " + id);
+
 		if(defaultKeys != null) {
 			Collection<Integer> availableKeys = getChoices().keySet();
 			for(Integer defaultKey : defaultKeys) {
 				if(! availableKeys.contains(defaultKey)) {
 					throw new DomainException(
-							"The default key does not exist.");
+							"The default key does not exist: " + id);
 				}
 			}
 		}

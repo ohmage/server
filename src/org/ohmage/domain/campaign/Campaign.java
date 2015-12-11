@@ -3829,17 +3829,23 @@ public class Campaign {
 			String[] values = defaultValue.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			defaultValues = new ArrayList<Integer>(values.length);
+			Integer defaultKey;
+
 			for(int i = 0; i < values.length; i++) {
 				String currValue = values[i];
 				
 				if(! "".equals(currValue)) {
-					try {
-						defaultValues.add(Integer.decode(currValue));
+				    try {
+					defaultKey = Integer.decode(currValue);
+					defaultValues.add(defaultKey);
+					if(defaultKey < 0) {
+					    throw new DomainException("The default key value cannot be negative: " + id);
 					}
-					catch(NumberFormatException e) {
-						throw new DomainException(
+				    }
+				    catch(NumberFormatException e) {
+					throw new DomainException(
 							"One of the default values was not an integer.");
-					}
+				    }
 				}
 			}
 		}
@@ -3932,12 +3938,18 @@ public class Campaign {
 			String[] values = defaultValue.split(InputKeys.LIST_ITEM_SEPARATOR);
 			
 			defaultValues = new ArrayList<Integer>(values.length);
+			Integer defaultKey;
+			
 			for(int i = 0; i < values.length; i++) {
 				String currValue = values[i];
 				
 				if(! "".equals(currValue)) {
 					try {
-						defaultValues.add(Integer.decode(currValue));
+						defaultKey = Integer.decode(currValue);
+						defaultValues.add(defaultKey);
+						if(defaultKey < 0) {
+						    throw new DomainException("The default key value cannot be negative: " + id);
+						}
 					}
 					catch(NumberFormatException e) {
 						throw new DomainException(
@@ -4148,6 +4160,7 @@ public class Campaign {
 			throws DomainException {
 		
 		Integer maxDimension = null;
+		
 		try {
 			LabelValuePair maxDimensionVlp =
 				properties.get(PhotoPrompt.XML_KEY_MAXIMUM_DIMENSION);  // optional
@@ -4166,6 +4179,25 @@ public class Campaign {
 					e);
 		}
 		
+		Integer jpegQuality = null;
+		try {
+			LabelValuePair jpegQualityVlp =
+				properties.get(PhotoPrompt.XML_KEY_JPEG_QUALITY);  // optional
+			
+			if(jpegQualityVlp != null) {
+				jpegQuality = 
+					Integer.decode(jpegQualityVlp.getLabel());
+			}
+		}
+		catch(NumberFormatException e) {
+			throw new DomainException(
+					"The '" +
+						PhotoPrompt.XML_KEY_JPEG_QUALITY +
+						"' property is not an integer: " +
+						id, 
+					e);
+		}
+
 		Long maxFileSize = null;
 		try {
 			LabelValuePair maxFilesizeVlp =
@@ -4203,6 +4235,7 @@ public class Campaign {
 			displayLabel,
 			index, 
 			maxDimension,
+			jpegQuality,
 			maxFileSize);
 	}
 
@@ -4274,13 +4307,6 @@ public class Campaign {
 					"Default values are not allowed for file prompts: " +
 						id);
 		}
-
-
-		if (maxFileSize != null)
-			LOGGER.debug("HT: Will create filePrompt with max_filesize=" + maxFileSize);
-		else 
-			LOGGER.debug("HT: Will create filePrompt with max_filesize=NULL");
-
 
 		return new FilePrompt(
 			id,
@@ -4541,6 +4567,10 @@ public class Campaign {
 		if(defaultValue != null) {
 			try {
 				defaultKey = Integer.decode(defaultValue);
+				
+				if(defaultKey < 0) {
+					throw new DomainException("The default key value cannot be negative: " + id);
+				}
 			}
 			catch(NumberFormatException e) {
 				throw new DomainException("The default key is not an integer.");
@@ -4634,6 +4664,11 @@ public class Campaign {
 		if(defaultValue != null) {
 			try {
 				defaultKey = Integer.decode(defaultValue);
+				
+				if(defaultKey < 0) {
+					throw new DomainException("The default key value cannot be negative: " + id);
+				}
+
 			}
 			catch(NumberFormatException e) {
 				throw new DomainException("The default key is not an integer.");

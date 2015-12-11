@@ -270,7 +270,6 @@ public final class SurveyResponseServices {
 	 * @throws ServiceException Thrown if a prompt response exists but its
 	 * 							corresponding contents don't.
 	 */
-	// TODO: HT generalize this for all media type
 	public void verifyOFilesForFilePromptResponses(
 			final Collection<SurveyResponse> surveyResponses,
 			final Map<UUID, IMedia> oFiles) 

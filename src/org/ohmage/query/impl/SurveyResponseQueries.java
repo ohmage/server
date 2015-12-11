@@ -93,7 +93,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		// Note: This means that multiple rows may have the same survey 
 		// response information but have unique prompt response
 		// information.
-		"RIGHT JOIN prompt_response AS pr " +
+		"LEFT JOIN prompt_response AS pr " +
 			"ON sr.id = pr.survey_response_id ";
 	
 	/**

@@ -115,6 +115,20 @@ public class TextPrompt extends Prompt {
 		this.min = min;
 		this.max = max;
 		this.defaultValue = defaultValue;
+		
+		// min >= 0
+		if (this.min < 0) 
+		    throw new DomainException("The min value (" +this.min + ") cannot be negative.");
+
+		// max >= 0
+		if (this.max < 0) 
+		    throw new DomainException("The max value (" +this.max + ") cannot be negative.");
+
+		// max has to be >= min
+		if (this.max < this.min) {
+		    throw new DomainException("The max value (" +this.max + ") must be greater than or equal to the min value (" + this.min + ").");
+		}		
+
 	}
 	
 	/**
