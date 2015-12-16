@@ -1,7 +1,10 @@
 -- MySQL DDL statements for the ohmage database
-
-CREATE DATABASE IF NOT EXISTS ohmage CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE ohmage;
+--
+-- --------------------------------------------------------------------
+-- Assuming that the ohmage db is created prior to running this script
+-- CREATE DATABASE IF NOT EXISTS ohmage CHARACTER SET utf8 COLLATE utf8_general_ci;
+-- USE ohmage;
+--- --------------------------------------------------------------------
 
 -- --------------------------------------------------------------------
 -- A lookup table for the types of HTTP requests. 
