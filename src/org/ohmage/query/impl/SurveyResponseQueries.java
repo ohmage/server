@@ -93,7 +93,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		// Note: This means that multiple rows may have the same survey 
 		// response information but have unique prompt response
 		// information.
-		"RIGHT JOIN prompt_response AS pr " +
+		"LEFT JOIN prompt_response AS pr " +
 			"ON sr.id = pr.survey_response_id ";
 	
 	/**
@@ -567,7 +567,11 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 							
 							boolean processPrompts = true;
 							try {
-								rs.getString("prompt_id");
+								String promptId = rs.getString("prompt_id");
+								// in case the survey contains no response
+								if (promptId == null) {
+								    processPrompts = false;
+								}
 							}
 							catch(SQLException e) {
 								processPrompts = false;

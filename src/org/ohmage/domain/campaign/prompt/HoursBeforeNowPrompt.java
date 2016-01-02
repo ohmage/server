@@ -94,6 +94,7 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 			min,
 			max,
 			defaultValue,
+			true, // wholeNumber
 			Type.HOURS_BEFORE_NOW,
 			index);
 	}
@@ -120,11 +121,4 @@ public class HoursBeforeNowPrompt extends BoundedPrompt {
 				response);
 	}
 
-	/**
-	 * @return Always returns true.
-	 */
-	@Override
-	protected boolean mustBeWholeNumber() {
-		return true;
-	}
 }

@@ -657,12 +657,13 @@ public class UserQueries extends Query implements IUserQueries {
 							SQL_INSERT_USER + 
 							"' with parameters: " +
 							username + ", " + 
-							emailAddress + ", " + 
 							hashedPassword + ", " + 
+							"null" +
+							emailAddress + ", " + 
 							false + ", " + 
 							false + ", " + 
 							false + ", " + 
-							"null", 
+							defaultCampaignCreationPrivilege, 
 						e);
 			}
 			

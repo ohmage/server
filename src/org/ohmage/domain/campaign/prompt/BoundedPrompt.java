@@ -60,6 +60,11 @@ public abstract class BoundedPrompt extends Prompt {
 	private final BigDecimal max;
 	
 	private final BigDecimal defaultValue;
+	/**
+	 * Whether or not the min, max, default and response must be a whole number.
+	 */
+	private final boolean wholeNumber;
+
 	
 	/**
 	 * Creates a new bounded prompt.
@@ -112,6 +117,7 @@ public abstract class BoundedPrompt extends Prompt {
 			final BigDecimal min, 
 			final BigDecimal max, 
 			final BigDecimal defaultValue,
+			final Boolean wholeNumber,
 			final Type type, 
 			final int index)
 			throws DomainException {
@@ -128,15 +134,24 @@ public abstract class BoundedPrompt extends Prompt {
 			type,
 			index);
 		
+		
+		if(wholeNumber == null) {
+			this.wholeNumber = true; // Hack for HT to handle pre-2.16 campaigns with number prompts.
+			                         // The previous spec only allowed whole numbers.
+		}
+		else {
+			this.wholeNumber = wholeNumber;
+		}
+
 		// Validate the min value.
-		if(mustBeWholeNumber() && (! isWholeNumber(min))) {
+		if(this.wholeNumber && (! isWholeNumber(min))) {
 			throw
 				new DomainException("The min must be a whole number: " + min);
 		}
 		this.min = min;
 		
 		// Validate the max value.
-		if(mustBeWholeNumber() && (! isWholeNumber(max))) {
+		if(this.wholeNumber && (! isWholeNumber(max))) {
 			throw
 				new DomainException("The max must be a whole number: " + max);
 		}
@@ -144,12 +159,12 @@ public abstract class BoundedPrompt extends Prompt {
 		
 		// max has to be >= min
 		if (this.max.compareTo(this.min) < 0) {
-		    throw new DomainException("The max value (" +this.max + ") is less than the min value (" + this.min + ")");
+		    throw new DomainException("The max value (" +this.max + ") must be greater than or equal to the min value (" + this.min + ").");
 		}
 		
 		// Validate the default value.
 		if(defaultValue != null) {
-			if(mustBeWholeNumber() && (! isWholeNumber(defaultValue))) {
+			if(this.wholeNumber && (! isWholeNumber(defaultValue))) {
 				throw
 					new DomainException(
 						"The default must be a whole number: " + defaultValue);
@@ -174,6 +189,7 @@ public abstract class BoundedPrompt extends Prompt {
 			}
 		}
 		this.defaultValue = defaultValue;
+		
 	}
 	
 	/**
@@ -201,6 +217,15 @@ public abstract class BoundedPrompt extends Prompt {
 	 */
 	public BigDecimal getDefault() {
 		return defaultValue;
+	}
+	
+	/**
+	 * Returns the wholeNumber value.
+	 * 
+	 * @return The wholeNumber value. 
+	 */
+	public boolean getWholeNumber() {
+		return wholeNumber;
 	}
 	
 	/**
@@ -243,7 +268,7 @@ public abstract class BoundedPrompt extends Prompt {
 			}
 			// Verify that the condition is a whole number if the response
 			// must be a whole number
-			else if(mustBeWholeNumber() && ! isWholeNumber(value)) {
+			else if(getWholeNumber() && ! isWholeNumber(value)) {
 				throw
 					new DomainException(
 						"The value of the condition is a decimal, but the " +
@@ -303,7 +328,7 @@ public abstract class BoundedPrompt extends Prompt {
 		// If it's already a number, be sure it is a whole number, if required.
 		else if(value instanceof Number) {
 			result = new BigDecimal(value.toString());
-			if(mustBeWholeNumber() && (! isWholeNumber(result))) {
+			if(wholeNumber && (! isWholeNumber(result))) {
 				throw
 					new DomainException(
 						"The value cannot be a decimal: " + value);
@@ -336,7 +361,7 @@ public abstract class BoundedPrompt extends Prompt {
 			}
 
 			// Validate it.
-			if(mustBeWholeNumber() && (! isWholeNumber(result))) {
+			if(wholeNumber && (! isWholeNumber(result))) {
 				throw
 					new DomainException(
 						"The value cannot be a decimal: " + value);
@@ -440,6 +465,7 @@ public abstract class BoundedPrompt extends Prompt {
 				((defaultValue == null) ? 0 : defaultValue.hashCode());
 		result = prime * result + ((max == null) ? 0 : max.hashCode());
 		result = prime * result + ((min == null) ? 0 : min.hashCode());
+		result = prime * result + (wholeNumber ? 1231 : 1237);
 		return result;
 	}
 
@@ -457,6 +483,7 @@ public abstract class BoundedPrompt extends Prompt {
 		if(!(obj instanceof BoundedPrompt)) {
 			return false;
 		}
+		
 		BoundedPrompt other = (BoundedPrompt) obj;
 		if(defaultValue == null) {
 			if(other.defaultValue != null) {
@@ -466,6 +493,7 @@ public abstract class BoundedPrompt extends Prompt {
 		else if(!defaultValue.equals(other.defaultValue)) {
 			return false;
 		}
+		
 		if(max == null) {
 			if(other.max != null) {
 				return false;
@@ -474,6 +502,7 @@ public abstract class BoundedPrompt extends Prompt {
 		else if(!max.equals(other.max)) {
 			return false;
 		}
+		
 		if(min == null) {
 			if(other.min != null) {
 				return false;
@@ -482,6 +511,11 @@ public abstract class BoundedPrompt extends Prompt {
 		else if(!min.equals(other.min)) {
 			return false;
 		}
+
+		if(wholeNumber != other.wholeNumber) {
+			return false;
+		}
+		
 		return true;
 	}
 	
@@ -502,12 +536,4 @@ public abstract class BoundedPrompt extends Prompt {
 		}
 	}
 	
-	/**
-	 * Returns whether or not the prompt type requires its min, max, default,
-	 * and response values to be whole numbers.
-	 * 
-	 * @return Whether or not the min, max, default, and response values must
-	 *         all be whole numbers.
-	 */
-	protected abstract boolean mustBeWholeNumber();
 }

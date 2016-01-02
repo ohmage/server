@@ -38,10 +38,6 @@ public class NumberPrompt extends BoundedPrompt {
 	 */
 	public static final String XML_KEY_WHOLE_NUMBER = "wholeNumber";
 	
-	/**
-	 * Whether or not the response must be a whole number.
-	 */
-	private final boolean wholeNumber;
 	
 	/**
 	 * Creates a number prompt.
@@ -107,35 +103,11 @@ public class NumberPrompt extends BoundedPrompt {
 			min,
 			max,
 			defaultValue,
+			wholeNumber,
 			Type.NUMBER,
 			index);
+	}
 		
-		if(wholeNumber == null) {
-			this.wholeNumber = true; // Hack for HT to handle pre-2.16 campaigns with number prompts.
-			                         // The previous spec only allowed whole numbers.
-		}
-		else {
-			this.wholeNumber = wholeNumber;
-		}
-	}
-	
-	/**
-	 * Returns whether or not the response must be a whole number.
-	 * 
-	 * @return Whether or not the response must be a whole number.
-	 */
-	public boolean wholeNumber() {
-		return wholeNumber;
-	}
-	
-	/*
-	 * (non-Javadoc)
-	 * @see org.ohmage.domain.campaign.prompt.BoundedPrompt#mustBeWholeNumber()
-	 */
-	@Override
-	public boolean mustBeWholeNumber() {
-		return wholeNumber;
-	}
 	
 	/**
 	 * Creates a response to this prompt based on a response value.
@@ -176,40 +148,9 @@ public class NumberPrompt extends BoundedPrompt {
 	public JSONObject toJson() throws JSONException {
 		JSONObject result = super.toJson();
 		
-		result.put(JSON_KEY_WHOLE_NUMBER, wholeNumber);
+		result.put(JSON_KEY_WHOLE_NUMBER, getWholeNumber());
 		
 		return result;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#hashCode()
-	 */
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = super.hashCode();
-		result = prime * result + (wholeNumber ? 1231 : 1237);
-		return result;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if(this == obj) {
-			return true;
-		}
-		if(!super.equals(obj)) {
-			return false;
-		}
-		if(!(obj instanceof NumberPrompt)) {
-			return false;
-		}
-		NumberPrompt other = (NumberPrompt) obj;
-		if(wholeNumber != other.wholeNumber) {
-			return false;
-		}
-		return true;
-	}
 }
