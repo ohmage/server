@@ -178,7 +178,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		
 		// The following variables are used in logging messages when errors occur
 		SurveyResponse currentSurveyResponse = null;
-		PromptResponse currentPromptResponse = null;
+		Response currentPromptResponse = null;
 		String currentSql = null;
 
 		List<File> fileList = new LinkedList<File>();  // keep track of files created along the process
@@ -194,162 +194,145 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		
 		try { // handle TransactionExceptions
 			
-			for(int surveyIndex = 0; surveyIndex < numberOfSurveys; surveyIndex++) { 
+		    for(int surveyIndex = 0; surveyIndex < numberOfSurveys; surveyIndex++) { 
 				
-				 try { // handle DataAccessExceptions
+			try { // handle DataAccessExceptions
 					
-					final SurveyResponse surveyUpload = surveyUploadList.get(surveyIndex);
-					currentSurveyResponse = surveyUpload; 
-					currentSql = SQL_INSERT_SURVEY_RESPONSE;
+			    final SurveyResponse surveyUpload = surveyUploadList.get(surveyIndex);
+			    currentSurveyResponse = surveyUpload; 
+			    currentSql = SQL_INSERT_SURVEY_RESPONSE;
 			
-					KeyHolder idKeyHolder = new GeneratedKeyHolder();
+			    KeyHolder idKeyHolder = new GeneratedKeyHolder();
 					
-					// HT: Don't need this. If one fails, all fail. Rollback completely. 
-					// savepoint = status.createSavepoint();  
+			    // HT: Don't need this. If one fails, all fail. Rollback completely. 
+			    // savepoint = status.createSavepoint();  
 					
-					// First, insert the survey
-					getJdbcTemplate().update(
-						new PreparedStatementCreator() {
-							public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-								PreparedStatement ps 
-									= connection.prepareStatement(SQL_INSERT_SURVEY_RESPONSE, Statement.RETURN_GENERATED_KEYS);
-								
-								String locationString = null;
-								Location location = surveyUpload.getLocation();
-								if(location != null) {
-									try {
-										locationString = 
-												location.toJson(false, LocationColumnKey.ALL_COLUMNS).toString();
-									}
-									catch(JSONException e) {
-										throw new SQLException(e);
-									}
-									catch(DomainException e) {
-										throw new SQLException(e);
-									}
-								}
-								
-								ps.setString(1, surveyUpload.getSurveyResponseId().toString());
-								ps.setString(2, username);
-								ps.setString(3, campaignUrn);
-								ps.setLong(4, surveyUpload.getTime());
-								ps.setString(5, surveyUpload.getTimezone().getID());
-								ps.setString(6, surveyUpload.getLocationStatus().toString());
-								ps.setString(7, locationString);
-								ps.setString(8, surveyUpload.getSurvey().getId());
-								try {
-									ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
-								}
-								catch(JSONException e) {
-									throw new SQLException(
-											"Couldn't create the JSON.",
-											e);
-								}
-								catch(DomainException e) {
-									throw new SQLException(
-											"Couldn't create the JSON.",
-											e);
-								}
-								ps.setString(10, client);
-								ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
-								try {
-									ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
-								}
-								catch(JSONException e) {
-									throw new SQLException(
-											"Couldn't create the JSON.",
-											e);
-								}
-								try {
-									ps.setString(13, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
-								} catch (CacheMissException e) {
-									throw new SQLException(
-											"Error reading from the cache.", 
-											e);
-								}
-								return ps;
-							}
-						},
-						idKeyHolder
-					);
-					
-					
-					final Number surveyResponseId = idKeyHolder.getKey(); // the primary key on the survey_response table for the 
-					                                                      // just-inserted survey
-					currentSql = SQL_INSERT_PROMPT_RESPONSE;
-					
-					// Now insert each prompt response from the survey
-					Collection<Response> promptUploadList = surveyUpload.getResponses().values();
-					
-					createPromptResponse(
-						username,
-						client,
-						surveyResponseId,
-						fileList,
-						promptUploadList,
-						null,
-						bufferedImageMap,
-						videoContentsMap,
-						audioContentsMap,
-						documentContentsMap,
-						transactionManager,
-						status);
-					
-				} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
-					
-					if(isDuplicate(dive)) {
-						 
-						LOGGER.debug("Found a duplicate survey upload message for user " + username);				
-						duplicateIndexList.add(surveyIndex);  // assume successful upload
-						// status.rollbackToSavepoint(savepoint);
-						
-					} 
-					else {
-					
-						// Some other integrity violation occurred - bad!! All 
-						// of the data to be inserted must be validated before 
-						// this query runs so there is either missing validation 
-						// or somehow an auto_incremented key has been duplicated.
-						
-						LOGGER.error("Caught DataAccessException", dive);
-						logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
-						for(File f : fileList) {
-							f.delete();
+			    // First, insert the survey
+			    getJdbcTemplate().update(
+				    new PreparedStatementCreator() {
+					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+					    PreparedStatement ps = 
+						    connection.prepareStatement(SQL_INSERT_SURVEY_RESPONSE, Statement.RETURN_GENERATED_KEYS);
+					    
+					    String locationString = null;
+					    Location location = surveyUpload.getLocation();
+					    if(location != null) {
+						try {
+						    locationString = 
+							    location.toJson(false, LocationColumnKey.ALL_COLUMNS).toString();
 						}
-						rollback(transactionManager, status);
-						throw new DataAccessException(dive);
+						catch(JSONException|DomainException e) {
+						    throw new SQLException(e);
+						}
+					    }
+								
+					    ps.setString(1, surveyUpload.getSurveyResponseId().toString());
+					    ps.setString(2, username);
+					    ps.setString(3, campaignUrn);
+					    ps.setLong(4, surveyUpload.getTime());
+					    ps.setString(5, surveyUpload.getTimezone().getID());
+					    ps.setString(6, surveyUpload.getLocationStatus().toString());
+					    ps.setString(7, locationString);
+					    ps.setString(8, surveyUpload.getSurvey().getId());
+					    try {
+						ps.setString(9, surveyUpload.toJson(false, false, false, false, true, true, true, true, true, false, false, true, true, true, true, false, false).toString());
+					    }
+					    catch(JSONException|DomainException e) {
+						throw new SQLException("Couldn't create the JSON.", e);
+					    }
+					    ps.setString(10, client);
+					    ps.setTimestamp(11, new Timestamp(System.currentTimeMillis()));
+					    try {
+						ps.setString(12, surveyUpload.getLaunchContext().toJson(true).toString());
+					    }
+					    catch(JSONException e) {
+						throw new SQLException("Couldn't create the JSON.", e);
+					    }
+					    
+					    try {
+						ps.setString(13, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
+					    } catch (CacheMissException e) {
+						throw new SQLException("Error reading from the cache.",	e);
+					    }
+					    return ps;
 					}
-						
-				} catch (org.springframework.dao.DataAccessException|
-						DataAccessException dae) { 
-					// Some other database problem happened that prevented
-                    // the SQL from completing normally. 
-					// Or something is wrong with createPromptResponse e.g. duplicate UUID	
-					LOGGER.error("caught DataAccessException", dae);
-					logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
-					for(File f : fileList) {
-						f.delete();
-					}
-					rollback(transactionManager, status);
-					throw new DataAccessException(dae);
-				}
+				    },
+				    idKeyHolder
+				    );
+					
+					
+			    final Number surveyResponseId = idKeyHolder.getKey(); // the primary key on the survey_response table for the 
+			    // just-inserted survey
+			    currentSql = SQL_INSERT_PROMPT_RESPONSE;
+			    
+			    // Now insert each prompt response from the survey
+			    Collection<Response> promptUploadList = surveyUpload.getResponses().values();
+
+			    for(Response uploadPromptResponse : promptUploadList) {
+				currentPromptResponse = uploadPromptResponse;
+				createPromptResponse(
+					username,
+					client,
+					surveyResponseId,
+					fileList,
+					uploadPromptResponse,
+					null,
+					bufferedImageMap,
+					videoContentsMap,
+					audioContentsMap,
+					documentContentsMap,
+					transactionManager,
+				    	status);
+			    }
+			    
+			} catch (DataIntegrityViolationException dive) { // a unique index exists only on the survey_response table
+			    if(isDuplicate(dive)) {
+				LOGGER.debug("Found a duplicate survey upload message for user " + username);				
+				duplicateIndexList.add(surveyIndex);  // assume successful upload
+				// status.rollbackToSavepoint(savepoint);
+			    } 
+			    else {
+				// Some other integrity violation occurred - bad!! All 
+				// of the data to be inserted must be validated before 
+				// this query runs so there is either missing validation 
+				// or somehow an auto_incremented key has been duplicated.
 				
-			} // for surveyIndex
-			
-			// Finally, commit the transaction
-			transactionManager.commit(status);
-			LOGGER.info("Completed survey message persistence");
-		} 
-		
-		catch (TransactionException te) { 
-			
-			LOGGER.error("failed to commit survey upload transaction, attempting to rollback", te);
-			rollback(transactionManager, status);
-			for(File f : fileList) {
+				LOGGER.error("Caught DataAccessException", dive);
+				logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
+				for(File f : fileList) {
+				    f.delete();
+				}
+				rollback(transactionManager, status);
+				throw new DataAccessException(dive);
+			    }
+			} catch (org.springframework.dao.DataAccessException|
+				DataAccessException dae) { 
+			    // Some other database problem happened that prevented
+			    // the SQL from completing normally. 
+			    // Or something is wrong with createPromptResponse e.g. duplicate UUID	
+			    LOGGER.error("caught DataAccessException", dae);
+			    logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
+			    for(File f : fileList) {
 				f.delete();
+			    }
+			    rollback(transactionManager, status);
+			    throw new DataAccessException(dae);
 			}
-			logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
-			throw new DataAccessException(te);
+				
+		    } // for surveyIndex
+			
+		    // Finally, commit the transaction
+		    transactionManager.commit(status);
+		    LOGGER.info("Completed survey message persistence");
+		} 		
+		catch (TransactionException te) { 	
+		    LOGGER.error("failed to commit survey upload transaction, attempting to rollback", te);
+		    rollback(transactionManager, status);
+		    for(File f : fileList) {
+			f.delete();
+		    }
+		    logErrorDetails(currentSurveyResponse, currentPromptResponse, currentSql, username, campaignUrn);
+		    throw new DataAccessException(te);
 		}
 		
 		LOGGER.info("Finished inserting survey responses and any associated images into the database and the filesystem.");
@@ -374,7 +357,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		}
 	}
 	
-	private void logErrorDetails(SurveyResponse surveyResponse, PromptResponse promptResponse, String sql, String username,
+	private void logErrorDetails(SurveyResponse surveyResponse, Response promptResponse, String sql, String username,
 			String campaignUrn) {
 	
 		StringBuilder error = new StringBuilder();
@@ -388,7 +371,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		error.append("\n The survey response at hand was ");
 		error.append(surveyResponse);
 		error.append("\n The prompt response at hand was ");
-		error.append(promptResponse);
+		error.append(promptResponse.getId());
 		
 		LOGGER.error(error.toString());
 	}
@@ -436,7 +419,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		final String username, final String client,
 		final Number surveyResponseId,
 		final List<File> fileList,
-		final Collection<Response> promptUploadList,
+		final Response uploadPromptResponse, 
 		final Integer repeatableSetIteration,
 		final Map<UUID, Image> bufferedImageMap,
 		final Map<UUID, Video> videoContentsMap, 
@@ -446,93 +429,94 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		final TransactionStatus status) 
 			throws DataAccessException {
 		
-		for(Response response : promptUploadList) {
-			if(response instanceof RepeatableSetResponse) {
-				Map<Integer, Map<Integer, Response>> iterationToResponse =
-					((RepeatableSetResponse) response).getResponseGroups();
+	    if(uploadPromptResponse instanceof RepeatableSetResponse) {
+		Map<Integer, Map<Integer, Response>> iterationToResponse =
+			((RepeatableSetResponse) uploadPromptResponse).getResponseGroups();
 				
-				for(Integer iteration : iterationToResponse.keySet()) {
-					createPromptResponse(
-						username,
-						client,
-						surveyResponseId,
-						fileList,
-						iterationToResponse.get(iteration).values(),
-						iteration,
-						bufferedImageMap,
-						videoContentsMap,
-						audioContentsMap,
-						documentContentsMap,
-						transactionManager,
-						status);
-				}
-				continue;
-			}
-			final PromptResponse promptResponse = (PromptResponse) response;
+		for(Integer iteration : iterationToResponse.keySet()) {
+		    for (Response response : iterationToResponse.get(iteration).values()) {
+			createPromptResponse(
+			    username,
+			    client,
+			    surveyResponseId,
+			    fileList,
+			    response,
+			    iteration,
+			    bufferedImageMap,
+			    videoContentsMap,
+			    audioContentsMap,
+			    documentContentsMap,
+			    transactionManager,
+			    status);
+		    }
+		}	
+		return;
+	    }
+	    
+	    final PromptResponse promptResponse = (PromptResponse) uploadPromptResponse;
 			
-			getJdbcTemplate().update(
-				new PreparedStatementCreator() {
-					public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
-						PreparedStatement ps 
-							= connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
-						ps.setLong(1, surveyResponseId.longValue());
+	    getJdbcTemplate().update(
+		    new PreparedStatementCreator() {
+			public PreparedStatement createPreparedStatement(Connection connection) throws SQLException {
+			    PreparedStatement ps = connection.prepareStatement(SQL_INSERT_PROMPT_RESPONSE);
+			    ps.setLong(1, surveyResponseId.longValue());
 						
-						RepeatableSet parent = promptResponse.getPrompt().getParent();
-						if(parent == null) {
-							ps.setNull(2, java.sql.Types.NULL);
-							ps.setNull(3, java.sql.Types.NULL);
-						}
-						else {
-							ps.setString(2, parent.getId());
-							ps.setInt(3, repeatableSetIteration);
-						}
-						ps.setString(4, promptResponse.getPrompt().getType().toString());
-						ps.setString(5, promptResponse.getPrompt().getId());
-						
-						Object response = promptResponse.getResponse();
-						if(response instanceof DateTime) {
-							ps.setString(
-								6,
-								DateTimeUtils
-									.getW3cIso8601DateString(
-										(DateTime) response,
-										true));
-						}
-						else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
-							JSONArray json = new JSONArray();
-							
-							for(Object currResponse : (Collection<?>) response) {
-								json.put(currResponse);
-							}
-							
-							ps.setString(6, json.toString());
-						}
-						else {
-							ps.setString(6, response.toString());
-						}
-						
-						return ps;
-					}
-				}
-			);
-			
-			// Save other media files.
-			if( (promptResponse instanceof MediaPromptResponse)	) {
-
-			    // insert a new entry in the db and file system
-			    try {
-				insertMediaReseponse(
-					username, client,
-					promptResponse,
-					bufferedImageMap,
-					videoContentsMap, 
-					audioContentsMap, 
-					documentContentsMap,
-					fileList);
-			    } catch (DataAccessException e) {
-				throw new DataAccessException("Can't insert a new entry in the url_based_resource", e);
+			    RepeatableSet parent = promptResponse.getPrompt().getParent();
+			    if(parent == null) {
+				ps.setNull(2, java.sql.Types.NULL);
+				ps.setNull(3, java.sql.Types.NULL);
 			    }
-/*
+			    else {
+				ps.setString(2, parent.getId());
+				ps.setInt(3, repeatableSetIteration);
+			    }
+			    ps.setString(4, promptResponse.getPrompt().getType().toString());
+			    ps.setString(5, promptResponse.getPrompt().getId());
+			    
+			    Object response = promptResponse.getResponse();
+			    if(response instanceof DateTime) {
+				ps.setString(
+					6,
+					DateTimeUtils
+					.getW3cIso8601DateString(
+						(DateTime) response,
+						true));
+			    }
+			    else if((promptResponse instanceof MultiChoiceCustomPromptResponse) && (response instanceof Collection)) {
+				JSONArray json = new JSONArray();
+				
+				for(Object currResponse : (Collection<?>) response) {
+				    json.put(currResponse);
+				}
+				
+				ps.setString(6, json.toString());
+			    }
+			    else {
+				ps.setString(6, response.toString());
+			    }
+			    
+			    return ps;
+			}
+		    }
+		    );
+			
+	    // Save other media files.
+	    if( (promptResponse instanceof MediaPromptResponse)	) {
+
+		// insert a new entry in the db and file system
+		try {
+		    insertMediaReseponse(
+			    username, client,
+			    promptResponse,
+			    bufferedImageMap,
+			    videoContentsMap, 
+			    audioContentsMap, 
+			    documentContentsMap,
+			    fileList);
+		} catch (DataAccessException e) {
+		    throw new DataAccessException("Can't insert a new entry in the url_based_resource", e);
+		}
+	/*
 					
 				// Make sure the response contains an actual media response. 
 				// Can also check this against JsonInputKeys
@@ -614,19 +598,53 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					} 
 				}
 */
-			} // end if
+	    } // end if
 			
-		} // end for loop
 	}
 	
-
+	/**
+	 * Insert the media prompt response entry in url_based_resource
+	 * and save a list of any attached files, images, videos, etc..
+	 * 
+	 * @param username
+	 *        The username of the user saving this prompt response.
+	 * 
+	 * @param client
+	 *        The name of the device used to generate the response.
+	 * 	  
+	 * @param promptResponse
+	 *        The media prompt response.
+	 * 
+	 * @param repeatableSetIteration
+	 *        If these prompt responses were part of a repeatable set, this is
+	 *        the iteration of that repeatable set; otherwise, null.
+	 * 
+	 * @param imageContentsMap
+	 *        The map of image IDs to their contents.
+	 * 
+	 * @param videoContentsMap
+	 *        The map of video IDs to their contents.
+	 * 
+	 * @param audioContentsMap
+	 *        The map of audio IDs to their contents.
+	 *
+	 * @param fileContentMap
+	 *        The map of file IDs to their contents.
+	 *	 
+	 * @param fileList
+	 *        The list of files saved to the disk. The content of 
+	 *        the list is populated by this function.
+	 *        
+	 * @throws DataAccessException
+	 *         There was an error saving the information.
+	 */
 	public void insertMediaReseponse(
 		final String username, final String client,
 		final PromptResponse promptResponse,
-		final Map<UUID, Image> bufferedImageMap,
+		final Map<UUID, Image> imageContentsMap,
 		final Map<UUID, Video> videoContentsMap, 
 		final Map<UUID, Audio> audioContentsMap, 
-		final Map<UUID, IMedia> documentContentsMap,
+		final Map<UUID, IMedia> fileContentsMap,
 		final Collection<File> fileList
 		) throws DataAccessException {
 	    
@@ -656,7 +674,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		    File currMediaDirectory = null;
 		    if (promptResponse instanceof PhotoPromptResponse) {
 			currMediaDirectory = MediaDirectoryCache.getImageDirectory();
-			media = bufferedImageMap.get(id);	
+			media = imageContentsMap.get(id);	
 		    } else if (promptResponse instanceof AudioPromptResponse) {
 			currMediaDirectory = MediaDirectoryCache.getAudioDirectory();
 			media = audioContentsMap.get(id);		
@@ -665,25 +683,22 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			media = videoContentsMap.get(id);	
 		    } else if (promptResponse instanceof FilePromptResponse) {
 			currMediaDirectory = MediaDirectoryCache.getFileDirectory();
-			media = documentContentsMap.get(id);	
+			media = fileContentsMap.get(id);	
 		    } else if (promptResponse instanceof PhotoPromptResponse) {
 			currMediaDirectory = MediaDirectoryCache.getImageDirectory();
-			media = bufferedImageMap.get(id);	
+			media = imageContentsMap.get(id);	
 		    } 
 		    
 		    
 		    // Get the file. Only use UUID to store file since all detail should 
 		    // be stored in the db. 
-		    // File mediaFile = new File(currMediaDirectory.getAbsolutePath() + "/" + mediaId);
-		    // LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
 		    
 		    File mediaFile = media.writeContent(currMediaDirectory);  // write the media content to mediaFile
 		    fileList.add(mediaFile);	// Store the file reference. 
 		    
 		    // Get the media URL.
 		    String url = "file://" + mediaFile.getAbsolutePath();
-		    // LOGGER.debug("HT: Media file: " + url);
-		    // LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
+		    // LOGGER.debug("HT: media prompt: " + promptResponse.getPrompt().getType() + ", " + url);
 					
 		    // Get the contentInfo
 		    String metadata = media.getMetadata();
@@ -696,7 +711,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 				);
 		    }
 		    catch(org.springframework.dao.DataAccessException e) {
-			// transactionManager.rollback(status);
 			throw new DataAccessException(
 				"Error executing SQL '" + SQL_INSERT_MEDIA + 
 				"' with parameters: " + username + ", " + 
@@ -706,7 +720,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		}
 		// If it fails, roll back the transaction.
 		catch(DomainException e) {
-		    // transactionManager.rollback(status);
 		    throw new DataAccessException(
 			    "Could not get or write to the media directory.",
 			    e);
@@ -714,26 +727,64 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	    } // end if
 	} 	    
 
+	/**
+	 * Update the survey response entries in the corresponding tables and saves
+	 * any attached files, images, videos, etc., as well as deleting 
+	 * out of date media files. 
+	 * 
+	 * @param username
+	 *        The username of the user saving this prompt response.
+	 * 
+	 * @param client
+	 *        The name of the device used to generate the response.
+	 * 
+	 * @param campaignUrn
+	 *        The campaign unique id
+	 * 
+	 * @param surveyUploadList
+	 *        The collection of survey responses to be updated.
+	 * 
+	 * @param imageContentsMap
+	 *        The map of image IDs to their contents.
+	 * 
+	 * @param videoContentsMap
+	 *        The map of video IDs to their contents.
+	 * 
+	 * @param audioContentsMap
+	 *        The map of audio IDs to their contents.
+	 *
+	 * @param fileContentMap
+	 *        The map of file IDs to their contents.
+	 *
+	 * @param existingResponseMap 
+	 * 	  The map of existing survey response UUID and its survey
+	 * 	  responses currently stored in the database. 
+	 *        
+	 * @throws DataAccessException
+	 *         There was an error saving the information.
+	 */
 	public void updateSurveys(
 		final String username,
 		final String client,
-		 final String campaignUrn,
+		final String campaignUrn,
 		final List<SurveyResponse> surveyUploadList,
-		final Map<UUID, Image> bufferedImageMap,
+		final Map<UUID, Image> imageContentsMap,
 		final Map<UUID, Video> videoContentsMap,
 		final Map<UUID, Audio> audioContentsMap,
-		final Map<UUID, IMedia> documentContentsMap,
+		final Map<UUID, IMedia> fileContentsMap,
 		final Map<UUID, SurveyResponse> existingResponseMap)
 		throws DataAccessException {
 	
 	    
 	    Set<File> newFileList = new HashSet<File>();  // keep track of files created along the process
-	    Set<File> oldFileList = new HashSet<File>();
+	    Set<File> oldFileList = new HashSet<File>();  // keep track of files to be deleted after the process
 
-	    // need a list of media object UUID before it is updated.
+	    // need a list of media object UUID before it is updated. This is needed
+	    // to delete the entries in url_based_resource table, if applicable.
 	    Map<String, UUID> mediaResponseMap = new HashMap<String, UUID>();
 
-	    // update the existing responses with the uploaded responses. 
+	    // Update the existing responses with the uploaded responses. 
+	    // This is needed to update the response json array in the survey_response table.
 	    for(SurveyResponse uploadSurvey : surveyUploadList) {
 		SurveyResponse existingSurvey = existingResponseMap.get(uploadSurvey.getSurveyResponseId());
 		
@@ -754,7 +805,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			    }
 			}
 			
-			// Update the existing prompt or throw an exception
+			// Update the existing prompt with the new content or throw an exception
 			try {
 			    existingSurvey.addPromptResponse((PromptResponse)response);  
 			} catch (DomainException e) {
@@ -787,7 +838,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	    
 	    // The following variables are used in logging messages when errors occur
 	    SurveyResponse currentSurveyResponse = null;
-	    PromptResponse currentPromptResponse = null;
+	    Response currentPromptResponse = null;
 	   
 	    // Wrap all of the inserts in a transaction 
 	    DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -795,7 +846,8 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	    DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(getDataSource());
 	    TransactionStatus status = transactionManager.getTransaction(def); // begin transaction
 	
-	    // Use a savepoint to handle nested rollbacks if something is wrong
+	    // Use a savepoint to handle nested rollbacks if something is wrong. 
+	    // Only do this if we want to support a subset of successful upload.
 	    // Object savepoint = status.createSavepoint();	
 
 	    try { // handle TransactionExceptions
@@ -805,6 +857,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		    try { // handle DataAccessExceptions
 				
 			final SurveyResponse uploadSurvey = surveyUploadList.get(surveyIndex);
+			currentSurveyResponse = uploadSurvey;
 			// need this to update the response json in the survey response entries
 			final SurveyResponse existingSurveyResponse = existingResponseMap.get(uploadSurvey.getSurveyResponseId());
 											
@@ -875,6 +928,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			// Now update each prompt response from the survey
 			Collection<Response> promptUploadList = uploadSurvey.getResponses().values();
 			for (Response uploadPromptResponse : promptUploadList) {
+			    currentPromptResponse = uploadPromptResponse; 	
 			    try {
 				updatePromptResponse(
 					username,
@@ -882,10 +936,10 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					surveyResponseDbId,
 					uploadPromptResponse,
 					null,
-					bufferedImageMap,
+					imageContentsMap,
 					videoContentsMap,
 					audioContentsMap,
-					documentContentsMap,
+					fileContentsMap,
 					mediaResponseMap, 
 					newFileList,
 					oldFileList);
@@ -945,8 +999,10 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 
 	
 	/**
-	 * Creates the prompt response entry in the corresponding table and saves
-	 * any attached files, images, videos, etc..
+	 * Update the prompt response entry in the corresponding tables (i.e. 
+	 * prompt_response and url_based_resource and save a list of
+	 * any attached files, images, videos, etc., and update a list of 
+	 * old files to be deleted due to the update. 
 	 * 
 	 * @param username
 	 *        The username of the user saving this prompt response.
@@ -955,31 +1011,42 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 	 *        The name of the device used to generate the response.
 	 * 
 	 * @param surveyResponseDbId
-	 *        The unique identifier for this survey response.
+	 *        The DB unique identifier for this survey response. This
+	 *        id has to be retrieved from the DB.
 	 * 
-	 * @param newFileList
-	 *        The list of files saved to the disk, which should be a reference
-	 *        to a list that will be populated by this function.
-	 * 
-	 * @param promptUploadList
-	 *        The collection of prompt responses to store.
+	 * @param uploadPromptResponse
+	 *        The collection of prompt responses to update.
 	 * 
 	 * @param repeatableSetIteration
 	 *        If these prompt responses were part of a repeatable set, this is
 	 *        the iteration of that repeatable set; otherwise, null.
 	 * 
-	 * @param bufferedImageMap
+	 * @param imageContentsMap
 	 *        The map of image IDs to their contents.
 	 * 
 	 * @param videoContentsMap
 	 *        The map of video IDs to their contents.
 	 * 
-	 * @param transactionManager
-	 *        The manager for this transaction.
-	 * 
-	 * @param status
-	 *        The status of this transaction.
-	 * 
+	 * @param audioContentsMap
+	 *        The map of audio IDs to their contents.
+	 *
+	 * @param fileContentMap
+	 *        The map of file IDs to their contents.
+	 *
+	 * @param mediaResponseMap 
+	 * 	  The map of media prompt ID to its media UUID.
+	 * 	  This map contains the mapping stored in the DB prior
+	 * 	  to the update.
+	 *
+	 * @param newFileList
+	 *        The list of files saved to the disk. The content of 
+	 *        the list is populated by this function.
+	 * 	  
+	 * @param oldFileList
+	 *        The list of files to be deleted from the disk. The content of 
+	 *        the list is populated by this function. It contains 
+	 *        the out-of-date media files to be deleted due to the update.
+	 *        
 	 * @throws DataAccessException
 	 *         There was an error saving the information.
 	 */
@@ -988,15 +1055,16 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 			final Number surveyResponseDbId,
 			final Response uploadPromptResponse,
 			final Integer repeatableSetIteration,
-			final Map<UUID, Image> bufferedImageMap,
+			final Map<UUID, Image> imageContentsMap,
 			final Map<UUID, Video> videoContentsMap, 
 			final Map<UUID, Audio> audioContentsMap, 
-			final Map<UUID, IMedia> documentContentsMap,
+			final Map<UUID, IMedia> fileContentsMap,
 			final Map<String, UUID> mediaResponseMap, 
 			final Collection<File> newFileList,
 			final Collection<File> oldFileList
 		) 
 			throws DataAccessException {
+
 
 	    // Throws exception. Currently repelatable set not supported. 
 	    if(uploadPromptResponse instanceof RepeatableSetResponse) {
@@ -1004,7 +1072,11 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		// and need to make sure that the survey responses are complete.
 		throw new DataAccessException("This API doesn't support repeatableSet");
 	    }
-		
+	    
+	    if (! (uploadPromptResponse instanceof PromptResponse)){
+		return;
+	    }
+	    
 	    final PromptResponse promptResponse = (PromptResponse) uploadPromptResponse;
 	    final String sqlUpdateResponse = "UPDATE prompt_response SET response = ? WHERE survey_response_id = ? AND prompt_id = ?";
 			
@@ -1119,10 +1191,10 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		    insertMediaReseponse(
 			    username, client,
 			    promptResponse,
-			    bufferedImageMap,
+			    imageContentsMap,
 			    videoContentsMap, 
 			    audioContentsMap, 
-			    documentContentsMap,
+			    fileContentsMap,
 			    newFileList);
 		} catch (DataAccessException e) {
 		    throw new DataAccessException("Can't insert a new entry in the url_based_resource", e);

@@ -121,7 +121,7 @@ public class SurveyUploadRequest extends UserRequest {
 	// never used in any kind of calculation.
 	private final String campaignUrn;
 	private final DateTime campaignCreationTimestamp;
-	private final Boolean updateSurvey;
+	private final Boolean allowSurveyUpdate;
 	private List<JSONObject> jsonData;
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<UUID, Video> videoContentsMap;
@@ -179,7 +179,7 @@ public class SurveyUploadRequest extends UserRequest {
 		audioContentsMap = Collections.emptyMap();
 		fileContentsMap = Collections.emptyMap();
 		this.owner = owner;
-		this.updateSurvey = false;
+		this.allowSurveyUpdate = false;
 	}
 	
 	/**
@@ -200,7 +200,7 @@ public class SurveyUploadRequest extends UserRequest {
 
 		String tCampaignUrn = null;
 		DateTime tCampaignCreationTimestamp = null;
-		Boolean tUpdateSurvey = false;
+		Boolean tAllowSurveyUpdate = false;
 		List<JSONObject> tJsonData = null;
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<UUID, Video> tVideoContentsMap = null;
@@ -248,9 +248,9 @@ public class SurveyUploadRequest extends UserRequest {
 				t = parameters.get(InputKeys.SURVEY_UPDATE_FLAG);
 				if(t != null ) {
 				    if (t.length == 1) {
-					tUpdateSurvey = StringUtils.decodeBoolean(t[0]);
+					tAllowSurveyUpdate = StringUtils.decodeBoolean(t[0]);
 					
-					if(tUpdateSurvey == null) {
+					if(tAllowSurveyUpdate == null) {
 						throw new ValidationException(ErrorCode.SURVEY_UPLOAD_INVALID_ARGUMENTS, "The update flag is invalid.");
 					}
 				    } else if (t.length > 1) {
@@ -300,7 +300,7 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
-				// TODO: HT add handling for document as inline base64
+				// TODO: add handling for document as inline base64
 		
 				
 				// check for duplicate UUID in the tImageContentsMap 
@@ -320,10 +320,6 @@ public class SurveyUploadRequest extends UserRequest {
 				
 				// init the tDocumentContentsMap with inline images
 				tFileContentsMap.putAll(tImageContentsMap);
-				// for (UUID uuid : tImageContentsMap.keySet()){
-				//	Image image = tImageContentsMap.get(uuid);
-				//	tDocumentContentsMap.put(uuid, image);
-				//}
 				
 				try {
 					// FIXME - push to base class especially because of the ServletException that gets thrown
@@ -414,7 +410,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.fileContentsMap = tFileContentsMap;
 		
 		this.owner = null;
-		this.updateSurvey = tUpdateSurvey;
+		this.allowSurveyUpdate = tAllowSurveyUpdate;
 		surveyResponseIds = null;
 	}
 
@@ -493,7 +489,7 @@ public class SurveyUploadRequest extends UserRequest {
 				CampaignServices.instance().verifyCampaignIsUpToDate(campaign, campaignCreationTimestamp);
 			}
 
-			// TODO: allow partial survey content (for update operation)
+			// allow partial survey content (for update operation)
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 
 				CampaignServices.instance().getSurveyResponses(
@@ -501,7 +497,7 @@ public class SurveyUploadRequest extends UserRequest {
 						getClient(),
 						campaign, 
 						jsonData, 
-						updateSurvey
+						allowSurveyUpdate
 						);
 			
 			// for auditing info
@@ -526,7 +522,7 @@ public class SurveyUploadRequest extends UserRequest {
 			// ideally, if update = true, new survey responses should be created and existing responses should be updated. 
 			// due to the time constraint, if the update=true, we will assume that they all already exists in the system.
 			//
-			if (updateSurvey == true) {
+			if (allowSurveyUpdate == true) {
 			    LOGGER.debug("Updating " + surveyResponses.size() + " survey responses into the database.");
 			    SurveyResponseServices.instance().updateSurveyResponses(
 					((owner == null) ? getUser().getUsername() : owner), 
@@ -593,9 +589,8 @@ public class SurveyUploadRequest extends UserRequest {
 				numSurveyResponseIdsAdded++;
 			}
 			
-			result.put(
-					"successfully_uploaded_survey_response_ids", 
-					surveyResponseIdsArray);
+			result.put("successfully_uploaded_survey_response_ids", 
+				surveyResponseIdsArray);
 		}
 		
 		return result;
