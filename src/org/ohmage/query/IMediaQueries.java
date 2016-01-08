@@ -47,5 +47,19 @@ public interface IMediaQueries {
 	 * @throws DataAccessException There was an error.
 	 */
 	Map<String,String> getMediaUrlAndMetadata(final UUID id) throws DataAccessException;
+
 	
+	/**
+	 * Delete the media file on disk.
+	 * 
+	 * @param mediaUrl The media's unique identifier.
+	 * 
+	 * @param isImage A flag indicating whether the media is of a photo prompt.
+	 * 
+	 * @return The media's URL or null if no such media exists.
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */	
+	void deleteMediaDiskOnly(URL mediaUrl, boolean isImage) throws DataAccessException;
+
 }

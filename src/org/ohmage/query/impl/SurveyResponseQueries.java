@@ -527,6 +527,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 								
 								surveyResponse =
 									new SurveyResponse(
+											rs.getLong("id"),
 											campaign.getSurveys().get(rs.getString("survey_id")),
 											UUID.fromString(rs.getString("uuid")),
 											rs.getString("username"),

@@ -533,14 +533,15 @@ public class CampaignServices {
 	public List<SurveyResponse> getSurveyResponses(
 			final String username, final String client, 
 			final Campaign campaign, 
-			final Collection<JSONObject> jsonSurveyResponses) 
+			final Collection<JSONObject> jsonSurveyResponses,
+			final boolean allowPartialSurvey) 
 			throws ServiceException {
 		
 		try {
 			List<SurveyResponse> result = new ArrayList<SurveyResponse>(jsonSurveyResponses.size());
 			
 			for(JSONObject jsonResponse : jsonSurveyResponses) {
-				result.add(new SurveyResponse(username, campaign.getId(), client, campaign, jsonResponse));
+				result.add(new SurveyResponse(username, campaign.getId(), client, campaign, jsonResponse, allowPartialSurvey));
 			}
 			
 			return result;

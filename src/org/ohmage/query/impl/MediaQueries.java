@@ -1,5 +1,6 @@
 package org.ohmage.query.impl;
 
+import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.ResultSet;
@@ -10,7 +11,9 @@ import java.util.UUID;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.query.IImageQueries;
 import org.ohmage.query.IMediaQueries;
 import org.springframework.jdbc.core.RowMapper;
 
@@ -21,7 +24,10 @@ import org.springframework.jdbc.core.RowMapper;
  * @author Hongsuda T.
  */
 public class MediaQueries extends Query implements IMediaQueries {
+	private static final Logger LOGGER = Logger.getLogger(MediaQueries.class);
 	
+	private IImageQueries imageQueries;
+
 	private static final String SQL_EXISTS_MEDIA = 
 			"SELECT EXISTS(" +
 				"SELECT ubr.uuid " +
@@ -43,8 +49,15 @@ public class MediaQueries extends Query implements IMediaQueries {
 	 * 
 	 * @param dataSource The DataSource to use to query the database.
 	 */
-	private MediaQueries(DataSource dataSource) {
+	private MediaQueries(DataSource dataSource, 
+			IImageQueries iImageQueries) {
 		super(dataSource);
+		
+		if(iImageQueries == null) {
+			throw new IllegalArgumentException("An instance of IImageQueries is a required argument.");
+		}
+		this.imageQueries = iImageQueries;
+
 	}
 	
 	/* (non-Javadoc)
@@ -141,4 +154,26 @@ public class MediaQueries extends Query implements IMediaQueries {
 		}
 	}
 	
+
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IMediaQueries#deleteMediaDiskOnly(java.lang.String, java.lang.boolean)
+	 */
+	@Override
+	public void deleteMediaDiskOnly(URL mediaUrl, boolean isPhoto) {
+	    
+	    if (isPhoto) {
+		imageQueries.deleteImageDiskOnly(mediaUrl);
+	    } else { 
+		try {
+		    // Delete the original image.
+		    if((new File(mediaUrl.getFile())).delete()) {
+			LOGGER.warn("The media file has been deleted: " + mediaUrl);
+		    }
+		}
+		catch(SecurityException e) {
+		    LOGGER.error("The system would not allow us to delete the media.", e);
+		}
+	    }
+	}
 }

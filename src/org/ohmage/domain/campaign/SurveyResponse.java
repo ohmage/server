@@ -133,6 +133,7 @@ public class SurveyResponse {
 	private final Survey survey;
 	private final UUID surveyResponseId;
 	private final Map<Integer, Response> responses;
+	private final Long surveyResponseDbId;
 	
 	/**
 	 * Survey response privacy states.
@@ -820,6 +821,7 @@ public class SurveyResponse {
 	 * 						   missing or invalid.
 	 */
 	public SurveyResponse(
+			final Long surveyResponseDbId,
 			final Survey survey, 
 			final UUID surveyResponseId,
 			final String username, 
@@ -868,6 +870,7 @@ public class SurveyResponse {
 		this.time = time;
 		this.timezone = timezone;
 		
+		this.surveyResponseDbId = surveyResponseDbId;
 		this.surveyResponseId = surveyResponseId;
 		this.survey = survey;
 		this.privacyState = privacyState;
@@ -983,6 +986,7 @@ public class SurveyResponse {
 		this.time = time;
 		this.timezone = timezone;
 		
+		this.surveyResponseDbId = null;
 		this.surveyResponseId = surveyResponseId;
 		this.survey = survey;
 		this.privacyState = privacyState;
@@ -1022,7 +1026,8 @@ public class SurveyResponse {
 			final String campaignId,
 			final String client, 
 			final Campaign campaign,
-			final JSONObject response) 
+			final JSONObject response,
+			final boolean allowPartialSurvey) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
@@ -1044,6 +1049,7 @@ public class SurveyResponse {
 		this.username = username;
 		this.campaignId = campaignId;
 		this.client = client;
+		this.surveyResponseDbId = null;
 		
 		String surveyResponseIdString;
 		try {
@@ -1215,9 +1221,21 @@ public class SurveyResponse {
 				campaign.getSurveys().get(surveyId).getSurveyItems(), 
 				responses,
 				null,
-				allowedPromptIds);
+				allowedPromptIds,
+				allowPartialSurvey);
 	}
-	
+
+	/**
+	 * Returns the survey response's database identifier.
+	 * Note: This is only used to update survey response since
+	 * the prompt_response table needs it.
+	 * 
+	 * @return The survey response's unique identifier.
+	 */
+	public final Long getSurveyResponseDbId() {
+		return surveyResponseDbId;
+	}
+
 	/**
 	 * Returns the survey response's unique identifier.
 	 * 
@@ -1753,7 +1771,8 @@ public class SurveyResponse {
 		final Map<Integer, SurveyItem> surveyItems, 
 		final JSONArray currArray, 
 		final Integer repeatableSetIteration,
-		final Set<String> allowedPromptIds) 
+		final Set<String> allowedPromptIds,
+		final boolean allowPartialSurvey) 
 		throws DomainException {
 		
 		int numResponses = currArray.length();
@@ -1829,9 +1848,11 @@ public class SurveyResponse {
 			}
 		}
 		
-		// Cycle through the prompts and ensure that a response exists for each
-		// prompt, unless it was masked.
-		for(SurveyItem surveyItem : surveyItems.values()) {
+		// For survey update, allow partial survey response.
+		if (allowPartialSurvey == false ) {
+		    // Cycle through the prompts and ensure that a response exists for each
+		    // prompt, unless it was masked.
+		    for(SurveyItem surveyItem : surveyItems.values()) {
 			// If it's a message, it won't have a response.
 			if(! (surveyItem instanceof Message)) {
 				String surveyItemId = surveyItem.getId();
@@ -1860,6 +1881,7 @@ public class SurveyResponse {
 								surveyItemId);
 				}
 			}
+		    }
 		}
 		
 		return results;
@@ -1962,7 +1984,8 @@ public class SurveyResponse {
 								repeatableSet.getSurveyItems(), 
 								responses.getJSONArray(i),
 								i,
-								allowedPromptIds
+								allowedPromptIds,
+								false			// disallow partial record
 							)
 					);
 			} catch (JSONException e) {

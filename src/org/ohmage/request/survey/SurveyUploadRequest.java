@@ -121,6 +121,7 @@ public class SurveyUploadRequest extends UserRequest {
 	// never used in any kind of calculation.
 	private final String campaignUrn;
 	private final DateTime campaignCreationTimestamp;
+	private final Boolean updateSurvey;
 	private List<JSONObject> jsonData;
 	private final Map<UUID, Image> imageContentsMap;
 	private final Map<UUID, Video> videoContentsMap;
@@ -178,6 +179,7 @@ public class SurveyUploadRequest extends UserRequest {
 		audioContentsMap = Collections.emptyMap();
 		fileContentsMap = Collections.emptyMap();
 		this.owner = owner;
+		this.updateSurvey = false;
 	}
 	
 	/**
@@ -198,6 +200,7 @@ public class SurveyUploadRequest extends UserRequest {
 
 		String tCampaignUrn = null;
 		DateTime tCampaignCreationTimestamp = null;
+		Boolean tUpdateSurvey = false;
 		List<JSONObject> tJsonData = null;
 		Map<UUID, Image> tImageContentsMap = null;
 		Map<UUID, Video> tVideoContentsMap = null;
@@ -241,6 +244,21 @@ public class SurveyUploadRequest extends UserRequest {
 					}
 				}
 				
+				// extract the update flag indicating whether the survey response can be updated.
+				t = parameters.get(InputKeys.SURVEY_UPDATE_FLAG);
+				if(t != null ) {
+				    if (t.length == 1) {
+					tUpdateSurvey = StringUtils.decodeBoolean(t[0]);
+					
+					if(tUpdateSurvey == null) {
+						throw new ValidationException(ErrorCode.SURVEY_UPLOAD_INVALID_ARGUMENTS, "The update flag is invalid.");
+					}
+				    } else if (t.length > 1) {
+					throw new ValidationException(ErrorCode.SURVEY_UPLOAD_INVALID_ARGUMENTS, "There is more than one update flag.");
+				    }
+				} 
+
+				
 				byte[] surveyDataBytes =
 					getParameter(httpRequest, InputKeys.SURVEYS);
 				if(surveyDataBytes == null) {
@@ -283,6 +301,7 @@ public class SurveyUploadRequest extends UserRequest {
 				}
 				
 				// TODO: HT add handling for document as inline base64
+		
 				
 				// check for duplicate UUID in the tImageContentsMap 
 				if (StringUtils.hasDuplicate(tImageContentsMap.keySet()))
@@ -339,14 +358,7 @@ public class SurveyUploadRequest extends UserRequest {
 						String fileName = getPartFilename(p);				
 						LOGGER.debug("HT: id: " + name + " Content-type:" + contentType + " fileName:" + fileName);
 						
-						// TODO: pass fileType to image creation
 						if(contentType.startsWith("image")) {
-							/*
-							Image image = ImageValidators.validateImageContents(id,	getMultipartValue(httpRequest, name));
-							if(image == null) {
-								throw new ValidationException(ErrorCode.IMAGE_INVALID_DATA,"The image data is missing: " + id);
-							}
-							*/
 							Image image = new Image(id,	contentType, fileName, 
 									getMultipartValue(httpRequest, name));						
 							tImageContentsMap.put(id, image);	
@@ -402,6 +414,7 @@ public class SurveyUploadRequest extends UserRequest {
 		this.fileContentsMap = tFileContentsMap;
 		
 		this.owner = null;
+		this.updateSurvey = tUpdateSurvey;
 		surveyResponseIds = null;
 	}
 
@@ -479,15 +492,19 @@ public class SurveyUploadRequest extends UserRequest {
 				LOGGER.info("Verifying that the uploaded survey responses aren't out of date.");
 				CampaignServices.instance().verifyCampaignIsUpToDate(campaign, campaignCreationTimestamp);
 			}
-			
+
+			// TODO: allow partial survey content (for update operation)
 			LOGGER.info("Verifying the uploaded data against the campaign.");
 			List<SurveyResponse> surveyResponses = 
 				CampaignServices.instance().getSurveyResponses(
 						getUser().getUsername(), 
 						getClient(),
 						campaign, 
-						jsonData);
+						jsonData, 
+						updateSurvey
+						);
 			
+			// for auditing info
 			surveyResponseIds = new ArrayList<UUID>(surveyResponses.size());
 			for(SurveyResponse surveyResponse : surveyResponses) {
 				surveyResponseIds.add(surveyResponse.getSurveyResponseId());
@@ -506,9 +523,23 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Validating that all document prompt responses have their corresponding document files attached.");
 			SurveyResponseServices.instance().verifyOFilesForFilePromptResponses(surveyResponses, fileContentsMap);
 			
-			
-			LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");
-			List<Integer> duplicateIndexList = 
+			// ideally, if update = true, new survey responses should be created and existing responses should be updated. 
+			// due to the time constraint, if the update=true, we will assume that they all already exists in the system.
+			//
+			if (updateSurvey == true) {
+			    LOGGER.debug("Updating " + surveyResponses.size() + " survey responses into the database.");
+			    SurveyResponseServices.instance().updateSurveyResponses(
+					((owner == null) ? getUser().getUsername() : owner), 
+					getClient(), 
+					campaign, 
+					surveyResponses, 
+					imageContentsMap,
+					videoContentsMap,
+					audioContentsMap, 
+					fileContentsMap);
+			} else {
+			    LOGGER.debug("Inserting " + surveyResponses.size() + " survey responses into the database.");
+			    List<Integer> duplicateIndexList = 
 				SurveyResponseServices.instance().createSurveyResponses(
 					((owner == null) ? getUser().getUsername() : owner), 
 					getClient(), 
@@ -519,14 +550,14 @@ public class SurveyUploadRequest extends UserRequest {
 					audioContentsMap, 
 					fileContentsMap);
 
-			LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
+			    LOGGER.info("Found " + duplicateIndexList.size() + " duplicate survey uploads");
+			}
 		}
 		catch(ServiceException e) {
 			e.failRequest(this);
 			e.logException(LOGGER, true);
 		}
 		
-		// HT: Don't we need to close InputStream
 	}
 
 	/**

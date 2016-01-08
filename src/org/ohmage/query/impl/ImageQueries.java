@@ -20,7 +20,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.sql.DataSource;
@@ -290,12 +293,15 @@ public final class ImageQueries extends Query implements IImageQueries {
 		try {
 			// Delete the original image.
 			if((new File(imageUrl.getFile())).delete()) {
-				LOGGER.warn("The image no longer existed.");
+				LOGGER.warn("The image file has been deleted: " + imageUrl);
 			}
 			
 			// Delete the scaled image.
-			if((new File((new URL(imageUrl + IMAGE_SCALED_EXTENSION)).getFile())).delete()) {
+			File extFile = new File((new URL(imageUrl + IMAGE_SCALED_EXTENSION)).getFile());
+			if ((extFile != null) && extFile.delete()) {
 				LOGGER.warn("The scaled image no longer existed.");
+			} else {
+			    LOGGER.warn("The file doesn't exist: " + extFile.getAbsolutePath());
 			}
 		}
 		catch(MalformedURLException e) {
@@ -304,5 +310,22 @@ public final class ImageQueries extends Query implements IImageQueries {
 		catch(SecurityException e) {
 			LOGGER.error("The system would not allow us to delete the image.", e);
 		}
+	}
+	
+	public Collection<File> getImageFilesOnDisk(URL basedImageUrl) {
+	    
+	    Set<File> files = new HashSet<File>();
+		    
+	    for (Image.Size size : Image.getSizes()) {
+		try {
+		    URL url = Image.Size.getUrl(size, basedImageUrl);
+		    File file = new File(url.getFile());
+		    if (file != null)
+			files.add(file);
+		} catch (DomainException e) {
+		    LOGGER.error("Can't get the url for image size " + size.getName() + ". Will ignore");
+		}
+	    }
+	   return files; 
 	}
 }

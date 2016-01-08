@@ -64,4 +64,42 @@ public interface ISurveyUploadQuery {
 			final Map<UUID, Audio> audioContentsMap, 
 			final Map<UUID, IMedia> documentContentsMap)
 			throws DataAccessException;
+	
+	/**
+	 * Update survey_response, prompt_response, and
+	 * url_based_resource (if the payload contains media objects). 
+	 * Any updated media objects are also persisted to the file system. 
+	 * The entire persistence process is wrapped in one giant transaction.
+	 * 
+	 * @param user
+	 *        The owner of the survey upload.
+	 * @param client
+	 *        The software client that performed the upload.
+	 * @param campaignUrn
+	 *        The campaign for the survey upload.
+	 * @param surveyUploadList
+	 *        The surveys to persist.
+	 * @param bufferedImageMap
+	 *        The images to persist.
+	 * @param videoContentsMap
+	 *        The videos to persist.
+	 * @param audioContentsMap
+	 *        The audio files to persist.
+	 * @param documentContentsMap 
+	 * @return Returns a List of Integers representing the ids of duplicate
+	 *         surveys.
+	 * @throws DataAccessException
+	 *         If any IO error occurs.
+	 */
+	void updateSurveys(
+			final String username, 
+			final String client,
+			final String campaignUrn,
+			final List<SurveyResponse> surveyUploadList,
+			final Map<UUID, Image> bufferedImageMap,
+			final Map<UUID, Video> videoContentsMap,
+			final Map<UUID, Audio> audioContentsMap, 
+			final Map<UUID, IMedia> documentContentsMap, 
+			final Map<UUID, SurveyResponse> existingResponseMap)
+			throws DataAccessException;
 }
