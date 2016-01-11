@@ -34,9 +34,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
@@ -1202,10 +1204,17 @@ public class SurveyResponse {
 			}
 		}
 		else {
+		    // Set to the default sharing state. If not availab, use PRIVATE
+		    try {
+			tPrivacyState = PrivacyState.valueOf(
+				PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)
+				);
+		    } catch (CacheMissException e) {
 			tPrivacyState = PrivacyState.PRIVATE;
-		}
+		    }
+		}		
 		this.privacyState = tPrivacyState;
-		
+
 		JSONArray responses;
 		try {
 			responses = response.getJSONArray(JSON_KEY_RESPONSES);

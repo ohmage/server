@@ -81,6 +81,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * Persists a survey upload (potentially containing many surveys) into the db.
  * 
  * @author Joshua Selsky
+ * @author Hongsuda T. 
  */
 public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUploadQuery {
 	private IMediaQueries mediaQueries;
@@ -112,21 +113,7 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
         "(survey_response_id, repeatable_set_id, repeatable_set_iteration," +
         "prompt_type, prompt_id, response) " +
         "VALUES (?,?,?,?,?,?)";
-	
-	// Inserts an images/media information into the url_based_resource table.
-	private static final String SQL_INSERT_IMAGE = 
-		"INSERT INTO url_based_resource(user_id, client, uuid, url) " +
-		"VALUES (" +
-			"(" +	// user_id
-				"SELECT id " +
-				"FROM user " +
-				"WHERE username = ?" +
-			")," +
-			"?," +	// client
-			"?," +	// uuid
-			"?" +	// url
-		")";
-	
+		
 	// Inserts an images/media information into the url_based_resource table.
 	private static final String SQL_INSERT_MEDIA = 
 		"INSERT INTO url_based_resource(user_id, client, uuid, url, metadata) " +
@@ -249,11 +236,14 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 						throw new SQLException("Couldn't create the JSON.", e);
 					    }
 					    
+					    ps.setString(13, surveyUpload.getPrivacyState().toString()); // use what's in the payload
+					    /*
 					    try {
 						ps.setString(13, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
 					    } catch (CacheMissException e) {
 						throw new SQLException("Error reading from the cache.",	e);
 					    }
+					    */
 					    return ps;
 					}
 				    },
@@ -516,88 +506,6 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 		} catch (DataAccessException e) {
 		    throw new DataAccessException("Can't insert a new entry in the url_based_resource", e);
 		}
-	/*
-					
-				// Make sure the response contains an actual media response. 
-				// Can also check this against JsonInputKeys
-				Object responseValue = promptResponse.getResponse();
-				if(! (responseValue instanceof NoResponse)) {	
-						
-					// Attempt to write it to the file system.
-					try {
-						// Get the media ID.
-						String mediaId = responseValue.toString();
-						UUID id = UUID.fromString(mediaId);
-						IMedia media = null;
-						
-						try {
-							MediaServices.instance().verifyMediaExistance(id, false);	
-						} catch (ServiceException e) {
-							LOGGER.debug("HT: The media UUID already exist" + mediaId);
-							throw new DataAccessException(e);
-						}
-	
-						// Get the current media directory.
-						File currMediaDirectory = null;
-						if (promptResponse instanceof PhotoPromptResponse) {
-							currMediaDirectory = MediaDirectoryCache.getImageDirectory();
-							media = bufferedImageMap.get(id);	
-						} else if (promptResponse instanceof AudioPromptResponse) {
-							currMediaDirectory = MediaDirectoryCache.getAudioDirectory();
-							media = audioContentsMap.get(id);		
-						} else if (promptResponse instanceof VideoPromptResponse) {							
-							currMediaDirectory = MediaDirectoryCache.getVideoDirectory();
-							media = videoContentsMap.get(id);	
-						} else if (promptResponse instanceof FilePromptResponse) {
-							currMediaDirectory = MediaDirectoryCache.getFileDirectory();
-							media = documentContentsMap.get(id);	
-						} else if (promptResponse instanceof PhotoPromptResponse) {
-							currMediaDirectory = MediaDirectoryCache.getImageDirectory();
-							media = bufferedImageMap.get(id);	
-						} 
-							
-											
-						// Get the file. Only use UUID to store file since all detail should 
-						// be stored in the db. 
-						// File mediaFile = new File(currMediaDirectory.getAbsolutePath() + "/" + mediaId);
-						// LOGGER.debug("HT: mediaFile: " + mediaFile.getAbsolutePath());
-						
-						File mediaFile = media.writeContent(currMediaDirectory);  // write the media content to mediaFile
-						fileList.add(mediaFile);	// Store the file reference. 
-			
-						// Get the media URL.
-						String url = "file://" + mediaFile.getAbsolutePath();
-						// LOGGER.debug("HT: Media file: " + url);
-						// LOGGER.debug("HT: Prompt type: " + promptResponse.getPrompt().getType());
-							
-						// Get the contentInfo
-						String metadata = media.getMetadata();
-						
-						// Insert the media URL into the database.
-						try {
-							getJdbcTemplate().update(
-									SQL_INSERT_MEDIA, 
-									new Object[] { username, client, mediaId, url, metadata }
-									);
-						}
-						catch(org.springframework.dao.DataAccessException e) {
-							// transactionManager.rollback(status);
-							throw new DataAccessException(
-									"Error executing SQL '" + SQL_INSERT_MEDIA + 
-									"' with parameters: " + username + ", " + 
-									client + ", " + mediaId + ", " + url + ", " + metadata,
-									e);
-						}
-					}
-						// If it fails, roll back the transaction.
-					catch(DomainException e) {
-						// transactionManager.rollback(status);
-						throw new DataAccessException(
-								"Could not get or write to the media directory.",
-								e);
-					} 
-				}
-*/
 	    } // end if
 			
 	}
@@ -902,13 +810,17 @@ public class SurveyUploadQuery extends AbstractUploadQuery implements ISurveyUpl
 					catch(JSONException e) {
 					    throw new SQLException("Couldn't create the LaunchContext JSON.", e);
 					}
-					
-					// TODO: use what's provided instead of cache
+
+					ps.setString(10, uploadSurvey.getPrivacyState().toString());
+
+					/*
+					 * // TODO: use what's provided instead of cache
 					try {
 					    ps.setString(10, PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE));
 					} catch (CacheMissException e) {
 					    throw new SQLException("Error reading from the cache.", e);
 					}
+					*/
 					
 					ps.setString(11, uploadSurvey.getSurveyResponseId().toString());
 					// ps.setString(2, username);
