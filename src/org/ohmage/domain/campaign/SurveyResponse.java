@@ -1206,7 +1206,7 @@ public class SurveyResponse {
 		else {
 		    // Set to the default sharing state. If not availab, use PRIVATE
 		    try {
-			tPrivacyState = PrivacyState.valueOf(
+			tPrivacyState = PrivacyState.getValue(
 				PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)
 				);
 		    } catch (CacheMissException e) {
