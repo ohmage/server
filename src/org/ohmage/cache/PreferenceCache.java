@@ -84,6 +84,7 @@ public final class PreferenceCache extends KeyValueCache {
 	
 	// Build-specific information.
 	public static final String KEY_APPLICATION_NAME = "application.name";
+	public static final String SQL_KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application.version";
 	public static final String KEY_APPLICATION_BUILD = "application.build";
 	
@@ -229,9 +230,17 @@ public final class PreferenceCache extends KeyValueCache {
 		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
+
+		if(KEY_APPLICATION_NAME.equals(key)) {
+		  try {
+		  	return super.lookup(SQL_KEY_APPLICATION_NAME); 
+		  }
+		  catch(CacheMissException e) {
+		  	return getSystemProperty(key);
+		  }
+		}
 		
-		if(KEY_APPLICATION_NAME.equals(key) ||
-		   KEY_APPLICATION_VERSION.equals(key) ||
+		if(KEY_APPLICATION_VERSION.equals(key) ||
 		   KEY_APPLICATION_BUILD.equals(key)) {
 			return getSystemProperty(key);
 		}
