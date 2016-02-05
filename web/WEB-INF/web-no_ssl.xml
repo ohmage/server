@@ -171,6 +171,11 @@
     <listener-class>org.ohmage.jee.listener.LogSetup</listener-class>
   </listener>
 
+  <!-- Bootstrap listener to initialize Keycloak. -->
+  <listener>
+    <listener-class>org.ohmage.jee.listener.KeycloakFileImport</listener-class>
+  </listener>
+
   <!-- Provide temp directory cleanup (for temp image storage) and ensure that the cleanup process terminates gracefully on 
        app termination -->
   <listener>
