@@ -36,6 +36,10 @@ log4j.logger.org.ohmage=$LOG_LEVEL
 log4j.logger.org.springframework=$LOG_LEVEL
 log4j.logger.org.ohmage.util.JsonUtils=$LOG_LEVEL
 log4j.logger.org.ohmage.cache.UserBin=$LOG_LEVEL" > /etc/ohmage.conf
+
+if [ -n "$KEYCLOAK_JSON" ]; then
+  echo "keycloak.config=$KEYCLOAK_JSON" >> /etc/ohmage.conf
+fi
  
 # cat out flyway.conf
 # note that the placeholders wont be updated at each boot.
