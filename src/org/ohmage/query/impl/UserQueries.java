@@ -83,6 +83,12 @@ public class UserQueries extends Query implements IUserQueries {
 		"SELECT new_account " +
 		"FROM user " +
 		"WHERE username = ?";
+
+	// Returns a single, boolean row if the user is an external account
+	private static final String SQL_EXISTS_USER_IS_EXTERNAL = 
+		"SELECT external " +
+		"FROM user " +
+		"WHERE username = ?";
 	
 	// Returns a boolean representing whether a user can create campaigns or 
 	// not. If the user doesn't exist, false is returned.
@@ -918,6 +924,24 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_IS_ENABLED + "' with parameter: " + username, e);
+		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see org.ohmage.query.IUserQueries#userIsExternal(java.lang.String)
+	 */
+	@Override
+	public Boolean userIsExternal(String username) throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_EXISTS_USER_IS_EXTERNAL, 
+					new String[] { username }, 
+					Boolean.class
+					);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing the following SQL '" + SQL_EXISTS_USER_IS_EXTERNAL + "' with parameter: " + username, e);
 		}
 	}
 

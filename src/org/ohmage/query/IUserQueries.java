@@ -173,6 +173,18 @@ public interface IUserQueries {
 	 * 							   query.
 	 */
 	Boolean userIsEnabled(String username) throws DataAccessException;
+	
+	/**
+	 * Gets whether or not the user's account is external.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return Whether or not the user's account is external.
+	 * 
+	 * @throws DataAccessException Thrown if there is a problem running the
+	 * 							   query.
+	 */
+	Boolean userIsExternal(String username) throws DataAccessException;
 
 	/**
 	 * Gets whether or not the user has a new account.

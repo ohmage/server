@@ -892,6 +892,24 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Checks if the user is an external (keycloak) user.
+	 * 
+	 * @return true if the user is external, false otherwise
+	 * 
+	 * @throws ServiceException Thrown if there was an error.
+	 */
+	public boolean isUserExternal(final String username) 
+			throws ServiceException {
+		
+		try {
+			return userQueries.userIsExternal(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Verifies that the user can create campaigns.
 	 * 
 	 * @param username The username of the user whose campaign creation ability
