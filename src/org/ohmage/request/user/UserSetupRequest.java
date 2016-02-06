@@ -337,6 +337,7 @@ public class UserSetupRequest extends UserRequest {
 							true,   // new account
 							true,   // campaign creation privilege. should read from config
 							true,   // storeInitialPassword
+							false,  // externalAccount
 							personalInfo);
 			}
 			

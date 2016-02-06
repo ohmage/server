@@ -222,8 +222,8 @@ public class UserQueries extends Query implements IUserQueries {
 	
 	// Inserts a new user.
 	private static final String SQL_INSERT_USER = 
-		"INSERT INTO user(username, password, initial_password, email_address, admin, enabled, new_account, campaign_creation_privilege, creation_timestamp) " +
-		"VALUES (?,?,?,?,?,?,?,?,NOW())";
+		"INSERT INTO user(username, password, initial_password, email_address, admin, enabled, new_account, campaign_creation_privilege, external, creation_timestamp) " +
+		"VALUES (?,?,?,?,?,?,?,?,?,NOW())";
 	
 	// Inserts a new personal information record for a user. Note: this doesn't
 	// insert the email address or JSON data; to add these, update the record
@@ -397,7 +397,8 @@ public class UserQueries extends Query implements IUserQueries {
 			final Boolean admin, 
 			final Boolean enabled, 
 			final Boolean newAccount, 
-			final Boolean campaignCreationPrivilege) 
+			final Boolean campaignCreationPrivilege,
+			final Boolean externalAccount) 
 			throws DataAccessException {
 		
 		Boolean tAdmin = admin;
@@ -424,6 +425,11 @@ public class UserQueries extends Query implements IUserQueries {
 				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
 			}
 		}
+
+		Boolean tExternalAccount = externalAccount;
+		if(tExternalAccount == null){
+			tExternalAccount = false;
+		}
 		
 		// Create the transaction.
 		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
@@ -436,7 +442,7 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege, tExternalAccount });
 			}
 			catch(org.springframework.dao.DuplicateKeyException e) {
 				transactionManager.rollback(status);
@@ -449,7 +455,7 @@ public class UserQueries extends Query implements IUserQueries {
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege + ", " + tExternalAccount, e);
 			}
 			
 			// Commit the transaction.
@@ -480,6 +486,7 @@ public class UserQueries extends Query implements IUserQueries {
 			final Boolean enabled, 
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
+			final Boolean externalAccount,
 			final UserPersonal personalInfo) 
 			throws DataAccessException {
 		
@@ -497,7 +504,7 @@ public class UserQueries extends Query implements IUserQueries {
 		if(tNewAccount == null) {
 			tNewAccount = true;
 		}
-		
+
 		Boolean tCampaignCreationPrivilege = campaignCreationPrivilege;
 		if(tCampaignCreationPrivilege == null) {
 			try {
@@ -506,6 +513,11 @@ public class UserQueries extends Query implements IUserQueries {
 			catch(CacheMissException e) {
 				throw new DataAccessException("Cache doesn't know about 'known' value: " + PreferenceCache.KEY_DEFAULT_CAN_CREATE_PRIVILIEGE, e);
 			}
+		}
+		
+		Boolean tExternalAccount = externalAccount;
+		if(tExternalAccount == null) {
+			tExternalAccount = false;
 		}
 		
 		boolean result = true;
@@ -521,7 +533,7 @@ public class UserQueries extends Query implements IUserQueries {
 			
 			// Insert the new user.
 			try {
-				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege });
+				getJdbcTemplate().update(SQL_INSERT_USER, new Object[] { username, hashedPassword, initialPassword, emailAddress, tAdmin, tEnabled, tNewAccount, tCampaignCreationPrivilege, tExternalAccount });
 			}
 			catch(org.springframework.dao.DuplicateKeyException e) {
 				transactionManager.rollback(status);
@@ -534,7 +546,7 @@ public class UserQueries extends Query implements IUserQueries {
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_USER + "' with parameters: " +
-						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege, e);
+						username + ", " + hashedPassword + ", " + initialPassword + ", " + emailAddress + ", " + tAdmin + ", " + tEnabled + ", " + tNewAccount + ", " + tCampaignCreationPrivilege + ", " + tExternalAccount, e);
 			}
 			
 			if(personalInfo != null) {

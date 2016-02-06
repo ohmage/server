@@ -59,6 +59,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.KeycloakUser;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
@@ -199,12 +200,20 @@ public final class UserServices {
 			final Boolean enabled, 
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
-			final boolean storeInitialPassword)
+			final boolean storeInitialPassword,
+			final Boolean externalAccount)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword =
-				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword;
+			// Store a static string for password column if user is external
+			if (externalAccount) {
+				hashedPassword = 
+						KeycloakUser.KEYCLOAK_USER_PASSWORD; 
+			} else {
+				hashedPassword =
+						BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			}
 			
 			userQueries
 				.createUser(
@@ -215,7 +224,8 @@ public final class UserServices {
 					admin, 
 					enabled, 
 					newAccount, 
-					campaignCreationPrivilege);
+					campaignCreationPrivilege,
+					externalAccount);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -254,12 +264,21 @@ public final class UserServices {
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
 			final boolean storeInitialPassword,
+			final Boolean externalAccount,
 			final UserPersonal personalInfo)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword =
-				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword;
+
+			// Store a static string for password column if user is external
+			if (externalAccount) {
+				hashedPassword = 
+						KeycloakUser.KEYCLOAK_USER_PASSWORD; 
+			} else {
+				hashedPassword =
+						BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			}
 			
 			return
 				userQueries
@@ -272,6 +291,7 @@ public final class UserServices {
 						enabled, 
 						newAccount, 
 						campaignCreationPrivilege,
+						externalAccount,
 						personalInfo);
 		}
 		catch(DataAccessException e) {
