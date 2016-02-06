@@ -26,8 +26,10 @@ import java.util.logging.Logger;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.ohmage.cache.KeycloakCache;
 
 /**
  * <p>
@@ -49,14 +51,6 @@ public class KeycloakFileImport
 	 * location.
 	 */
 	private static final String KEYCLOAK_CONFIG_PROPERTY_NAME = "keycloak.config";
-	
-	/**
-	 * The default file location if one isn't found in the config.
-	 * We don't really expect to find something here, but it is important to have a
-	 * default to ensure we avoid a NPE when attempting to load it later.
-	 */
-	private static final String KEYCLOAK_FILE_DEFAULT = 
-			"WEB-INF/config/keycloak.json";
 
 	/**
 	 * The logger for this class.
@@ -82,43 +76,59 @@ public class KeycloakFileImport
 
 		if (keycloakFileLocation != null) {
 			keycloakFile = new File(keycloakFileLocation);
+
+			Map<String,String> map;
+			ObjectMapper mapper = new ObjectMapper();
+
+			try {
+				TypeReference<Map<String, String>> ref = new TypeReference<Map<String, String>>() { };
+				map = mapper.readValue(keycloakFile, ref);
+				KeycloakCache.setCache(map);
+
+				LOGGER
+				.log(Level.INFO, 
+						"The keycloak.json file was loaded from: " +
+								keycloakFile.getAbsolutePath());
+
+			}
+			// Mapper failed to parse the keycloak.json file
+			catch (JsonParseException e){
+				LOGGER.log(Level.WARNING, 
+						"Error while parsing keycloak.json file. "
+								+ "Keycloak will be disabled.",
+								e);
+			}
+			// One or more arguments were passed as null instead of intended.
+			catch (IllegalArgumentException e){
+				LOGGER.log(Level.WARNING, 
+						"Bad arguments while attempting to set up keycloak. "
+								+ "Keycloak will be disabled.",
+								e);
+			}
+			// The keycloak.json file was not found.
+			catch(FileNotFoundException e) {
+				LOGGER
+				.log(
+						Level.WARNING, 
+						"The keycloak.json file was not found at location: " +
+								keycloakFile.getAbsolutePath(),
+								e);
+			}
+			// There was an error reading the keycloak.json file.
+			catch(IOException e) {
+				LOGGER
+				.log(
+						Level.WARNING, 
+						"There was an error reading the keycloak.json file: " +
+								keycloakFile.getAbsolutePath(),
+								e);
+			}
 		}
 		else {
-			keycloakFile = new File(
-					event.getServletContext().getRealPath("/") + 
-					KEYCLOAK_FILE_DEFAULT);
-		}
-
-		ObjectMapper mapper = new ObjectMapper();
-
-		try {
-			TypeReference<Map<String, String>> ref = new TypeReference<Map<String, String>>() { };
-			Map<String,String> map = mapper.readValue(keycloakFile, ref);
-			// SN: commented as KeycloakCache has not been added.
-			//KeycloakCache.setCache(map);
 			LOGGER
-			.log(
-					Level.INFO, 
-					"The keycloak.json file was loaded from: " +
-							keycloakFile.getAbsolutePath());
-		}
-		// The keycloak.json file was not found.
-		catch(FileNotFoundException e) {
-			LOGGER
-			.log(
-					Level.WARNING, 
-					"The keycloak.json file was not found at location: " +
-							keycloakFile.getAbsolutePath(),
-							e);
-		}
-		// There was an error reading the keycloak.json file.
-		catch(IOException e) {
-			LOGGER
-			.log(
-					Level.WARNING, 
-					"There was an error reading the keycloak.json file: " +
-							keycloakFile.getAbsolutePath(),
-							e);
+			.log(Level.INFO, 
+					"No keycloak.json file passed. "
+							+ "This functionality will be disabled.");		
 		}
 	}
 
