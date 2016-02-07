@@ -18,6 +18,9 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
 import org.jose4j.base64url.Base64;
+import org.ohmage.domain.ServerConfig;
+import org.ohmage.exception.CacheMissException;
+import org.ohmage.util.StringUtils;
 
 /**
  * Singleton cache for the indices and String values for keycloak
@@ -34,7 +37,7 @@ public class KeycloakCache {
 	private static String sslRequired = null;
 	private static String resource = null;
 	private static Boolean bearerOnly = null;
-	private static Boolean valid = false;
+	private static Boolean validConfig = false;
 
 	/**
 	 * The public key algorithm to use. keycloak currently supports RSA
@@ -70,7 +73,7 @@ public class KeycloakCache {
 		}
 
 		realm = map.get(KEY_KEYCLOAK_REALM);
-		realmPublicKey = getKey(map.get(KEY_KEYCLOAK_REALM_PUBLIC_KEY));
+		realmPublicKey = parseKey(map.get(KEY_KEYCLOAK_REALM_PUBLIC_KEY));
 		authServerUrl = map.get(KEY_KEYCLOAK_AUTH_SERVER_URL);
 		sslRequired = map.get(KEY_KEYCLOAK_SSL_REQUIRED);
 		resource = map.get(KEY_KEYCLOAK_RESOURCE);
@@ -81,7 +84,7 @@ public class KeycloakCache {
 		 * for authenticating with keycloak prior to acting as a keycloak
 		 * bearer.
 		 */
-		valid = validKeycloakServer(map.get(KEY_KEYCLOAK_REALM_PUBLIC_KEY));
+		validConfig = validKeycloakServer(map.get(KEY_KEYCLOAK_REALM_PUBLIC_KEY));
 	}
 
 	public static String getRealm() {
@@ -92,8 +95,26 @@ public class KeycloakCache {
 		return realmPublicKey;
 	}
 	
-	public static Boolean getValid() {
-		return valid;
+	/*
+	 * A check to quickly ensure that keycloak is both enabled and properly
+	 * configured prior to use in the app.  Pulling data from preference cache
+	 * here to simplify the logic in the request handlers.
+	 * 
+	 * @returns true if keycloak is setup and enabled, false in all other cases.
+	 */
+	public static Boolean isEnabled() {
+		Boolean featureEnabled;
+		try {
+			featureEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_KEYCLOAK_AUTH_ENABLED));
+		}
+		catch(CacheMissException e) {
+			featureEnabled = ServerConfig.DEFAULT_KEYCLOAK_AUTH_ENABLED;
+		}
+		
+		return (validConfig && featureEnabled);
 	}
 	
 	/**
@@ -201,7 +222,7 @@ public class KeycloakCache {
 		return urlBuilder.toString();
 	}
 
-	private static PublicKey getKey(String key){
+	private static PublicKey parseKey(String key){
 		// Null check.
 		if(key == null) {
 			throw new IllegalArgumentException("The key is null.");
