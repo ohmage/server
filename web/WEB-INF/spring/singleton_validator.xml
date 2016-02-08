@@ -16,6 +16,7 @@
         <value>org.ohmage.service.VisualizationServices</value>
         <value>org.ohmage.service.UploadValidationServices</value>
         <value>org.ohmage.service.RegistrationServices</value>
+        <value>org.ohmage.service.KeycloakServices</value>
       </list>
     </constructor-arg>
   </bean>

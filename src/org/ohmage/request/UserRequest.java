@@ -27,6 +27,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.KeycloakCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DomainException;
@@ -35,6 +36,7 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.ValidationException;
 import org.ohmage.jee.filter.ClientFilter;
 import org.ohmage.service.AuthenticationService;
+import org.ohmage.service.KeycloakServices;
 import org.ohmage.util.CookieUtils;
 
 /**
@@ -102,6 +104,11 @@ public abstract class UserRequest extends Request {
 				
 				if((tokenLocation != null) && (tUser == null)) {
 					tUser = retrieveToken(httpRequest, tokenLocation);
+				}
+
+				if(KeycloakCache.isEnabled() && (tUser == null)){
+				    LOGGER.info("Keycloak is enabled. Checking for bearer token.");
+				    tUser = retrieveBearer(httpRequest);
 				}
 				
 				if(tUser == null) {
@@ -173,6 +180,11 @@ public abstract class UserRequest extends Request {
 				
 				if((tokenLocation != null) && (tUser == null)) {
 					tUser = retrieveToken(httpRequest, tokenLocation);
+				}
+
+				if(KeycloakCache.isEnabled() && (tUser == null)){
+				    LOGGER.info("Keycloak is enabled. Checking for bearer token.");
+				    tUser = retrieveBearer(httpRequest);
 				}
 				
 				if(tUser == null) {
@@ -626,5 +638,70 @@ public abstract class UserRequest extends Request {
 		
 		// Return the client value.
 		return client;
+	}
+	
+	/**
+	 * Retrieves the bearer token in the Authorization header for the request.
+	 * 
+	 * @param httpRequest The HTTP request.
+	 * 
+	 * @return The bearer token.
+	 * 
+	 * @throws ValidationException The client value was missing.
+	 */
+	private final User retrieveBearer(
+			final HttpServletRequest httpRequest)
+					throws ValidationException {
+
+		// Get the bearer token from the auth header
+		String bearer =
+				(String) httpRequest.getHeader("Authorization");
+
+		// We expect "Bearer " in the Auth header, but most implementations
+		// simply split it away
+		// Note the generic error text to maintain previous error message.
+		if (bearer == null){
+			throw
+			new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED,
+					"Authentication credentials were not provided.");
+		}
+
+		String[] bearerSplit = bearer.split("\\s+");
+
+		if(bearerSplit[1] == null) {
+			throw
+			new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED,
+					"The Authorization Header is malformed.");
+		}
+
+		// Uses KeycloakServices.getUser to parse the bearer token.
+		// indidentally, this also authenticates the user, since
+		// the bearer token is checked for signature and authenticity.
+		User user;
+		try {
+			user = KeycloakServices.getUser(bearerSplit[1]);
+		}
+		catch (ServiceException e){
+			// Thrown when bearer token is invalid due to expiration
+			// or signature etc.
+			throw
+			new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED,
+					"The bearer token is invalid.",
+					e);
+		}
+
+		// We really shouldn't make it here, but just in case something ends up
+		// malformed, if the user doesn't get returned, bail.
+		if(user == null) {
+			throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"The bearer token is invalid.");
+		}
+
+		// Return the user;
+		return user;
 	}
 }
