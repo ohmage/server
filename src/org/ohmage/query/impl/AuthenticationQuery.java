@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 import jbcrypt.BCrypt;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.domain.KeycloakUser;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.query.IAuthenticationQuery;
@@ -116,7 +117,11 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 		String hashedPassword;
 		
 		// Hash the password if necessary.
-		if(user.hashPassword()) {
+		// SN: set password to fixed string if user is a keycloak user
+		if(user instanceof KeycloakUser){
+			hashedPassword = KeycloakUser.KEYCLOAK_USER_PASSWORD;
+		}
+		else if(user.hashPassword()) {
 			try {
 				String actualPassword = 
 					(String) instance.getJdbcTemplate().queryForObject(
@@ -168,10 +173,16 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 				throw new DataAccessException("Multiple users have the same username.", e);
 			}
 			
-			// If the username wasn't found or the username and password 
-			// combination were incorrect.
-			userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
+			// SN: on first login, a KeycloakUser will make it to this
+			// block prior to being created. Don't fail the request on that
+			// pass in that particular case. 
+			if (!(user instanceof KeycloakUser)) {
+				// If the username wasn't found or the username and password 
+				// combination were incorrect.
+				userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
+			}
 			return null;
+			
 		} 
 		catch(org.springframework.dao.DataAccessException e) {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_USER + "' with the following parameters: " + 

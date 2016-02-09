@@ -156,6 +156,36 @@ public class ConfigServices {
 			throw new ServiceException("The user setup config was not a valid boolean.", e);
 		}
 
+		boolean keycloakAuthEnabled;
+		try {
+			keycloakAuthEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_KEYCLOAK_AUTH_ENABLED));
+		}
+		catch(CacheMissException e) {
+			keycloakAuthEnabled = ServerConfig.DEFAULT_KEYCLOAK_AUTH_ENABLED;
+			LOGGER.warn("keycloak_auth config is missing from the DB. Will default to " + keycloakAuthEnabled);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The keycloak auth config was not a valid boolean.", e);
+		}
+
+		boolean localAuthEnabled;
+		try {
+			localAuthEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_LOCAL_AUTH_ENABLED));
+		}
+		catch(CacheMissException e) {
+			localAuthEnabled = ServerConfig.DEFAULT_LOCAL_AUTH_ENABLED;
+			LOGGER.warn("local_auth config is missing from the DB. Will default to " + localAuthEnabled);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The local auth config was not a valid boolean.", e);
+		}
+
 		try {
 			return
 				new ServerConfig(
@@ -170,7 +200,9 @@ public class ConfigServices {
 					RequestServlet.MAX_REQUEST_SIZE,
 					RequestServlet.MAX_FILE_SIZE,
 					selfRegistrationAllowed,
-					userSetupEnabled);
+					userSetupEnabled,
+					keycloakAuthEnabled,
+					localAuthEnabled);
 		} 
 		catch(DomainException e) {
 			throw new ServiceException(e);

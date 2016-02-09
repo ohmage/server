@@ -16,6 +16,8 @@
 package org.ohmage.service;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.KeycloakCache;
+import org.ohmage.domain.KeycloakUser;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IAuthenticationQuery;
@@ -95,6 +97,20 @@ public final class AuthenticationService {
 		catch(DataAccessException e) {
 			request.setFailed();
 			throw new ServiceException(e);
+		}
+		
+		if(KeycloakCache.isEnabled() && (userInformation == null)){
+			KeycloakServices.createUser((KeycloakUser) request.getUser());
+
+			// the user has now been created, re-try auth query to
+			// "authenticate" the user. 
+			try {
+				userInformation = authenticationQuery.execute(request);
+			}
+			catch(DataAccessException e) {
+				request.setFailed();
+				throw new ServiceException(e);
+			}
 		}
 		
 		// If the username and/or password were incorrect, then null was 

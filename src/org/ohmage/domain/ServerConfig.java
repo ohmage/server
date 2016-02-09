@@ -83,12 +83,22 @@ public class ServerConfig {
 	 * Whether or not Mobility is enabled on this server.
 	 */
 	public static final String JSON_KEY_USER_SETUP_ENABLED = "user_setup_enabled";
+	/**
+	 * Whether or not Keycloak auth is enabled on this server.
+	 */
+	public static final String JSON_KEY_KEYCLOAK_AUTH_ENABLED = "keycloak_auth_enabled";
+	/**
+	 * Whether or not Local auth is enabled on this server.
+	 */
+	public static final String JSON_KEY_LOCAL_AUTH_ENABLED = "local_auth_enabled";
 	
 	/**
 	 * Default value if the parameters are not provided
 	 */
 	public static final boolean DEFAULT_USER_SETUP_ENABLED = false;
 	public static final boolean DEFAULT_SELF_REGISTRATION_ALLOWED = true;
+	public static final boolean DEFAULT_KEYCLOAK_AUTH_ENABLED = false;
+	public static final boolean DEFAULT_LOCAL_AUTH_ENABLED = true;
 	
 	
 	private final String appName;
@@ -103,6 +113,8 @@ public class ServerConfig {
 	private final long maxParamSize;
 	private final boolean selfRegistrationAllowed;
 	private final boolean userSetupEnabled;
+	private final boolean keycloakAuthEnabled;
+	private final boolean localAuthEnabled;
 	
 	/**
 	 * Creates a new server configuration.
@@ -134,7 +146,9 @@ public class ServerConfig {
 			final long maximumRequestSize,
 			final long maximumParameterSize,
 			final boolean selfRegistrationAllowed, 
-			final boolean userSetupEnabled) 
+			final boolean userSetupEnabled,
+			final boolean keycloakAuthEnabled,
+			final boolean localAuthEnabled) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(appName)) {
@@ -176,6 +190,9 @@ public class ServerConfig {
 		this.selfRegistrationAllowed = selfRegistrationAllowed;
 		
 		this.userSetupEnabled = userSetupEnabled;
+		
+		this.keycloakAuthEnabled = keycloakAuthEnabled;
+		this.localAuthEnabled = localAuthEnabled;
 	}
 	
 	/**
@@ -335,6 +352,26 @@ public class ServerConfig {
 					e);
 		}
 
+		try {
+			keycloakAuthEnabled =
+					serverConfigAsJson.getBoolean(JSON_KEY_KEYCLOAK_AUTH_ENABLED);
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+					"The keycloak auth flag is missing",
+					e);
+		}
+
+		try {
+			localAuthEnabled =
+					serverConfigAsJson.getBoolean(JSON_KEY_LOCAL_AUTH_ENABLED);
+		}
+		catch(JSONException e) {
+			throw new DomainException(
+					"The local auth flag is missing",
+					e);
+		}
+
 	}
 	
 	/**
@@ -437,7 +474,7 @@ public class ServerConfig {
 	public final boolean getSelfRegistrationAllowed() {
 		return selfRegistrationAllowed;
 	}
-	
+
 	/**
 	 * Returns whether or not user setup is enabled.
 	 * 
@@ -447,6 +484,23 @@ public class ServerConfig {
 		return userSetupEnabled;
 	}
 	
+	/**
+	 * Returns whether or not keycloak auth is enabled.
+	 * 
+	 * @return Whether or not keycloak auth is enabled.
+	 */
+	public final boolean getKeycloakAuthEnabled() {
+		return keycloakAuthEnabled;
+	}
+	
+	/**
+	 * Returns whether or not local auth is enabled.
+	 * 
+	 * @return Whether or not local auth is enabled.
+	 */
+	public final boolean getLocalAuthEnabled() {
+		return localAuthEnabled;
+	}
 	
 	/**
 	 * Returns this server configuration as a JSONObject.
@@ -471,6 +525,8 @@ public class ServerConfig {
 		result.put(JSON_KEY_MAXIMUM_PARAMETER_SIZE, maxParamSize);
 		result.put(JSON_KEY_SELF_REGISTRATION_ALLOWED, selfRegistrationAllowed);
 		result.put(JSON_KEY_USER_SETUP_ENABLED, userSetupEnabled);
+		result.put(JSON_KEY_KEYCLOAK_AUTH_ENABLED, keycloakAuthEnabled);
+		result.put(JSON_KEY_LOCAL_AUTH_ENABLED, localAuthEnabled);
 	
 		return result;
 	}

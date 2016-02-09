@@ -45,6 +45,8 @@ public interface IUserQueries {
 	 * 
 	 * @param campaignCreationPrivilege Whether or not the new user is allowed
 	 * 									to create campaigns.
+	 * 
+	 * @param externalAccount Whether or not the user is an external user
 	 */
 	void createUser(
 			final String username, 
@@ -54,7 +56,8 @@ public interface IUserQueries {
 			final Boolean admin,
 			final Boolean enabled, 
 			final Boolean newAccount,
-			final Boolean campaignCreationPrivilege) 
+			final Boolean campaignCreationPrivilege,
+			final Boolean externalAccount) 
 			throws DataAccessException;
 	
 	/**
@@ -78,6 +81,8 @@ public interface IUserQueries {
 	 * @param campaignCreationPrivilege Whether or not the new user is allowed
 	 * 									to create campaigns.
 	 * 
+	 * @param externalAccount Whether or not the user is an external user
+	 * 
 	 * @param userPersonal Whether or not user creation was successful.
 	 */
 	boolean createUser(
@@ -89,6 +94,7 @@ public interface IUserQueries {
 			final Boolean enabled, 
 			final Boolean newAccount,
 			final Boolean campaignCreationPrivilege,
+			final Boolean externalAccount,
 			final UserPersonal personalInfo) 
 			throws DataAccessException;
 	
@@ -173,6 +179,18 @@ public interface IUserQueries {
 	 * 							   query.
 	 */
 	Boolean userIsEnabled(String username) throws DataAccessException;
+	
+	/**
+	 * Gets whether or not the user's account is external.
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return Whether or not the user's account is external.
+	 * 
+	 * @throws DataAccessException Thrown if there is a problem running the
+	 * 							   query.
+	 */
+	Boolean userIsExternal(String username) throws DataAccessException;
 
 	/**
 	 * Gets whether or not the user has a new account.

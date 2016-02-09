@@ -152,6 +152,12 @@ public final class PreferenceCache extends KeyValueCache {
 	// SSL enabling.
 	public static final String KEY_SSL_ENABLED = "ssl_enabled";
 		
+	// Keycloak enabling.
+	public static final String KEY_KEYCLOAK_AUTH_ENABLED = "keycloak_auth_enabled";
+
+	// Local auth enabling.
+	public static final String KEY_LOCAL_AUTH_ENABLED = "local_auth_enabled";
+	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
 	
