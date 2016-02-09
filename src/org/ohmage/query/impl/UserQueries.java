@@ -577,6 +577,99 @@ public class UserQueries extends Query implements IUserQueries {
 							e);
 				}
 			}
+			// if external use, place them in public class as if
+			// they were a new user.
+			if(externalAccount == true){
+			    String publicClassId;
+			    try {
+			      publicClassId = 
+			          PreferenceCache.instance().lookup(
+			              PreferenceCache.KEY_PUBLIC_CLASS_ID);
+			    }
+			    catch(CacheMissException e) {
+			      throw new DataAccessException(
+			          "The public class is not configured");
+			    }
+
+			    // Insert the new user into the class.
+			    try {
+			      getJdbcTemplate().update(
+			          SQL_INSERT_USER_CLASS, 
+			          new Object[] { 
+			              username, 
+			              publicClassId, 
+			              Clazz.Role.RESTRICTED.toString() });
+			    }
+			    catch(org.springframework.dao.DataAccessException e) {
+			      transactionManager.rollback(status);
+			      throw new DataAccessException(
+			          "Error while executing SQL '" + 
+			            SQL_INSERT_USER_CLASS + 
+			            "' with parameters: " +
+			            username + ", " + 
+			            publicClassId + ", " + 
+			            Clazz.Role.RESTRICTED.toString(), 
+			          e);
+			    }
+			    
+			    // Get the list of campaigns for this class.
+			    String sqlGetCampaignIds =
+			      "SELECT ca.urn " +
+			        "FROM campaign ca, class cl, campaign_class cc " +
+			        "WHERE cl.urn = ? " +
+			        "AND cl.id = cc.class_id " +
+			        "AND ca.id = cc.campaign_id";
+			    List<String> campaignIds;
+			    try {
+			      campaignIds =
+			        getJdbcTemplate().query(
+			          sqlGetCampaignIds,
+			          new Object[] { publicClassId },
+			          new SingleColumnRowMapper<String>());
+			    }
+			    catch(org.springframework.dao.DataAccessException e) {
+			      transactionManager.rollback(status);
+			      throw new DataAccessException(
+			        "Error executing SQL '" +
+			          sqlGetCampaignIds +
+			          "' with parameter: " +
+			          publicClassId,
+			        e);
+			    }
+			    
+			    // Construct the parameter map for the batch update.
+			    List<Object[]> batchParameters = 
+			      new ArrayList<Object[]>(campaignIds.size());
+			    for(String campaignId : campaignIds) {
+			      String[] parameters = new String[3];
+			      parameters[0] = username;
+			      parameters[1] = campaignId;
+			      parameters[2] = Campaign.Role.PARTICIPANT.toString();
+			      batchParameters.add(parameters);
+			    }
+			    
+			    // Perform the batch update.
+			    String sqlInsertUserCampaign =
+			      "INSERT INTO user_role_campaign" +
+			        "(user_id, campaign_id, user_role_id) " +
+			        "VALUES (" +
+			          "(SELECT id FROM user WHERE username = ?), " +
+			          "(SELECT id FROM campaign WHERE urn = ?), " +
+			          "(SELECT id FROM user_role WHERE role = ?)" +
+			        ")";
+			    try {
+			      getJdbcTemplate()
+			        .batchUpdate(sqlInsertUserCampaign, batchParameters);
+			    }
+			    catch(org.springframework.dao.DataAccessException e) {
+			      transactionManager.rollback(status);
+			      throw new DataAccessException(
+			        "Error executing SQL '" +
+			          sqlInsertUserCampaign +
+			          "'.",
+			        e);
+			    }
+			}
 			
 			// Commit the transaction if necessary.
 			if(result) {
