@@ -99,7 +99,9 @@ public final class AuthenticationService {
 			throw new ServiceException(e);
 		}
 		
-		if(KeycloakCache.isEnabled() && (userInformation == null)){
+		if(KeycloakCache.isEnabled() && 
+				(userInformation == null) &&
+				(request.getUser() instanceof KeycloakUser)){
 			KeycloakServices.createUser((KeycloakUser) request.getUser());
 
 			// the user has now been created, re-try auth query to
