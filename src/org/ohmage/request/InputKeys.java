@@ -32,6 +32,7 @@ public final class InputKeys {
 	public static final String USERNAME = "username";
 	public static final String PASSWORD = "password";
 	public static final String AUTH_TOKEN = "auth_token";
+	public static final String KEYCLOAK_TOKEN = "KEYCLOAK_TOKEN";
 	
 	// Supplemental Information
 	public static final String CLIENT = "client";

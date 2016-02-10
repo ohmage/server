@@ -661,10 +661,33 @@ public abstract class UserRequest extends Request {
 		// simply split it away
 		// Note the generic error text to maintain previous error message.
 		if (bearer == null){
-			throw
-			new ValidationException(
-					ErrorCode.AUTHENTICATION_FAILED,
-					"Authentication credentials were not provided.");
+			/*
+			 * Unfortunately, we can't live in a perfect world with pure Auth headers.
+			 * Some legacy js code uses <img> tags and expects the auth cookie to be sent along.
+			 * So if keycloak is enabled and the bearer token is false, check on the cookies
+			 * before failing the request.
+			 */
+			List<String> cookies = 
+				CookieUtils.getCookieValues(
+					httpRequest.getCookies(), 
+					InputKeys.KEYCLOAK_TOKEN);
+			
+			// If there are multiple bearer token cookies, fail the
+			// request.
+			 if(cookies.size() > 1) {
+				throw new ValidationException(
+					ErrorCode.AUTHENTICATION_FAILED, 
+					"Multiple bearer token cookies were given.");
+			}
+			else if(cookies.size() == 1) {
+				bearer = "Bearer " + cookies.get(0);
+			}
+			else {
+				throw
+				new ValidationException(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"Authentication credentials were not provided.");	
+			}
 		}
 
 		String[] bearerSplit = bearer.split("\\s+");
