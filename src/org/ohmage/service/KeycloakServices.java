@@ -99,7 +99,7 @@ public final class KeycloakServices {
 					false, // admin
 					true, // enabled
 					false, // newAccount
-					false, //campaignCreation
+					null, //campaignCreation, pass null to use default state.
 					false, //storeInitial
 					true, //externalAccount
 					user.getPersonalInfo());
