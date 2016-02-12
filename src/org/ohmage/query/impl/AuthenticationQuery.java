@@ -122,12 +122,22 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 			hashedPassword = KeycloakUser.KEYCLOAK_USER_PASSWORD;
 		}
 		else if(user.hashPassword()) {
+			// a case where a user enters their username/password
 			try {
 				String actualPassword = 
 					(String) instance.getJdbcTemplate().queryForObject(
 							SQL_GET_PASSWORD, 
 							new Object[] { user.getUsername() },
 							String.class);
+				/*
+				 *  SN: If the queried password matches the static keycloak password string,
+				 * 	fail the request since a keycloak user can't use apis that accept
+				 *  username/pw.
+				 */
+				if(actualPassword.equals(KeycloakUser.KEYCLOAK_USER_PASSWORD)){
+					userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
+					return null;			
+				}
 				hashedPassword = BCrypt.hashpw(user.getPassword(), actualPassword);
 				userRequest.getUser().setHashedPassword(hashedPassword);
 			}
