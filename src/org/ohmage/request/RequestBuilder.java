@@ -434,10 +434,34 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		// Authentication
 		else if(apiUserAuth.equals(requestUri)) {
-			return new AuthRequest(httpRequest);
+			try {
+				if (ConfigServices.readServerConfiguration().getLocalAuthEnabled())
+					return new AuthRequest(httpRequest);
+				else {
+					LOGGER.info("Rejecting UserAuth request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				// Better supports backwards compat by leaving enabled if we can't
+				// find the localauthenabled param
+				LOGGER.warn("Can't find local auth config. Leaving API enabled.", e);
+				return new AuthRequest(httpRequest);
+			}
 		}
 		else if(apiUserAuthToken.equals(requestUri)) {
-			return new AuthTokenRequest(httpRequest);
+			try {
+				if (ConfigServices.readServerConfiguration().getLocalAuthEnabled())
+					return new AuthTokenRequest(httpRequest);
+				else {
+					LOGGER.info("Rejecting UserAuthToken request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				// Better supports backwards compat by leaving enabled if we can't
+				// find the localauthenabled param
+				LOGGER.warn("Can't find local auth config. Leaving API enabled.", e);
+				return new AuthTokenRequest(httpRequest);
+			}
 		}
 		else if(apiUserLogout.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
@@ -663,9 +687,11 @@ public final class RequestBuilder implements ServletContextAware {
 					return new UserSetupRequest(httpRequest);
 				else {
 					LOGGER.info("Rejecting UserSetup request as API is disabled");
+					return new FailedRequest();
 				}
 			} catch (ServiceException e) {
 				LOGGER.warn("Can't find user setup config. Will disable this API.");
+				return new FailedRequest();
 			}
 		}
 		// AccessRequest
