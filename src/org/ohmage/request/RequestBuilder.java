@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.request.accessrequest.AccessRequestCreationRequest;
 import org.ohmage.request.accessrequest.AccessRequestDeletionRequest;
 import org.ohmage.request.accessrequest.AccessRequestReadRequest;
@@ -660,8 +661,11 @@ public final class RequestBuilder implements ServletContextAware {
 			try {
 				if (ConfigServices.readServerConfiguration().getUserSetupEnabled())
 					return new UserSetupRequest(httpRequest);
-			} catch (Exception e) {
-				LOGGER.info("Can't get user setup config. Will disable this API.");
+				else {
+					LOGGER.info("Rejecting UserSetup request as API is disabled");
+				}
+			} catch (ServiceException e) {
+				LOGGER.warn("Can't find user setup config. Will disable this API.");
 			}
 		}
 		// AccessRequest
