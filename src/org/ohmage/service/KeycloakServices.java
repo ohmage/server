@@ -19,12 +19,13 @@ import org.ohmage.exception.ServiceException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.service.UserServices;
 import org.ohmage.domain.KeycloakUser;
-
+import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.cache.KeycloakCache;
 import org.jose4j.jwt.consumer.JwtContext;
 import org.jose4j.jwt.consumer.JwtConsumer;
 import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.jwt.consumer.InvalidJwtException;
+import org.apache.log4j.Logger;
 import org.jose4j.jwt.MalformedClaimException;
 
 
@@ -35,6 +36,7 @@ import org.jose4j.jwt.MalformedClaimException;
  * @author Steve Nolen
  */
 public final class KeycloakServices {
+	private static final Logger LOGGER = Logger.getLogger(KeycloakServices.class);
 
 	/*
 	 * Key used for username when unpacking valid JWT
@@ -105,6 +107,79 @@ public final class KeycloakServices {
 					user.getPersonalInfo());
 		} catch (ServiceException e) {
 			throw new ServiceException("Unable to create keycloak user", e);
+		}
+	}
+	
+	/**
+	 * Updates a keycloak user's info.
+	 * 
+	 * @param user A keycloak user object to test for changes.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public static void updateUser(
+			final KeycloakUser user)
+					throws ServiceException{
+		try {
+			Boolean updateEmail = false;
+			Boolean updatePersonalInfo = false;
+			Boolean deletePersonalInfo = false;
+			String tEmail = null;
+			String tFirstName = null;
+			String tLastName = null;
+			String tOrganization = null;
+			String tPersonalId = null;
+
+			// check if email matches, if not, update
+			String currentEmail = UserServices.instance().getUserEmail(user.getUsername());
+			if (!currentEmail.equals(user.getEmail())) {
+				tEmail = user.getEmail();
+				updateEmail = true;
+			}
+
+			// check if userpersonal matches, if not, update.
+			UserPersonal currentPersonalInfo = null;
+			if (user.getPersonalInfo() != null) {
+				currentPersonalInfo = UserServices.instance().getUserPersonalInformation(user.getUsername());
+				if (!user.getPersonalInfo().equals(currentPersonalInfo)) {
+					tFirstName = user.getPersonalInfo().getFirstName();
+					tLastName = user.getPersonalInfo().getLastName();
+					tOrganization = user.getPersonalInfo().getOrganization();
+					tPersonalId = user.getPersonalInfo().getPersonalId();
+					updatePersonalInfo = true;
+				}
+			}
+			// if current user info is empty, delete any personal info we have.
+			else {
+				deletePersonalInfo = true;
+			}
+
+			// updates only if something is changed. 
+			if (updateEmail || updatePersonalInfo || deletePersonalInfo) {
+				LOGGER.info("Updating user info for keycloak user: " +
+						user.getUsername());
+				UserServices.instance().updateUser(
+						user.getUsername(), 
+						tEmail, 
+						null, //admin
+						null,  //enabled
+						null, //new acct
+						null, //campaigncreation 
+						null, //classcreation
+						null, //usersetup
+						tFirstName, //firstname
+						tLastName,  //lastname
+						tOrganization, //org
+						tPersonalId,  //pid
+						deletePersonalInfo); //delete personal info				
+			}
+
+			// check if userpersonal info
+			//   if so, check if matches?
+			//    if not matches, update
+		}
+		catch (ServiceException e) {
+			throw new ServiceException("Unable to update keycloak user details", e);
 		}
 	}
 }

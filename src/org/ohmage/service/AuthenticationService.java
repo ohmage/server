@@ -99,6 +99,7 @@ public final class AuthenticationService {
 			throw new ServiceException(e);
 		}
 		
+		// A new keycloak user has been found. insert them into the db.
 		if(KeycloakCache.isEnabled() && 
 				(userInformation == null) &&
 				(request.getUser() instanceof KeycloakUser)){
@@ -113,7 +114,14 @@ public final class AuthenticationService {
 				request.setFailed();
 				throw new ServiceException(e);
 			}
+		// An existing keycloak user has been found. Test for personal info
+		// that may need to be updated.
+		} else if (KeycloakCache.isEnabled() &&
+				(userInformation != null) &&
+				(request.getUser() instanceof KeycloakUser)){
+			KeycloakServices.updateUser((KeycloakUser) request.getUser());
 		}
+			
 		
 		// If the username and/or password were incorrect, then null was 
 		// returned. Therefore, return false.

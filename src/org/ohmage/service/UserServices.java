@@ -1877,6 +1877,27 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Retrieves the personal information for a user.
+	 * 
+	 * @param username The username.
+	 * 
+	 * @return A UserPersonal object of the user's personal info, or null if no
+	 * 		   personal information is available
+	 * 
+	 * @throws ServiceException There was an error
+	 */
+	public UserPersonal getUserPersonalInformation(
+			final String username) throws ServiceException {
+		
+		try {
+			return userQueries.getPersonalInfoForUser(username);
+		}
+		catch (DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Updates a user's account information.
 	 * 
 	 * @param username
