@@ -700,7 +700,7 @@ public abstract class UserRequest extends Request {
 		}
 
 		// Uses KeycloakServices.getUser to parse the bearer token.
-		// indidentally, this also authenticates the user, since
+		// incidentally, this also authenticates the user, since
 		// the bearer token is checked for signature and authenticity.
 		User user;
 		try {
