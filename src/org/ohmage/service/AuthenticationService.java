@@ -103,7 +103,15 @@ public final class AuthenticationService {
 		if(KeycloakCache.isEnabled() && 
 				(userInformation == null) &&
 				(request.getUser() instanceof KeycloakUser)){
-			KeycloakServices.createUser((KeycloakUser) request.getUser());
+			try {
+				KeycloakServices.createUser((KeycloakUser) request.getUser());
+			}
+			catch (ServiceException e) {
+				request.setFailed(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"A user account with this name already exists.");
+				throw new ServiceException(e);
+			}
 
 			// the user has now been created, re-try auth query to
 			// "authenticate" the user. 
