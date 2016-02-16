@@ -757,7 +757,8 @@ public class UserQueries extends Query implements IUserQueries {
 								false, 
 								false, 
 								false, 
-								defaultCampaignCreationPrivilege
+								defaultCampaignCreationPrivilege,
+								false
 							}
 					);
 			}
@@ -773,8 +774,9 @@ public class UserQueries extends Query implements IUserQueries {
 							emailAddress + ", " + 
 							false + ", " + 
 							false + ", " + 
-							false + ", " + 
-							defaultCampaignCreationPrivilege, 
+							false + ", " +
+							defaultCampaignCreationPrivilege + ", " +
+							false,
 						e);
 			}
 			
