@@ -177,7 +177,7 @@ public class KeycloakCache {
 					realmMap = mapper.readValue(byteArrayStream.toString(), ref);
 				}
 				catch (JsonParseException e){
-					LOGGER.warn("Error while parsing json response from keycloak server.");
+					LOGGER.warn("Error while parsing json response from keycloak server.", e);
 					return false;
 				}
 				
@@ -198,12 +198,14 @@ public class KeycloakCache {
 		} 
 		catch (MalformedURLException e) {
 			LOGGER.warn("Built a Malformed URL:"
-					+ url);
+					+ url,
+					e);
 			return false;
 		} 
 		catch (IOException e) {   
 			LOGGER.warn("Error communicating with keycloak server at:"
-					+ url);
+					+ url,
+					e);
 			return false;
 		}
 	}
@@ -236,11 +238,12 @@ public class KeycloakCache {
 			return kf.generatePublic(X509publicKey);
 		}
 		catch(InvalidKeySpecException e){
-			LOGGER.warn("Imported public key from keycloak.json is invalid");
+			LOGGER.warn("Imported public key from keycloak.json is invalid", e);
 		}
 		catch(NoSuchAlgorithmException e){
 			LOGGER.warn("Error importing public key from keycloak.json, no such algorithm: "
-					+ PUBLIC_KEY_ALGORITHM);
+					+ PUBLIC_KEY_ALGORITHM,
+					e);
 		}
 
 		return null;
