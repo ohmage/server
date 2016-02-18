@@ -186,6 +186,14 @@ public class ConfigServices {
 			throw new ServiceException("The local auth config was not a valid boolean.", e);
 		}
 
+		String publicClassId;
+		try {
+			publicClassId = instance.lookup(PreferenceCache.KEY_PUBLIC_CLASS_ID); 
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException("The public class id was unknown.", e);
+		}
+
 		try {
 			return
 				new ServerConfig(
@@ -202,7 +210,8 @@ public class ConfigServices {
 					selfRegistrationAllowed,
 					userSetupEnabled,
 					keycloakAuthEnabled,
-					localAuthEnabled);
+					localAuthEnabled,
+					publicClassId);
 		} 
 		catch(DomainException e) {
 			throw new ServiceException(e);
