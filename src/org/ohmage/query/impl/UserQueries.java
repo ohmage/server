@@ -646,6 +646,11 @@ public class UserQueries extends Query implements IUserQueries {
 			      parameters[1] = campaignId;
 			      parameters[2] = Campaign.Role.PARTICIPANT.toString();
 			      batchParameters.add(parameters);
+			      String[] analystParameters = new String[3];
+			      analystParameters[0] = username;
+			      analystParameters[1] = campaignId;
+			      analystParameters[2] = Campaign.Role.ANALYST.toString();
+			      batchParameters.add(analystParameters);
 			    }
 			    
 			    // Perform the batch update.
@@ -835,6 +840,11 @@ public class UserQueries extends Query implements IUserQueries {
 				parameters[1] = campaignId;
 				parameters[2] = Campaign.Role.PARTICIPANT.toString();
 				batchParameters.add(parameters);
+				String[] analystParameters = new String[3];
+				analystParameters[0] = username;
+				analystParameters[1] = campaignId;
+				analystParameters[2] = Campaign.Role.ANALYST.toString();
+				batchParameters.add(analystParameters);
 			}
 			
 			// Perform the batch update.
