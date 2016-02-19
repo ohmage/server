@@ -18,6 +18,7 @@ package org.ohmage.service;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.KeycloakCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.ServerConfig;
@@ -157,19 +158,7 @@ public class ConfigServices {
 		}
 
 		boolean keycloakAuthEnabled;
-		try {
-			keycloakAuthEnabled = 
-					StringUtils.decodeBoolean(
-							PreferenceCache.instance().lookup(
-									PreferenceCache.KEY_KEYCLOAK_AUTH_ENABLED));
-		}
-		catch(CacheMissException e) {
-			keycloakAuthEnabled = ServerConfig.DEFAULT_KEYCLOAK_AUTH_ENABLED;
-			LOGGER.warn("keycloak_auth config is missing from the DB. Will default to " + keycloakAuthEnabled);
-		}
-		catch(IllegalArgumentException e) {
-			throw new ServiceException("The keycloak auth config was not a valid boolean.", e);
-		}
+		keycloakAuthEnabled = KeycloakCache.isEnabled();
 
 		boolean localAuthEnabled;
 		try {
