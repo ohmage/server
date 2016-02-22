@@ -515,6 +515,7 @@ public interface ICampaignQueries {
 	void updateCampaign(String campaignId, String xml, String description,
 			Campaign.RunningState runningState,
 			Campaign.PrivacyState privacyState,
+			Boolean editable,
 			Collection<String> classesToAdd,
 			Collection<String> classesToRemove,
 			Map<String, Set<Campaign.Role>> usersAndRolesToAdd,

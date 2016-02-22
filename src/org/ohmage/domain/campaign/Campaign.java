@@ -144,6 +144,7 @@ public class Campaign {
 	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
 	private static final String JSON_KEY_XML = "xml";
 	private static final String JSON_KEY_SURVEYS = "surveys";
+	private static final String JSON_KEY_EDITABLE = "editable";
 	
 	private static final String JSON_KEY_CLASSES = "classes";
 	private static final String JSON_KEY_AUTHOR_LIST = "author_list";
@@ -210,6 +211,11 @@ public class Campaign {
 	 */
 	private final List<String> authorList;
 	
+	/**
+	 * Whether or not this campaign is editable.
+	 */
+	private final Boolean editable;
+
 	/**
 	 * Campaign privacy states.
 	 * 
@@ -405,7 +411,8 @@ public class Campaign {
 			final PrivacyState privacyState, 
 			final DateTime creationTimestamp, 
 			final Map<String, Survey> surveyMap, 
-			final String xml) 
+			final String xml,
+			final Boolean editable)
 			throws DomainException {
 
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
@@ -436,6 +443,7 @@ public class Campaign {
 		
 		this.runningState = runningState;
 		this.privacyState = privacyState;
+		this.editable = editable;
 		
 		this.creationTimestamp = new DateTime(creationTimestamp);  
 		
@@ -479,6 +487,15 @@ public class Campaign {
 		}
 		description = tDescription;
 		
+		Boolean tEditable = null;
+		try {
+			tEditable = information.getBoolean(JSON_KEY_EDITABLE);
+		}
+		catch(JSONException e){
+			throw new DomainException("The editable state is missing.", e);
+		}
+		editable = tEditable;
+
 		try {
 			runningState = RunningState.getValue(information.getString(JSON_KEY_RUNNING_STATE));
 		}
@@ -664,7 +681,8 @@ public class Campaign {
 			final RunningState runningState, 
 			final PrivacyState privacyState, 
 			final Date creationTimestamp, 
-			final String xml) 
+			final String xml,
+			final Boolean editable)
 			throws DomainException {
 		
 		if(runningState == null) {
@@ -678,6 +696,9 @@ public class Campaign {
 		}
 		else if(xml == null) {
 			throw new DomainException("The XML is null.");
+		}
+		else if(editable == null) {
+			throw new DomainException("The edtiable state is null.");
 		}
 		
 		Document document;
@@ -713,6 +734,7 @@ public class Campaign {
 		
 		this.runningState = runningState;
 		this.privacyState = privacyState;
+		this.editable = editable;
 		
 		this.creationTimestamp = new DateTime(creationTimestamp);
 		
@@ -832,6 +854,15 @@ public class Campaign {
 	 */
 	public PrivacyState getPrivacyState() {
 		return privacyState;
+	}
+
+	/**
+	 * Returns the configuration's current editable state.
+	 *
+	 * @return The configuration's current editable state.
+	 */
+	public Boolean getEditable() {
+		return editable;
 	}
 
 	/**
@@ -1915,6 +1946,7 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
+		result.put(JSON_KEY_EDITABLE, editable);
 		result.put(JSON_KEY_AUTHOR_LIST, authorList);
 		// add request's user roles
 		

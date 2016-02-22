@@ -591,7 +591,8 @@ public class CampaignServices {
 	public void updateCampaign(final String campaignId, 
 			final String xml, final String description, 
 			final Campaign.RunningState runningState, 
-			final Campaign.PrivacyState privacyState, 
+			final Campaign.PrivacyState privacyState,
+			final Boolean editable,
 			final Collection<String> classesToAdd, 
 			final Collection<String> classesToRemove,
 			final Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
@@ -599,7 +600,7 @@ public class CampaignServices {
 			throws ServiceException {
 		
 		try {
-			campaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
+			campaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, editable, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

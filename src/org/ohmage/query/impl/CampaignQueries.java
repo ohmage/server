@@ -127,7 +127,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	
 	// Returns the information pertaining directly to a campaign.
 	private static final String SQL_GET_CAMPAIGN_INFORMATION =
-		"SELECT c.name, c.description, c.icon_url, c.authored_by, c.xml, crs.running_state, cps.privacy_state, c.creation_timestamp " +
+		"SELECT c.name, c.description, c.icon_url, c.authored_by, c.xml, c.editable, crs.running_state, cps.privacy_state, c.creation_timestamp " +
 		"FROM campaign c, campaign_running_state crs, campaign_privacy_state cps " +
 		"WHERE c.urn = ? " +
 		"AND c.running_state_id = crs.id " +
@@ -222,8 +222,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	
 	// Inserts a new campaign.
 	private static final String SQL_INSERT_CAMPAIGN = 
-		"INSERT INTO campaign(urn, name, xml, description, icon_url, authored_by, creation_timestamp, running_state_id, privacy_state_id) " +
-		"VALUES (?, ?, ?, ?, ?, ?, now(), (" +
+		"INSERT INTO campaign(urn, name, xml, description, icon_url, authored_by, editable, creation_timestamp, running_state_id, privacy_state_id) " +
+		"VALUES (?, ?, ?, ?, ?, ?, ?, now(), (" +
 				"SELECT id " +
 				"FROM campaign_running_state " +
 				"WHERE running_state = ?" +
@@ -320,6 +320,12 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			"FROM campaign_running_state " +
 			"WHERE running_state = ?" +
 		") " +
+		"WHERE urn = ?";
+
+	// Updates a campaign's editable state.
+	private static final String SQL_UPDATE_EDITABLE =
+		"UPDATE campaign " +
+	    "SET editable = ? " +
 		"WHERE urn = ?";
 		
 	// Deletes a campaign.
@@ -428,6 +434,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 						campaign.getDescription(), 
 						iconUrlString, 
 						campaign.getAuthoredBy(), 
+						campaign.getEditable(),
 						campaign.getRunningState().toString(), 
 						campaign.getPrivacyState().toString()
 					}
@@ -855,7 +862,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 										Campaign.PrivacyState.getValue(
 												rs.getString("privacy_state")),
 										rs.getTimestamp("creation_timestamp"),
-										rs.getString("xml")
+										rs.getString("xml"),
+										rs.getBoolean("editable")
 								);
 							}
 							catch(DomainException e) {
@@ -1032,7 +1040,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 										Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
 										new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
 										new HashMap<String, Survey>(0),
-										rs.getString("xml"));
+										rs.getString("xml"),
+										rs.getBoolean("editable"));
 							} 
 							catch(DomainException e) {
 								throw new SQLException(
@@ -1336,7 +1345,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 					"SELECT ca.urn, ca.name, ca.description, " +
 						"crs.running_state, cps.privacy_state, " +
 						"ca.creation_timestamp, " +
-						"ca.xml " + 
+						"ca.xml, " +
+						"ca.editable " +
 					"FROM campaign ca " +
 					  	"JOIN campaign_running_state crs on (ca.running_state_id = crs.id) " +
 						"JOIN campaign_privacy_state cps on (ca.privacy_state_id = cps.id) " +
@@ -1372,7 +1382,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 													Campaign.RunningState.valueOf(rs.getString("running_state").toUpperCase()),
 													Campaign.PrivacyState.valueOf(rs.getString("privacy_state").toUpperCase()),
 													new DateTime(rs.getTimestamp("creation_timestamp").getTime()).toDate(),
-													rs.getString("xml")));
+													rs.getString("xml"),
+													rs.getBoolean("editable")));
 								}
 							
 								return result;
@@ -1414,7 +1425,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 					"ca.icon_url, ca.authored_by, " +
 					"crs.running_state, cps.privacy_state, " +
 					"ca.creation_timestamp, " +
-					"ca.xml " +
+					"ca.xml, " +
+					"ca.editable " +
 				"FROM " +
 					"campaign ca, " +
 						"campaign_running_state crs, " + 
@@ -1528,7 +1540,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 										Campaign.RunningState.getValue(rs.getString("running_state")),
 										Campaign.PrivacyState.getValue(rs.getString("privacy_state")),
 										new Date(rs.getTimestamp("creation_timestamp").getTime()),
-										rs.getString("xml"));
+										rs.getString("xml"),
+										rs.getBoolean("editable"));
 							}
 							catch(DomainException e) {
 								throw new SQLException(e);
@@ -1552,7 +1565,8 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 	 */
 	public void updateCampaign(String campaignId, String xml, String description, 
 			Campaign.RunningState runningState, 
-			Campaign.PrivacyState privacyState, 
+			Campaign.PrivacyState privacyState,
+			Boolean editable,
 			Collection<String> classesToAdd,
 			Collection<String> classesToRemove,
 			Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
@@ -1612,6 +1626,17 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 				}
 			}
 			
+			// Update the editable state if it is present.
+			if(editable != null) {
+				try {
+					getJdbcTemplate().update(SQL_UPDATE_EDITABLE, new Object[] { editable, campaignId });
+				}
+				catch(org.springframework.dao.DataAccessException e) {
+					transactionManager.rollback(status);
+					throw new DataAccessException("Error executing SQL '" + SQL_UPDATE_EDITABLE + "' with parameters: " + editable + ", " + campaignId, e);
+				}
+			}
+
 			// Add the specific users with specific roles.
 			if(usersAndRolesToAdd != null) {
 				for(String username : usersAndRolesToAdd.keySet()) {

@@ -67,6 +67,7 @@ public final class InputKeys {
 	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";
 	public static final String XML = "xml";
 	public static final String CAMPAIGN_CREATION_TIMESTAMP = "campaign_creation_timestamp";
+	public static final String CAMPAIGN_EDITABLE = "editable";
 	
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
