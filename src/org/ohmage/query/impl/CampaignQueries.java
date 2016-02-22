@@ -119,6 +119,12 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 		"WHERE c.urn = ?" +
 		"AND c.privacy_state_id = cps.id";
 
+	// Returns the running state String of a campaign.
+	private static final String SQL_GET_EDITABLE =
+		"SELECT editable " +
+		"FROM campaign " +
+		"WHERE urn = ? ";
+
 	// Returns the campaign's creation timestamp.
 	private static final String SQL_GET_CREATION_TIMESTAMP =
 		"SELECT creation_timestamp " +
@@ -819,7 +825,7 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_CAMPAIGNS_WITH_RUNNING_STATE + "' with parameter: " + runningState, e);
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#getName(java.lang.String)
 	 */
@@ -943,7 +949,26 @@ public final class CampaignQueries extends Query implements ICampaignQueries {
 			throw new DataAccessException("Error executing SQL '" + SQL_GET_PRIVACY_STATE + "' with parameter: " + campaignId, e);
 		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.ohmage.query.impl.ICampaignQueries#getCampaignEditable(java.lang.Boolean)
+	 */
+	public Boolean getCampaignEditable(String campaignId) throws DataAccessException {
+		try {
+			return getJdbcTemplate().queryForObject(SQL_GET_EDITABLE, new Object[] { campaignId }, Boolean.class);
+		}
+		catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
+			if(e.getActualSize() > 1) {
+				throw new DataAccessException("Multiple campaigns have the same unique identifier.", e);
+			}
+
+			return null;
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException("Error executing SQL '" + SQL_GET_EDITABLE + "' with parameter: " + campaignId, e);
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see org.ohmage.query.impl.ICampaignQueries#getXml(java.lang.String)
 	 */

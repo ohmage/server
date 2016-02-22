@@ -452,6 +452,9 @@ public class SurveyUploadRequest extends UserRequest {
 			LOGGER.info("Verifying that the campaign is running.");
 			CampaignServices.instance().verifyCampaignIsRunning(campaignUrn);
 			
+			LOGGER.info("Verifying whether the campaigns responses are editable");
+			CampaignServices.instance().verifyEditableResponse(campaignUrn, allowSurveyUpdate);
+
 			Collection<String> campaignIds = new ArrayList<String>(1);
 			campaignIds.add(campaignUrn);
 			LOGGER.info("Generating the campaign object.");

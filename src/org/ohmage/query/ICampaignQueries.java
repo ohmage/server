@@ -115,6 +115,18 @@ public interface ICampaignQueries {
 			throws DataAccessException;
 
 	/**
+	 * Retrieves the campaign's responses' editability.
+	 * 
+	 * @param campaignId
+	 *            A campaign's unique identifier.
+	 * 
+	 * @return If the campaign exists, its editable Boolean is returned;
+	 *         otherwise, null is returned.
+	 */
+	Boolean getCampaignEditable(String campaignId)
+			throws DataAccessException;
+
+	/**
 	 * Retrieves a campaign's XML.
 	 * 
 	 * @param campaignId

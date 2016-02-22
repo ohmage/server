@@ -333,6 +333,31 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Verifies that the campaign responses are editable.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the campaign is not running or if 
+	 * 							there is an error.
+	 */
+	public void verifyEditableResponse(final String campaignId, final Boolean allowResponseUpdate) 
+			throws ServiceException {
+		
+		try {
+			if(allowResponseUpdate){
+				if(! campaignQueries.getCampaignEditable(campaignId)) {
+					throw new ServiceException(
+							ErrorCode.CAMPAIGN_INVALID_EDITABLE,
+							"The responses for this campaign are not editable.");
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
 	 * Verifies that the given timestamp is the same as the campaign's creation
 	 * timestamp.
 	 * 
