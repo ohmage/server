@@ -18,6 +18,7 @@ package org.ohmage.query;
 import java.util.Collection;
 import java.util.List;
 import org.joda.time.DateTime;
+import org.json.JSONObject;
 import org.ohmage.domain.AccessRequest;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
@@ -49,7 +50,7 @@ public interface IAccessRequestQueries {
 			final String requestId, 
 			final String username, 
 			final String emailAddress, 
-			final String requestContent, 
+			final JSONObject requestContent, 
 			final String requestType,
 			final String requestStatus) throws DataAccessException;
 	
@@ -206,7 +207,7 @@ public interface IAccessRequestQueries {
 	 * @throws ServiceException Thrown if there is an error.
 	 */
 	void updateAccessRequest(String requestId, String emailAddress,
-			String requestContent, String requestType, String requestStatus,
+			JSONObject requestContent, String requestType, String requestStatus,
 			Boolean updateUserPrivileges)
 			throws DataAccessException;
 

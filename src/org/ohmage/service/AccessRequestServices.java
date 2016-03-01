@@ -119,7 +119,7 @@ public final class AccessRequestServices {
 			
 			// Create a request with pending status
 			userSetupRequestQueries.createAccessRequest(requestId, username, emailAddress, 
-					requestContent.toString(), requestType, defaultStatus);
+					requestContent, requestType, defaultStatus);
 			
 
 		}
@@ -483,7 +483,7 @@ public final class AccessRequestServices {
 			
 			// update the request
 			userSetupRequestQueries.updateAccessRequest(requestId, emailAddress, 
-					(requestContent == null) ? null : requestContent.toString(), 
+					(requestContent == null) ? null : requestContent, 
 					requestType, requestStatus, updateUserPrivileges);
 
 		}

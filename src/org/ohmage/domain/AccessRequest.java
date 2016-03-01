@@ -64,7 +64,7 @@ public class AccessRequest {
 	private final String username;
 	private final String emailAddress;
 	private final Type requestType;
-	private final String requestContent;
+	private final JSONObject requestContent;
 	private final Status requestStatus;
 	private final DateTime creationTime;
 	private final DateTime lastModifiedTime;
@@ -164,7 +164,7 @@ public class AccessRequest {
 			final String id,
 			final String username, 
 			final String emailAddress,	
-			final String requestContent, 
+			final JSONObject requestContent, 
 			final String requestType,
 			final String status,
 			final DateTime creationTime,
@@ -309,7 +309,7 @@ public class AccessRequest {
 	 * 
 	 * @return the request content.
 	 */
-	public String getContent(){
+	public JSONObject getContent(){
 		return requestContent;
 	}
 

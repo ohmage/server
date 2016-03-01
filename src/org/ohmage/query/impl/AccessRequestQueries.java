@@ -27,6 +27,8 @@ import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.domain.AccessRequest;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
@@ -92,7 +94,7 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 			final String requestId, 
 			final String username, 
 			final String emailAddress, 
-			final String requestContent, 
+			final JSONObject requestContent, 
 			final String requestType,
 			final String requestStatus) throws DataAccessException {
 		
@@ -108,12 +110,12 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 			// Insert the class.
 			try {
 				getJdbcTemplate().update(SQL_INSERT_REQUEST, 
-						new Object[] { requestId, username, emailAddress, requestType, requestContent, requestStatus} );
+						new Object[] { requestId, username, emailAddress, requestType, requestContent.toString(), requestStatus} );
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				transactionManager.rollback(status);
 				throw new DataAccessException("Error while executing SQL '" + SQL_INSERT_REQUEST + "' with parameters: " +
-						requestId + ", " + username + ", " + emailAddress + ", " + requestContent + ", " + requestStatus, 
+						requestId + ", " + username + ", " + emailAddress + ", " + requestContent.toString() + ", " + requestStatus, 
 						e);
 			}
 			
@@ -408,11 +410,21 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 								throws SQLException {
 							
 							try {
+								JSONObject requestContent = null;
+								try {
+									requestContent = new JSONObject(rs.getString("content"));
+								}
+								catch (JSONException e) {
+									throw new DomainException(
+											"Error parsing the request content.",
+											e);
+								}
+
 								return new AccessRequest(
 										rs.getString("uuid"),		
 										rs.getString("username"),
 										rs.getString("email_address"),
-										rs.getString("content"),
+										requestContent,
 										rs.getString("type"),
 										rs.getString("status"),
 										new DateTime(rs.getTimestamp("creation_timestamp").getTime()),
@@ -468,7 +480,7 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 	 * java.lang.String, java.lang.String, java.lang.String, java.lang.String )
 	 */
 	@Override
-	public void updateAccessRequest(String requestId, String emailAddress, String requestContent, 
+	public void updateAccessRequest(String requestId, String emailAddress, JSONObject requestContent, 
 			String requestType, String requestStatus, Boolean updateUserPrivileges)
 		throws DataAccessException {
 
@@ -493,7 +505,7 @@ public class AccessRequestQueries extends Query implements IAccessRequestQueries
 				firstClause = false;
 			} else 
 				sql.append(", content = ? ");				
-			parameters.add(requestContent);
+			parameters.add(requestContent.toString());
 		}
 
 		if (requestType != null) {
