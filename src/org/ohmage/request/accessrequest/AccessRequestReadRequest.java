@@ -288,13 +288,15 @@ public class AccessRequestReadRequest extends UserRequest {
 		
 		JSONObject jsonResult = new JSONObject();
 		
-		for(AccessRequest request : results) {
-			try {
-				jsonResult.put(request.getRequestId(), request.toJsonObject());
-			}
-			catch(JSONException e) {
-				LOGGER.error("Error building the result JSONObject.", e);
-				setFailed();
+		if (results != null){
+			for(AccessRequest request : results) {
+				try {
+					jsonResult.put(request.getRequestId(), request.toJsonObject());
+				}
+				catch(JSONException e) {
+					LOGGER.error("Error building the result JSONObject.", e);
+					setFailed();
+				}
 			}
 		}
 		
