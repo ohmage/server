@@ -1377,9 +1377,11 @@ public final class SurveyResponseReadRequest
 		try {
 			writer.write(resultString);
 		}
-		catch(ClientAbortException e) {
-			LOGGER.info("The client hung up unexpectedly.", e);
-		}
+		// SN: commenting as this exception is a subclass of IOException
+		// and the exception is tomcat-specific.
+		//catch(ClientAbortException e) {
+		//	LOGGER.info("The client hung up unexpectedly.", e);
+		//}
 		catch(IOException e) {
 			LOGGER.warn("Unable to write response message. Aborting.", e);
 		}
@@ -1388,9 +1390,11 @@ public final class SurveyResponseReadRequest
 		try {
 			writer.close();
 		}
-		catch(ClientAbortException e) {
-			LOGGER.info("The client hung up unexpectedly.", e);
-		}
+		// SN: commenting as this exception is a subclass of IOException
+		// and the exception is tomcat-specific.
+		//catch(ClientAbortException e) {
+		//	LOGGER.info("The client hung up unexpectedly.", e);
+		//}
 		catch(IOException e) {
 			LOGGER.warn("Unable to close the writer.", e);
 		}

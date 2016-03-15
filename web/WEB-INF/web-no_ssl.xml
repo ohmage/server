@@ -81,6 +81,8 @@
   </filter-mapping> 
 
   <!--  The default Tomcat Servlet used to locate and serve static content -->
+  <!--  SN: commenting this as it is uncessary in tomcat7, and makes ohmage tomcat-dependent --> 
+  <!--
   <servlet>
     <servlet-name>default</servlet-name>
     <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
@@ -94,7 +96,7 @@
     </init-param>
     <load-on-startup>1</load-on-startup>
   </servlet>
-  
+  -->
   <servlet-mapping>
     <servlet-name>default</servlet-name>
     <url-pattern>*.html</url-pattern>

@@ -278,9 +278,11 @@ public class ImageReadRequest extends UserRequest {
 					try {
 						dos.close();
 					}
-					catch(ClientAbortException e) {
-						LOGGER.info("The client hung up unexpectedly.", e);
-					}
+					// SN: commenting as this exception is a subclass of IOException
+					// and the exception is tomcat-specific.
+					//catch(ClientAbortException e) {
+					//	LOGGER.info("The client hung up unexpectedly.", e);
+					//}
 					catch(IOException e) {
 						LOGGER.warn("Error closing the data output stream.", e);
 					}
@@ -297,10 +299,11 @@ public class ImageReadRequest extends UserRequest {
 			httpResponse.setStatus(
 				HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 		}
-		// If the client hangs up, just print a warning.
-		catch(ClientAbortException e) {
-			LOGGER.info("The client hung up unexpectedly.", e);
-		}
+		// SN: commenting as this exception is a subclass of IOException
+		// and the exception is tomcat-specific.
+		//catch(ClientAbortException e) {
+		//	LOGGER.info("The client hung up unexpectedly.", e);
+		//}
 		// If the error occurred while reading from the input stream or
 		// writing to the output stream, abort the whole operation and
 		// return an error.
@@ -319,10 +322,11 @@ public class ImageReadRequest extends UserRequest {
 					imageStream.close();
 				}
 			}
-			// If the client hangs up, just print a warning.
-			catch(ClientAbortException e) {
-				LOGGER.info("The client hung up unexpectedly.", e);
-			}
+			// SN: commenting as this exception is a subclass of IOException
+			// and the exception is tomcat-specific.
+			//catch(ClientAbortException e) {
+			//	LOGGER.info("The client hung up unexpectedly.", e);
+			//}
 			catch(IOException e) {
 				LOGGER.warn("Could not close the image stream.", e);
 				// We don't care about failing the request, because, either, it

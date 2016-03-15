@@ -77,6 +77,7 @@
     <include name="slf4j-log4j12-1.7.5.jar"/>
     <include name="tomcat-dbcp-7.0.42.jar" />
     <include name="tomcat-jdbc-7.0.42.jar" />
+    <include name="tomcat-juli.jar" />
     <include name="jose4j-0.4.4.jar"/>
   </fileset>
 
