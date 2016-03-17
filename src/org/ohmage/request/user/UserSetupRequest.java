@@ -283,7 +283,7 @@ public class UserSetupRequest extends UserRequest {
 		}
 		
 		try {
-			LOGGER.info("Verifying that the requesting user is an admin.");
+			LOGGER.info("Verifying that the requesting user can setup users.");
 			UserServices
 				.instance()
 				.verifyUserCanSetupUsers(getUser().getUsername());

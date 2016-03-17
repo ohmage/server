@@ -2280,5 +2280,38 @@ public final class UserServices {
 		}
 		return passwordBuilder.toString();
 	}
+
+	/**
+	 * Checks for user existence and if user is external. 
+	 * 
+	 * @param username A username to check.
+	 * 
+	 * @return true if user exists AND is external. false otherwise.
+	 */
+	public boolean userExistsAndIsExternal(String username)
+			throws ServiceException {
+		boolean userExists;
+		try {
+			userExists = 
+					userQueries.userExists(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+
+		if (userExists) {
+			boolean isExternal = false;
+			try {
+				isExternal = userQueries.userIsExternal(username);
+			}
+			catch(DataAccessException e) {
+				throw new ServiceException(e);
+			}
+			return isExternal;
+		} else {
+			return userExists;
+		}
+
+	}
 	
 }

@@ -21,6 +21,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.KeycloakCache;
 import org.ohmage.exception.InvalidRequestException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.request.accessrequest.AccessRequestCreationRequest;
@@ -95,6 +96,7 @@ import org.ohmage.request.user.UserPasswordResetRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserRegistrationRequest;
 import org.ohmage.request.user.UserSearchRequest;
+import org.ohmage.request.user.UserSetupExternalRequest;
 import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
@@ -225,6 +227,7 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserChangePassword;
 	private String apiUserDelete;
 	private String apiUserSetup;
+	private String apiUserSetupExternal;
 	
 	// AccessRequest
 	private String apiAccessRequestCreate;
@@ -386,6 +389,7 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserChangePassword = apiRoot + "/user/change_password";
 		apiUserDelete = apiRoot + "/user/delete";
 		apiUserSetup = apiRoot + "/user/setup";
+		apiUserSetupExternal = apiRoot + "/user/setup_external";
 
 
 		// Registration
@@ -687,6 +691,20 @@ public final class RequestBuilder implements ServletContextAware {
 					return new UserSetupRequest(httpRequest);
 				else {
 					LOGGER.info("Rejecting UserSetup request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				LOGGER.warn("Can't find user setup config. Will disable this API.");
+				return new FailedRequest();
+			}
+		}
+		else if(apiUserSetupExternal.equals(requestUri)) {
+			try {
+				if (ConfigServices.readServerConfiguration().getUserSetupEnabled() &&
+						KeycloakCache.isEnabled())
+					return new UserSetupExternalRequest(httpRequest);
+				else {
+					LOGGER.info("Rejecting UserSetupExternal request as API is disabled");
 					return new FailedRequest();
 				}
 			} catch (ServiceException e) {

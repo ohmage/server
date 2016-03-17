@@ -53,7 +53,6 @@ public final class KeycloakServices {
 	 */
 	private KeycloakServices() {}
 	
-	
 	/*
 	 * Inspects a bearer token for username and returns a new KeycloakUser object
 	 * for user.
