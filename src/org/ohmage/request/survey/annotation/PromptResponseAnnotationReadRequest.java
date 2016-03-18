@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
@@ -86,6 +87,8 @@ import org.ohmage.validator.SurveyResponseValidators;
  */
 public class PromptResponseAnnotationReadRequest extends UserRequest {
 	private static final Logger LOGGER = Logger.getLogger(PromptResponseAnnotationReadRequest.class);
+	
+	private static final String RESULT_KEY = "data";
 	
 	private final UUID surveyId;
 	private final String promptId;
@@ -273,23 +276,11 @@ public class PromptResponseAnnotationReadRequest extends UserRequest {
 			return;
 		}
 		
-		try {
-			JSONObject result = new JSONObject();
-						
-			for(Annotation annotation : annotationsToReturn) {
-				JSONObject bucket = new JSONObject();
-				bucket.put("text", annotation.getText());
-				bucket.put("time", annotation.getEpochMillis());
-				bucket.put("timezone", annotation.getTimezone().getID());
-				result.put(annotation.getId().toString(), bucket);	
-			}
-			
-			super.respond(httpRequest, httpResponse, result);
-		}	
-		catch(JSONException e) {
-			LOGGER.error("There was a problem creating the response.", e);
-			setFailed();
-			super.respond(httpRequest, httpResponse, (JSONObject) null);
-		}		
+		// Build the result object.
+		JSONArray resultJson = new JSONArray();
+		for(Annotation result : annotationsToReturn) {
+			resultJson.put(result.toJson());
+		}
+		super.respond(httpRequest, httpResponse, RESULT_KEY, resultJson);		
 	}
 }

@@ -63,20 +63,22 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		"VALUES (?, ?)";
 	
 	private static final String SQL_READ_SURVEY_RESPONSE_ANNOTATION = 
-		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone " +
-		"FROM survey_response sr, survey_response_annotation sra, annotation a " +
+		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone, u.username " +
+		"FROM survey_response sr, survey_response_annotation sra, annotation a, user u " +
 		"WHERE sr.uuid = ? " +
 		"AND sr.id = sra.survey_response_id " +
-		"AND sra.annotation_id = a.id";
+		"AND sra.annotation_id = a.id " +
+		"AND a.user_id = u.id";
 
 	private static final String SQL_READ_PROMPT_RESPONSE_ANNOTATION = 
-		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone " +
-		"FROM prompt_response pr, survey_response sr, prompt_response_annotation pra, annotation a " +
+		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone, u.username " +
+		"FROM prompt_response pr, survey_response sr, prompt_response_annotation pra, annotation a, user u " +
 		"WHERE sr.uuid = ? " +
 		"AND pr.survey_response_id = sr.id " +
 		"AND pr.prompt_id = ? " +
 		"AND pr.id = pra.prompt_response_id " +
-		"AND pra.annotation_id = a.id";
+		"AND pra.annotation_id = a.id " +
+		"AND a.user_id = u.id";
 	
 	private static final String SQL_READ_PROMPT_RESPONSE_ANNOTATION_AND_REPEATABLE_SET =
 		" AND repeatable_set_id = ? " +
@@ -177,7 +179,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 								rs.getString(1),
 								rs.getString(2),
 								rs.getLong(3),
-								rs.getString(4)
+								rs.getString(4),
+								rs.getString(5)
 							);
 						}
 						catch(DomainException e) {
@@ -278,7 +281,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 								rs.getString(1),
 								rs.getString(2),
 								rs.getLong(3),
-								rs.getString(4)
+								rs.getString(4),
+								rs.getString(5)
 							);
 						}
 						catch(DomainException e) {
