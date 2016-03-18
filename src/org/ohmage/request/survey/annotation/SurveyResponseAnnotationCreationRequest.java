@@ -220,7 +220,7 @@ public class SurveyResponseAnnotationCreationRequest extends UserRequest {
 			}
 			
 			LOGGER.info("Persisting the survey response annotation.");
-			annotationIdToReturn = UserAnnotationServices.instance().createSurveyResponseAnnotation(getClient(), this.time, this.timezone, this.annotationText, this.surveyId);
+			annotationIdToReturn = UserAnnotationServices.instance().createSurveyResponseAnnotation(getClient(), this.time, this.timezone, this.annotationText, this.surveyId, getUser().getUsername());
 			
 		}
 		catch(ServiceException e) {

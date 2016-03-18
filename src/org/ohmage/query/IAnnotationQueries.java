@@ -46,7 +46,8 @@ public interface IAnnotationQueries {
 		Long time,
 		DateTimeZone timezone,
 		String annotationText,
-		UUID surveyId
+		UUID surveyId,
+		String user
 	) throws DataAccessException;
 
 	/**
@@ -77,7 +78,8 @@ public interface IAnnotationQueries {
 		Long time,
 		DateTimeZone timezone,
 		String annotationText,
-		Integer promptResponseId
+		Integer promptResponseId,
+		String user
 	) throws DataAccessException;
 	
 	/**
