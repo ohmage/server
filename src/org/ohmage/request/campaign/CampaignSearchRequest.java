@@ -341,7 +341,8 @@ public class CampaignSearchRequest extends UserRequest {
 									true, 
 									true, 
 									true, 
-									false
+									false,
+									true    // responseCounts
 								)
 						);
 				}

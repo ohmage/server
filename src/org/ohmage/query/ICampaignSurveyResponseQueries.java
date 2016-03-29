@@ -15,8 +15,11 @@
  ******************************************************************************/
 package org.ohmage.query;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 
 public interface ICampaignSurveyResponseQueries {
@@ -60,5 +63,30 @@ public interface ICampaignSurveyResponseQueries {
 	 */
 	String getCampaignIdFromSurveyId(UUID surveyResponseId)
 			throws DataAccessException;
+
+	
+	/**
+	 * Retrieves the total number of survey responses per privacy state
+	 * that are visible to the request users for campaigns.
+	 * 
+	 * @param requestUser The user that submits the request
+	 * 
+	 * @param campaignSqlStmt The sql statement addressing all search criteria 
+	 *                        for campaigns.
+	 * 
+	 * @param campaignSqlParameters A list of parameters associated with the 
+	 *                              campaignSqlStmt. 
+	 * 
+	 * @return The total number of survey responses per privacy state for each 
+	 *         campaign. 
+	 *
+	 * @throws DataAccessException Thrown if there is an error.
+	 */	
+	public Map<String, Map<SurveyResponse.PrivacyState, Integer>> getSurveyResponseCountInfoForCampaigns(
+		final String requestUser,
+		final String campaignSqlStmt, 
+		final Collection<Object> campaignSqlParameters)
+			throws DataAccessException;	
+
 
 }
