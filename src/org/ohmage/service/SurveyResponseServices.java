@@ -15,7 +15,12 @@
  ******************************************************************************/
 package org.ohmage.service;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +34,7 @@ import org.ohmage.domain.Image;
 import org.ohmage.domain.Video;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.PromptResponse;
+import org.ohmage.domain.campaign.RepeatableSetResponse;
 import org.ohmage.domain.campaign.Response;
 import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.domain.campaign.SurveyResponse.ColumnKey;
@@ -165,6 +171,7 @@ public final class SurveyResponseServices {
 			throw new ServiceException(e);
 		}
 	}
+	
 	
 	/**
 	 * Retrieves all of the survey response privacy states.
@@ -534,4 +541,138 @@ public final class SurveyResponseServices {
 			throw new ServiceException(e);
 		}
 	}
+	
+	/**
+	 * Update existing survey responses in the database.
+	 * 
+	 * @param user The username of the user that created this survey response.
+	 * 
+	 * @param client The client value.
+	 * 
+	 * @param campaignUrn The unique identifier for the campaign to which the
+	 * 					  survey belongs that the user used to create these
+	 * 					  survey responses.
+	 * 
+	 * @param surveyUploadList The list of survey responses to add to the
+	 * 						   database.
+	 * 
+	 * @param bufferedImageMap The map of image unique identifiers to 
+	 * 						   BufferedImage objects to use when creating the
+	 * 						   database entry.
+	 * 
+	 * @param videoContentsMap The map of the video unique identifiers to their
+	 * 						   objects.
+	 * 
+	 * @param audioContentsMap The map of the audio unique identifiers to their
+	 * 						   objects.
+	 * @param fileContentsMap 
+	 * 
+	 * @return A list of the indices of the survey responses that were 
+	 * 		   duplicates.
+	 * 
+	 * @throws ServiceException Thrown if there is an error.
+	 */
+	public void updateSurveyResponses(
+		final String username, 
+		final String client, 
+		final Campaign campaign,
+		final List<SurveyResponse> surveyUploadList,
+		final Map<UUID, Image> bufferedImageMap,
+		final Map<UUID, Video> videoContentsMap,
+		final Map<UUID, Audio> audioContentsMap, 
+		final Map<UUID, IMedia> fileContentsMap) 
+		throws ServiceException {
+
+	    	// check that the upload list is not empty
+	    
+		try {
+		    
+		    // retrieve and check existing survey responses
+		    List<SurveyResponse> result = new LinkedList<SurveyResponse>();
+		    Set<UUID> surveyResponseIds = new HashSet<UUID>();
+		    for(SurveyResponse surveyResponse : surveyUploadList) {
+			surveyResponseIds.add(surveyResponse.getSurveyResponseId());
+		    }
+		    
+		    if (surveyResponseIds.size() != surveyUploadList.size()) {
+			// Throw an error.. There are duplicate entries in the upload list
+			throw new ServiceException(
+				ErrorCode.SURVEY_INVALID_RESPONSES, 
+				"Some responses in the list are duplicated");
+		    }
+		    
+		    // Retrieve existing surveys based on the response IDs. If one is missing, throw an error.
+		    // Access control: Only search for responses that belong to the owner only. 
+		    readSurveyResponseInformation(
+			campaign,
+			username,
+			surveyResponseIds, // Set<UUID>
+			Arrays.asList(username), // name username only,
+			null, null,	// startDate, endDate, 
+			null, 		// privacyState, 
+			null, 		// surveyIds, 
+			null, 		// promptIds, 
+			null, 		// promptType,
+			null, 		// promptResponseSearchTokens,
+			null,		// columns, 
+			null, 		// sortOrder,
+			0,		// final long surveyResponsesToSkip,
+			surveyUploadList.size(), // final long surveyResponsesToProcess,
+			result); 
+
+		    if (result.size() != surveyUploadList.size()){
+			// throw an error. Some entries do not exist. 
+			throw new ServiceException(
+				ErrorCode.SURVEY_INVALID_RESPONSES, 
+				"Some responses in the list are not found. Only the owner can update his/her data.");
+		    }
+		    
+		    // create a map of existing responses for easy access
+		    Map<UUID, SurveyResponse> existingResponseMap = new HashMap<UUID, SurveyResponse>();
+		    for(SurveyResponse surveyResponse : result) {
+			existingResponseMap.put(surveyResponse.getSurveyResponseId(), surveyResponse);
+		    }
+		    
+		    // don't support repeatable set
+		    
+		    for(SurveyResponse updatedResponse : surveyUploadList) {
+			SurveyResponse surveyResponse = existingResponseMap.get(updatedResponse.getSurveyResponseId());
+
+			// make sure that they are from the same survey
+			if (surveyResponse.getSurvey().getId() != updatedResponse.getSurvey().getId()){
+			    // Mismatched surveys: throw an error message.
+			    throw new ServiceException(
+				    ErrorCode.SURVEY_INVALID_RESPONSES, 
+				    "Some responses do not exist. The existing response to be updated belong to different surveys");
+			}
+			
+			// Users can only update their own responses.
+			// No need for this check since username is specified in the search criteria
+			if (updatedResponse.getUsername() != username) {
+			    throw new ServiceException(
+				    ErrorCode.SURVEY_INVALID_RESPONSES, 
+				    "Only the response owners can update their responses");
+			}
+			
+			
+		    }
+		    
+		    // update all the db entries and files (if applicable) in the system
+		    surveyUploadQuery.updateSurveys(
+				username, 
+				client, 
+				campaign.getId(),
+				surveyUploadList, 
+				bufferedImageMap,
+				videoContentsMap,
+				audioContentsMap,
+				fileContentsMap, 
+				existingResponseMap);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+
 }

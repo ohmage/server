@@ -49,8 +49,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 
 	private static final String SQL_INSERT_ANNOTATION =
 		"INSERT into annotation " +
-		"(uuid, epoch_millis, timezone, client, annotation, creation_timestamp) " +
-		"VALUES (?, ?, ?, ?, ?, now())";
+		"(uuid, epoch_millis, timezone, client, annotation, user_id, creation_timestamp) " +
+		"VALUES (?, ?, ?, ?, ?, (SELECT id from user where username = ?), now())";
 	
 	private static final String SQL_INSERT_SURVEY_RESPONSE_ANNOTATION =
 		"INSERT into survey_response_annotation " +
@@ -63,20 +63,22 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 		"VALUES (?, ?)";
 	
 	private static final String SQL_READ_SURVEY_RESPONSE_ANNOTATION = 
-		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone " +
-		"FROM survey_response sr, survey_response_annotation sra, annotation a " +
+		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone, u.username " +
+		"FROM survey_response sr, survey_response_annotation sra, annotation a, user u " +
 		"WHERE sr.uuid = ? " +
 		"AND sr.id = sra.survey_response_id " +
-		"AND sra.annotation_id = a.id";
+		"AND sra.annotation_id = a.id " +
+		"AND a.user_id = u.id";
 
 	private static final String SQL_READ_PROMPT_RESPONSE_ANNOTATION = 
-		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone " +
-		"FROM prompt_response pr, survey_response sr, prompt_response_annotation pra, annotation a " +
+		"SELECT a.uuid, a.annotation, a.epoch_millis, a.timezone, u.username " +
+		"FROM prompt_response pr, survey_response sr, prompt_response_annotation pra, annotation a, user u " +
 		"WHERE sr.uuid = ? " +
 		"AND pr.survey_response_id = sr.id " +
 		"AND pr.prompt_id = ? " +
 		"AND pr.id = pra.prompt_response_id " +
-		"AND pra.annotation_id = a.id";
+		"AND pra.annotation_id = a.id " +
+		"AND a.user_id = u.id";
 	
 	private static final String SQL_READ_PROMPT_RESPONSE_ANNOTATION_AND_REPEATABLE_SET =
 		" AND repeatable_set_id = ? " +
@@ -107,7 +109,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	
 	@Override
 	public void createSurveyResponseAnnotation(final UUID annotationId,
-		final String client, final Long time, final DateTimeZone timezone, final String annotationText, final UUID surveyId)
+		final String client, final Long time, final DateTimeZone timezone, final String annotationText, final UUID surveyId, final String user)
 			throws DataAccessException {
 		
 		// Create the transaction.
@@ -121,7 +123,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			long id = 0;
 				
 			try {
-				id = insertAnnotation(annotationId, time, timezone, client, annotationText);
+				id = insertAnnotation(annotationId, time, timezone, client, annotationText, user);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				
@@ -177,7 +179,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 								rs.getString(1),
 								rs.getString(2),
 								rs.getLong(3),
-								rs.getString(4)
+								rs.getString(4),
+								rs.getString(5)
 							);
 						}
 						catch(DomainException e) {
@@ -195,7 +198,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	
 	@Override
 	public void createPromptResponseAnnotation(final UUID annotationId, final String client, final Long time,
-		final DateTimeZone timezone, final String annotationText, Integer promptResponseId)
+		final DateTimeZone timezone, final String annotationText, Integer promptResponseId, String user)
 			throws DataAccessException {
 		
 		// Create the transaction.
@@ -209,7 +212,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 			long id = 0;
 			
 			try {
-				id = insertAnnotation(annotationId, time, timezone, client, annotationText);
+				id = insertAnnotation(annotationId, time, timezone, client, annotationText, user);
 			}
 			catch(org.springframework.dao.DataAccessException e) {
 				
@@ -278,7 +281,8 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 								rs.getString(1),
 								rs.getString(2),
 								rs.getLong(3),
-								rs.getString(4)
+								rs.getString(4),
+								rs.getString(5)
 							);
 						}
 						catch(DomainException e) {
@@ -320,7 +324,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 	 * @throws org.springframework.dao.DataAccessException if an error occurs
 	 */
 	private long insertAnnotation(final UUID annotationId, final Long time, final DateTimeZone timezone, 
-		final String client, final String annotationText)
+		final String client, final String annotationText, final String user)
 			throws org.springframework.dao.DataAccessException {
 		
 		final KeyHolder annotationIdKeyHolder = new GeneratedKeyHolder();
@@ -334,6 +338,7 @@ public class AnnotationQueries extends Query implements IAnnotationQueries {
 					ps.setString(3, timezone.getID());
 					ps.setString(4, client);
 					ps.setString(5, annotationText);
+					ps.setString(6, user);
 					return ps;
 				}
 			},

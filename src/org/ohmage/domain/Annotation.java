@@ -18,6 +18,10 @@ package org.ohmage.domain;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+import org.joda.time.format.ISODateTimeFormat;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.StringUtils;
 
@@ -29,10 +33,20 @@ import org.ohmage.util.StringUtils;
  * @author Joshua Selsky
  */
 public class Annotation {
+	private static final Logger LOGGER = Logger.getLogger(Annotation.class);
+	
+	private static final String JSON_KEY_TEXT = "text";
+	private static final String JSON_KEY_ID = "annotation_id";
+	private static final String JSON_KEY_TIME = "time";
+	private static final String JSON_KEY_TIMEZONE = "timezone";
+	private static final String JSON_KEY_AUTHOR = "author";
+
+	
 	private UUID id;
 	private String text;
 	private Long epochMillis;
 	private TimeZone timezone;
+	private String author;
 	
 	/**
 	 * Creates an Annotation using the provided values.
@@ -43,7 +57,7 @@ public class Annotation {
 	 * @param timezone the timezone on the annotation
 	 * @throws DomainException if any of the input is missing or malformed
 	 */
-	public Annotation(String id, String text, Long epochMillis, String timezone) throws DomainException {
+	public Annotation(String id, String text, Long epochMillis, String timezone, String author) throws DomainException {
 		UUID tUuid = null;
 		
 		try {
@@ -66,6 +80,7 @@ public class Annotation {
 		this.text = text;
 		this.epochMillis = epochMillis;
 		this.timezone = TimeZone.getTimeZone(timezone);
+		this.author = author;
 	}
 	
 	public Long getEpochMillis() {
@@ -84,9 +99,37 @@ public class Annotation {
 		return timezone;
 	}
 
+	public String getAuthor() {
+		return author;
+	}
+	
 	@Override
 	public String toString() {
 		return "Annotation [id=" + id + ", text=" + text + ", epochMillis="
 				+ epochMillis + ", timezone=" + timezone + "]";
+	}
+
+	/**
+	 * A JSONObject representing the available information from this annotation.
+	 * 
+	 * @return A JSONObject representing this object. If there is an error 
+	 * 		   building this object, null is returned.
+	 */
+	public JSONObject toJson() {
+		try {
+			JSONObject result = new JSONObject();
+			
+			result.put(JSON_KEY_ID, id);
+			result.put(JSON_KEY_TEXT, text);
+			result.put(JSON_KEY_TIME, epochMillis);
+			result.put(JSON_KEY_TIMEZONE, timezone.getID());
+			result.put(JSON_KEY_AUTHOR, author);
+			
+			return result;
+		}
+		catch(JSONException e) {
+			LOGGER.error("Error building the JSONObject.", e);
+			return null;
+		}
 	}
 }

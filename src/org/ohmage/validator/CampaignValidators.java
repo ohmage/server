@@ -329,7 +329,8 @@ public final class CampaignValidators {
 			final String description,
 			final Campaign.RunningState runningState,
 			final Campaign.PrivacyState privacyState,
-			final Date creationTimestamp) 
+			final Date creationTimestamp,
+			final Boolean editable) 
 			throws ValidationException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(xml)) {
@@ -345,7 +346,8 @@ public final class CampaignValidators {
 					runningState, 
 					privacyState, 
 					creationTimestamp, 
-					xml);
+					xml,
+					editable);
 		}
 		catch(DomainException e) {
 			throw new ValidationException(

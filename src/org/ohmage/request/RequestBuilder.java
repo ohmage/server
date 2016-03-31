@@ -21,7 +21,13 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.KeycloakCache;
 import org.ohmage.exception.InvalidRequestException;
+import org.ohmage.exception.ServiceException;
+import org.ohmage.request.accessrequest.AccessRequestCreationRequest;
+import org.ohmage.request.accessrequest.AccessRequestDeletionRequest;
+import org.ohmage.request.accessrequest.AccessRequestReadRequest;
+import org.ohmage.request.accessrequest.AccessRequestUpdateRequest;
 import org.ohmage.request.audio.AudioReadRequest;
 import org.ohmage.request.audit.AuditReadRequest;
 import org.ohmage.request.auth.AuthRequest;
@@ -90,6 +96,7 @@ import org.ohmage.request.user.UserPasswordResetRequest;
 import org.ohmage.request.user.UserReadRequest;
 import org.ohmage.request.user.UserRegistrationRequest;
 import org.ohmage.request.user.UserSearchRequest;
+import org.ohmage.request.user.UserSetupExternalRequest;
 import org.ohmage.request.user.UserSetupRequest;
 import org.ohmage.request.user.UserStatsReadRequest;
 import org.ohmage.request.user.UserUpdateRequest;
@@ -110,6 +117,7 @@ import org.springframework.web.context.ServletContextAware;
  * 
  * @author John Jenkins
  * @author Joshua Selsky
+ * @author Hongsuda T. 
  */
 public final class RequestBuilder implements ServletContextAware {
 	private static final Logger LOGGER = 
@@ -219,7 +227,16 @@ public final class RequestBuilder implements ServletContextAware {
 	private String apiUserChangePassword;
 	private String apiUserDelete;
 	private String apiUserSetup;
+	private String apiUserSetupExternal;
 	
+	// AccessRequest
+	private String apiAccessRequestCreate;
+	private String apiAccessRequestUpdate;
+	private String apiAccessRequestRead;
+	private String apiAccessRequestDelete;
+	
+		
+
 	// Registration
 	private String apiRegistrationRead;
 	
@@ -264,7 +281,13 @@ public final class RequestBuilder implements ServletContextAware {
 		singleton = this;
 		
 		apiRoot = servletContext.getContextPath();
-		
+
+		// AccessRequest
+		apiAccessRequestCreate = apiRoot + "/access_request/create";
+		apiAccessRequestUpdate = apiRoot + "/access_request/update";
+		apiAccessRequestRead = apiRoot + "/access_request/read";
+		apiAccessRequestDelete = apiRoot + "/access_request/delete";
+
 		// Annotation
 		apiAnnotationPromptResponseCreate = apiRoot + "/annotation/prompt_response/create";
 		apiAnnotationPromptResponseRead = apiRoot + "/annotation/prompt_response/read";
@@ -366,6 +389,8 @@ public final class RequestBuilder implements ServletContextAware {
 		apiUserChangePassword = apiRoot + "/user/change_password";
 		apiUserDelete = apiRoot + "/user/delete";
 		apiUserSetup = apiRoot + "/user/setup";
+		apiUserSetupExternal = apiRoot + "/user/setup_external";
+
 
 		// Registration
 		apiRegistrationRead = apiRoot + "/registration/read";
@@ -413,10 +438,34 @@ public final class RequestBuilder implements ServletContextAware {
 		}
 		// Authentication
 		else if(apiUserAuth.equals(requestUri)) {
-			return new AuthRequest(httpRequest);
+			try {
+				if (ConfigServices.readServerConfiguration().getLocalAuthEnabled())
+					return new AuthRequest(httpRequest);
+				else {
+					LOGGER.info("Rejecting UserAuth request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				// Better supports backwards compat by leaving enabled if we can't
+				// find the localauthenabled param
+				LOGGER.warn("Can't find local auth config. Leaving API enabled.", e);
+				return new AuthRequest(httpRequest);
+			}
 		}
 		else if(apiUserAuthToken.equals(requestUri)) {
-			return new AuthTokenRequest(httpRequest);
+			try {
+				if (ConfigServices.readServerConfiguration().getLocalAuthEnabled())
+					return new AuthTokenRequest(httpRequest);
+				else {
+					LOGGER.info("Rejecting UserAuthToken request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				// Better supports backwards compat by leaving enabled if we can't
+				// find the localauthenabled param
+				LOGGER.warn("Can't find local auth config. Leaving API enabled.", e);
+				return new AuthTokenRequest(httpRequest);
+			}
 		}
 		else if(apiUserLogout.equals(requestUri)) {
 			return new AuthTokenLogoutRequest(httpRequest);
@@ -640,9 +689,41 @@ public final class RequestBuilder implements ServletContextAware {
 			try {
 				if (ConfigServices.readServerConfiguration().getUserSetupEnabled())
 					return new UserSetupRequest(httpRequest);
-			} catch (Exception e) {
-				LOGGER.info("Can't get user setup config. Will disable this API.");
+				else {
+					LOGGER.info("Rejecting UserSetup request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				LOGGER.warn("Can't find user setup config. Will disable this API.");
+				return new FailedRequest();
 			}
+		}
+		else if(apiUserSetupExternal.equals(requestUri)) {
+			try {
+				if (ConfigServices.readServerConfiguration().getUserSetupEnabled() &&
+						KeycloakCache.isEnabled())
+					return new UserSetupExternalRequest(httpRequest);
+				else {
+					LOGGER.info("Rejecting UserSetupExternal request as API is disabled");
+					return new FailedRequest();
+				}
+			} catch (ServiceException e) {
+				LOGGER.warn("Can't find user setup config. Will disable this API.");
+				return new FailedRequest();
+			}
+		}
+		// AccessRequest
+		else if(apiAccessRequestCreate.equals(requestUri)) {
+			return new AccessRequestCreationRequest(httpRequest);
+		}
+		else if(apiAccessRequestUpdate.equals(requestUri)) {
+			return new AccessRequestUpdateRequest(httpRequest);
+		}
+		else if(apiAccessRequestRead.equals(requestUri)) {
+			return new AccessRequestReadRequest(httpRequest);
+		}
+		else if(apiAccessRequestDelete.equals(requestUri)) {
+			return new AccessRequestDeletionRequest(httpRequest);
 		}
 		// Registration
 		else if(apiRegistrationRead.equals(requestUri)) {
@@ -776,6 +857,11 @@ public final class RequestBuilder implements ServletContextAware {
 				apiUserChangePassword.equals(uri) ||
 				apiUserDelete.equals(uri) ||
 				apiUserSetup.equals(uri) ||
+				// UserSetupRequest
+				apiAccessRequestCreate.equals(uri) ||
+				apiAccessRequestUpdate.equals(uri) ||
+				apiAccessRequestRead.equals(uri) ||
+				apiAccessRequestDelete.equals(uri) ||
 				// Registration
 				apiRegistrationRead.equals(uri) ||
 				// Video
@@ -1379,6 +1465,42 @@ public final class RequestBuilder implements ServletContextAware {
 	 */
 	public String getApiRegistrationRead() {
 		return apiRegistrationRead;
+	}
+
+	/**
+	 * Returns apiAccessRequestCreate
+	 *
+	 * @return The apiAccessRequestCreate
+	 */
+	public String getApiAccessRequestCreate() {
+		return apiAccessRequestCreate;
+	}
+
+	/**
+	 * Returns apiAccessRequestUpdate
+	 *
+	 * @return The apiAccessRequestUpdate
+	 */
+	public String getApiAccessRequestUpdate() {
+		return apiAccessRequestUpdate;
+	}
+
+	/**
+	 * Returns apiAccessRequestRead
+	 *
+	 * @return The apiAccessRequestRead
+	 */
+	public String getApiAccessRequestRead() {
+		return apiAccessRequestRead;
+	}
+
+	/**
+	 * Returns apiAccessRequestDelete
+	 *
+	 * @return The apiAccessRequestDelete
+	 */
+	public String getApiAccessRequestDelete() {
+		return apiAccessRequestDelete;
 	}
 
 	/**

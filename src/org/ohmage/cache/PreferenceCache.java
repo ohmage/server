@@ -84,6 +84,7 @@ public final class PreferenceCache extends KeyValueCache {
 	
 	// Build-specific information.
 	public static final String KEY_APPLICATION_NAME = "application.name";
+	public static final String SQL_KEY_APPLICATION_NAME = "application_name";
 	public static final String KEY_APPLICATION_VERSION = "application.version";
 	public static final String KEY_APPLICATION_BUILD = "application.build";
 	
@@ -127,6 +128,18 @@ public final class PreferenceCache extends KeyValueCache {
 	public static final String KEY_MAIL_PASSWORD_RECOVERY_TEXT = 
 			"mail_password_reset_text";
 	
+	// Mail Access Request notification
+	public static final String KEY_MAIL_ACCESS_REQUEST_SENDER = 
+			"mail_access_request_sender_address";
+	public static final String KEY_MAIL_ACCESS_REQUEST_SUBJECT = 
+			"mail_access_request_subject";
+	public static final String KEY_MAIL_ADMIN_ADDRESS = 
+			"mail_admin_address";
+	public static final String KEY_MAIL_ACCESS_REQUEST_NOTIFY_ADMIN = 
+			"mail_access_request_notify_admin";
+	
+	
+	
 	// CORS leniency mode
 	public static final String KEY_CORS_LENIENT_MODE = "cors-lenient-mode";
 	
@@ -139,6 +152,12 @@ public final class PreferenceCache extends KeyValueCache {
 	// SSL enabling.
 	public static final String KEY_SSL_ENABLED = "ssl_enabled";
 		
+	// Keycloak enabling.
+	public static final String KEY_KEYCLOAK_AUTH_ENABLED = "keycloak_auth_enabled";
+
+	// Local auth enabling.
+	public static final String KEY_LOCAL_AUTH_ENABLED = "local_auth_enabled";
+	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;
 	
@@ -217,9 +236,17 @@ public final class PreferenceCache extends KeyValueCache {
 		if((getLastUpdateTimestamp() + getUpdateFrequency()) <= System.currentTimeMillis()) {
 			refreshMap();
 		}
+
+		if(KEY_APPLICATION_NAME.equals(key)) {
+		  try {
+		  	return super.lookup(SQL_KEY_APPLICATION_NAME); 
+		  }
+		  catch(CacheMissException e) {
+		  	return getSystemProperty(key);
+		  }
+		}
 		
-		if(KEY_APPLICATION_NAME.equals(key) ||
-		   KEY_APPLICATION_VERSION.equals(key) ||
+		if(KEY_APPLICATION_VERSION.equals(key) ||
 		   KEY_APPLICATION_BUILD.equals(key)) {
 			return getSystemProperty(key);
 		}

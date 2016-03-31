@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -527,6 +528,7 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 								
 								surveyResponse =
 									new SurveyResponse(
+											rs.getLong("id"),
 											campaign.getSurveys().get(rs.getString("survey_id")),
 											UUID.fromString(rs.getString("uuid")),
 											rs.getString("username"),
@@ -1118,4 +1120,5 @@ public class SurveyResponseQueries extends Query implements ISurveyResponseQueri
 		
 		return sqlBuilder.toString();
 	}
+	
 }

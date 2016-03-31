@@ -333,6 +333,31 @@ public class CampaignServices {
 	}
 	
 	/**
+	 * Verifies that the campaign responses are editable.
+	 * 
+	 * @param campaignId The campaign's unique identifier.
+	 * 
+	 * @throws ServiceException Thrown if the campaign is not running or if 
+	 * 							there is an error.
+	 */
+	public void verifyEditableResponse(final String campaignId, final Boolean allowResponseUpdate) 
+			throws ServiceException {
+		
+		try {
+			if(allowResponseUpdate){
+				if(! campaignQueries.getCampaignEditable(campaignId)) {
+					throw new ServiceException(
+							ErrorCode.CAMPAIGN_INVALID_EDITABLE,
+							"The responses for this campaign are not editable.");
+				}
+			}
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+
+	/**
 	 * Verifies that the given timestamp is the same as the campaign's creation
 	 * timestamp.
 	 * 
@@ -500,6 +525,7 @@ public class CampaignServices {
 							campaignSqlParameters,
 							requestUsername,
 							true,
+							true,
 							true);
 
 			return campaignResults;
@@ -533,14 +559,15 @@ public class CampaignServices {
 	public List<SurveyResponse> getSurveyResponses(
 			final String username, final String client, 
 			final Campaign campaign, 
-			final Collection<JSONObject> jsonSurveyResponses) 
+			final Collection<JSONObject> jsonSurveyResponses,
+			final boolean allowPartialSurvey) 
 			throws ServiceException {
 		
 		try {
 			List<SurveyResponse> result = new ArrayList<SurveyResponse>(jsonSurveyResponses.size());
 			
 			for(JSONObject jsonResponse : jsonSurveyResponses) {
-				result.add(new SurveyResponse(username, campaign.getId(), client, campaign, jsonResponse));
+				result.add(new SurveyResponse(username, campaign.getId(), client, campaign, jsonResponse, allowPartialSurvey));
 			}
 			
 			return result;
@@ -590,7 +617,8 @@ public class CampaignServices {
 	public void updateCampaign(final String campaignId, 
 			final String xml, final String description, 
 			final Campaign.RunningState runningState, 
-			final Campaign.PrivacyState privacyState, 
+			final Campaign.PrivacyState privacyState,
+			final Boolean editable,
 			final Collection<String> classesToAdd, 
 			final Collection<String> classesToRemove,
 			final Map<String, Set<Campaign.Role>> usersAndRolesToAdd, 
@@ -598,7 +626,7 @@ public class CampaignServices {
 			throws ServiceException {
 		
 		try {
-			campaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
+			campaignQueries.updateCampaign(campaignId, xml, description, runningState, privacyState, editable, classesToAdd, classesToRemove, usersAndRolesToAdd, usersAndRolesToRemove);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);

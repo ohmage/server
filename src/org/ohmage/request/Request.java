@@ -453,10 +453,11 @@ public abstract class Request {
 			
 			writer.write(responseText);
 		}
-		// If the client hangs up, just print a warning.
-		catch(ClientAbortException e) {
-			LOGGER.info("The client hung up unexpectedly.", e);
-		}
+		// SN: commenting as this exception is a subclass of IOException
+		// and the exception is tomcat-specific.
+		//catch(ClientAbortException e) {
+		//	LOGGER.info("The client hung up unexpectedly.", e);
+		//}
 		catch(IOException e) {
 			LOGGER.error("Unable to write response message. Aborting.", e);
 		}

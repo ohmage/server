@@ -344,7 +344,8 @@ public class PromptResponseAnnotationCreationRequest extends UserRequest {
 						                        this.time,
 						                        this.timezone,
 						                        this.annotationText,
-						                        promptResponseId);
+						                        promptResponseId,
+						                        getUser().getUsername());
 			
 		}
 		catch(ServiceException e) {

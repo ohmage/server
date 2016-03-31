@@ -414,7 +414,8 @@ public class CampaignReadRequest extends UserRequest {
 						runningState, 
 						role, 
 						OutputFormat.LONG.equals(outputFormat) || OutputFormat.SHORT.equals(outputFormat),  // class info 
-						OutputFormat.LONG.equals(outputFormat));  // user info
+						OutputFormat.LONG.equals(outputFormat), // user info
+						OutputFormat.LONG.equals(outputFormat));  // response count info
 			
 			// If this is a request for XML and there were no campaigns visible
 			// to the user based on the parameters, we need to report that
@@ -524,7 +525,8 @@ public class CampaignReadRequest extends UserRequest {
 										true,				// Authors
 										supervisorOrAuthor,	// Supervisors
 										longOutput,	// XML
-										false);	// Surveys
+										false,   // Surveys
+										longOutput);	 // responseCounts
 							
 							if(resultJson != null) {
 								resultJson.put(JSON_KEY_USER_ROLES, roles);
@@ -622,10 +624,13 @@ public class CampaignReadRequest extends UserRequest {
 	public Map<String, String[]> getAuditInformation() {
 		Map<String, String[]> auditInfo = super.getAuditInformation();
 		
-		// Retrieve all of the campaign IDs from the result.
+		// Retrieve all of the campaign IDs from the result.	
 		List<String> campaignIds = new LinkedList<String>();
-		for(Campaign campaign : campaignResults) {
-			campaignIds.add(campaign.getId());
+		// SN: fixes NPE where results are null. caller supports an empty map return.
+		if (!(campaignResults == null)) {
+			for(Campaign campaign : campaignResults) {
+				campaignIds.add(campaign.getId());
+			}
 		}
 		
 		// If any campaign IDs were found, add an entry into the audit 

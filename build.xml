@@ -3,7 +3,7 @@
   <property file="build.properties"/>
   <property name="library" location="lib"/>
   <property name="app_name" value="ohmage"/>
-  <property name="app_version" value="2.17.3"/>
+  <property name="app_version" value="2.18.0"/>
   <property name="src" location="src"/>
   <property name="test" location="test"/>
   <property name="view" location="view"/>
@@ -41,6 +41,7 @@
     <include name="js.jar"/>
     <include name="catalina-2012-09-10.jar"/>
     <include name="RunKeeperOmhLayer.jar"/>
+    <include name="jose4j-0.4.4.jar"/>
   </fileset>
 
   <fileset id="run-dependencies" dir="${library}">
@@ -76,6 +77,8 @@
     <include name="slf4j-log4j12-1.7.5.jar"/>
     <include name="tomcat-dbcp-7.0.42.jar" />
     <include name="tomcat-jdbc-7.0.42.jar" />
+    <include name="tomcat-juli.jar" />
+    <include name="jose4j-0.4.4.jar"/>
   </fileset>
 
   <path id="compile-classpath">

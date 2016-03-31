@@ -144,6 +144,7 @@ public class Campaign {
 	private static final String JSON_KEY_CREATION_TIMESTAMP = "creation_timestamp";
 	private static final String JSON_KEY_XML = "xml";
 	private static final String JSON_KEY_SURVEYS = "surveys";
+	private static final String JSON_KEY_EDITABLE = "editable";
 	
 	private static final String JSON_KEY_CLASSES = "classes";
 	private static final String JSON_KEY_AUTHOR_LIST = "author_list";
@@ -153,7 +154,9 @@ public class Campaign {
 	private static final String JSON_KEY_AUTHOR = "author";
 	private static final String JSON_KEY_ANALYST = "analyst";
 	private static final String JSON_KEY_PARTICIPANT = "participant";
-	
+
+	private static final String JSON_KEY_SURVEY_RESPONSE_COUNT = "survey_response_count";
+
 	private static final Pattern VALID_CHARACTERS_PATTERN = 
 			Pattern.compile("[a-zA-Z0-9_]+");
 	
@@ -210,6 +213,11 @@ public class Campaign {
 	 */
 	private final List<String> authorList;
 	
+	/**
+	 * Whether or not this campaign is editable.
+	 */
+	private final Boolean editable;
+
 	/**
 	 * Campaign privacy states.
 	 * 
@@ -372,6 +380,11 @@ public class Campaign {
 	private final List<CampaignMask> masks = new LinkedList<CampaignMask>();
 	
 	/**
+	 * The number of survey responses associated with each survey response privacy state
+	 */
+	private final Map<SurveyResponse.PrivacyState, Integer> surveyResponseCounts = new HashMap<SurveyResponse.PrivacyState, Integer>();
+	
+	/**
 	 * Creates a new configuration object that represents the configuration
 	 * defined by the 'xml'.
 	 * 
@@ -405,7 +418,8 @@ public class Campaign {
 			final PrivacyState privacyState, 
 			final DateTime creationTimestamp, 
 			final Map<String, Survey> surveyMap, 
-			final String xml) 
+			final String xml,
+			final Boolean editable)
 			throws DomainException {
 
 		if(StringUtils.isEmptyOrWhitespaceOnly(id)) {
@@ -436,6 +450,7 @@ public class Campaign {
 		
 		this.runningState = runningState;
 		this.privacyState = privacyState;
+		this.editable = editable;
 		
 		this.creationTimestamp = new DateTime(creationTimestamp);  
 		
@@ -479,6 +494,15 @@ public class Campaign {
 		}
 		description = tDescription;
 		
+		Boolean tEditable = null;
+		try {
+			tEditable = information.getBoolean(JSON_KEY_EDITABLE);
+		}
+		catch(JSONException e){
+			throw new DomainException("The editable state is missing.", e);
+		}
+		editable = tEditable;
+
 		try {
 			runningState = RunningState.getValue(information.getString(JSON_KEY_RUNNING_STATE));
 		}
@@ -664,7 +688,8 @@ public class Campaign {
 			final RunningState runningState, 
 			final PrivacyState privacyState, 
 			final Date creationTimestamp, 
-			final String xml) 
+			final String xml,
+			final Boolean editable)
 			throws DomainException {
 		
 		if(runningState == null) {
@@ -678,6 +703,9 @@ public class Campaign {
 		}
 		else if(xml == null) {
 			throw new DomainException("The XML is null.");
+		}
+		else if(editable == null) {
+			throw new DomainException("The edtiable state is null.");
 		}
 		
 		Document document;
@@ -713,6 +741,7 @@ public class Campaign {
 		
 		this.runningState = runningState;
 		this.privacyState = privacyState;
+		this.editable = editable;
 		
 		this.creationTimestamp = new DateTime(creationTimestamp);
 		
@@ -832,6 +861,15 @@ public class Campaign {
 	 */
 	public PrivacyState getPrivacyState() {
 		return privacyState;
+	}
+
+	/**
+	 * Returns the configuration's current editable state.
+	 *
+	 * @return The configuration's current editable state.
+	 */
+	public Boolean getEditable() {
+		return editable;
 	}
 
 	/**
@@ -1173,6 +1211,24 @@ public class Campaign {
 		
 		// Sort them.
 		Collections.sort(this.masks);
+	}
+	
+	/**
+	 * Adds the surveyResponse count per privacy state to the campaign.
+	 * 
+	 * @param responseCounts A map of privacy state to number of survey responses.
+	 */
+	public void addSurveyResponseCounts(final Map<SurveyResponse.PrivacyState, Integer> responseCounts) {
+	    if (responseCounts != null)
+		this.surveyResponseCounts.putAll(responseCounts);
+	}
+	
+	/**
+	 * Returns the surveyResponseCounts associated with the campaign. 
+	 * 
+	 */
+	public Map<SurveyResponse.PrivacyState, Integer> getSurveyResponseCounts(){
+	    return surveyResponseCounts;
 	}
 	
 	/**
@@ -1901,7 +1957,8 @@ public class Campaign {
 			final boolean withAuthors,
 			final boolean withSupervisors, 
 			final boolean withXml,
-			final boolean withSurveys) 
+			final boolean withSurveys,
+			final boolean withResponseCounts) 
 			throws JSONException, DomainException{
 		
 		JSONObject result = new JSONObject();
@@ -1915,6 +1972,7 @@ public class Campaign {
 		result.put(JSON_KEY_AUTHORED_BY, authoredBy);
 		result.put(JSON_KEY_RUNNING_STATE, runningState.name().toLowerCase());
 		result.put(JSON_KEY_PRIVACY_STATE, privacyState.name().toLowerCase());
+		result.put(JSON_KEY_EDITABLE, editable);
 		result.put(JSON_KEY_AUTHOR_LIST, authorList);
 		// add request's user roles
 		
@@ -1959,6 +2017,17 @@ public class Campaign {
 			}
 			
 			result.put(JSON_KEY_ROLES, roles);
+		}
+		
+		if (withResponseCounts){
+		    JSONObject counts = new JSONObject();
+		    for (SurveyResponse.PrivacyState ps : SurveyResponse.PrivacyState.values()){
+			Integer count = surveyResponseCounts.get(ps);
+			if (count != null)
+			    counts.put(ps.toString(), surveyResponseCounts.get(ps));
+			else counts.put(ps.toString(), 0);
+		    }
+		    result.put(JSON_KEY_SURVEY_RESPONSE_COUNT, counts);
 		}
 		
 		if(withXml) {

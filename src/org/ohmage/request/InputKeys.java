@@ -32,6 +32,7 @@ public final class InputKeys {
 	public static final String USERNAME = "username";
 	public static final String PASSWORD = "password";
 	public static final String AUTH_TOKEN = "auth_token";
+	public static final String KEYCLOAK_TOKEN = "KEYCLOAK_TOKEN";
 	
 	// Supplemental Information
 	public static final String CLIENT = "client";
@@ -66,6 +67,7 @@ public final class InputKeys {
 	public static final String CAMPAIGN_LIST_REMOVE = "campaign_list_remove";
 	public static final String XML = "xml";
 	public static final String CAMPAIGN_CREATION_TIMESTAMP = "campaign_creation_timestamp";
+	public static final String CAMPAIGN_EDITABLE = "editable";
 	
 	// Class Constants
 	public static final String CLASS_URN = "class_urn";
@@ -98,6 +100,7 @@ public final class InputKeys {
 	public static final String SURVEY_RESPONSE_OWNER = "owner";
 	public static final String SURVEYS = "surveys";
 	public static final String SURVEY_FUNCTION_PRIVACY_STATE_GROUP_ITEM_LIST = "privacy_state_item_list";
+	public static final String SURVEY_UPDATE_FLAG = "update";
 	
 	// Prompt Constants
 	public static final String PROMPT_ID = "prompt_id";
@@ -155,6 +158,19 @@ public final class InputKeys {
 	// user setup
 	public static final String USERNAME_PREFIX = "username_prefix";
 	public static final String USERNAME_DIGITS = "username_digits";
+	// user setup_request
+	public static final String USER_ACCESS_REQUEST_ID = "uuid";
+	public static final String USER_ACCESS_REQUEST_TYPE = "type";
+	public static final String USER_ACCESS_REQUEST_CONTENT = "content";
+	public static final String USER_ACCESS_REQUEST_STATUS = "status";
+	public static final String USER_ACCESS_REQUEST_ID_LIST = "request_uuid_list";
+	public static final String USER_ACCESS_REQUEST_USER_LIST = "user_list";
+	public static final String USER_ACCESS_REQUEST_EMAIL_ADDRESS_SEARCH = "email_address_search";
+	public static final String USER_ACCESS_REQUEST_CONTENT_SEARCH = "content_search";
+	public static final String USER_ACCESS_REQUEST_START_DATE = "start_date";
+	public static final String USER_ACCESS_REQUEST_END_DATE = "end_date";
+	public static final String USER_ACCESS_REQUEST_NOTIFY_USER = "notify_user";
+	
 	
 	// State Constants
 	public static final String PRIVACY_STATE = "privacy_state";

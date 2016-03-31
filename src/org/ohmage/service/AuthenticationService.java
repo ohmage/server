@@ -16,6 +16,8 @@
 package org.ohmage.service;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.KeycloakCache;
+import org.ohmage.domain.KeycloakUser;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IAuthenticationQuery;
@@ -96,6 +98,38 @@ public final class AuthenticationService {
 			request.setFailed();
 			throw new ServiceException(e);
 		}
+		
+		// A new keycloak user has been found. insert them into the db.
+		if(KeycloakCache.isEnabled() && 
+				(userInformation == null) &&
+				(request.getUser() instanceof KeycloakUser)){
+			try {
+				KeycloakServices.createUser((KeycloakUser) request.getUser());
+			}
+			catch (ServiceException e) {
+				request.setFailed(
+						ErrorCode.AUTHENTICATION_FAILED,
+						"A user account with this name already exists.");
+				throw new ServiceException(e);
+			}
+
+			// the user has now been created, re-try auth query to
+			// "authenticate" the user. 
+			try {
+				userInformation = authenticationQuery.execute(request);
+			}
+			catch(DataAccessException e) {
+				request.setFailed();
+				throw new ServiceException(e);
+			}
+		// An existing keycloak user has been found. Test for personal info
+		// that may need to be updated.
+		} else if (KeycloakCache.isEnabled() &&
+				(userInformation != null) &&
+				(request.getUser() instanceof KeycloakUser)){
+			KeycloakServices.updateUser((KeycloakUser) request.getUser());
+		}
+			
 		
 		// If the username and/or password were incorrect, then null was 
 		// returned. Therefore, return false.

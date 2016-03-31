@@ -233,6 +233,12 @@
     </constructor-arg>
   </bean>
 
+  <bean class="org.ohmage.service.AccessRequestServices">
+    <constructor-arg>
+      <ref bean="accessRequestQueries" />
+    </constructor-arg>
+  </bean>
+
   <bean class="org.ohmage.service.UserSurveyResponseServices">
     <constructor-arg>
       <ref bean="campaignQueries" />

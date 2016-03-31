@@ -290,7 +290,8 @@ public class CampaignAssignmentRequest extends UserRequest {
 						true, 
 						false, 
 						false,
-						false);
+						false,
+						false); //externalAccount
 			}
 			
 			// If a class ID was given, ensure that the user is part of the

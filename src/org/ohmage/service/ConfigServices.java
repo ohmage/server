@@ -18,6 +18,7 @@ package org.ohmage.service;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.ohmage.cache.KeycloakCache;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.ServerConfig;
@@ -156,6 +157,32 @@ public class ConfigServices {
 			throw new ServiceException("The user setup config was not a valid boolean.", e);
 		}
 
+		boolean keycloakAuthEnabled;
+		keycloakAuthEnabled = KeycloakCache.isEnabled();
+
+		boolean localAuthEnabled;
+		try {
+			localAuthEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_LOCAL_AUTH_ENABLED));
+		}
+		catch(CacheMissException e) {
+			localAuthEnabled = ServerConfig.DEFAULT_LOCAL_AUTH_ENABLED;
+			LOGGER.warn("local_auth config is missing from the DB. Will default to " + localAuthEnabled);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The local auth config was not a valid boolean.", e);
+		}
+
+		String publicClassId;
+		try {
+			publicClassId = instance.lookup(PreferenceCache.KEY_PUBLIC_CLASS_ID); 
+		}
+		catch(CacheMissException e) {
+			throw new ServiceException("The public class id was unknown.", e);
+		}
+
 		try {
 			return
 				new ServerConfig(
@@ -170,7 +197,10 @@ public class ConfigServices {
 					RequestServlet.MAX_REQUEST_SIZE,
 					RequestServlet.MAX_FILE_SIZE,
 					selfRegistrationAllowed,
-					userSetupEnabled);
+					userSetupEnabled,
+					keycloakAuthEnabled,
+					localAuthEnabled,
+					publicClassId);
 		} 
 		catch(DomainException e) {
 			throw new ServiceException(e);

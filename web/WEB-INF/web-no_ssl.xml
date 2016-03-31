@@ -81,37 +81,28 @@
   </filter-mapping> 
 
   <!--  The default Tomcat Servlet used to locate and serve static content -->
+  <!--  SN: commenting this as it is uncessary in tomcat7, and makes ohmage tomcat-dependent --> 
   <servlet>
-    <servlet-name>default</servlet-name>
-    <servlet-class>org.apache.catalina.servlets.DefaultServlet</servlet-class>
-    <init-param>
-      <param-name>debug</param-name>
-      <param-value>0</param-value>
-    </init-param>
-    <init-param>
-      <param-name>listings</param-name>
-      <param-value>false</param-value>
-    </init-param>
-    <load-on-startup>1</load-on-startup>
+    <servlet-name>StaticFileWrapper</servlet-name>
+    <servlet-class>org.ohmage.jee.servlet.StaticFileWrapperServlet</servlet-class>
   </servlet>
-  
   <servlet-mapping>
-    <servlet-name>default</servlet-name>
+    <servlet-name>StaticFileWrapper</servlet-name>
     <url-pattern>*.html</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
-    <servlet-name>default</servlet-name>
+    <servlet-name>StaticFileWrapper</servlet-name>
     <url-pattern>*.js</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
-    <servlet-name>default</servlet-name>
+    <servlet-name>StaticFileWrapper</servlet-name>
     <url-pattern>*.css</url-pattern>
   </servlet-mapping>
   
   <servlet-mapping>
-    <servlet-name>default</servlet-name>
+    <servlet-name>StaticFileWrapper</servlet-name>
     <url-pattern>*.png</url-pattern>
   </servlet-mapping>
   
@@ -169,6 +160,11 @@
        ensures Log4J is configured before Spring spits out logging messages. -->
   <listener>
     <listener-class>org.ohmage.jee.listener.LogSetup</listener-class>
+  </listener>
+
+  <!-- Bootstrap listener to initialize Keycloak. -->
+  <listener>
+    <listener-class>org.ohmage.jee.listener.KeycloakFileImport</listener-class>
   </listener>
 
   <!-- Provide temp directory cleanup (for temp image storage) and ensure that the cleanup process terminates gracefully on 

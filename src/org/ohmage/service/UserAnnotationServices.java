@@ -137,11 +137,11 @@ public final class UserAnnotationServices {
 	 * @throws ServiceException if an error occurs
 	 */
 	public UUID createSurveyResponseAnnotation(final String client, final Long time, 
-			final DateTimeZone timezone, final String annotationText, final UUID surveyId) 
+			final DateTimeZone timezone, final String annotationText, final UUID surveyId, final String user) 
 				throws ServiceException {
 		try {
 			UUID annotationId = UUID.randomUUID();
-			annotationQueries.createSurveyResponseAnnotation(annotationId, client, time, timezone, annotationText, surveyId);
+			annotationQueries.createSurveyResponseAnnotation(annotationId, client, time, timezone, annotationText, surveyId, user);
 			return annotationId;
 		}
 		catch(DataAccessException e) {
@@ -202,11 +202,11 @@ public final class UserAnnotationServices {
 	 * @throws ServiceException if an error occurs
 	 */
 	public UUID createPromptResponseAnnotation(final String client, final Long time, final DateTimeZone timezone,
-		final String annotationText, final Integer promptResponseId) 
+		final String annotationText, final Integer promptResponseId, final String user) 
 			throws ServiceException {
 		try {
 			UUID annotationId = UUID.randomUUID();
-			annotationQueries.createPromptResponseAnnotation(annotationId, client, time, timezone, annotationText, promptResponseId);
+			annotationQueries.createPromptResponseAnnotation(annotationId, client, time, timezone, annotationText, promptResponseId, user);
 			return annotationId;
 		}
 		catch(DataAccessException e) {

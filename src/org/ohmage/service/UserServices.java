@@ -46,6 +46,7 @@ import javax.mail.Session;
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+import com.sun.mail.smtp.SMTPTransport;
 
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
@@ -58,6 +59,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.cache.PreferenceCache;
 import org.ohmage.cache.UserBin;
 import org.ohmage.domain.Clazz;
+import org.ohmage.domain.KeycloakUser;
 import org.ohmage.domain.User;
 import org.ohmage.domain.UserInformation;
 import org.ohmage.domain.UserInformation.UserPersonal;
@@ -76,8 +78,9 @@ import org.ohmage.query.impl.QueryResultsList;
 import org.ohmage.request.InputKeys;
 import org.ohmage.util.CookieUtils;
 import org.ohmage.util.StringUtils;
+import org.ohmage.util.MailUtils;
 
-import com.sun.mail.smtp.SMTPTransport;
+
 
 /**
  * This class contains the services for users.
@@ -86,6 +89,7 @@ import com.sun.mail.smtp.SMTPTransport;
  */
 public final class UserServices {
 	private static final Logger LOGGER = Logger.getLogger(UserServices.class);
+	/* HT
 	private static final String MAIL_PROTOCOL = "smtp";
 	private static final String MAIL_PROPERTY_HOST = 
 			"mail." + MAIL_PROTOCOL + ".host";
@@ -93,6 +97,7 @@ public final class UserServices {
 			"mail." + MAIL_PROTOCOL + ".port";
 	private static final String MAIL_PROPERTY_SSL_ENABLED =
 			"mail." + MAIL_PROTOCOL + ".ssl.enable";
+	*/
 	
 	private static final String MAIL_REGISTRATION_TEXT_TOS = "<_TOS_>";
 	private static final String MAIL_REGISTRATION_TEXT_REGISTRATION_LINK =
@@ -195,12 +200,20 @@ public final class UserServices {
 			final Boolean enabled, 
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
-			final boolean storeInitialPassword)
+			final boolean storeInitialPassword,
+			final Boolean externalAccount)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword =
-				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword;
+			// Store a static string for password column if user is external
+			if (externalAccount) {
+				hashedPassword = 
+						KeycloakUser.KEYCLOAK_USER_PASSWORD; 
+			} else {
+				hashedPassword =
+						BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			}
 			
 			userQueries
 				.createUser(
@@ -211,7 +224,8 @@ public final class UserServices {
 					admin, 
 					enabled, 
 					newAccount, 
-					campaignCreationPrivilege);
+					campaignCreationPrivilege,
+					externalAccount);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -250,12 +264,21 @@ public final class UserServices {
 			final Boolean newAccount, 
 			final Boolean campaignCreationPrivilege,
 			final boolean storeInitialPassword,
+			final Boolean externalAccount,
 			final UserPersonal personalInfo)
 			throws ServiceException {
 		
 		try {
-			String hashedPassword =
-				BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword;
+
+			// Store a static string for password column if user is external
+			if (externalAccount) {
+				hashedPassword = 
+						KeycloakUser.KEYCLOAK_USER_PASSWORD; 
+			} else {
+				hashedPassword =
+						BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			}
 			
 			return
 				userQueries
@@ -268,6 +291,7 @@ public final class UserServices {
 						enabled, 
 						newAccount, 
 						campaignCreationPrivilege,
+						externalAccount,
 						personalInfo);
 		}
 		catch(DataAccessException e) {
@@ -398,10 +422,34 @@ public final class UserServices {
 					.replace(MAIL_REGISTRATION_TEXT_TOS, termsOfService);
 			
 			// Get the session.
-			Session smtpSession = getMailSession();
+			Session smtpSession = MailUtils.getMailSession();
 			// Create the message.
 			MimeMessage message = new MimeMessage(smtpSession);
 			
+			try {
+				// set up properties
+				MailUtils.setMailMessageTo(message, emailAddress);
+				MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_REGISTRATION_SENDER);
+				MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_REGISTRATION_SUBJECT);	
+
+				try {
+					// Set the content of the message.
+					message.setContent(registrationText, "text/html");
+				}
+				catch(MessagingException e) {
+					throw new ServiceException(
+							"There was an error constructing the message.",
+							e);
+				}
+					
+				// send message
+				MailUtils.sendMailMessage(smtpSession, message);
+
+			} catch (ServiceException e) {
+				throw new ServiceException("Cannot successfully send the password recovery notification.", e);
+			}
+
+			/*
 			// Add the recipient.
 			try {
 				message.setRecipient(
@@ -480,7 +528,9 @@ public final class UserServices {
 						e);
 			}
 			
-			sendMailMessage(smtpSession, message);
+			MailUtils.sendMailMessage(smtpSession, message);
+			 */
+
 		}
 		catch(NoSuchAlgorithmException e) {
 			throw new ServiceException("The hashing algorithm is unknown.", e);
@@ -855,6 +905,24 @@ public final class UserServices {
 		
 		try {
 			return userQueries.userIsAdmin(username);
+		}
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
+	 * Checks if the user is an external (keycloak) user.
+	 * 
+	 * @return true if the user is external, false otherwise
+	 * 
+	 * @throws ServiceException Thrown if there was an error.
+	 */
+	public boolean isUserExternal(final String username) 
+			throws ServiceException {
+		
+		try {
+			return userQueries.userIsExternal(username);
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
@@ -1809,6 +1877,27 @@ public final class UserServices {
 	}
 	
 	/**
+	 * Retrieves the personal information for a user.
+	 * 
+	 * @param username The username.
+	 * 
+	 * @return A UserPersonal object of the user's personal info, or null if no
+	 * 		   personal information is available
+	 * 
+	 * @throws ServiceException There was an error
+	 */
+	public UserPersonal getUserPersonalInformation(
+			final String username) throws ServiceException {
+		
+		try {
+			return userQueries.getPersonalInfoForUser(username);
+		}
+		catch (DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
+	
+	/**
 	 * Updates a user's account information.
 	 * 
 	 * @param username
@@ -1960,11 +2049,44 @@ public final class UserServices {
 		}
 		
 		// Get the session.
-		Session smtpSession = getMailSession();
+		Session smtpSession = MailUtils.getMailSession();
 		// Create the message.
 		MimeMessage message = new MimeMessage(smtpSession);
 		
-		// Add the recipient.
+		try {
+			// set up properties
+			MailUtils.setMailMessageTo(message, emailAddress);
+			MailUtils.setMailMessageFrom(message, PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SENDER);
+			MailUtils.setMailMessageSubject(message, PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT);	
+
+			try {
+				message.setContent(
+						PreferenceCache.instance().lookup(
+							PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_TEXT) +
+							"<br /><br />" +
+							newPassword, 
+						"text/html");
+			}
+			catch(CacheMissException e) {
+				throw new ServiceException(
+						"The mail property is not in the preference table: " +
+							PreferenceCache.KEY_MAIL_PASSWORD_RECOVERY_SUBJECT,
+						e);
+			}
+			catch(MessagingException e) {
+				throw new ServiceException(
+						"Could not set the HTML portion of the message.", 
+						e);
+			}
+			
+			// send message
+			MailUtils.sendMailMessage(smtpSession, message);
+
+		} catch (ServiceException e) {
+			throw new ServiceException("Cannot successfully send the password recovery notification.", e);
+		}
+		
+		/*// Add the recipient.
 		try {
 			message.setRecipient(
 					Message.RecipientType.TO, 
@@ -2052,7 +2174,8 @@ public final class UserServices {
 					e);
 		}
 		
-		sendMailMessage(smtpSession, message);
+		MailUtils.sendMailMessage(smtpSession, message);
+		*/
 	}
 	
 	/**
@@ -2157,162 +2280,38 @@ public final class UserServices {
 		}
 		return passwordBuilder.toString();
 	}
-	
+
 	/**
-	 * Creates and returns a new mail Session.
+	 * Checks for user existence and if user is external. 
 	 * 
-	 * @return The mail session based on the current state of the preferences
-	 * 		   in the database.
+	 * @param username A username to check.
 	 * 
-	 * @throws ServiceException There was a problem creating the session.
+	 * @return true if user exists AND is external. false otherwise.
 	 */
-	private Session getMailSession() throws ServiceException {	
-		// Get the email properties.
-		Properties sessionProperties = new Properties();
+	public boolean userExistsAndIsExternal(String username)
+			throws ServiceException {
+		boolean userExists;
 		try {
-			String host = 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_HOST);
-			
-			sessionProperties.put(MAIL_PROPERTY_HOST, host);
+			userExists = 
+					userQueries.userExists(username);
 		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		try {
-			sessionProperties.put(
-					MAIL_PROPERTY_PORT, 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_PORT));
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		try {
-			sessionProperties.put(
-					MAIL_PROPERTY_SSL_ENABLED, 
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_SSL));
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		// Create the session and return it.
-		return Session.getInstance(sessionProperties);
-	}
-	
-	/**
-	 * Sends a mail message.
-	 * 
-	 * @param smtpSession The session used to create the message.
-	 * 
-	 * @param message The message to be sent.
-	 * 
-	 * @throws ServiceException There was a problem creating the connection to
-	 * 							the mail server or sending the message.
-	 */
-	private void sendMailMessage(Session smtpSession, Message message) throws ServiceException {
-		// Get the transport from the session.
-		SMTPTransport transport;
-		try {
-			transport = 
-					(SMTPTransport) smtpSession.getTransport(MAIL_PROTOCOL);
-		}
-		catch(NoSuchProviderException e) {
-			throw new ServiceException(
-					"There is no provider for SMTP. " +
-						"This means the library has changed as it has built-in support for SMTP.",
-					e);
+		catch(DataAccessException e) {
+			throw new ServiceException(e);
 		}
 
-		Boolean auth = null;
-		try {
-			auth = StringUtils.decodeBoolean(
-					PreferenceCache.instance().lookup(
-						PreferenceCache.KEY_MAIL_AUTH));
-		}
-		catch(CacheMissException e) {
-			// This is acceptable. It simply tells JavaMail to use the
-			// default.
-		}
-		
-		if((auth != null) && auth) {
-			String mailUsername;
+		if (userExists) {
+			boolean isExternal = false;
 			try {
-				mailUsername = 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_USERNAME);
+				isExternal = userQueries.userIsExternal(username);
 			}
-			catch(CacheMissException e) {
-				throw new ServiceException(
-					"The mail property is not in the preference table: " +
-						PreferenceCache.KEY_MAIL_USERNAME,
-					e);
+			catch(DataAccessException e) {
+				throw new ServiceException(e);
 			}
-			
-			String mailPassword;
-			try {
-				mailPassword = 
-						PreferenceCache.instance().lookup(
-							PreferenceCache.KEY_MAIL_PASSWORD);
-			}
-			catch(CacheMissException e) {
-				throw new ServiceException(
-					"The mail property is not in the preference table: " +
-						PreferenceCache.KEY_MAIL_PASSWORD,
-					e);
-			}
-			
-			try {
-				transport.connect(
-						smtpSession.getProperty(MAIL_PROPERTY_HOST), 
-						mailUsername, 
-						mailPassword);
-			}
-			catch(MessagingException e) {
-				throw new ServiceException(
-						"Could not authenticate with or connect to the mail server.",
-						e);
-			}
+			return isExternal;
+		} else {
+			return userExists;
 		}
-		else {
-			try {
-				transport.connect();
-			}
-			catch(MessagingException e) {
-				throw new ServiceException(
-						"Could not connect to the mail server.",
-						e);
-			}
-		}
-		
-		try {
-			transport.sendMessage(message, message.getAllRecipients());
-		}
-		catch(SendFailedException e) {
-			throw new ServiceException(
-					"Failed to send the message.",
-					e);
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"There was a problem while sending the message.",
-					e);
-		}
-		
-		try {
-			transport.close();
-		}
-		catch(MessagingException e) {
-			throw new ServiceException(
-					"After sending the message there was an error closing the connection.",
-					e);
-		}
+
 	}
+	
 }

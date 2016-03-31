@@ -38,6 +38,7 @@ import org.ohmage.service.ClassServices;
 import org.ohmage.service.UserCampaignServices;
 import org.ohmage.service.UserClassServices;
 import org.ohmage.service.UserServices;
+import org.ohmage.util.StringUtils;
 import org.ohmage.validator.CampaignValidators;
 import org.ohmage.validator.ClassValidators;
 import org.ohmage.validator.UserCampaignValidators;
@@ -123,6 +124,7 @@ public class CampaignUpdateRequest extends UserRequest {
 	private final String description;
 	private final Campaign.RunningState runningState;
 	private final Campaign.PrivacyState privacyState;
+	private final Boolean editable;
 	private final Set<String> classesToAdd;
 	private final Set<String> classesToRemove; 
 	private final Map<String, Set<Campaign.Role>> usersAndRolesToAdd;
@@ -149,6 +151,7 @@ public class CampaignUpdateRequest extends UserRequest {
 		String tName = null;
 		String tXml = null;
 		String tDescription = null;
+		Boolean tEditable = null;
 		Campaign.RunningState tRunningState = null;
 		Campaign.PrivacyState tPrivacyState = null;
 		Set<String> tClassesToAdd = null;
@@ -193,6 +196,18 @@ public class CampaignUpdateRequest extends UserRequest {
 				else if(t.length == 1) {
 					tPrivacyState = 
 						CampaignValidators.validatePrivacyState(t[0]);
+				}
+
+				t = getParameterValues(InputKeys.CAMPAIGN_EDITABLE);
+				if(t.length > 1) {
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_EDITABLE,
+						"Multiple editable states were found: " +
+							InputKeys.CAMPAIGN_EDITABLE);
+				}
+				else if(t.length == 1) {
+					tEditable =
+						StringUtils.decodeBoolean(t[0]);
 				}
 				
 				t = getParameterValues(InputKeys.DESCRIPTION);
@@ -263,6 +278,7 @@ public class CampaignUpdateRequest extends UserRequest {
 		description = tDescription;
 		runningState = tRunningState;
 		privacyState = tPrivacyState;
+		editable = tEditable;
 		classesToAdd = tClassesToAdd;
 		classesToRemove = tClassesToRemove;
 		usersAndRolesToAdd = tUsersAndRolesToAdd;
@@ -376,7 +392,8 @@ public class CampaignUpdateRequest extends UserRequest {
 					xml, 
 					description, 
 					runningState, 
-					privacyState, 
+					privacyState,
+					editable,
 					classesToAdd, 
 					classesToRemove, 
 					usersAndRolesToAdd, 

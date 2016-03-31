@@ -151,6 +151,23 @@ public class CampaignCreationRequest extends UserRequest {
 							InputKeys.PRIVACY_STATE);
 				}
 				
+				Boolean editable = null;
+				t = getParameterValues(InputKeys.CAMPAIGN_EDITABLE);
+				if(t.length > 1) {  // duplicate input argument
+					throw new ValidationException(
+						ErrorCode.CAMPAIGN_INVALID_EDITABLE,
+						"Multiple editable states were found: " +
+							InputKeys.CAMPAIGN_EDITABLE);
+				}
+				else if(t.length == 1) {
+					editable =
+							StringUtils.decodeBoolean(t[0]);
+				}
+				if(editable == null) {
+					// preserve backwards compatibility
+					editable = false;
+				}
+
 				String description = null;
 				t = getParameterValues(InputKeys.DESCRIPTION);
 				if(t.length > 1) {
@@ -207,7 +224,8 @@ public class CampaignCreationRequest extends UserRequest {
 								description, 
 								runningState, 
 								privacyState, 
-								new Date());
+								new Date(),
+								editable);
 				}
 				
 				tClassIds = ClassValidators.validateClassIdList(httpRequest.getParameter(InputKeys.CLASS_URN_LIST));

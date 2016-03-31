@@ -34,9 +34,11 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ohmage.annotator.Annotator.ErrorCode;
+import org.ohmage.cache.PreferenceCache;
 import org.ohmage.domain.Location;
 import org.ohmage.domain.Location.LocationColumnKey;
 import org.ohmage.domain.campaign.Response.NoResponse;
+import org.ohmage.exception.CacheMissException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.DateTimeUtils;
 import org.ohmage.util.StringUtils;
@@ -133,6 +135,7 @@ public class SurveyResponse {
 	private final Survey survey;
 	private final UUID surveyResponseId;
 	private final Map<Integer, Response> responses;
+	private final Long surveyResponseDbId;
 	
 	/**
 	 * Survey response privacy states.
@@ -142,7 +145,8 @@ public class SurveyResponse {
 	public static enum PrivacyState {
 		PRIVATE,
 		SHARED,
-		INVISIBLE;
+		INVISIBLE;  	// Can't Remove. There is some code depending on this.
+
 		
 		/**
 		 * Converts a String value into a PrivacyState or throws an exception
@@ -820,6 +824,7 @@ public class SurveyResponse {
 	 * 						   missing or invalid.
 	 */
 	public SurveyResponse(
+			final Long surveyResponseDbId,
 			final Survey survey, 
 			final UUID surveyResponseId,
 			final String username, 
@@ -868,6 +873,7 @@ public class SurveyResponse {
 		this.time = time;
 		this.timezone = timezone;
 		
+		this.surveyResponseDbId = surveyResponseDbId;
 		this.surveyResponseId = surveyResponseId;
 		this.survey = survey;
 		this.privacyState = privacyState;
@@ -983,6 +989,7 @@ public class SurveyResponse {
 		this.time = time;
 		this.timezone = timezone;
 		
+		this.surveyResponseDbId = null;
 		this.surveyResponseId = surveyResponseId;
 		this.survey = survey;
 		this.privacyState = privacyState;
@@ -1022,7 +1029,8 @@ public class SurveyResponse {
 			final String campaignId,
 			final String client, 
 			final Campaign campaign,
-			final JSONObject response) 
+			final JSONObject response,
+			final boolean allowPartialSurvey) 
 			throws DomainException {
 		
 		if(StringUtils.isEmptyOrWhitespaceOnly(username)) {
@@ -1044,6 +1052,7 @@ public class SurveyResponse {
 		this.username = username;
 		this.campaignId = campaignId;
 		this.client = client;
+		this.surveyResponseDbId = null;
 		
 		String surveyResponseIdString;
 		try {
@@ -1196,10 +1205,17 @@ public class SurveyResponse {
 			}
 		}
 		else {
+		    // Set to the default sharing state. If not availab, use PRIVATE
+		    try {
+			tPrivacyState = PrivacyState.getValue(
+				PreferenceCache.instance().lookup(PreferenceCache.KEY_DEFAULT_SURVEY_RESPONSE_SHARING_STATE)
+				);
+		    } catch (CacheMissException e) {
 			tPrivacyState = PrivacyState.PRIVATE;
-		}
+		    }
+		}		
 		this.privacyState = tPrivacyState;
-		
+
 		JSONArray responses;
 		try {
 			responses = response.getJSONArray(JSON_KEY_RESPONSES);
@@ -1215,9 +1231,21 @@ public class SurveyResponse {
 				campaign.getSurveys().get(surveyId).getSurveyItems(), 
 				responses,
 				null,
-				allowedPromptIds);
+				allowedPromptIds,
+				allowPartialSurvey);
 	}
-	
+
+	/**
+	 * Returns the survey response's database identifier.
+	 * Note: This is only used to update survey response since
+	 * the prompt_response table needs it.
+	 * 
+	 * @return The survey response's unique identifier.
+	 */
+	public final Long getSurveyResponseDbId() {
+		return surveyResponseDbId;
+	}
+
 	/**
 	 * Returns the survey response's unique identifier.
 	 * 
@@ -1753,7 +1781,8 @@ public class SurveyResponse {
 		final Map<Integer, SurveyItem> surveyItems, 
 		final JSONArray currArray, 
 		final Integer repeatableSetIteration,
-		final Set<String> allowedPromptIds) 
+		final Set<String> allowedPromptIds,
+		final boolean allowPartialSurvey) 
 		throws DomainException {
 		
 		int numResponses = currArray.length();
@@ -1829,9 +1858,11 @@ public class SurveyResponse {
 			}
 		}
 		
-		// Cycle through the prompts and ensure that a response exists for each
-		// prompt, unless it was masked.
-		for(SurveyItem surveyItem : surveyItems.values()) {
+		// For survey update, allow partial survey response.
+		if (allowPartialSurvey == false ) {
+		    // Cycle through the prompts and ensure that a response exists for each
+		    // prompt, unless it was masked.
+		    for(SurveyItem surveyItem : surveyItems.values()) {
 			// If it's a message, it won't have a response.
 			if(! (surveyItem instanceof Message)) {
 				String surveyItemId = surveyItem.getId();
@@ -1860,6 +1891,7 @@ public class SurveyResponse {
 								surveyItemId);
 				}
 			}
+		    }
 		}
 		
 		return results;
@@ -1962,7 +1994,8 @@ public class SurveyResponse {
 								repeatableSet.getSurveyItems(), 
 								responses.getJSONArray(i),
 								i,
-								allowedPromptIds
+								allowedPromptIds,
+								false			// disallow partial record
 							)
 					);
 			} catch (JSONException e) {

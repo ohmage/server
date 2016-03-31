@@ -49,8 +49,10 @@ public class ConfigurationFileImport
 	/**
 	 * The location of the default configuration file.
 	 */
-	private static final String CONFIG_FILE_DEFAULT = 
-		"WEB-INF/config/default.properties";
+	private static final String CONFIG_FILE_DEFAULT =
+		// SN: safe to prepend slash since this gets appended to
+		// ServletContext realpath.
+		"/WEB-INF/config/default.properties";
 	/**
 	 * The default location for the configuration file on Windows.
 	 */
