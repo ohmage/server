@@ -30,6 +30,7 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.UserInformation.UserPersonal;
 import org.ohmage.domain.campaign.Campaign;
 import org.ohmage.domain.campaign.CampaignMask;
+import org.ohmage.domain.campaign.SurveyResponse;
 import org.ohmage.exception.DataAccessException;
 import org.ohmage.exception.DomainException;
 import org.ohmage.exception.ServiceException;
@@ -844,7 +845,8 @@ public class UserCampaignServices {
 			final Collection<Object> campaignSqlParameters,
 			final String username,
 			final boolean withClasses,
-			final boolean withUsers) 
+			final boolean withUsers,
+			final boolean withResponseCounts) 
 			throws ServiceException {
 		
 		try {
@@ -862,6 +864,8 @@ public class UserCampaignServices {
 			Map<String, Collection<String>> campaignClasses = null; 
 			 // a list of campaign masks associated with each campaign
 			Map<String, Collection<CampaignMask>> campaignMasks = null; 
+			// survey response count breakdown for each campaign
+			Map<String, Map<SurveyResponse.PrivacyState, Integer>> responseCountInfoMap = null;
 			
 			// Get information about user's roles in campaigns
 			try { 
@@ -884,15 +888,21 @@ public class UserCampaignServices {
 			// get class information
 			if (withClasses) {
 				campaignClasses = campaignClassQueries.
-						getClassesAssociatedWithCampaigns(campaignSqlStmt, campaignSqlParameters);
+					getClassesAssociatedWithCampaigns(campaignSqlStmt, campaignSqlParameters);
 			} 
 			
 			// get user information
 			if (withUsers) {
 				// Add the users and their roles to the campaign.
 				campaignUserRoles = userCampaignQueries.
-						getUsersAndRolesForCampaigns(campaignSqlStmt, campaignSqlParameters);
+					getUsersAndRolesForCampaigns(campaignSqlStmt, campaignSqlParameters);
 			} 
+			
+			// get survey response count information 
+			if (withResponseCounts) {
+			    responseCountInfoMap = campaignSurveyResponseQueries.
+				    	getSurveyResponseCountInfoForCampaigns(username, campaignSqlStmt, campaignSqlParameters);
+			}
 			
 			// get campaign mask information
 			try {
@@ -960,6 +970,12 @@ public class UserCampaignServices {
 				Collection<CampaignMask> masks = campaignMasks.get(campaignId);
 				if (masks != null) {
 					campaign.addMasks(masks);
+				}
+				
+				// update the survey response count info
+				if (withResponseCounts) {
+				    Map<SurveyResponse.PrivacyState, Integer> countInfo = responseCountInfoMap.get(campaignId);
+				    campaign.addSurveyResponseCounts(countInfo);
 				}
 			}
 						
@@ -1063,7 +1079,8 @@ public class UserCampaignServices {
 					campaignSqlParameters,
 					username,
 					withClasses,
-					withUsers);
+					withUsers,
+					false);
 			
 			// create campaignRolesMap to be returned
 			Map<Campaign,Collection<Campaign.Role>> campaignRolesMap =
@@ -1145,7 +1162,9 @@ public class UserCampaignServices {
 			final Campaign.RunningState runningState, 
 			final Campaign.Role role,
 			final boolean withClasses,
-			final boolean withUsers) 
+			final boolean withUsers,
+			final boolean withResponseCounts
+			) 
 			throws ServiceException {
 		
 		try {
@@ -1168,7 +1187,7 @@ public class UserCampaignServices {
 							role);
 		
 			//LOGGER.debug(campaignListSubSelect);
-			return getCampaignInformation(campaignSqlStmt, campaignSqlParameters, username, withClasses, withUsers);
+			return getCampaignInformation(campaignSqlStmt, campaignSqlParameters, username, withClasses, withUsers, withResponseCounts);
 			
 	
 		}

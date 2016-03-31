@@ -154,7 +154,9 @@ public class Campaign {
 	private static final String JSON_KEY_AUTHOR = "author";
 	private static final String JSON_KEY_ANALYST = "analyst";
 	private static final String JSON_KEY_PARTICIPANT = "participant";
-	
+
+	private static final String JSON_KEY_SURVEY_RESPONSE_COUNT = "survey_response_count";
+
 	private static final Pattern VALID_CHARACTERS_PATTERN = 
 			Pattern.compile("[a-zA-Z0-9_]+");
 	
@@ -376,6 +378,11 @@ public class Campaign {
 	 * {@link CampaignMask#compareTo(CampaignMask)} definition.
 	 */
 	private final List<CampaignMask> masks = new LinkedList<CampaignMask>();
+	
+	/**
+	 * The number of survey responses associated with each survey response privacy state
+	 */
+	private final Map<SurveyResponse.PrivacyState, Integer> surveyResponseCounts = new HashMap<SurveyResponse.PrivacyState, Integer>();
 	
 	/**
 	 * Creates a new configuration object that represents the configuration
@@ -1207,6 +1214,24 @@ public class Campaign {
 	}
 	
 	/**
+	 * Adds the surveyResponse count per privacy state to the campaign.
+	 * 
+	 * @param responseCounts A map of privacy state to number of survey responses.
+	 */
+	public void addSurveyResponseCounts(final Map<SurveyResponse.PrivacyState, Integer> responseCounts) {
+	    if (responseCounts != null)
+		this.surveyResponseCounts.putAll(responseCounts);
+	}
+	
+	/**
+	 * Returns the surveyResponseCounts associated with the campaign. 
+	 * 
+	 */
+	public Map<SurveyResponse.PrivacyState, Integer> getSurveyResponseCounts(){
+	    return surveyResponseCounts;
+	}
+	
+	/**
 	 * Returns the most recent mask for this user and campaign.
 	 * 
 	 * @return The most recent mask for this user and campaign or null if the
@@ -1932,7 +1957,8 @@ public class Campaign {
 			final boolean withAuthors,
 			final boolean withSupervisors, 
 			final boolean withXml,
-			final boolean withSurveys) 
+			final boolean withSurveys,
+			final boolean withResponseCounts) 
 			throws JSONException, DomainException{
 		
 		JSONObject result = new JSONObject();
@@ -1991,6 +2017,17 @@ public class Campaign {
 			}
 			
 			result.put(JSON_KEY_ROLES, roles);
+		}
+		
+		if (withResponseCounts){
+		    JSONObject counts = new JSONObject();
+		    for (SurveyResponse.PrivacyState ps : SurveyResponse.PrivacyState.values()){
+			Integer count = surveyResponseCounts.get(ps);
+			if (count != null)
+			    counts.put(ps.toString(), surveyResponseCounts.get(ps));
+			else counts.put(ps.toString(), 0);
+		    }
+		    result.put(JSON_KEY_SURVEY_RESPONSE_COUNT, counts);
 		}
 		
 		if(withXml) {

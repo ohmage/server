@@ -589,7 +589,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserCampaignQueries#getUsersAndRolesForCampaignList(java.lang.String)
+	 * @see org.ohmage.query.IUserCampaignQueries#getUsersAndRolesForCampaigns(java.lang.String)
 	 */
 	@Override
 	public Map<String, Map<String, Collection<Role>>> getUsersAndRolesForCampaigns(
@@ -695,7 +695,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserCampaignQueries#getAuthorsForCampaignList(java.lang.String)
+	 * @see org.ohmage.query.IUserCampaignQueries#getAuthorsForCampaigns(java.lang.String)
 	 */
 	public Map<String, Collection<String>> getAuthorsForCampaigns(
 			final String campaignListSubSelect, 
@@ -1003,7 +1003,7 @@ public final class UserCampaignQueries extends Query implements IUserCampaignQue
 	
 	/*
 	 * (non-Javadoc)
-	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignMaskForCampaignList
+	 * @see org.ohmage.query.IUserCampaignQueries#getCampaignMaskForCampaigns
 	 */
 	@Override
 	public Map<String, Collection<CampaignMask>> getCampaignMasksForCampaigns(

@@ -414,7 +414,8 @@ public class CampaignReadRequest extends UserRequest {
 						runningState, 
 						role, 
 						OutputFormat.LONG.equals(outputFormat) || OutputFormat.SHORT.equals(outputFormat),  // class info 
-						OutputFormat.LONG.equals(outputFormat));  // user info
+						OutputFormat.LONG.equals(outputFormat), // user info
+						OutputFormat.LONG.equals(outputFormat));  // response count info
 			
 			// If this is a request for XML and there were no campaigns visible
 			// to the user based on the parameters, we need to report that
@@ -524,7 +525,8 @@ public class CampaignReadRequest extends UserRequest {
 										true,				// Authors
 										supervisorOrAuthor,	// Supervisors
 										longOutput,	// XML
-										false);	// Surveys
+										false,   // Surveys
+										true);	 // responseCounts
 							
 							if(resultJson != null) {
 								resultJson.put(JSON_KEY_USER_ROLES, roles);

@@ -145,7 +145,8 @@ public class SurveyResponse {
 	public static enum PrivacyState {
 		PRIVATE,
 		SHARED,
-		INVISIBLE;
+		INVISIBLE;  	// Can't Remove. There is some code depending on this.
+
 		
 		/**
 		 * Converts a String value into a PrivacyState or throws an exception

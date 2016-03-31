@@ -525,6 +525,7 @@ public class CampaignServices {
 							campaignSqlParameters,
 							requestUsername,
 							true,
+							true,
 							true);
 
 			return campaignResults;
