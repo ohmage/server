@@ -2,24 +2,25 @@
 
 set -e
 
+# set these to support both --link (deprecated) and newer network container communication.
+DB_HOST=mysql
+DB_PORT=3306
+
 # use passed env variable or defaults
-DB_HOST=$MYSQL_PORT_3306_TCP_ADDR
-DB_PORT=$MYSQL_PORT_3306_TCP_PORT
-DB_NAME=${DB_NAME:-ohmage}
-DB_USER=${DB_USER:-ohmage}
-DB_PASS=${DB_PASS:-ohmage}
+MYSQL_DATABASE=${MYSQL_DATABASE:-ohmage}
+MYSQL_USER=${MYSQL_USER:-ohmage}
+MYSQL_PASSWORD=${MYSQL_PASSWORD:-ohmage}
 FQDN=${FQDN:-$HOSTNAME}
 LOG_LEVEL=${LOG_LEVEL:-WARN}
-ESCAPED_PW=${DB_PASS/\&/\\&}
 
 # cat out ohmage.conf
 echo "#
 # DATABASE
 #
 db.driver=com.mysql.jdbc.Driver
-db.jdbcurl=jdbc:mysql://$DB_HOST:$DB_PORT/$DB_NAME?characterEncoding=utf8
-db.username=$DB_USER
-db.password=$ESCAPED_PW
+db.jdbcurl=jdbc:mysql://$DB_HOST:$DB_PORT/$MYSQL_DATABASE?characterEncoding=utf8
+db.username=$MYSQL_USER
+db.password=$MYSQL_PASSWORD
 #
 # LOGGING
 #
@@ -43,9 +44,9 @@ fi
  
 # cat out flyway.conf
 # note that the placeholders wont be updated at each boot.
-echo "flyway.url=jdbc:mysql://$DB_HOST:$DB_PORT/$DB_NAME
-flyway.user=$DB_USER
-flyway.password=$DB_PASS
+echo "flyway.url=jdbc:mysql://$DB_HOST:$DB_PORT/$MYSQL_DATABASE
+flyway.user=$MYSQL_USER
+flyway.password=$MYSQL_PASSWORD
 flyway.placeholders.fqdn=$FQDN
 flyway.placeholders.base_dir=/var/lib/ohmage" > /flyway/conf/flyway.conf
 
@@ -57,7 +58,6 @@ do
   sleep 1
 done
 echo 'mysql available.'
-mysql -uroot -p$MYSQL_ENV_MYSQL_ROOT_PASSWORD -h$DB_HOST -P$DB_PORT mysql -e "CREATE DATABASE IF NOT EXISTS $DB_NAME; grant all on $DB_NAME.* to \"$DB_USER\"@\"%\" IDENTIFIED BY \"$DB_PASS\"; FLUSH PRIVILEGES;"
 
 # execute migrations
 /flyway/flyway migrate
