@@ -32,6 +32,8 @@ db.password=&!sickly
 
 Please see the `db/migrations` dir for more information on schema creation and migrating the database.
 
+To note, after running the migrations and seeding, the default admin user to use is `ohmage.admin`/`ohmage.passwd`. You'll be forced to reset this password on first log in.
+
 ## Setting Up the Directory Structure
 
 ohmage depends on a set of directories to store log files and user data. By default, these are located at `/var/lib/ohmage/`. This directory should contain a number of subdirectories, called `audits`, `audio`, `images`, `documents` and `videos`. These directories can be changed through the `preference` table in the database. The `log` directory (default: `/var/log/ohmage`) will create itself.
