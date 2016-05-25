@@ -3,7 +3,7 @@
 set -e
 
 # set these to support both --link (deprecated) and newer network container communication.
-DB_HOST=mysql
+DB_HOST=${DB_HOST:-mysql}
 DB_PORT=3306
 
 # use passed env variable or defaults
