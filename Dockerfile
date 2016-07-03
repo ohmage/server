@@ -33,13 +33,13 @@ RUN cp db/migration/* /flyway/sql/ \
   && chmod +x /run.sh \
   && rm -rf /app
 
-RUN mkdir -p /var/lib/ohmage && ln -s /var/lib/ohmage /ohmage
+RUN mkdir -p /var/lib/ohmage
 RUN useradd -ms /bin/bash ohmage && \
     chown -R ohmage.ohmage "$CATALINA_HOME" && \
     chown -R ohmage.ohmage /var/lib/ohmage
 
 EXPOSE 8080
 
-VOLUME /ohmage
+VOLUME /var/lib/ohmage
 
 CMD ["/run.sh"]
