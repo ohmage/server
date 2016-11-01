@@ -174,6 +174,25 @@ public class ConfigServices {
 		catch(IllegalArgumentException e) {
 			throw new ServiceException("The local auth config was not a valid boolean.", e);
 		}
+                
+                boolean sha512PasswordHashEnabled;
+		try {
+			sha512PasswordHashEnabled = 
+					StringUtils.decodeBoolean(
+							PreferenceCache.instance().lookup(
+									PreferenceCache.KEY_SHA512_PASSWORD_HASH_ENABLED));
+		}
+		catch(CacheMissException e) {
+			sha512PasswordHashEnabled = 
+                                ServerConfig.DEFAULT_SHA512_PASSWORD_HASH_ENABLED;
+			LOGGER.warn("sha512_password_hash_enabled config is " 
+                                + "missing from the DB. Will default to " 
+                                + sha512PasswordHashEnabled);
+		}
+		catch(IllegalArgumentException e) {
+			throw new ServiceException("The sha512_password_hash_enabled " 
+                                + " was not a valid boolean.", e);
+		}
 
 		String publicClassId;
 		try {
@@ -200,6 +219,7 @@ public class ConfigServices {
 					userSetupEnabled,
 					keycloakAuthEnabled,
 					localAuthEnabled,
+                                        sha512PasswordHashEnabled,
 					publicClassId);
 		} 
 		catch(DomainException e) {

@@ -103,6 +103,7 @@ public class ServerConfig {
 	public static final boolean DEFAULT_SELF_REGISTRATION_ALLOWED = true;
 	public static final boolean DEFAULT_KEYCLOAK_AUTH_ENABLED = false;
 	public static final boolean DEFAULT_LOCAL_AUTH_ENABLED = true;
+        public static final boolean DEFAULT_SHA512_PASSWORD_HASH_ENABLED = false;
 	
 	
 	private final String appName;
@@ -119,6 +120,7 @@ public class ServerConfig {
 	private final boolean userSetupEnabled;
 	private final boolean keycloakAuthEnabled;
 	private final boolean localAuthEnabled;
+        private final boolean sha512PasswordHashEnabled;
 	private final String publicClassId;
 	
 	/**
@@ -154,6 +156,7 @@ public class ServerConfig {
 			final boolean userSetupEnabled,
 			final boolean keycloakAuthEnabled,
 			final boolean localAuthEnabled,
+                        final boolean sha512PasswordHashEnabled,
 			final String publicClassId) 
 			throws DomainException {
 		
@@ -203,6 +206,7 @@ public class ServerConfig {
 
 		this.keycloakAuthEnabled = keycloakAuthEnabled;
 		this.localAuthEnabled = localAuthEnabled;
+                this.sha512PasswordHashEnabled = sha512PasswordHashEnabled;
 
 		this.publicClassId = publicClassId;
 	}
@@ -392,6 +396,8 @@ public class ServerConfig {
 					"The public class id was missing from the JSON.", 
 					e);
 		}
+                
+                sha512PasswordHashEnabled = DEFAULT_SHA512_PASSWORD_HASH_ENABLED;
 
 	}
 	
@@ -521,6 +527,15 @@ public class ServerConfig {
 	 */
 	public final boolean getLocalAuthEnabled() {
 		return localAuthEnabled;
+	}
+        
+        /**
+	 * Returns whether or not sha512 password hashing is enabled.
+	 * 
+	 * @return Whether or not sha512 password hashing is enabled.
+	 */
+	public final boolean getSha512PasswordHashingEnabled() {
+		return sha512PasswordHashEnabled;
 	}
 
 	/**

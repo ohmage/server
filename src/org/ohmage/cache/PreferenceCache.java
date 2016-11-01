@@ -157,6 +157,11 @@ public final class PreferenceCache extends KeyValueCache {
 
 	// Local auth enabling.
 	public static final String KEY_LOCAL_AUTH_ENABLED = "local_auth_enabled";
+        
+        // SHA512 hash enabling (over the default blowfish option -
+        // useful for redhat based distros).
+        public static final String KEY_SHA512_PASSWORD_HASH_ENABLED = 
+                "sha512_password_hash_enabled";
 	
 	// The reference to one's self to return to requesters.
 	private static PreferenceCache instance;

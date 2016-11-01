@@ -17,17 +17,22 @@ package org.ohmage.query.impl;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.apache.log4j.Logger;
 
 import javax.sql.DataSource;
 
 import jbcrypt.BCrypt;
+import org.apache.commons.codec.digest.Crypt;
 
 import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.domain.KeycloakUser;
 import org.ohmage.domain.User;
 import org.ohmage.exception.DataAccessException;
+import org.ohmage.exception.ServiceException;
 import org.ohmage.query.IAuthenticationQuery;
 import org.ohmage.request.UserRequest;
+import org.ohmage.service.ConfigServices;
+import org.ohmage.service.UserServices;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -36,6 +41,8 @@ import org.springframework.jdbc.core.RowMapper;
  * @author John Jenkins
  */
 public final class AuthenticationQuery extends Query implements IAuthenticationQuery{
+    	private static final Logger LOGGER = Logger.getLogger("UserServices");
+
 	// Gets the user's hashed password from the database.
 	private static final String SQL_GET_PASSWORD = 
 		"SELECT password " +
@@ -105,7 +112,7 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 	private AuthenticationQuery(DataSource dataSource) {
 		super(dataSource);
 		
-		instance = this;
+		instance = this;               
 	}
 	
 	/* (non-Javadoc)
@@ -115,7 +122,7 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 	public UserInformation execute(UserRequest userRequest) throws DataAccessException {
 		User user = userRequest.getUser();
 		String hashedPassword;
-		
+                
 		// Hash the password if necessary.
 		// SN: set password to fixed string if user is a keycloak user
 		if(user instanceof KeycloakUser){
@@ -137,10 +144,21 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 				if(actualPassword.equals(KeycloakUser.KEYCLOAK_USER_PASSWORD)){
 					userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unknown user or incorrect password.");
 					return null;			
-				}
-				hashedPassword = BCrypt.hashpw(user.getPassword(), actualPassword);
+				}      
+
+                                if( ConfigServices.readServerConfiguration().getSha512PasswordHashingEnabled() ) {                                
+                                    hashedPassword = Crypt.crypt(user.getPassword(), actualPassword);         
+                                }
+                                else {
+                                    hashedPassword = BCrypt.hashpw(user.getPassword(), actualPassword);
+                                }      
+
 				userRequest.getUser().setHashedPassword(hashedPassword);
 			}
+                        catch (ServiceException e) {
+                                userRequest.setFailed(ErrorCode.AUTHENTICATION_FAILED, "Unexpected error occurred.");
+                                return null;
+                        }
 			catch(org.springframework.dao.IncorrectResultSizeDataAccessException e) {
 				// If there were multiple users with the same username,
 				if(e.getActualSize() > 1) {
@@ -160,7 +178,7 @@ public final class AuthenticationQuery extends Query implements IAuthenticationQ
 		else {
 			hashedPassword = user.getPassword();
 		}
-		
+
 		// Get the user's information from the database.
 		try {
 			UserInformation userInformation = instance.getJdbcTemplate().queryForObject(

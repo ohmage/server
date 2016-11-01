@@ -48,6 +48,9 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import com.sun.mail.smtp.SMTPTransport;
 
+import org.apache.commons.codec.digest.Crypt;
+import org.ohmage.service.ConfigServices;
+
 import jbcrypt.BCrypt;
 import net.tanesha.recaptcha.ReCaptchaImpl;
 import net.tanesha.recaptcha.ReCaptchaResponse;
@@ -121,7 +124,7 @@ public final class UserServices {
 	private IUserClassQueries userClassQueries;
 	private IUserImageQueries userImageQueries;
 	private IImageQueries imageQueries;
-	
+        	
 	/**
 	 * Default constructor. Privately instantiated via dependency injection
 	 * (reflection).
@@ -161,7 +164,7 @@ public final class UserServices {
 		userCampaignQueries = iUserCampaignQueries;
 		userClassQueries = iUserClassQueries;
 		userImageQueries = iUserImageQueries;
-		imageQueries = iImageQueries;
+		imageQueries = iImageQueries;                
 	}
 	
 	/**
@@ -170,7 +173,7 @@ public final class UserServices {
 	public static UserServices instance() {
 		return instance;
 	}
-
+        
 	/**
 	 * Creates a new user.
 	 * 
@@ -211,8 +214,15 @@ public final class UserServices {
 				hashedPassword = 
 						KeycloakUser.KEYCLOAK_USER_PASSWORD; 
 			} else {
-				hashedPassword =
-						BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+                            if( ConfigServices.readServerConfiguration().getSha512PasswordHashingEnabled() ) {
+                                hashedPassword = 
+                                        Crypt.crypt(password);                                                               
+                            }
+                            else {
+				hashedPassword = 
+                                        BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));                                
+                            }
+
 			}
 			
 			userQueries
@@ -276,8 +286,14 @@ public final class UserServices {
 				hashedPassword = 
 						KeycloakUser.KEYCLOAK_USER_PASSWORD; 
 			} else {
-				hashedPassword =
-						BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+                                if(ConfigServices.readServerConfiguration().getSha512PasswordHashingEnabled()) {
+                                    hashedPassword = 
+                                            Crypt.crypt(password);                                                               
+                                }
+                                else {
+                                    hashedPassword = 
+                                            BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));                                
+                                }			
 			}
 			
 			return
@@ -338,11 +354,17 @@ public final class UserServices {
 	        }
 			String registrationId = buffer.toString();
 			
+                        
 			// Hash the password.
-			String hashedPassword = 
-					BCrypt.hashpw(
-							password, 
-							BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
+			String hashedPassword;
+                        if(ConfigServices.readServerConfiguration().getSha512PasswordHashingEnabled()) {
+                            hashedPassword = 
+                                    Crypt.crypt(password);                                                               
+                        }
+                        else {
+                            hashedPassword = 
+                                    BCrypt.hashpw(password, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));                                
+                        }
 			
 			// Create the user in the database with all of its connections.
 			userQueries.createUserRegistration(
@@ -2039,9 +2061,18 @@ public final class UserServices {
 		}
 		
 		try {
+                        String hashedPassword;
+                        if(ConfigServices.readServerConfiguration().getSha512PasswordHashingEnabled()) {
+                            hashedPassword = 
+                                    Crypt.crypt(newPassword);                                                               
+                        }
+                        else {
+                            hashedPassword = 
+                                    BCrypt.hashpw(newPassword, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));                                
+                        }
 			userQueries.updateUserPassword(
 					username, 
-					BCrypt.hashpw(newPassword, BCrypt.gensalt(13)), 
+					hashedPassword, 
 					true);
 		}
 		catch(DataAccessException e) {
@@ -2194,15 +2225,19 @@ public final class UserServices {
 			final String plaintextPassword) throws ServiceException {
 		
 		try {
-			String hashedPassword = 
-				BCrypt
-					.hashpw(
-						plaintextPassword, 
-						BCrypt.gensalt(User.BCRYPT_COMPLEXITY));
-			
-			userQueries.updateUserPassword(username, hashedPassword, false);
-			
-			return hashedPassword;
+                    String hashedPassword;
+                    if(ConfigServices.readServerConfiguration().getSha512PasswordHashingEnabled()) {
+                        hashedPassword = 
+                                Crypt.crypt(plaintextPassword);                                                               
+                    }
+                    else {
+                        hashedPassword = 
+                                BCrypt.hashpw(plaintextPassword, BCrypt.gensalt(User.BCRYPT_COMPLEXITY));                                
+                    }
+
+                    userQueries.updateUserPassword(username, hashedPassword, false);
+
+                    return hashedPassword;
 		}
 		catch(DataAccessException e) {
 			throw new ServiceException(e);
