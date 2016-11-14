@@ -51,7 +51,7 @@ To use SHA-512, run the following commands in MySQL console as soon as ohmage is
 --Enables SHA-512 password hashing
 UPDATE `ohmage`.`preference` SET `p_value` = 'true' WHERE `p_key` = 'sha512_password_hash_enabled';
 --Updates the default SHA512 password hash for `ohmage.admin` user to `ohmage.passwd`
-UPDATE `ohmage`.`user` SET `password` = '$6$Afmg23YTsd$113jh7VsD6q6wDnDWD9SqJUzobqjFIuGMhpgpuXM49acjyjFfWOGAhzT7W7zRleIhN2Xe.xH7ki2bk8nBlsX4/' WHERE `username` = 'ohmage.admin'
+UPDATE `ohmage`.`user` SET `password` = '$6$Afmg23YTsd$113jh7VsD6q6wDnDWD9SqJUzobqjFIuGMhpgpuXM49acjyjFfWOGAhzT7W7zRleIhN2Xe.xH7ki2bk8nBlsX4/' WHERE `username` = 'ohmage.admin';
 ```
 
 To use blowfish, run the following commands:
@@ -59,7 +59,7 @@ To use blowfish, run the following commands:
 --Disables SHA-512 password hashing (thus enabling default blowfish)
 UPDATE `ohmage`.`preference` SET `p_value` = 'false' WHERE `p_key` = 'sha512_password_hash_enabled';
 --Updates the default blowfish password hash for `ohmage.admin` user to `ohmage.passwd`
-UPDATE `ohmage`.`user` SET `password` = '$2a$13$yxus2tQ3/QiOwWcELImOQuy9d5PXWbByQ6Bhp52b1se7fNYGFxN5i' WHERE `username` = 'ohmage.admin'
+UPDATE `ohmage`.`user` SET `password` = '$2a$13$yxus2tQ3/QiOwWcELImOQuy9d5PXWbByQ6Bhp52b1se7fNYGFxN5i' WHERE `username` = 'ohmage.admin';
 ```
 
 # Collaboration
