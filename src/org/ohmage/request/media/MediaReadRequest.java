@@ -180,7 +180,7 @@ public class MediaReadRequest extends UserRequest {
 					// only set content-disposition if media is not video/image/audio
 					if (contentType.startsWith("application") || contentType.startsWith("text"))
 						httpResponse.setHeader("Content-Disposition", 
-								"attachment; filename=" + media.getFileName());
+								"attachment; filename=\"" + media.getFileName() + "\"");
 					
 					httpResponse.setHeader("Content-Length", 
 						new Long(media.getFileSize()).toString());

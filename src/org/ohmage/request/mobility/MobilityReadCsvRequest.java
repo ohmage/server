@@ -271,7 +271,7 @@ public class MobilityReadCsvRequest extends UserRequest {
 			// Set the type and force the browser to download it as the 
 			// last step before beginning to stream the response.
 			httpResponse.setContentType("text/csv");
-			httpResponse.setHeader("Content-Disposition", "attachment; filename=Mobility.csv");
+			httpResponse.setHeader("Content-Disposition", "attachment; filename=\"Mobility.csv\"");
 			
 			// If available, set the token.
 			if(getUser() != null) {
