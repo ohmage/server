@@ -65,6 +65,7 @@ public class UserInfoReadRequest extends UserRequest {
 	
 	private String gUsername;
 	private UserSummary result = null;
+        private String _userId = "";
 	
 	/**
 	 * Creates a new user info read request.
@@ -140,6 +141,15 @@ public class UserInfoReadRequest extends UserRequest {
 			e.failRequest(this);
 			e.logException(LOGGER);
 		}
+                try {			
+                        _userId = UserServices.instance().getUserIdFromUsername(gUsername);
+		}
+		catch(ServiceException e) {
+                        // Do not fail the request if user ID was not found
+			// e.failRequest(this);
+			e.logException(LOGGER);
+		}
+
 	}
 
 	/**
@@ -154,7 +164,11 @@ public class UserInfoReadRequest extends UserRequest {
 		
 		if(result != null) {
 			try {
-				jsonResult.put(gUsername, result.toJsonObject());
+                                JSONObject result_json = result.toJsonObject( );
+                                if( !_userId.equals( "" ) ) {
+                                    result_json.put( "user_id", _userId );                                
+                                }
+				jsonResult.put(gUsername, result_json);
 			}
 			catch(JSONException e) {
 				LOGGER.error("There was an error building the JSONObject result.", e);

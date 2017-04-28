@@ -117,6 +117,17 @@ public interface IUserQueries {
 			final String emailAddress,
 			final String registrationId)
 			throws DataAccessException;
+        
+        /**
+	 * Returns id for a user
+	 * 
+	 * @param username The username for which to retrieve the user id.
+	 * 
+	 * @return Returns the string-ed user id
+	 * 
+	 * @throws DataAccessException Thrown if there is an error.
+	 */
+     	public String getUserIdFromUsername(String username) throws DataAccessException;
 
 	/**
 	 * Returns whether or not a user exists.

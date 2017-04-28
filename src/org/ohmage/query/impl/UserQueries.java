@@ -55,6 +55,12 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  * @author John Jenkins
  */
 public class UserQueries extends Query implements IUserQueries {
+        // Returns the id for the user
+        private static final String SQL_GET_USER_ID_WITH_USERNAME = 
+                "SELECT id " +
+                "FROM user " +
+                "WHERE username = ?";
+    
 	// Returns a boolean representing whether or not a user exists
 	private static final String SQL_EXISTS_USER = 
 		"SELECT EXISTS(" +
@@ -903,6 +909,36 @@ public class UserQueries extends Query implements IUserQueries {
 		}
 		catch(TransactionException e) {
 			throw new DataAccessException("Error while attempting to rollback the transaction.", e);
+		}
+	}
+        
+	/**
+	 * Returns the user's id
+	 * 
+	 * @param username The user's username.
+	 * 
+	 * @return The user's id
+	 * 
+	 * @throws DataAccessException There was an error.
+	 */
+        @Override
+	public String getUserIdFromUsername(String username)
+			throws DataAccessException {
+
+		try {
+			return getJdbcTemplate().queryForObject(
+					SQL_GET_USER_ID_WITH_USERNAME, 
+					new Object[] { username }, 
+					String.class
+				);
+		}
+		catch(org.springframework.dao.DataAccessException e) {
+			throw new DataAccessException(
+					"Error executing SQL '" +
+						SQL_GET_USER_ID_WITH_USERNAME +
+						"' with parameter: " +
+						"%" + username + "%",
+					e);
 		}
 	}
 	
