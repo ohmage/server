@@ -463,7 +463,7 @@ public class UserSetupRequest extends UserRequest {
 	public String getRandomPassword() throws ServiceException {
 		try {
 			// Create the URL.
-			URL url = new URL("http://makeagoodpassword.com/password/simple/");
+			URL url = new URL("http://pw.mobilizingcs.org/password/simple/");
 			// Connect to the URL.
 			HttpURLConnection connection =
 				(HttpURLConnection) url.openConnection();
