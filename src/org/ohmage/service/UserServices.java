@@ -1896,6 +1896,25 @@ public final class UserServices {
 			throw new ServiceException(e);
 		}
 	}
+        
+        /**
+	 * Retrieves the user id for a username
+	 * 
+	 * @param username The username.
+	 * 
+	 * @return The user's id
+	 * 
+	 */
+	public String getUserIdFromUsername(
+			final String username) throws ServiceException {
+		
+		try {
+			return userQueries.getUserIdFromUsername(username);
+		}
+		catch (DataAccessException e) {
+			throw new ServiceException(e);
+		}
+	}
 	
 	/**
 	 * Updates a user's account information.
@@ -2313,5 +2332,7 @@ public final class UserServices {
 		}
 
 	}
+        
+        
 	
 }
