@@ -1,11 +1,11 @@
-FROM tomcat:7
+FROM tomcat:7-jdk8-openjdk
 MAINTAINER Steve Nolen <technolengy@gmail.com>
 # Report issues here: https://github.com/ohmage/server
 
 RUN set -x \
     && export DEBIAN_FRONTEND=noninteractive \
     && apt-get update \
-    && apt-get install --no-install-recommends -y openjdk-7-jdk ant ant-optional netcat git\
+    && apt-get install --no-install-recommends -y ant ant-optional netcat git\
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /usr/local/tomcat/webapps/ROOT \
@@ -18,7 +18,7 @@ RUN set -x \
  
 #### download flyway (ohmage doesn't do migrations) ####
 WORKDIR /flyway
-ENV FLYWAY_TGZ_URL http://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/3.2.1/flyway-commandline-3.2.1.tar.gz
+ENV FLYWAY_TGZ_URL https://repo1.maven.org/maven2/org/flywaydb/flyway-commandline/4.2.0/flyway-commandline-4.2.0-linux-x64.tar.gz
 RUN set -x \
     && curl -fSL "$FLYWAY_TGZ_URL" -o flyway.tar.gz \
     && tar -xvf flyway.tar.gz --strip-components=1 \
