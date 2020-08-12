@@ -42,6 +42,26 @@ ohmage depends on a set of directories to store log files and user data. By defa
 
 Any Servlet 3.0 compliant container should work. Internally, we use Tomcat. To build the WAR file, use `ant clean dist`, which will produce an ssl-disabled container. It should be noted that we do not recommend having the servlet itself handle SSL, and instead suggest you use a web server like nginx or apache to do SSL termination.
 
+## Using SHA-512 for Password Hashing
+
+The Blowfish algorithm is used by default for password hashing. Ohmage supports SHA512 algorithm for password hashing.
+
+To use SHA-512, run the following commands in MySQL console as soon as ohmage is up and running:
+```
+--Enables SHA-512 password hashing
+UPDATE `ohmage`.`preference` SET `p_value` = 'true' WHERE `p_key` = 'sha512_password_hash_enabled';
+--Updates the default SHA512 password hash for `ohmage.admin` user to `ohmage.passwd`
+UPDATE `ohmage`.`user` SET `password` = '$6$Afmg23YTsd$113jh7VsD6q6wDnDWD9SqJUzobqjFIuGMhpgpuXM49acjyjFfWOGAhzT7W7zRleIhN2Xe.xH7ki2bk8nBlsX4/' WHERE `username` = 'ohmage.admin';
+```
+
+To use blowfish, run the following commands:
+```
+--Disables SHA-512 password hashing (thus enabling default blowfish)
+UPDATE `ohmage`.`preference` SET `p_value` = 'false' WHERE `p_key` = 'sha512_password_hash_enabled';
+--Updates the default blowfish password hash for `ohmage.admin` user to `ohmage.passwd`
+UPDATE `ohmage`.`user` SET `password` = '$2a$13$yxus2tQ3/QiOwWcELImOQuy9d5PXWbByQ6Bhp52b1se7fNYGFxN5i' WHERE `username` = 'ohmage.admin';
+```
+
 # Collaboration
 
 The coding rules are loose, and the best reference would be other parts of the code. A few rules we do have are:

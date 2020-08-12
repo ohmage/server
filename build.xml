@@ -13,6 +13,7 @@
   <property name="condition" location="condition"/>
 
   <fileset id="compile-dependencies" dir="${library}">
+    <include name="commons-codec-1.10.jar" />
     <include name="log4j-1.2.16.jar"/>
     <include name="servlet-api-3.0.jar"/>
     <include name="org.springframework.beans-3.1.1.RELEASE.jar" />
@@ -45,6 +46,7 @@
   </fileset>
 
   <fileset id="run-dependencies" dir="${library}">
+    <include name="commons-codec-1.10.jar" />
     <include name="log4j-1.2.16.jar"/>
     <include name="org.springframework.asm-3.1.1.RELEASE.jar" />
     <include name="org.springframework.beans-3.1.1.RELEASE.jar" />
@@ -125,7 +127,7 @@
       <classpath refid="compile-classpath"/>
     </javac>
   </target>
-    
+  
   <target name="javac-library" description="Compiles Java files to create the ohmage library.">
     <mkdir dir="${build}/classes"/>
     <javac destdir="${build}/classes" source="1.7" target="1.7"
