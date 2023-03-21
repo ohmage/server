@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
@@ -34,6 +35,8 @@ import org.ohmage.annotator.Annotator.ErrorCode;
 import org.ohmage.exception.DomainException;
 import org.ohmage.util.DateTimeUtils;
 
+import org.apache.log4j.Logger;
+
 /**
  * This class contains all of the information associated with a location
  * record.
@@ -41,6 +44,11 @@ import org.ohmage.util.DateTimeUtils;
  * @author John Jenkins
  */
 public class Location {
+	private static final Logger LOGGER = 
+	Logger.getLogger(Location.class);
+
+	Random rd = new Random();
+
 	/**
 	 * Column names for location information.
 	 * 
@@ -829,15 +837,25 @@ public class Location {
 		}
 			
 		if(columns.contains(LocationColumnKey.LATITUDE)) {
+			double factor = rd.nextGaussian() * 0.001; 
+			double latitudeLowPrecision = latitude + factor; 
+			if(latitude>89 || latitude<-89){
+				latitudeLowPrecision = latitude;
+			}
 			result.put(
 					LocationColumnKey.LATITUDE.toString(abbreviated),  
-					latitude);
+					latitudeLowPrecision);
 		}
 			
 		if(columns.contains(LocationColumnKey.LONGITUDE)) {
+			double factor = rd.nextGaussian() * 0.001; 
+			double longitudeLowPrecision = longitude + factor; 
+			if(latitude>179 || latitude<-179){
+				longitudeLowPrecision = longitude;
+			}
 			result.put(
 					LocationColumnKey.LONGITUDE.toString(abbreviated), 
-					longitude);
+					longitudeLowPrecision);
 		}
 			
 		if(columns.contains(LocationColumnKey.ACCURACY)) {
