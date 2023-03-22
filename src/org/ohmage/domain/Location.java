@@ -836,25 +836,29 @@ public class Location {
 					getTimeZone().getID());
 		}
 			
-		if(columns.contains(LocationColumnKey.LATITUDE)) {
-			double factor = rd.nextGaussian() * 0.001; 
-			double latitudeLowPrecision = latitude + factor; 
-			if(latitude>89 || latitude<-89){
+		if (columns.contains(LocationColumnKey.LATITUDE)) {
+			double latitudeLowPrecision = latitude;
+			double precision = 0.01; // 1 degree = 111 km, 0.01 degree = 1.11 km
+			latitudeLowPrecision = Math.floor(latitude / precision) * precision + precision / 2
+					+ rd.nextGaussian() * 0.001;
+			if (latitude > 89 || latitude < -89) {
 				latitudeLowPrecision = latitude;
 			}
 			result.put(
-					LocationColumnKey.LATITUDE.toString(abbreviated),  
+					LocationColumnKey.LATITUDE.toString(abbreviated),
 					latitudeLowPrecision);
 		}
-			
-		if(columns.contains(LocationColumnKey.LONGITUDE)) {
-			double factor = rd.nextGaussian() * 0.001; 
-			double longitudeLowPrecision = longitude + factor; 
-			if(latitude>179 || latitude<-179){
+
+		if (columns.contains(LocationColumnKey.LONGITUDE)) {
+			double longitudeLowPrecision = longitude;
+			double precision = 0.01; // 1 degree = 111 km, 0.01 degree = 1.11 km
+			longitudeLowPrecision = Math.floor(longitude / precision) * precision + precision / 2
+					+ rd.nextGaussian() * 0.001;
+			if (latitude > 179 || latitude < -179) {
 				longitudeLowPrecision = longitude;
 			}
 			result.put(
-					LocationColumnKey.LONGITUDE.toString(abbreviated), 
+					LocationColumnKey.LONGITUDE.toString(abbreviated),
 					longitudeLowPrecision);
 		}
 			
