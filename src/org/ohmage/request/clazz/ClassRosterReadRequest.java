@@ -171,7 +171,7 @@ public class ClassRosterReadRequest extends UserRequest {
 			// Set the type and force the browser to download it as the 
 			// last step before beginning to stream the response.
 			httpResponse.setContentType("ohmage/roster");
-			httpResponse.setHeader("Content-Disposition", "attachment; filename=roster.csv");
+			httpResponse.setHeader("Content-Disposition", "attachment; filename=\"roster.csv\"");
 			
 			// If available, set the token.
 			if(getUser() != null) {

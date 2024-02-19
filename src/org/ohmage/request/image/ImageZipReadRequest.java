@@ -106,7 +106,7 @@ public class ImageZipReadRequest extends SurveyResponseRequest {
 		// the header to indicate that this will be an attachment.
 		httpResponse.setHeader(
 				"Content-Disposition", 
-				"attachment; filename=images.zip");
+				"attachment; filename=\"images.zip\"");
 		
 		// Create the zip stream to the outside world.
 		ZipOutputStream zipStream = null;
