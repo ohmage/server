@@ -11,7 +11,7 @@ MYSQL_DATABASE=${MYSQL_DATABASE:-ohmage}
 MYSQL_USER=${MYSQL_USER:-ohmage}
 MYSQL_PASSWORD=${MYSQL_PASSWORD:-ohmage}
 FQDN=${FQDN:-$HOSTNAME}
-LOG_LEVEL=${LOG_LEVEL:-WARN}
+LOG_LEVEL=${LOG_LEVEL:-INFO}
 
 # cat out ohmage.conf
 echo "#
@@ -25,14 +25,25 @@ db.password=$MYSQL_PASSWORD
 # LOGGING
 #
 # The root logger 
-log4j.rootLogger=$LOG_LEVEL, stdout
+log4j.rootLogger=$LOG_LEVEL, stdout, logfile
 
+# Console appender
 log4j.appender.stdout = org.apache.log4j.ConsoleAppender
 log4j.appender.stdout.Threshold = $LOG_LEVEL
-log4j.appender.stdout.Target   = System.out
+log4j.appender.stdout.Target = System.out
 log4j.appender.stdout.layout = org.apache.log4j.PatternLayout
 log4j.appender.stdout.layout.ConversionPattern = %-5p %d [%t][%F:%L] : %m%n
  
+# File appender
+log4j.appender.logfile = org.apache.log4j.RollingFileAppender
+log4j.appender.logfile.File = logs/application.log
+log4j.appender.logfile.Threshold = $LOG_LEVEL
+log4j.appender.logfile.MaxFileSize = 100MB
+log4j.appender.logfile.MaxBackupIndex = 5
+log4j.appender.logfile.layout = org.apache.log4j.PatternLayout
+log4j.appender.logfile.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %c{1} - %m%n
+
+# Logger levels for specific packages
 log4j.logger.org.ohmage=$LOG_LEVEL
 log4j.logger.org.springframework=$LOG_LEVEL
 log4j.logger.org.ohmage.util.JsonUtils=$LOG_LEVEL
