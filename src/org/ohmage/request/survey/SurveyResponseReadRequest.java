@@ -1248,10 +1248,10 @@ public final class SurveyResponseReadRequest
 						// Mark it as an attachment.
 						httpResponse.setContentType("text/csv");
 						httpResponse.setHeader(
-								"Content-Disposition", 
-								"attachment; filename=" + 
-									getCampaign().getName() + 
-									".csv");
+								"Content-Disposition",
+								"attachment; filename=\"" +
+									getCampaign().getName() +
+									".csv\"");
 
 						StringBuilder resultBuilder = new StringBuilder();
 						

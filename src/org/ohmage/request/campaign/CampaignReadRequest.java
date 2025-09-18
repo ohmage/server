@@ -571,7 +571,7 @@ public class CampaignReadRequest extends UserRequest {
 				httpResponse
 					.setHeader(
 						"Content-Disposition",
-						"attachment; filename=" + campaign.getName() + ".xml");
+						"attachment; filename=\"" + campaign.getName() + ".xml\"");
 				
 				try {
 					responseText = campaign.getXml();

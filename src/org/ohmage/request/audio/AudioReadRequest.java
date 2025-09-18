@@ -148,7 +148,7 @@ public class AudioReadRequest extends UserRequest {
 				
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + audio.getFileName());
+					"attachment; filename=\"" + audio.getFileName() + "\"");
 				httpResponse.setHeader(
 					"Content-Length", 
 					new Long(audio.getFileSize()).toString());

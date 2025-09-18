@@ -136,7 +136,7 @@ public class VideoReadRequest extends UserRequest {
 				
 				httpResponse.setHeader(
 					"Content-Disposition", 
-					"attachment; filename=" + video.getFileName());
+					"attachment; filename=\"" + video.getFileName() + "\"");
 				httpResponse.setHeader(
 					"Content-Length", 
 					new Long(video.getFileSize()).toString());
